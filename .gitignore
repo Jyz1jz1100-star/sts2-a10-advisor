@@ -1,0 +1,28 @@
+# runtime working files
+runtime/
+# quarantined third-party mod binaries (reinstall from Steam Workshop)
+disabled_mods/
+.tools/
+.cache/
+.venv/
+checkpoints/*
+!checkpoints/.gitkeep
+runs/*
+!runs/.gitkeep
+models/*
+!models/.gitkeep
+data/local/
+*.pyc
+__pycache__/
+*.log
+
+# fetched dataset (re-fetch with data/fetch_data.py; do not redistribute game data)
+data/cards.json
+data/relics.json
+data/version.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/

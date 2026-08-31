@@ -1,0 +1,9 @@
+# StS2 Advisor — Python dependencies
+# Tested on Python 3.11+ (Windows)
+
+requests>=2.31,<3   # HTTP client for the STS2MCP bridge
+PyYAML>=6.0,<7      # config.yaml parsing
+
+# Overlay uses tkinter, which ships with the standard CPython Windows installer.
+# If you installed Python without tcl/tk, re-run the installer and enable
+# "tcl/tk and IDLE". No pip package is needed for the overlay.

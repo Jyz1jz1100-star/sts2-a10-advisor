@@ -1,0 +1,129 @@
+# =============================================================================
+# StS2 Advisor — configuration knobs
+# Edit freely; the bridge reloads this file on startup.
+# =============================================================================
+
+bridge:
+  # STS2MCP exposes its REST API here. Port is set in STS2_MCP.conf in the mod
+  # folder (default 15526). The advisor ONLY issues GET reads — never POST.
+  base_url: "http://127.0.0.1:15526"
+  state_path: "/api/v1/singleplayer"   # GET ?format=json -> {state_type, run, player}
+  health_path: "/"                     # GET -> {"status":"ok", ...}
+  poll_interval_s: 0.3                 # how often to read state while idle (faster = snappier detection)
+  request_timeout_s: 4.0
+  # If the bridge is unreachable, how long to back off before retrying (seconds).
+  reconnect_backoff_s: 3.0
+
+debounce:
+  # A decision screen must remain stable (same signature) for this long before
+  # we fire the model. Prevents firing on transient/animating frames. Lower =
+  # snappier; too low can fire mid-animation. ~0.5s is a good floor.
+  settle_s: 0.5
+
+model:
+  # CLI alias strings passed to `claude --model`.
+  default: "sonnet"
+  # Per-screen overrides. Keys are the normalized screen kinds emitted by
+  # screens.py (see bridge/screens.py SCREEN_KINDS). High-stakes screens get Opus.
+  # Sonnet is the workhorse (fast + strong). Opus only for the most run-defining
+  # screens, to keep latency down. Bump any of these to "opus" if you want more
+  # deliberation on that screen (at the cost of speed).
+  per_screen:
+    card_reward:   "sonnet"
+    map:           "sonnet"
+    rest_site:     "sonnet"
+    event:         "sonnet"      # most events are routine; relic-granting ones still grounded
+    ancient:       "opus"        # Ancient encounters = run-long Blessings — run-defining
+    shop:          "sonnet"
+    card_select:   "sonnet"      # routine removes/upgrades
+    boss_card_select: "opus"     # large/important transform grids
+    relic_select:  "opus"        # boss relics — run-defining
+  # Disable extended thinking for latency. See model_client.py for how this is
+  # applied (env var + flags). 0 = off.
+  thinking_budget_tokens: 0
+  # Recycle the warm CLI session after this many turns (bounds context growth
+  # over a long run. NOTE: each recycle pays a ~10s cold startup, while warm calls
+  # stay ~4-5s and barely grow, so recycle infrequently. Also recycled on new run.
+  recycle_after_turns: 40
+  # Hard cap on a single advice response; keeps output terse.
+  max_output_tokens: 600
+
+  # --- CLI invocation (config-driven so you can tune without code edits) ------
+  # Two facts about the Claude Code CLI are version-dependent and worth
+  # validating on YOUR machine before trusting them:
+  #   1. Whether `--input-format stream-json` keeps ONE process alive across
+  #      multiple turns (warm session). If it doesn't, we fall back to spawning
+  #      a fresh process per call (still works, just pays startup each time).
+  #   2. The exact stdin user-message JSON shape.
+  # Run `python -m bridge.model_client --selftest` to check both.
+  cli:
+    executable: "claude"
+    # Try to keep one warm process per model. If the first turn works but a
+    # second turn fails, the client auto-falls back to one-shot mode.
+    warm_session: true
+    # Flags common to every invocation. Tools are hard-disabled so the model
+    # can only emit text (it must never touch the filesystem or the game).
+    base_flags:
+      - "-p"
+      - "--output-format"
+      - "stream-json"
+      - "--verbose"
+      - "--disallowed-tools"
+      - "*"
+    # Extra flags used ONLY for the warm (multi-turn) path.
+    warm_flags:
+      - "--input-format"
+      - "stream-json"
+    # How to attach our strategist persona. "append" = --append-system-prompt
+    # (keeps default behavior, safest); "replace" = --system-prompt (leaner,
+    # faster, recommended once you've confirmed it works).
+    system_prompt_mode: "append"
+    # stdin user-message JSON shape. "sdk" = {"type":"user","message":{"role":
+    # "user","content":"..."}} (Agent SDK canonical); "simple" =
+    # {"type":"user","message":"..."}. Switch if --selftest fails on one.
+    input_message_format: "sdk"
+    # Environment overrides applied to the CLI subprocess.
+    env:
+      MAX_THINKING_TOKENS: "0"      # disable extended thinking for latency
+    # Seconds to wait for a single advice response before giving up.
+    response_timeout_s: 45.0
+
+paths:
+  data_dir: "data"                     # cards.json / relics.json live here
+  prompts_dir: "prompts"
+  runtime_dir: "runtime"               # working files (gitignored)
+  thesis_file: "runtime/thesis.json"
+  advice_file: "runtime/latest_advice.txt"
+  heartbeat_file: "runtime/heartbeat"
+  log_file: "runtime/advisor.log"
+
+overlay:
+  poll_interval_s: 0.4                 # how often the overlay re-reads advice
+  # If the heartbeat file is older than this, the bridge is considered down and
+  # the overlay hides/closes itself.
+  heartbeat_stale_s: 5.0
+  width: 460
+  height: 320
+  opacity: 0.92
+  font_family: "Consolas"
+  font_size: 11
+  # Window position (pixels from top-left of primary monitor). null = auto.
+  x: null
+  y: null
+
+autostart:
+  # The supervisor (autostart/supervisor.py) runs at login and launches the
+  # bridge + overlay when StS2 is detected, tearing them down when it closes.
+  # Detection = the STS2MCP health endpoint (bridge.base_url + bridge.health_path);
+  # it only answers while the game is running with the mod loaded.
+  check_interval_s: 0.5      # how often to check whether the game/bridge is up
+  grace_misses: 1            # consecutive failed checks before teardown (~0.5s)
+  mutex_port: 15580          # loopback port used as a single-instance lock
+
+dev:
+  # When true, the bridge reads data/sample_state.json instead of the live
+  # bridge — lets you test the whole pipeline without the game running.
+  use_sample_state: false
+  sample_state_file: "data/sample_state.json"
+  # Log the full prompt sent to the model (verbose).
+  log_prompts: false

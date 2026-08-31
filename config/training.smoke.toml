@@ -1,0 +1,55 @@
+[target]
+character = "IRONCLAD"
+ascension = 10
+save_load = false
+game_branch = "test-only"
+
+[runtime]
+emulator_root = "../third_party/slay-the-spire-2-emulator-main"
+run_dir = "runs/curriculum-smoke"
+
+[algorithm]
+device = "cpu"
+n_steps = 64
+batch_size = 64
+n_epochs = 1
+gamma = 0.99
+learning_rate = 0.0003
+entropy_coefficient = 0.01
+
+[curriculum]
+stages = ["combat"]
+
+[seeds.train]
+start = 50000000
+count = 1000
+
+[seeds.checkpoint]
+start = 50002000
+count = 10
+
+[seeds.promotion]
+start = 50003000
+count = 10
+
+[seeds.final]
+start = 50004000
+count = 10
+
+[stages.combat]
+environment = "combat"
+timesteps = 256
+parallel_envs = 2
+checkpoint_every_steps = 128
+checkpoint_eval_episodes = 2
+promotion_eval_episodes = 2
+max_episode_steps = 50
+initialize_from_previous = false
+experimental = false
+
+[stages.combat.promotion]
+min_episodes = 2
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 1.0
+max_illegal_actions = 0

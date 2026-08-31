@@ -1,0 +1,120 @@
+[target]
+character = "IRONCLAD"
+ascension = 10
+save_load = false
+game_branch = "main"
+minimum_final_games = 500
+preferred_final_games = 1000
+target_win_rate = 0.50
+
+[runtime]
+emulator_root = "../third_party/slay-the-spire-2-emulator-main"
+run_dir = "runs/curriculum"
+
+[algorithm]
+name = "MaskablePPO"
+device = "auto"
+n_steps = 2048
+batch_size = 256
+n_epochs = 8
+gamma = 0.995
+learning_rate = 0.0003
+entropy_coefficient = 0.01
+
+[curriculum]
+stages = ["combat", "act1", "full_run"]
+
+# These ranges are deliberately disjoint. Training workers receive non-overlapping
+# shards of the train range; checkpoint, promotion, and final seeds are never sampled
+# during optimization. The final range is reserved and the trainer never reads it.
+[seeds.train]
+start = 0
+count = 10000000
+
+[seeds.checkpoint]
+start = 20000000
+count = 10000
+
+[seeds.promotion]
+start = 30000000
+count = 10000
+
+[seeds.final]
+start = 40000000
+count = 10000
+
+[stages.combat]
+environment = "combat"
+timesteps = 20000000
+parallel_envs = 12
+checkpoint_every_steps = 500000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 80
+initialize_from_previous = false
+experimental = false
+
+[stages.combat.promotion]
+min_episodes = 500
+min_win_rate = 0.80
+min_wilson_lower = 0.76
+max_truncation_rate = 0.01
+max_illegal_actions = 0
+
+[stages.act1]
+environment = "run"
+timesteps = 100000000
+parallel_envs = 12
+checkpoint_every_steps = 2000000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 1200
+max_floors = 16
+# Combat and run observations/actions differ in the current emulator, so loading the
+# combat checkpoint into this stage is unsafe. Search/BC distillation is the future
+# transfer route; the MaskablePPO baseline starts a new run policy here.
+initialize_from_previous = false
+experimental = false
+
+[stages.act1.promotion]
+min_episodes = 500
+min_win_rate = 0.35
+min_wilson_lower = 0.31
+min_mean_floor = 10.0
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+
+[stages.full_run]
+environment = "run"
+timesteps = 500000000
+parallel_envs = 12
+checkpoint_every_steps = 5000000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 1000
+max_episode_steps = 5000
+max_floors = 49
+initialize_from_previous = true
+# The checked-in Zamiell simulator currently documents a simplified full-run wrapper
+# and has not demonstrated exact multi-Act A10 parity. This stage is opt-in and its
+# metrics remain simulator_full_run, never real_game_a10.
+experimental = true
+
+[stages.full_run.promotion]
+min_episodes = 1000
+min_win_rate = 0.20
+min_wilson_lower = 0.18
+min_mean_floor = 30.0
+max_truncation_rate = 0.05
+max_illegal_actions = 0
+
+[search]
+ordinary_nodes = 256
+complex_nodes = 2048
+belief_particles = 32
+ordinary_latency_p95_seconds = 2.0
+complex_latency_p95_seconds = 8.0
+
+[evaluation]
+development_fixed_seeds = 200
+report_wilson_95 = true
+separate_simulator_and_real_game = true

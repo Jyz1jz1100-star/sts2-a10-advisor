@@ -1,0 +1,30 @@
+{
+  "_comment": "Representative STS2MCP /api/v1/singleplayer response for offline testing, matching the LIVE shape: run carries only act/floor/ascension; character/hp/gold/relics/potions live under player. Set dev.use_sample_state: true to use this.",
+  "state_type": "card_reward",
+  "run": { "act": 1, "floor": 6, "ascension": 0 },
+  "player": {
+    "character": "The Ironclad",
+    "hp": 68,
+    "max_hp": 80,
+    "block": 0,
+    "gold": 99,
+    "status": [],
+    "max_potion_slots": 2,
+    "relics": [
+      { "id": "BURNING_BLOOD", "name": "Burning Blood", "description": "At the end of combat, heal 6 HP.", "counter": null, "keywords": [] },
+      { "id": "VAJRA", "name": "Vajra", "description": "Start each combat with 1 Strength.", "counter": null, "keywords": [{ "name": "Strength", "description": "Increases attack damage by its value per hit." }] }
+    ],
+    "potions": [
+      { "id": "BLOOD_POTION", "name": "Blood Potion", "description": "Heal for 10% of your Max HP." },
+      { "id": null, "name": "Empty" }
+    ]
+  },
+  "card_reward": {
+    "can_skip": true,
+    "cards": [
+      { "index": 0, "id": "POMMEL_STRIKE", "name": "Pommel Strike", "is_upgraded": false, "cost": "1", "type": "Attack", "rarity": "Common", "description": "Deal 9 damage. Draw 1 card.", "keywords": [] },
+      { "index": 1, "id": "SHRUG_IT_OFF", "name": "Shrug It Off", "is_upgraded": false, "cost": "1", "type": "Skill", "rarity": "Common", "description": "Gain 8 Block. Draw 1 card.", "keywords": [] },
+      { "index": 2, "id": "INFLAME", "name": "Inflame", "is_upgraded": false, "cost": "1", "type": "Power", "rarity": "Uncommon", "description": "Gain 2 Strength.", "keywords": [{ "name": "Strength", "description": "Increases attack damage by its value per hit." }] }
+    ]
+  }
+}

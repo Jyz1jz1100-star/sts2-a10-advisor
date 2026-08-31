@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "game": {
+    "app_id": "2868840",
+    "steam_build_id": "24724944",
+    "version": "v0.111.0",
+    "commit": "41cef1ea",
+    "branch": "public-beta",
+    "main_assembly_hash": 222455745,
+    "release_info_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\release_info.json",
+    "steam_manifest_path": "G:\\SteamLibrary\\steamapps\\appmanifest_2868840.acf"
+  },
+  "bridge": {
+    "name": "STS2MCP",
+    "version": "0.4.0",
+    "dll_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
+    "dll_sha256": "095EE091F6D20D17FC0FC09AF53B46DE092F95B29FB970FF0D8714D14CC5B124",
+    "manifest_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.json",
+    "manifest_sha256": "F64EE11EBFA9F3CC9DFA89D99FA6125C594E3DE4A46AC5E1776327F7A80AA3C9",
+    "base_url": "http://127.0.0.1:15526",
+    "health_path": "/",
+    "singleplayer_path": "/api/v1/singleplayer",
+    "compendium_path": "/api/v1/compendium"
+  },
+  "evaluation_environment": {
+    "allowed_mod_ids": ["STS2_MCP"],
+    "live_mod_roots": [
+      "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods",
+      "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840"
+    ],
+    "disabled_mods_backup_dir": "G:\\ds harness\\sts2-a10-advisor\\disabled_mods",
+    "contaminated_run_policy": "exclude_from_training_and_evaluation"
+  }
+}

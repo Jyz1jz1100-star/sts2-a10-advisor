@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/sts2-a10-advisor/trace_record.schema.json",
+  "title": "STS2 A10 decision trace record",
+  "type": "object",
+  "required": [
+    "trace_version",
+    "run_id",
+    "decision_id",
+    "step",
+    "split",
+    "build",
+    "seed",
+    "character",
+    "ascension",
+    "save_load_used",
+    "visible_state",
+    "legal_actions",
+    "chosen_action",
+    "result"
+  ],
+  "properties": {
+    "trace_version": {"const": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "decision_id": {"type": "string", "minLength": 1},
+    "step": {"type": "integer", "minimum": 0},
+    "split": {"enum": ["train", "validation", "test"]},
+    "build": {"type": "string", "minLength": 1},
+    "seed": {
+      "oneOf": [
+        {"type": "string", "minLength": 1},
+        {"type": "integer"}
+      ]
+    },
+    "character": {"type": "string", "minLength": 1},
+    "ascension": {"type": "integer", "minimum": 0},
+    "save_load_used": {"type": "boolean"},
+    "visible_state": {"type": "object", "minProperties": 1},
+    "legal_actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/action"}
+    },
+    "chosen_action": {"$ref": "#/$defs/action"},
+    "result": {
+      "type": "object",
+      "required": ["status", "observed"],
+      "properties": {
+        "status": {"enum": ["applied", "rejected", "terminal", "error"]},
+        "observed": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "action": {
+      "type": "object",
+      "required": ["action_id", "action_type"],
+      "properties": {
+        "action_id": {"type": "string", "minLength": 1},
+        "action_type": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+

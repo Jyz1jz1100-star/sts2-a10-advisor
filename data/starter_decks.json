@@ -1,0 +1,20 @@
+{
+  "_comment": "Best-effort starter decks, used ONLY to seed the deck tracker BEFORE the first combat of a run. As soon as the advisor observes a combat it overwrites this with the real deck read from the game's piles, so any inaccuracy here self-corrects within the first fight. StS2 is in beta — edit these if a starter deck changes. Characters not listed here simply stay deck-blind until the first combat snapshot. Keys are the lowercased character name with a leading 'The ' stripped.",
+  "ironclad": [
+    { "name": "Strike", "count": 5 },
+    { "name": "Defend", "count": 4 },
+    { "name": "Bash", "count": 1 }
+  ],
+  "silent": [
+    { "name": "Strike", "count": 5 },
+    { "name": "Defend", "count": 5 },
+    { "name": "Survivor", "count": 1 },
+    { "name": "Neutralize", "count": 1 }
+  ],
+  "defect": [
+    { "name": "Strike", "count": 4 },
+    { "name": "Defend", "count": 4 },
+    { "name": "Zap", "count": 1 },
+    { "name": "Dualcast", "count": 1 }
+  ]
+}
