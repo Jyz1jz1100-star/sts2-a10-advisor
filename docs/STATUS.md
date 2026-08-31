@@ -30,6 +30,14 @@ Date: 2026-08-31 (handoff update, late session)
   the ≤0.03 promotion cap is currently blocked by the emulator, not the
   policy. Training rollouts receive −1/step pressure at these states, so the
   policy may learn alternatives — recheck this ratio at the 10M probe.
+- **4M checkpoint metrics** (05:51): win 0.030 (3/100; vs 0.050 at 2M — noise
+  band, Wilson intervals overlap), mean floor **7.71 ↑** (from 7.24), mean
+  episode 122 steps ↓, truncation **0.030 ↓** (exactly at the ≤0.03 cap; the
+  event-phase native loops dropped from 4 to ~2 episodes — the −1/step
+  pressure is teaching avoidance), illegal_actions still 1 (the NODE_SHOP
+  empty-mask episode at seed 20000039 is unavoidable *once entered*: every
+  action is illegal there, so only route-learning away from that node can
+  clear it — watch whether later checkpoints drop it).
 - **Cross-process replay determinism flag**: the fresh-process replay of the
   same checkpoint+seeds reproduced the 5 truncations exactly but showed
   0 wins / 95 deaths where the in-training evaluation recorded 5 wins.
