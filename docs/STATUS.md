@@ -83,6 +83,22 @@ Date: 2026-08-31 (handoff update, late session)
 - no checkpoint has passed A0, A5 or A10 full-run gates;
 - the requested 50% real-game win rate has not been achieved or claimed.
 
+## Monitoring notes (unattended watch, 2026-09-01 early morning)
+
+- act1 run `20260831T163117Z` healthy: 0→2M training steps in 27.5 min
+  (~1212 steps/s). First checkpoint `step_000002000004.zip` saved at
+  00:58:47; its 100-episode checkpoint evaluation was still running at
+  02:00 (≥61 min, single-threaded ~0.95 core + GPU 40%, heartbeat normal).
+- Structural cost: act1 episodes cap at 1200 steps and early policies appear
+  to be truncation-heavy, so checkpoint evaluation is an order of magnitude
+  slower than the combat stage's. The first checkpoint evaluation's wall time
+  will be used to re-plan: if it exceeds ~2h, the 500-episode promotion
+  probe (every 10M steps) would dominate the run and stage/eval intervals
+  must be retuned for the next launch (evaluation cost, not a training
+  defect; no data has been invalidated).
+- Watchers: managed job `pwsh-9` holds the run; `pwsh-13` fires on first
+  metrics JSON with a 4h window.
+
 ## Immediate next gates
 
 1. Start the game, then run `bridge.trace_controller start-ironclad-a10` and a
