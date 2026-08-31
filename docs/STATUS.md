@@ -87,17 +87,22 @@ Date: 2026-08-31 (handoff update, late session)
 
 - act1 run `20260831T163117Z` healthy: 0→2M training steps in 27.5 min
   (~1212 steps/s). First checkpoint `step_000002000004.zip` saved at
-  00:58:47; its 100-episode checkpoint evaluation was still running at
-  02:05 (~67 min elapsed, single-threaded ~0.96 core, heartbeat normal).
-- Measured cost model (update when the first evaluation lands): 50
-  checkpoint cycles × (27.5 min train + ~70 min eval) ≈ 81 h, plus ten
-  500-episode promotion probes (every 10M steps) ≈ +58 h ⇒ worst-case
-  wall clock ~6 days unless a probe promotes early (designed stop).
-  This is a scheduling fact, not a training defect; no data invalidated.
-- For the next launch, retune candidates (not applied to the live run):
-  `checkpoint_every_steps = 5M` and/or `checkpoint_eval_episodes = 50` for
-  act1, and skipping the checkpoint evaluation on steps where the promotion
-  probe already runs (the probe is a strict superset in seed budget).
+  00:58:47; its 100-episode evaluation was still running at 02:52 (~113 min,
+  worker at ~0.95 core; heartbeat normal).
+- Bottleneck measured (scripts/eval_microbenchmark.py): the native run
+  environment itself is fast (random policy ≈ 135 steps/episode, ~2600
+  steps/s including action masks and `info()`). The evaluation loop is
+  therefore dominated by per-step single-sample `model.predict`
+  (~55 ms/step at batch 1 GPU, vs vectorized batch-12 during training).
+  Implication for the next launch: evaluate with a CPU-device copy of the
+  checkpoint (tiny MLP beats GPU launch latency at batch 1) or vectorize
+  the evaluation envs; both are expected to make the 100-episode eval
+  ~10x cheaper. Recorded retune candidates additionally:
+  `checkpoint_every_steps = 5M`, `checkpoint_eval_episodes = 50`, skip the
+  checkpoint eval on promotion-probe steps. Not applied to the live run.
+- The live evaluation's first `mean_steps` number will show how truncation-
+  heavy the 2M policy is (113 min at ~55 ms/step implies near-cap episode
+  lengths across most episodes).
 - Watchers: managed job `pwsh-9` holds the run; `pwsh-13` fires on first
   metrics JSON with a 4h window.
 
