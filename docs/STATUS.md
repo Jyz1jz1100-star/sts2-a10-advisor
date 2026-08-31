@@ -88,14 +88,16 @@ Date: 2026-08-31 (handoff update, late session)
 - act1 run `20260831T163117Z` healthy: 0→2M training steps in 27.5 min
   (~1212 steps/s). First checkpoint `step_000002000004.zip` saved at
   00:58:47; its 100-episode checkpoint evaluation was still running at
-  02:00 (≥61 min, single-threaded ~0.95 core + GPU 40%, heartbeat normal).
-- Structural cost: act1 episodes cap at 1200 steps and early policies appear
-  to be truncation-heavy, so checkpoint evaluation is an order of magnitude
-  slower than the combat stage's. The first checkpoint evaluation's wall time
-  will be used to re-plan: if it exceeds ~2h, the 500-episode promotion
-  probe (every 10M steps) would dominate the run and stage/eval intervals
-  must be retuned for the next launch (evaluation cost, not a training
-  defect; no data has been invalidated).
+  02:05 (~67 min elapsed, single-threaded ~0.96 core, heartbeat normal).
+- Measured cost model (update when the first evaluation lands): 50
+  checkpoint cycles × (27.5 min train + ~70 min eval) ≈ 81 h, plus ten
+  500-episode promotion probes (every 10M steps) ≈ +58 h ⇒ worst-case
+  wall clock ~6 days unless a probe promotes early (designed stop).
+  This is a scheduling fact, not a training defect; no data invalidated.
+- For the next launch, retune candidates (not applied to the live run):
+  `checkpoint_every_steps = 5M` and/or `checkpoint_eval_episodes = 50` for
+  act1, and skipping the checkpoint evaluation on steps where the promotion
+  probe already runs (the probe is a strict superset in seed budget).
 - Watchers: managed job `pwsh-9` holds the run; `pwsh-13` fires on first
   metrics JSON with a 4h window.
 
