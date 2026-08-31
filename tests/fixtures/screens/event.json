@@ -1,0 +1,76 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": true,
+  "screen": "event",
+  "source": "runs/live_traces/clean-a10-neow-scissors-heuristic.jsonl",
+  "state": {
+    "event": {
+      "body": null,
+      "event_id": "NEOW",
+      "event_name": "涅奥",
+      "in_dialogue": false,
+      "is_ancient": true,
+      "options": [
+        {
+          "description": "每3场普通战斗，随机升级你牌组中的一张牌。",
+          "index": 0,
+          "is_locked": false,
+          "is_proceed": false,
+          "keywords": [],
+          "relic_description": "每3场普通战斗，随机升级你牌组中的一张牌。",
+          "relic_name": "钓鱼竿",
+          "title": "钓鱼竿",
+          "was_chosen": false
+        },
+        {
+          "description": "从你的牌组中移除1张牌。",
+          "index": 1,
+          "is_locked": false,
+          "is_proceed": false,
+          "keywords": [],
+          "relic_description": "拾起时，从你的牌组中移除1张牌。",
+          "relic_name": "精准剪刀",
+          "title": "精准剪刀",
+          "was_chosen": false
+        },
+        {
+          "description": "你遇到的前3次卡牌奖励将是被升级过的。你打开的第一个宝箱将是空的",
+          "index": 2,
+          "is_locked": false,
+          "is_proceed": false,
+          "keywords": [],
+          "relic_description": "你遇到的前3次卡牌奖励将是被升级过的。你打开的第一个宝箱将是空的",
+          "relic_name": "白银熔炉",
+          "title": "白银熔炉",
+          "was_chosen": false
+        }
+      ]
+    },
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "gold": 99,
+      "hp": 64,
+      "max_hp": 80,
+      "max_potion_slots": 2,
+      "potions": [],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时，回复6点生命。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 1
+    },
+    "state_type": "event"
+  }
+}

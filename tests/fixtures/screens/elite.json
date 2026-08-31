@@ -1,0 +1,121 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": false,
+  "screen": "elite",
+  "source": "docs/raw-full.md (STS2MCP v0.4.0 protocol)",
+  "state": {
+    "battle": {
+      "enemies": [
+        {
+          "block": 0,
+          "combat_id": 1,
+          "entity_id": "CULTIST_0",
+          "hp": 44,
+          "intents": [
+            {
+              "description": "造成12点伤害。",
+              "label": "12",
+              "title": "攻击",
+              "type": "Attack"
+            }
+          ],
+          "max_hp": 48,
+          "name": "拜教者",
+          "status": []
+        }
+      ],
+      "is_play_phase": true,
+      "round": 2,
+      "turn": "player"
+    },
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "discard_pile": [],
+      "discard_pile_count": 0,
+      "draw_pile": [
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 0,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 1,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "防御",
+          "star_cost": null,
+          "type": "Skill"
+        }
+      ],
+      "draw_pile_count": 2,
+      "energy": 2,
+      "exhaust_pile": [],
+      "exhaust_pile_count": 0,
+      "gold": 75,
+      "hand": [
+        {
+          "can_play": true,
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 0,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "AnyEnemy",
+          "type": "Attack",
+          "unplayable_reason": null
+        },
+        {
+          "can_play": true,
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 1,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "Self",
+          "type": "Attack",
+          "unplayable_reason": null
+        }
+      ],
+      "hp": 72,
+      "max_energy": 3,
+      "max_hp": 80,
+      "max_potion_slots": 3,
+      "potions": [],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时获得6点防御。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 8
+    },
+    "state_type": "elite"
+  }
+}

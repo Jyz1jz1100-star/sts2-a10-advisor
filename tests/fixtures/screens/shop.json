@@ -1,0 +1,86 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": false,
+  "screen": "shop",
+  "source": "docs/raw-full.md (STS2MCP v0.4.0 protocol)",
+  "state": {
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "discard_pile": [],
+      "discard_pile_count": 0,
+      "draw_pile": [],
+      "draw_pile_count": 4,
+      "energy": 3,
+      "exhaust_pile": [],
+      "exhaust_pile_count": 0,
+      "gold": 120,
+      "hand": [],
+      "hp": 72,
+      "max_energy": 3,
+      "max_hp": 80,
+      "max_potion_slots": 3,
+      "potions": [],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时获得6点防御。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 5
+    },
+    "shop": {
+      "can_proceed": true,
+      "items": [
+        {
+          "can_afford": true,
+          "card_cost": "1",
+          "card_id": "OFFERING",
+          "card_name": "献祭",
+          "card_rarity": "Rare",
+          "card_type": "Skill",
+          "category": "card",
+          "index": 0,
+          "is_stocked": true,
+          "on_sale": false,
+          "price": 75
+        },
+        {
+          "can_afford": false,
+          "category": "relic",
+          "index": 5,
+          "is_stocked": true,
+          "price": 150,
+          "relic_id": "VAJRA",
+          "relic_name": "金刚杵"
+        },
+        {
+          "can_afford": true,
+          "category": "potion",
+          "index": 8,
+          "is_stocked": true,
+          "potion_id": "FIRE_POTION",
+          "potion_name": "火焰药水",
+          "price": 50
+        },
+        {
+          "can_afford": true,
+          "category": "card_removal",
+          "index": 10,
+          "is_stocked": false,
+          "price": 75
+        }
+      ]
+    },
+    "state_type": "shop"
+  }
+}

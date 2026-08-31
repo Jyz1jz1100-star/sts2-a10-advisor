@@ -1,0 +1,19 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": true,
+  "screen": "menu_main",
+  "source": "runs/live_traces/clean-ironclad-a10-bootstrap.jsonl",
+  "state": {
+    "menu_screen": "main",
+    "message": "Main menu.",
+    "options": [
+      "singleplayer",
+      "multiplayer",
+      "compendium",
+      "timeline",
+      "settings",
+      "quit"
+    ],
+    "state_type": "menu"
+  }
+}

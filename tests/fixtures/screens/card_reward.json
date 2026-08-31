@@ -1,0 +1,72 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": false,
+  "screen": "card_reward",
+  "source": "docs/raw-full.md (STS2MCP v0.4.0 protocol)",
+  "state": {
+    "card_reward": {
+      "can_skip": true,
+      "cards": [
+        {
+          "cost": "1",
+          "description": "造成13点伤害。施加1虚弱。施加1易伤。",
+          "id": "UPPERCUT",
+          "index": 0,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "上勾拳",
+          "rarity": "Uncommon",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "IRON_WIND",
+          "index": 1,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "铁风",
+          "rarity": "Rare",
+          "star_cost": null,
+          "type": "Attack"
+        }
+      ]
+    },
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "discard_pile": [],
+      "discard_pile_count": 0,
+      "draw_pile": [],
+      "draw_pile_count": 4,
+      "energy": 3,
+      "exhaust_pile": [],
+      "exhaust_pile_count": 0,
+      "gold": 75,
+      "hand": [],
+      "hp": 72,
+      "max_energy": 3,
+      "max_hp": 80,
+      "max_potion_slots": 3,
+      "potions": [],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时获得6点防御。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 5
+    },
+    "state_type": "card_reward"
+  }
+}

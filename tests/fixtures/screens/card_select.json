@@ -1,0 +1,195 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": true,
+  "screen": "card_select",
+  "source": "runs/live_traces/clean-a10-remove-strike-heuristic.jsonl",
+  "state": {
+    "card_select": {
+      "can_cancel": false,
+      "can_confirm": false,
+      "cards": [
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 0,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 1,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 2,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 3,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 4,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Attack"
+        },
+        {
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 5,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Skill"
+        },
+        {
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 6,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Skill"
+        },
+        {
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 7,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Skill"
+        },
+        {
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 8,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Skill"
+        },
+        {
+          "cost": "2",
+          "description": "造成8点伤害。 给予2层易伤。",
+          "id": "BASH",
+          "index": 9,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "易伤的生物从攻击中受到的伤害增加50%。",
+              "name": "易伤"
+            }
+          ],
+          "name": "痛击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "type": "Attack"
+        }
+      ],
+      "preview_showing": false,
+      "prompt": "选择1张牌来移除。",
+      "screen_type": "select"
+    },
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "gold": 99,
+      "hp": 64,
+      "max_hp": 80,
+      "max_potion_slots": 2,
+      "potions": [],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时，回复6点生命。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        },
+        {
+          "counter": null,
+          "description": "拾起时，从你的牌组中移除1张牌。",
+          "id": "PRECISE_SCISSORS",
+          "keywords": [],
+          "name": "精准剪刀"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 1
+    },
+    "state_type": "card_select"
+  }
+}

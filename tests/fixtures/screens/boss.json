@@ -1,0 +1,97 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": false,
+  "screen": "boss",
+  "source": "docs/raw-full.md (STS2MCP v0.4.0 protocol)",
+  "state": {
+    "battle": {
+      "enemies": [
+        {
+          "block": 8,
+          "combat_id": 1,
+          "entity_id": "BOSS_0",
+          "hp": 120,
+          "intents": [
+            {
+              "description": "造成2次13点伤害。",
+              "label": "2x13",
+              "title": "攻击",
+              "type": "Attack"
+            }
+          ],
+          "max_hp": 250,
+          "name": "首脑",
+          "status": [
+            {
+              "id": "STRENGTH",
+              "name": "力量",
+              "stacks": 2
+            }
+          ]
+        }
+      ],
+      "is_play_phase": true,
+      "round": 3,
+      "turn": "player"
+    },
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "discard_pile": [],
+      "discard_pile_count": 0,
+      "draw_pile": [],
+      "draw_pile_count": 4,
+      "energy": 3,
+      "exhaust_pile": [],
+      "exhaust_pile_count": 0,
+      "gold": 75,
+      "hand": [
+        {
+          "can_play": true,
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "id": "STRIKE_IRONCLAD",
+          "index": 0,
+          "is_upgraded": false,
+          "keywords": [],
+          "name": "打击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "AnyEnemy",
+          "type": "Attack",
+          "unplayable_reason": null
+        }
+      ],
+      "hp": 41,
+      "max_energy": 3,
+      "max_hp": 80,
+      "max_potion_slots": 3,
+      "potions": [
+        {
+          "can_use": true,
+          "id": "FIRE_POTION",
+          "name": "火焰药水",
+          "slot": 0,
+          "target_type": "AnyEnemy"
+        }
+      ],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时获得6点防御。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 16
+    },
+    "state_type": "boss"
+  }
+}

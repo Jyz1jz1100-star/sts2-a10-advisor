@@ -1,0 +1,235 @@
+{
+  "build": "public-beta-v0.111.0",
+  "captured": true,
+  "screen": "monster",
+  "source": "runs/live_traces/clean-a10-combat-bash-heuristic.jsonl",
+  "state": {
+    "battle": {
+      "enemies": [
+        {
+          "block": 0,
+          "combat_id": 1,
+          "entity_id": "TOADPOLE_0",
+          "hp": 22,
+          "intents": [
+            {
+              "description": "这个敌人将要使用一个强化效果。",
+              "label": "",
+              "title": "强化",
+              "type": "Buff"
+            }
+          ],
+          "max_hp": 22,
+          "name": "蟾蜍蝌蚪",
+          "status": []
+        },
+        {
+          "block": 0,
+          "combat_id": 2,
+          "entity_id": "TOADPOLE_1",
+          "hp": 23,
+          "intents": [
+            {
+              "description": "这个敌人将要攻击造成8点伤害。",
+              "label": "8",
+              "title": "攻势",
+              "type": "Attack"
+            }
+          ],
+          "max_hp": 23,
+          "name": "蟾蜍蝌蚪",
+          "status": []
+        }
+      ],
+      "is_play_phase": true,
+      "round": 1,
+      "turn": "player"
+    },
+    "player": {
+      "block": 0,
+      "character": "铁甲战士",
+      "character_id": "IRONCLAD",
+      "discard_pile": [],
+      "discard_pile_count": 0,
+      "draw_pile": [
+        {
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "name": "防御",
+          "star_cost": null
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "name": "打击",
+          "star_cost": null
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "name": "打击",
+          "star_cost": null
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "name": "打击",
+          "star_cost": null
+        },
+        {
+          "cost": "1",
+          "description": "造成6点伤害。",
+          "name": "打击",
+          "star_cost": null
+        }
+      ],
+      "draw_pile_count": 5,
+      "energy": 3,
+      "exhaust_pile": [],
+      "exhaust_pile_count": 0,
+      "gold": 99,
+      "hand": [
+        {
+          "can_play": true,
+          "cost": "2",
+          "description": "造成8点伤害。 给予2层易伤。",
+          "id": "BASH",
+          "index": 0,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "易伤的生物从攻击中受到的伤害增加50%。",
+              "name": "易伤"
+            }
+          ],
+          "name": "痛击",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "AnyEnemy",
+          "type": "Attack",
+          "unplayable_reason": null
+        },
+        {
+          "can_play": false,
+          "cost": "0",
+          "description": "不能被打出。 虚无。 永恒。",
+          "id": "ASCENDERS_BANE",
+          "index": 1,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "无法从你的牌组中移除或变化。",
+              "name": "永恒"
+            },
+            {
+              "description": "不能被打出的牌无法被打出。",
+              "name": "不能被打出"
+            },
+            {
+              "description": "如果这张牌在这个回合结束时留在你的手牌中，则将其消耗。",
+              "name": "虚无"
+            },
+            {
+              "description": "在战斗结束前移除。",
+              "name": "消耗"
+            }
+          ],
+          "name": "进阶之灾",
+          "rarity": "Curse",
+          "star_cost": null,
+          "target_type": "None",
+          "type": "Curse",
+          "unplayable_reason": "HasUnplayableKeyword"
+        },
+        {
+          "can_play": true,
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 2,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "Self",
+          "type": "Skill",
+          "unplayable_reason": null
+        },
+        {
+          "can_play": true,
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 3,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "Self",
+          "type": "Skill",
+          "unplayable_reason": null
+        },
+        {
+          "can_play": true,
+          "cost": "1",
+          "description": "获得5点格挡。",
+          "id": "DEFEND_IRONCLAD",
+          "index": 4,
+          "is_upgraded": false,
+          "keywords": [
+            {
+              "description": "在下个回合前，阻挡伤害。",
+              "name": "格挡"
+            }
+          ],
+          "name": "防御",
+          "rarity": "Basic",
+          "star_cost": null,
+          "target_type": "Self",
+          "type": "Skill",
+          "unplayable_reason": null
+        }
+      ],
+      "hp": 64,
+      "max_energy": 3,
+      "max_hp": 80,
+      "max_potion_slots": 2,
+      "potions": [],
+      "relics": [
+        {
+          "counter": null,
+          "description": "在战斗结束时，回复6点生命。",
+          "id": "BURNING_BLOOD",
+          "keywords": [],
+          "name": "燃烧之血"
+        },
+        {
+          "counter": null,
+          "description": "拾起时，从你的牌组中移除1张牌。",
+          "id": "PRECISE_SCISSORS",
+          "keywords": [],
+          "name": "精准剪刀"
+        }
+      ],
+      "status": []
+    },
+    "run": {
+      "act": 1,
+      "ascension": 10,
+      "floor": 2
+    },
+    "state_type": "monster"
+  }
+}
