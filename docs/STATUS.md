@@ -17,6 +17,12 @@ Date: 2026-08-31 (handoff update, late session)
   deterministic eval (PPO receives -1/step pressure there and may learn to
   escape; if truncation plateaus, treat as an emulator-parity item, not a
   policy-quality verdict).
+- **illegal_actions=1 root-caused the same night** (`scripts/
+  find_illegal_episode.py`): seed 20000039, map phase, `current_node_type=
+  NODE_SHOP` — the native action mask is **all zeros** there (second emulator
+  mask defect: soft-lock via empty mask, vs `event_id=31`'s too-wide mask).
+  Both documented in EVAL_HANG_2026-09-01.md; guards keep them visible as
+  punished truncations instead of hangs or silent score inflation.
 - **Incident resolved**: the act1 run `20260831T163117Z` was **aborted** — its
   first checkpoint evaluation hit an infinite loop (native mask disagreement
   on seed 20000043, 9.17M steps in one episode). Full root-cause analysis and
