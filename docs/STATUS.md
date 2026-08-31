@@ -4,6 +4,12 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **Promotion-probe math for the 10M checkpoint** (n=500): Wilson ≥0.31 is the
+  binding constraint — needs **≥180 wins (36%)**, above the nominal 35%
+  win-rate line; plus mean floor ≥10, truncation ≤3%, illegal 0. From 3–5%
+  at 4M this is unlikely to pass at 10M; the probes are cheap now (~2 min
+  per 500 episodes post-fix), so the cost of waiting is only the 25 probes ×
+  ~2 min over the stage. Stage wall clock unchanged (~23h ETA at 1172 fps).
 - **Guard validated end to end**: the guarded run's first checkpoint
   evaluation (100 episodes, checkpoint seeds) completed in ~21 s
   (05:23:26 save → 05:23:47 metrics) versus the aborted run's multi-hour
