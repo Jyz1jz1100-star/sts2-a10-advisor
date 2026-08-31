@@ -52,6 +52,56 @@ chosen/legal 一致性、合法动作 ID 唯一性及跨数据集 seed 泄漏。
 seed 泄漏检查采用保守规则：种子会去除首尾空白并转为大写，同一个归一化种子
 不得同时出现在 train、validation 或 test 的任意两个集合中，即使 build 或角色不同。
 
+## 原始录制流 → 契约记录转换器
+
+`bridge/trace_controller.py` 录制的 JSONL 是未裁剪的原始事件流。
+`bridge/convert_traces.py` 负责把每个可配对的策略性 POST 转成契约记录：
+
+```powershell
+& .\.tools\python\cpython-3.12-windows-x86_64-none\python.exe `
+  -m bridge.convert_traces runs\live_traces `
+  --split train --out data\local\train.jsonl `
+  --report runs\live_traces\conversion-report-train.json
+```
+
+转换器的硬性规则：
+
+- `visible_state` 经过确定性可见信息过滤：有序 `draw_pile` 等牌堆被替换为
+  `count + sorted composition`，任何顺序信息不得进入训练输入；
+- `legal_actions` 从决策时刻的原始状态枚举，动作 id 与 STS2MCP v0.4.0 的
+  wire payload 一一对应（参数名按 `McpMod.Actions.cs` 源码锁定：
+  `play_card.card_index`、`select_card.index` 等）；
+- `result` 由 POST 响应 + 第一个 decision id 变化的后续状态归因；
+  `game_over` 记为 `terminal`，HTTP/桥错误记为 `error` 且 `observed=false`；
+- 录制会话内 `observed_mods` 与版本锁白名单不一致 → 整场判为污染并排除
+  （`--allow-contaminated` 仅供人工审计）；
+- 状态里看不到 `character=IRONCLAD` 且 `ascension=10` 的记录一律排除；
+- 菜单导航与 `set_ascension` 属于开局的引导动作，默认跳过（`--include-menu`
+  保留）；
+- 正规语料的 seed 必须来自 compendium `run_identity` 事件（由
+  `start-ironclad-a10` 自动写入）。没有真实 seed 的会话会退化为
+  `RUNID:<run_id>` 代理 seed，转换器默认**拒绝**这种输出用于正式 split，
+  只有显式 `--allow-seed-less`（仅限链路 smoke）才放行。
+
+转换后的文件必须再通过上一节的 `validate_traces` 才算入库。
+
+## 屏状态 Schema Fixtures
+
+`tests/fixtures/screens/*.json` 锁定每个可达界面的 v0.4.0 协议形状：
+其中 `monster`、`map`、`event`、`card_select`、`menu_main` 来自版本锁内的
+真机捕获（`runs/live_traces/`），其余为按上游 `docs/raw-full.md` 文档合成的
+占位（`"captured": false`），等待真机整局录制后替换。
+`tests/test_screen_fixtures.py` 对每个 fixture 跑合法动作枚举与可见信息过滤，
+锁定动作 id / 动作类型集合。游戏补丁后用新录制的原始状态与这些 fixture 做
+diff，即可发现桥接协议漂移。
+
+重新生成：
+
+```powershell
+& .\.tools\python\cpython-3.12-windows-x86_64-none\python.exe `
+  scripts\make_screen_fixtures.py
+```
+
 ## 离线行为克隆基线
 
 校验通过后，可运行独立的 CPU 行为克隆基线：
