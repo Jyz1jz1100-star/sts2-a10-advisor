@@ -18,11 +18,30 @@ Date: 2026-08-31 (handoff update, late session)
   escape; if truncation plateaus, treat as an emulator-parity item, not a
   policy-quality verdict).
 - **illegal_actions=1 root-caused the same night** (`scripts/
-  find_illegal_episode.py`): seed 20000039, map phase, `current_node_type=
-  NODE_SHOP` — the native action mask is **all zeros** there (second emulator
-  mask defect: soft-lock via empty mask, vs `event_id=31`'s too-wide mask).
-  Both documented in EVAL_HANG_2026-09-01.md; guards keep them visible as
-  punished truncations instead of hangs or silent score inflation.
+  find_illegal_episode.py`): seed 20000039 at `phase=map`,
+  `current_node_type=NODE_SHOP` exposes an **all-zero action mask** — a
+  second emulator mask defect (empty-mask soft-lock, vs `event_id=31`'s
+  too-wide mask), documented in EVAL_HANG_2026-09-01.md.
+- **2M truncation attribution (scripts/attribute_truncations.py)**: all 5
+  truncated episodes are emulator mask defects, not policy weakness — four
+  deterministic `native-rejection-loop` stalls in the event phase (floors
+  5/6/8/9: seeds 20000043/48/56/67) plus the `NODE_SHOP` empty-mask state
+  (seed 20000039). So `truncation_rate=0.05` at 2M is 100% bug-attributable;
+  the ≤0.03 promotion cap is currently blocked by the emulator, not the
+  policy. Training rollouts receive −1/step pressure at these states, so the
+  policy may learn alternatives — recheck this ratio at the 10M probe.
+- **Cross-process replay determinism flag**: the fresh-process replay of the
+  same checkpoint+seeds reproduced the 5 truncations exactly but showed
+  0 wins / 95 deaths where the in-training evaluation recorded 5 wins.
+  `scripts/probe_determinism.py` then verified the engine is fully
+  deterministic **across fresh processes** (same seed → same trajectory hash,
+  repeated twice in one process and in two processes). The remaining
+  discrepancy is therefore isolated to the long-lived trainer process, where
+  12 vectorized training env handles coexist with evaluation envs — the
+  likely culprit is process-global state in the native C# engine shared
+  across Sts2RunEnv handles. In-training protocol stays canonical for gating
+  (identical to the combat stage that promoted 499/500); parity-phase item
+  updated accordingly: audit native run-handle isolation.
 - **Incident resolved**: the act1 run `20260831T163117Z` was **aborted** — its
   first checkpoint evaluation hit an infinite loop (native mask disagreement
   on seed 20000043, 9.17M steps in one episode). Full root-cause analysis and
