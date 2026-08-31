@@ -23,9 +23,27 @@ class RunManifest:
 
 
 def atomic_json(path: Path, payload: dict) -> None:
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    temp.replace(path)
+    """Temp+replace with retries; readers must never kill the supervisor.
+
+    On Windows os.replace raises AccessDenied while a reader (monitoring,
+    humans, report scripts) holds the target open. The heartbeat rewrites
+    every 5 seconds for a multi-day run, so collisions are routine: the
+    2026-09-01 06:23Z supervisor death was exactly this, orphaning its
+    still-healthy training child.
+    """
+
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    delay = 0.25
+    for attempt in range(8):
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError:
+            if attempt == 7:
+                raise
+            time.sleep(delay)
+            delay = min(delay * 2, 8.0)
 
 
 def main() -> None:
@@ -59,10 +77,15 @@ def main() -> None:
     with (run_dir / "stdout.log").open("w", encoding="utf-8") as log:
         proc = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, text=True)
         while proc.poll() is None:
-            atomic_json(
-                heartbeat,
-                {"time": datetime.now(UTC).isoformat(), "pid": proc.pid, "status": "running"},
-            )
+            try:
+                atomic_json(
+                    heartbeat,
+                    {"time": datetime.now(UTC).isoformat(), "pid": proc.pid, "status": "running"},
+                )
+            except OSError:
+                # A heartbeat write that still fails after retries must never
+                # kill supervision of a healthy child (2026-09-01 lesson).
+                pass
             time.sleep(5)
         manifest.exit_code = proc.returncode
         manifest.status = "completed" if proc.returncode == 0 else "failed"

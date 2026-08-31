@@ -3,11 +3,12 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 from training.config import PromotionConfig, load_training_config
 from training.evaluation import evaluate_policy
-from training.metrics import EpisodeMetric, summarize_episodes
+from training.metrics import EpisodeMetric, atomic_write_json, summarize_episodes
 from training.promotion import decide_promotion
 from training.seeds import SeedPartition, SeedPartitions, SeedStream
 
@@ -174,6 +175,32 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(metrics.mean_steps, 50)
         self.assertEqual(metrics.truncations, 1)
         self.assertEqual(metrics.truncation_rate, 1.0)
+
+
+class MetricsIoTests(unittest.TestCase):
+    def test_atomic_write_json_retries_through_reader_lock(self) -> None:
+        """Windows os.replace raises PermissionError while a reader holds the
+        target open; monitoring must never be able to kill a training run."""
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "heartbeat.json"
+            target.write_text("{}", encoding="utf-8")
+            calls = {"n": 0}
+            original = Path.replace
+
+            def flaky_replace(self, other):
+                calls["n"] += 1
+                if calls["n"] == 1:
+                    raise PermissionError(5, "simulated reader lock")
+                return original(self, other)
+
+            import training.metrics as metrics_module
+
+            real_sleep = metrics_module.time.sleep
+            with unittest.mock.patch.object(Path, "replace", flaky_replace), \
+                 unittest.mock.patch.object(metrics_module.time, "sleep", lambda s: real_sleep(0)):
+                atomic_write_json(target, {"status": "running"})
+            self.assertEqual(calls["n"], 2)
+            self.assertEqual(json.loads(target.read_text(encoding="utf-8"))["status"], "running")
 
 
 class ConfigTests(unittest.TestCase):

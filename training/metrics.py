@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -128,10 +129,27 @@ def summarize_episodes(
 
 
 def atomic_write_json(path: Path, payload: dict) -> None:
+    """Write JSON via temp+replace with sharing-violation retries.
+
+    On Windows, os.replace fails with AccessDenied while any reader holds the
+    target open. Monitoring tools legitimately read these files, so transient
+    denials must never kill a multi-day training run (supervisor crash of
+    2026-09-01T06:23Z motivated this retry loop).
+    """
+
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True),
         encoding="utf-8",
     )
-    temporary.replace(path)
+    delay = 0.25
+    for attempt in range(8):
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError:
+            if attempt == 7:
+                raise
+            time.sleep(delay)
+            delay = min(delay * 2, 8.0)
