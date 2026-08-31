@@ -4,6 +4,16 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **6M checkpoint metrics** (06:17): win 0.030 (same seeds as 4M, so 4M→6M is
+  an apples-to-apples tie), mean floor **7.97 ↑** (7.24→7.71→7.97), truncation
+  stable 0.030, illegal stable 1 (the NODE_SHOP episode). Floor is grinding
+  up while win rate lags on the 16-floor simplified run — expected shape at
+  6% of budget; the binding gates remain win-rate/Wilson.
+- **Measured cycle cost (corrected)**: checkpoint every 2M steps at ~1180 fps
+  plus a ~25 s evaluation ⇒ a full 50-cycle stage ≈ 24–25 h wall clock;
+  25 promotion probes (~2 min each) add ~50 min. ETA in the reports (~22 h)
+  is now consistent with the 09-02 morning finish; the earlier "~28h" note
+  was pessimistic.
 - **Promotion-probe math for the 10M checkpoint** (n=500): Wilson ≥0.31 is the
   binding constraint — needs **≥180 wins (36%)**, above the nominal 35%
   win-rate line; plus mean floor ≥10, truncation ≤3%, illegal 0. From 3–5%
