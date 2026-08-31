@@ -149,6 +149,32 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(metrics.truncations, 1)
         self.assertEqual(metrics.mean_steps, 0)
 
+    def test_external_step_cap_breaks_native_rejection_loop(self) -> None:
+        """The simulator's native layer can reject mask-legal actions with
+        (reward=-1, terminated=False, truncated=False) forever. The evaluator
+        must not trust env signals alone (live hang 2026-09-01, seed 20000043).
+        """
+
+        class RejectingEnvironment(FakeEnvironment):
+            def step(self, action: int):
+                # never terminates, never truncates, always -1 reward
+                return [self.seed], -1.0, False, False, {"player_won": False}
+
+        metrics = evaluate_policy(
+            FakePolicy(),
+            env_factory=RejectingEnvironment,
+            seeds=[300],
+            stage="act1",
+            split="checkpoint",
+            scope="simulator_act1",
+            checkpoint="fixture.zip",
+            max_steps_per_episode=50,
+        )
+        self.assertEqual(metrics.episodes, 1)
+        self.assertEqual(metrics.mean_steps, 50)
+        self.assertEqual(metrics.truncations, 1)
+        self.assertEqual(metrics.truncation_rate, 1.0)
+
 
 class ConfigTests(unittest.TestCase):
     def test_checked_in_curriculum_has_required_stages_and_disjoint_seeds(self) -> None:

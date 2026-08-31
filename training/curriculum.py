@@ -58,12 +58,35 @@ def _training_environment_factory(
     base_factory = _environment_factory(stage, sts2_gym)
 
     class SeededEpisodeWrapper(gym.Wrapper):
+        """Seed rotation plus a defensive external step cap.
+
+        The step cap mirrors the env's own episode limit because the
+        simulator's native invalid-action path returns without applying that
+        internal limit (deterministic-eval hang, 2026-09-01). Rollouts must
+        not be able to spin on rejected actions forever.
+        """
+
+        def __init__(self, env, max_steps: int):
+            super().__init__(env)
+            self._max_steps = max_steps
+            self._steps = 0
+
         def reset(self, *, seed=None, options=None):
             actual_seed = stream.next() if seed is None else seed
+            self._steps = 0
             return self.env.reset(seed=actual_seed, options=options)
 
+        def step(self, action):
+            observation, reward, terminated, truncated, info = self.env.step(action)
+            self._steps += 1
+            if not terminated and self._steps >= self._max_steps:
+                truncated = True
+            return observation, reward, terminated, truncated, info
+
     def initialize():
-        wrapped = SeededEpisodeWrapper(base_factory(worker_partition.start))
+        wrapped = SeededEpisodeWrapper(
+            base_factory(worker_partition.start), stage.max_episode_steps
+        )
         return ActionMasker(wrapped, lambda env: env.unwrapped.action_masks())
 
     return initialize
@@ -108,6 +131,7 @@ def _callback_class(base_callback: type):
                 scope=_scope(self.stage),
                 checkpoint=checkpoint,
                 experimental=self.stage.experimental,
+                max_steps_per_episode=self.stage.max_episode_steps,
             )
             metrics_path = self.stage_dir / "metrics" / f"{stem}.json"
             atomic_write_json(metrics_path, metrics.to_dict())
@@ -147,6 +171,7 @@ def _callback_class(base_callback: type):
                 scope=_scope(self.stage),
                 checkpoint=checkpoint.with_suffix(".zip"),
                 experimental=self.stage.experimental,
+                max_steps_per_episode=self.stage.max_episode_steps,
             )
             atomic_write_json(
                 self.stage_dir / "metrics" / f"{stem}.json", metrics.to_dict()
@@ -257,6 +282,7 @@ def _train_stage(
             scope=_scope(stage),
             checkpoint=final_checkpoint,
             experimental=stage.experimental,
+            max_steps_per_episode=stage.max_episode_steps,
         )
         atomic_write_json(stage_dir / "metrics" / "promotion.json", metrics.to_dict())
         decision = decide_promotion(metrics, stage.promotion)

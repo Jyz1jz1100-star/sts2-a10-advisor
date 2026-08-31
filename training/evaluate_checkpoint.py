@@ -63,6 +63,7 @@ def main() -> None:
         ),
         checkpoint=args.checkpoint,
         experimental=stage.experimental,
+        max_steps_per_episode=stage.max_episode_steps,
     )
     payload = metrics.to_dict()
     if args.output:

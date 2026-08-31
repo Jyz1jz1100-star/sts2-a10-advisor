@@ -2,6 +2,23 @@
 
 Date: 2026-08-31 (handoff update, late session)
 
+## Monitoring notes (unattended watch, 2026-09-01)
+
+- **Incident resolved**: the act1 run `20260831T163117Z` was **aborted** — its
+  first checkpoint evaluation hit an infinite loop (native mask disagreement
+  on seed 20000043, 9.17M steps in one episode). Full root-cause analysis and
+  fix in [EVAL_HANG_2026-09-01.md](EVAL_HANG_2026-09-01.md); py-spy `--locals`
+  evidence archived at `docs/forensics/eval_hang_py-spy_2026-09-01.txt`.
+  Evaluation now enforces its own per-episode step cap (regression-tested),
+  and verification on the real hang seed completes in 5.5 s.
+- act1 relaunched as supervised run `20260831T205351Z` with guards (managed
+  job `pwsh-20`). First checkpoint evaluation cost is now bounded at
+  ~10 min worst case (100 episodes × 1200 capped steps), so stage wall clock
+  returns to ~28–50 h instead of days.
+- Replica diagnostics learned: single-process evaluation at this checkpoint
+  runs ~90 steps/episode at ~4.6 ms/step GPU; the earlier "evaluations are
+  structurally 60–100 minutes" numbers were hang artifacts.
+
 ## Completed
 
 - surveyed official mod support, state bridges, simulators, action loggers,
@@ -82,29 +99,6 @@ Date: 2026-08-31 (handoff update, late session)
   combat stage must be re-run to restore provenance;
 - no checkpoint has passed A0, A5 or A10 full-run gates;
 - the requested 50% real-game win rate has not been achieved or claimed.
-
-## Monitoring notes (unattended watch, 2026-09-01 early morning)
-
-- act1 run `20260831T163117Z` healthy: 0→2M training steps in 27.5 min
-  (~1212 steps/s). First checkpoint `step_000002000004.zip` saved at
-  00:58:47; its 100-episode evaluation was still running at 02:52 (~113 min,
-  worker at ~0.95 core; heartbeat normal).
-- Bottleneck measured (scripts/eval_microbenchmark.py): the native run
-  environment itself is fast (random policy ≈ 135 steps/episode, ~2600
-  steps/s including action masks and `info()`). The evaluation loop is
-  therefore dominated by per-step single-sample `model.predict`
-  (~55 ms/step at batch 1 GPU, vs vectorized batch-12 during training).
-  Implication for the next launch: evaluate with a CPU-device copy of the
-  checkpoint (tiny MLP beats GPU launch latency at batch 1) or vectorize
-  the evaluation envs; both are expected to make the 100-episode eval
-  ~10x cheaper. Recorded retune candidates additionally:
-  `checkpoint_every_steps = 5M`, `checkpoint_eval_episodes = 50`, skip the
-  checkpoint eval on promotion-probe steps. Not applied to the live run.
-- The live evaluation's first `mean_steps` number will show how truncation-
-  heavy the 2M policy is (113 min at ~55 ms/step implies near-cap episode
-  lengths across most episodes).
-- Watchers: managed job `pwsh-9` holds the run; `pwsh-13` fires on first
-  metrics JSON with a 4h window.
 
 ## Immediate next gates
 

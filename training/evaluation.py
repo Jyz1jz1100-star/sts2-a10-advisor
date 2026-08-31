@@ -37,7 +37,20 @@ def evaluate_policy(
     checkpoint: Path | str,
     deterministic: bool = True,
     experimental: bool = False,
+    max_steps_per_episode: int | None = None,
 ) -> EvaluationMetrics:
+    """Roll out one episode per seed with a defensive step cap.
+
+    ``max_steps_per_episode`` must come from the caller's stage configuration
+    and must not rely on the environment's own truncation signal: the
+    simulator's native invalid-action path (``run_step`` status != 0) returns
+    ``(-1.0, False, False)`` and skips its internal episode counter, so a
+    policy whose mask-legal action is rejected by the native layer would spin
+    forever otherwise (observed live 2026-09-01: 9.1M steps in one episode).
+    """
+
+    if max_steps_per_episode is not None and max_steps_per_episode <= 0:
+        raise ValueError("max_steps_per_episode must be positive")
     episode_metrics: list[EpisodeMetric] = []
     for seed in seeds:
         env = env_factory(seed)
@@ -64,6 +77,8 @@ def evaluate_policy(
                 observation, reward, terminated, truncated, info = env.step(action)
                 total_reward += float(reward)
                 steps += 1
+                if max_steps_per_episode is not None and steps >= max_steps_per_episode:
+                    truncated = True
             final_floor = info.get("floor")
             encounter = reset_info.get("encounter")
             episode_metrics.append(
