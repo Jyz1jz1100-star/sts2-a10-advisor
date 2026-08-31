@@ -4,6 +4,17 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **Supervisor death, zero training loss (06:23)**: the act1 supervisor exited
+  while rewriting `heartbeat.json` — a monitoring `Get-Content` held the file
+  open and Windows `os.replace` raised a sharing violation. The training
+  child (pid 64704) was healthy and kept advancing (6.6M steps at takeover);
+  it was ADOPTED by a managed watchdog (`pwsh-23`: trainer-exit,
+  stage-settled, and >55 min metrics-stall detection; existence-only polling
+  so the watcher cannot re-create the collision). The manifest records
+  `running_unsupervised` with the full audit. Hardened after the fact:
+  `training/supervisor.py` and `training/metrics.py` atomic JSON writers now
+  retry through reader locks, and a heartbeat failure can never kill
+  supervision (regression test added; 51 core tests green).
 - **6M checkpoint metrics** (06:17): win 0.030 (same seeds as 4M, so 4M→6M is
   an apples-to-apples tie), mean floor **7.97 ↑** (7.24→7.71→7.97), truncation
   stable 0.030, illegal stable 1 (the NODE_SHOP episode). Floor is grinding
