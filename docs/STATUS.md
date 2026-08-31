@@ -34,8 +34,15 @@ Date: 2026-08-31 (handoff update, late session)
 - promoted the combat curriculum stage at 2,000,016 steps: 499/500 wins
   (Wilson lower 98.9%), zero illegal actions, zero truncations, on unseen
   promotion seeds (`runs/curriculum/curriculum-20260831T140450Z`);
-- started the full act1 stage (100M steps) under the supervisor at 22:22 local
-  (run `20260831T142225Z`);
+- the first act1 full-stage attempt (100M steps, run `20260831T142225Z`) lost
+  its parent shell at ~958k steps and died before any checkpoint existed;
+  its manifest is audited as `orphaned`. The stage was relaunched at
+  2026-08-31T16:31Z as run `20260831T163117Z` under a managed background job;
+- `training/curriculum.py` now supports `promotion_probe_every_steps`: a full
+  promotion evaluation on unseen seeds runs periodically and stops the stage
+  early on success. This restores code/Artifact provenance for the combat
+  stage's pre-existing `early-promotion-decision.json` (previously emitted by
+  an out-of-tree script) and prevents burning the remaining timestep budget.
 - initialized the repository under git with a baseline snapshot commit;
 - added `bridge/convert_traces.py`: raw recorder JSONL -> contract-valid
   decision traces with a deterministic visible-information filter (ordered
