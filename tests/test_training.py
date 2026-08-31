@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -161,6 +162,8 @@ class ConfigTests(unittest.TestCase):
         train = set(config.seeds["train"].seeds(100))
         checkpoint = set(config.seeds["checkpoint"].seeds(100))
         self.assertTrue(train.isdisjoint(checkpoint))
+        for stage in config.stages:
+            self.assertGreater(stage.promotion_probe_every_steps, 0)
 
     def test_config_rejects_save_load(self) -> None:
         root = Path(__file__).resolve().parent.parent
@@ -171,6 +174,114 @@ class ConfigTests(unittest.TestCase):
             path.write_text(source, encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_training_config(path)
+
+
+def _probe_stage(**overrides):
+    from training.config import PromotionConfig, StageConfig
+
+    fields: dict = {
+        "name": "combat",
+        "environment": "combat",
+        "timesteps": 10_000_000,
+        "parallel_envs": 2,
+        "checkpoint_every_steps": 500,
+        "checkpoint_eval_episodes": 1,
+        "promotion_eval_episodes": 2,
+        "max_episode_steps": 80,
+        "max_floors": None,
+        "initialize_from_previous": False,
+        "experimental": False,
+        "promotion": PromotionConfig(
+            min_episodes=2,
+            min_win_rate=1.0,
+            min_wilson_lower=0.3,
+            max_truncation_rate=0.01,
+            max_illegal_actions=0,
+        ),
+        "promotion_probe_every_steps": 500,
+    }
+    fields.update(overrides)
+    return StageConfig(**fields)
+
+
+class FakeSavingPolicy:
+    """Fakes the pieces of MaskablePPO the callback touches."""
+
+    def __init__(self, action: int = 0):
+        self.action = action
+
+    def predict(self, observation, *, action_masks, deterministic):
+        return self.action, None
+
+    def save(self, path):
+        Path(str(path) + ".zip").write_bytes(b"fake checkpoint")
+
+
+class EarlyPromotionTests(unittest.TestCase):
+    def _callback(self, directory: str, stage, model, promotion_seeds):
+        from training.curriculum import _callback_class
+
+        base = type("FakeBase", (), {"__init__": lambda self, verbose=0: None})
+        callback = _callback_class(base)(
+            stage=stage,
+            stage_dir=Path(directory),
+            env_factory=FakeEnvironment,
+            seeds=[100],
+            promotion_seeds=promotion_seeds,
+            promotion_probe_every_steps=stage.promotion_probe_every_steps,
+        )
+        callback.model = model
+        callback.num_timesteps = 500
+        return callback
+
+    def test_passed_probe_stops_training_and_records_promotion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            stage_dir = Path(directory)
+            (stage_dir / "checkpoints").mkdir()
+            (stage_dir / "metrics").mkdir()
+            callback = self._callback(
+                directory, _probe_stage(), FakeSavingPolicy(), [200, 202]
+            )
+            self.assertFalse(callback._on_step())
+            self.assertIsNotNone(callback.early_promotion)
+            self.assertTrue((stage_dir / "early-promotion-decision.json").is_file())
+            self.assertTrue((stage_dir / "metrics" / "promotion.json").is_file())
+            self.assertTrue((stage_dir / "metrics" / "step_000000000500.json").is_file())
+            decision = json.loads(
+                (stage_dir / "early-promotion-decision.json").read_text(encoding="utf-8")
+            )
+            self.assertTrue(decision["promoted"])
+            self.assertEqual(decision["observed"]["episodes"], 2)
+            # promotion.json must carry the promotion split, not the checkpoint probe
+            metrics = json.loads(
+                (stage_dir / "metrics" / "promotion.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(metrics["split"], "promotion")
+
+    def test_failed_probe_keeps_training(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            stage_dir = Path(directory)
+            (stage_dir / "checkpoints").mkdir()
+            (stage_dir / "metrics").mkdir()
+            callback = self._callback(
+                directory, _probe_stage(), FakeSavingPolicy(), [201, 203]
+            )
+            self.assertTrue(callback._on_step())
+            self.assertIsNone(callback.early_promotion)
+            self.assertFalse((stage_dir / "early-promotion-decision.json").is_file())
+            self.assertFalse((stage_dir / "metrics" / "promotion.json").is_file())
+            self.assertTrue((stage_dir / "metrics" / "step_000000000500.json").is_file())
+            self.assertTrue((stage_dir / "metrics" / "early-promotion-0m.json").is_file())
+
+    def test_probe_only_fires_on_its_own_interval(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            stage_dir = Path(directory)
+            (stage_dir / "checkpoints").mkdir()
+            (stage_dir / "metrics").mkdir()
+            stage = _probe_stage(promotion_probe_every_steps=10_000)
+            callback = self._callback(directory, stage, FakeSavingPolicy(), [200, 202])
+            self.assertTrue(callback._on_step())  # checkpoint saved, probe skipped
+            self.assertEqual(callback.early_promotion, None)
 
 
 if __name__ == "__main__":

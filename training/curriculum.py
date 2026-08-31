@@ -78,15 +78,56 @@ def _callback_class(base_callback: type):
             stage_dir: Path,
             env_factory: Any,
             seeds: list[int],
+            promotion_seeds: list[int] | None = None,
+            promotion_probe_every_steps: int | None = None,
         ):
             super().__init__(verbose=0)
             self.stage = stage
             self.stage_dir = stage_dir
             self.env_factory = env_factory
             self.seeds = seeds
+            self.promotion_seeds = promotion_seeds
+            self.promotion_probe_every_steps = promotion_probe_every_steps
             self.last_checkpoint = 0
+            self.last_probe = 0
+            self.early_promotion: dict[str, Any] | None = None
+
+        def _probe_promotion(self) -> None:
+            assert self.promotion_seeds is not None
+            stem = f"early-promotion-{self.num_timesteps // 1_000_000}m"
+            checkpoint_stem = f"step_{self.num_timesteps:012d}"
+            checkpoint = self.stage_dir / "checkpoints" / f"{checkpoint_stem}.zip"
+            if not checkpoint.is_file():
+                return
+            metrics = evaluate_policy(
+                self.model,
+                env_factory=self.env_factory,
+                seeds=self.promotion_seeds,
+                stage=self.stage.name,
+                split="promotion",
+                scope=_scope(self.stage),
+                checkpoint=checkpoint,
+                experimental=self.stage.experimental,
+            )
+            metrics_path = self.stage_dir / "metrics" / f"{stem}.json"
+            atomic_write_json(metrics_path, metrics.to_dict())
+            decision = decide_promotion(metrics, self.stage.promotion)
+            if not decision.promoted:
+                return
+            payload = decision.to_dict()
+            payload["metrics_path"] = str(metrics_path)
+            payload["checkpoint"] = str(checkpoint)
+            payload["checkpoint_sha256"] = metrics.checkpoint_sha256
+            atomic_write_json(
+                self.stage_dir / "early-promotion-decision.json", payload
+            )
+            promotion_metrics = self.stage_dir / "metrics" / "promotion.json"
+            promotion_metrics.write_bytes(metrics_path.read_bytes())
+            self.early_promotion = {"checkpoint": checkpoint, "decision": decision}
 
         def _on_step(self) -> bool:
+            if self.early_promotion is not None:
+                return False
             if (
                 self.num_timesteps - self.last_checkpoint
                 < self.stage.checkpoint_every_steps
@@ -110,6 +151,15 @@ def _callback_class(base_callback: type):
             atomic_write_json(
                 self.stage_dir / "metrics" / f"{stem}.json", metrics.to_dict()
             )
+            if (
+                self.promotion_probe_every_steps
+                and self.num_timesteps - self.last_probe
+                >= self.promotion_probe_every_steps
+            ):
+                self.last_probe = self.num_timesteps
+                self._probe_promotion()
+                if self.early_promotion is not None:
+                    return False
             return True
 
     return CheckpointEvaluationCallback
@@ -173,20 +223,31 @@ def _train_stage(
         checkpoint_seeds = config.seeds["checkpoint"].seeds(
             stage.checkpoint_eval_episodes
         )
+        promotion_seeds = config.seeds["promotion"].seeds(
+            stage.promotion_eval_episodes
+        )
         callback_type = _callback_class(BaseCallback)
         callback = callback_type(
             stage=stage,
             stage_dir=stage_dir,
             env_factory=env_factory,
             seeds=checkpoint_seeds,
+            promotion_seeds=promotion_seeds,
+            promotion_probe_every_steps=stage.promotion_probe_every_steps,
         )
         model.learn(total_timesteps=stage.timesteps, callback=callback)
+
+        if callback.early_promotion is not None:
+            promoted_checkpoint: Path = callback.early_promotion["checkpoint"]
+            decision = callback.early_promotion["decision"]
+            atomic_write_json(stage_dir / "promotion_decision.json", decision.to_dict())
+            return decision.promoted, promoted_checkpoint
+
         final_checkpoint = stage_dir / "checkpoints" / "final"
         final_checkpoint.parent.mkdir(parents=True, exist_ok=True)
         model.save(final_checkpoint)
         final_checkpoint = final_checkpoint.with_suffix(".zip")
 
-        promotion_seeds = config.seeds["promotion"].seeds(stage.promotion_eval_episodes)
         metrics = evaluate_policy(
             model,
             env_factory=env_factory,

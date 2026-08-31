@@ -32,6 +32,7 @@ class StageConfig:
     initialize_from_previous: bool
     experimental: bool
     promotion: PromotionConfig
+    promotion_probe_every_steps: int = 0
 
 
 @dataclass(frozen=True)
@@ -123,6 +124,7 @@ def load_training_config(path: Path) -> TrainingConfig:
             initialize_from_previous=bool(table.get("initialize_from_previous", False)),
             experimental=bool(table.get("experimental", False)),
             promotion=promotion,
+            promotion_probe_every_steps=int(table.get("promotion_probe_every_steps", 0)),
         )
         _validate_stage(stage)
         stages.append(stage)

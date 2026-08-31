@@ -53,6 +53,10 @@ promotion_eval_episodes = 500
 max_episode_steps = 80
 initialize_from_previous = false
 experimental = false
+# Full promotion evaluation (promotion seeds, promotion_eval_episodes) runs on
+# this interval. If it passes, the stage stops early with a clean promotion
+# instead of burning the entire timestep budget.
+promotion_probe_every_steps = 2000000
 
 [stages.combat.promotion]
 min_episodes = 500
@@ -75,6 +79,7 @@ max_floors = 16
 # transfer route; the MaskablePPO baseline starts a new run policy here.
 initialize_from_previous = false
 experimental = false
+promotion_probe_every_steps = 10000000
 
 [stages.act1.promotion]
 min_episodes = 500
@@ -98,6 +103,7 @@ initialize_from_previous = true
 # and has not demonstrated exact multi-Act A10 parity. This stage is opt-in and its
 # metrics remain simulator_full_run, never real_game_a10.
 experimental = true
+promotion_probe_every_steps = 25000000
 
 [stages.full_run.promotion]
 min_episodes = 1000
