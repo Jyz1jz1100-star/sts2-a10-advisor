@@ -57,8 +57,41 @@ def main() -> int:
             print(f"REJECTION at step {step} (floor={floor}, phase={phase})")
             print(f"  chosen action: {action}")
             print(f"  legal mask ids ({len(legal)}): {legal}")
-            target_map = getattr(env, "_target_map", None)
-            print(f"  run obs head: {observation[:24].tolist()}")
+            print(f"  info at hang: event_id={info.get('event_id')} "
+                  f"neow_options={info.get('neow_options')} "
+                  f"pending_rewards={info.get('pending_rewards')} "
+                  f"hp={info.get('player_hp')}/{info.get('player_max_hp')}")
+            # Re-derive the exact state (deterministic replay) and probe
+            # every mask-legal action once to see whether the whole event
+            # room is deadlocked or only the chosen action.
+            for probe in legal:
+                env2 = Sts2RunEnv(seed=SEED, max_episode_steps=1200, max_floors=16)
+                obs2, info2 = env2.reset(seed=SEED)
+                try:
+                    stuck = False
+                    for _ in range(step):
+                        m2 = env2.action_masks()
+                        a2, _ = model.predict(obs2, action_masks=m2, deterministic=True)
+                        obs2, _, t2, tr2, info2 = env2.step(int(a2))
+                        if t2 or tr2:
+                            stuck = True
+                            break
+                    if stuck:
+                        print(f"  probe {probe}: replay diverged early")
+                        continue
+                    out_obs, out_rew, out_term, out_trunc, out_info = env2.step(probe)
+                    changed = (
+                        not np.array_equal(out_obs, obs2)
+                        or out_term
+                        or out_trunc
+                        or out_rew != -1.0
+                    )
+                    out_phase = PHASE_NAMES.get(int(out_info.get("phase", -1)), "?")
+                    verdict = "accepted" if changed else "rejected"
+                    print(f"  probe action {probe}: {verdict} "
+                          f"(reward={out_rew:.2f}, phase->{out_phase})")
+                finally:
+                    env2.close()
             return 0
         if terminated or truncated:
             print(f"episode ended at step {step}: terminated={terminated} "
