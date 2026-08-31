@@ -4,6 +4,24 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **10M promotion probe executed and FAILED as expected** (07:12, first live
+  run of the new `_probe_promotion` code): 500 promotion seeds → **10 wins
+  (2.0%, Wilson low 1.01%)**, floor 7.55, truncation 0.020, illegal 1.
+  Gate result: fails win-rate/Wilson/floor (by design a failed probe keeps
+  only its metrics JSON and training continues; `promotion_decision.json`
+  appears on pass or at stage end). The probe's
+  seed_sha256 matches the combat stage's promotion draw (same 30M range),
+  confirming partition plumbing. 10M checkpoint eval: win 0.040, floor 7.82.
+- **Plateau confirmed on a 500-episode sample**: win stuck 2–5%, floor
+  oscillating 7.2–8.0 of 16 across 2M→10M; policy entropy collapsed from
+  1.26 to ~0.28 nats (near-deterministic). This matches the published
+  sts2-rl-agent pattern (92% combat but ~0% full runs) and the architecture
+  doc's expectation that the flat MaskablePPO baseline is the *comparison*
+  baseline, not the route to A10.
+  Decision: let this run finish to its 100M budget (~21 h) so the baseline
+  endpoint is documented and the promotion-decision trail is complete;
+  reward shaping / curriculum changes are strategy calls to propose to the
+  user after the run settles, not unilateral mid-run edits.
 - **8M checkpoint metrics** (06:44:10, written ~21 min after the supervisor
   death and after adoption — confirming adoption lost nothing): win 0.030
   (4th straight in the 3–5% band), mean floor **7.54** (down from 7.97;
