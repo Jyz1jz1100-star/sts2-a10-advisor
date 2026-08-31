@@ -4,6 +4,19 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **Guard validated end to end**: the guarded run's first checkpoint
+  evaluation (100 episodes, checkpoint seeds) completed in ~21 s
+  (05:23:26 save → 05:23:47 metrics) versus the aborted run's multi-hour
+  hang. Mean 141 steps/episode at 2M steps.
+- **First act1 checkpoint metrics (2M steps, `curriculum-20260831T205351Z`)**:
+  win_rate 0.050 (Wilson 95% 0.021–0.112), mean floor 7.24, truncation_rate
+  0.050, illegal_actions 1, mean 141 steps. Promotion gate needs win≥0.35,
+  Wilson-low≥0.31, floor≥10, truncation≤0.03, illegal=0 — far from passing,
+  as expected at 2% of the 100M budget. Watch: truncation 5% currently
+  exceeds the 3% cap; part of it is the `event_id=31` mask/native bug under
+  deterministic eval (PPO receives -1/step pressure there and may learn to
+  escape; if truncation plateaus, treat as an emulator-parity item, not a
+  policy-quality verdict).
 - **Incident resolved**: the act1 run `20260831T163117Z` was **aborted** — its
   first checkpoint evaluation hit an infinite loop (native mask disagreement
   on seed 20000043, 9.17M steps in one episode). Full root-cause analysis and
@@ -12,9 +25,8 @@ Date: 2026-08-31 (handoff update, late session)
   Evaluation now enforces its own per-episode step cap (regression-tested),
   and verification on the real hang seed completes in 5.5 s.
 - act1 relaunched as supervised run `20260831T205351Z` with guards (managed
-  job `pwsh-20`). First checkpoint evaluation cost is now bounded at
-  ~10 min worst case (100 episodes × 1200 capped steps), so stage wall clock
-  returns to ~28–50 h instead of days.
+  job `pwsh-20`). With evaluations now costing ~1 min instead of hours, the
+  stage wall clock projects back to the ~28 h plan (50 × ~34 min).
 - Replica diagnostics learned: single-process evaluation at this checkpoint
   runs ~90 steps/episode at ~4.6 ms/step GPU; the earlier "evaluations are
   structurally 60–100 minutes" numbers were hang artifacts.
