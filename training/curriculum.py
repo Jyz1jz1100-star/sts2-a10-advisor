@@ -310,6 +310,7 @@ def _plan(config: TrainingConfig, project_root: Path) -> dict:
                 "timesteps": stage.timesteps,
                 "parallel_envs": stage.parallel_envs,
                 "checkpoint_every_steps": stage.checkpoint_every_steps,
+                "promotion_probe_every_steps": stage.promotion_probe_every_steps,
                 "experimental": stage.experimental,
                 "initialize_from_previous": stage.initialize_from_previous,
                 "scope": _scope(stage),
