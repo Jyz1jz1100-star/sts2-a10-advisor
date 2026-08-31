@@ -4,6 +4,21 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **8M checkpoint metrics** (06:44:10, written ~21 min after the supervisor
+  death and after adoption — confirming adoption lost nothing): win 0.030
+  (4th straight in the 3–5% band), mean floor **7.54** (down from 7.97;
+  floor now oscillating 7.2–8.0, not yet breaking toward the 16-floor end),
+  truncation/illegal unchanged at the emulator-defect baseline (0.030 / 1).
+  Plateau diagnosis to watch at the 10M probe (~07:15, first
+  `early-promotion-10m.json`): if win rate is still ~3%, the simplified-run
+  curriculum may need reward shaping before more compute — a
+  training-strategy call, not an infra one.
+- **Correction of same-night misread**: right after the supervisor died I
+  briefly inferred from timing that the 8M cycle and a 10M probe had already
+  completed; the metrics directory showed the 8M eval had been written at
+  06:44 (post-adoption) and the probe fires at 10M steps, still ahead. No
+  artifacts were lost; watcher jobs plus the metrics directory remain the
+  source of truth.
 - **Supervisor death, zero training loss (06:23)**: the act1 supervisor exited
   while rewriting `heartbeat.json` — a monitoring `Get-Content` held the file
   open and Windows `os.replace` raised a sharing violation. The training
