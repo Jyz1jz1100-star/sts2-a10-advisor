@@ -250,6 +250,20 @@ class V2FlatActionEnv(gym.Env):
     def close(self) -> None:
         self._core.close()
 
+    # ------------------------------------------------------------- accessors
+
+    def raw_observation(self) -> np.ndarray:
+        """Current untouched native observation (teacher hash basis)."""
+
+        if self._raw_obs is None:
+            raise RuntimeError("no active observation")
+        return self._raw_obs.copy()
+
+    def base_action_mask(self) -> np.ndarray:
+        """Current native per-base-action mask (teacher hash basis)."""
+
+        return np.asarray(self._core.action_mask(), dtype=bool)
+
     # --------------------------------------------------------------- helpers
 
     def _accept(self, raw: np.ndarray, info: dict[str, Any]) -> None:
