@@ -323,6 +323,11 @@ class V2FlatActionEnv(gym.Env):
 
         return np.asarray(self._core.action_mask(), dtype=bool)
 
+    def state_info(self) -> dict[str, Any]:
+        """Last normalized info dict (phase/floor/hp/labels)."""
+
+        return dict(self._info)
+
     # --------------------------------------------------------------- helpers
 
     def _accept(self, raw: np.ndarray, info: dict[str, Any]) -> None:

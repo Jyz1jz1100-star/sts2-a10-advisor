@@ -121,7 +121,7 @@ def traverse_with_student(
                 decisions=list(accepted),
                 raw_obs=raw,
                 base_mask=base_mask.copy(),
-                info=dict(env._info),
+                info=env.state_info(),
             ), {"chosen_flat": chosen, "margin": margin}
             action, target = decode_flat(chosen)
             observation, _reward, terminated, truncated, step_info = env.step(chosen)

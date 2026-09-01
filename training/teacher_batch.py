@@ -217,8 +217,6 @@ class TeacherBatchConfig:
     min_score_gap: float = 0.5
     max_decisions_per_run: int = 12
     traversal_steps: int = 400
-    max_episode_steps: int = 1200
-    high_hp_danger_fraction: float = 0.30
 
 
 def label_decision(
