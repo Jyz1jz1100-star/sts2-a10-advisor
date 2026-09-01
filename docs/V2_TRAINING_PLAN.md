@@ -2,6 +2,34 @@
 
 Date: 2026-09-01
 
+## Review corrections (2026-09-01, session 3)
+
+- **The round-2 BC holdout top-1 0.603 is RETIRED as a historical,
+  leakage-contaminated number**: the prefix-hash split put 85.9% of holdout
+  seeds into train as well. The run-grouped retrain
+  (`models/bc_v2_r3_leakfree.pt`, shared runs asserted 0, dagger seeds
+  quarantined behind the reserved test-corpus boundary) reports an honest
+  **holdout top-1 0.5725 / top-3 0.7905**; every current decision uses the
+  honest numbers.
+- **Shaping gamma must equal PPO gamma** (load-time validation in
+  `load_v2_training_config`; both are 0.995 in the checked-in configs).
+- **Teacher v3 replaces the 24-step greedy-continuation scorer**: combat
+  beam search (beam 64–256) to the labelled turn's end plus 1–2 enemy
+  rounds, and out-of-run long rollouts (to the next combat end / curriculum
+  boundary / Act 1 terminal) averaged over multiple seeded continuations
+  (`training/teacher_v3.py`). Its records may be called **expert labels only
+  after** `scripts/evaluate_teacher_strength.py` shows the teacher beating
+  heuristic, BC, and PPO on independent seeds; before that they are
+  `label_status: "candidate"` (`scripts/generate_teacher_batch_v3.py`).
+- **floor6 promotion requires point >= 0.93 AND Wilson 95% low >= 0.90**;
+  the new reward components (first floor advance, boundary success, step
+  cost) are ablated per review item 4
+  (`scripts/run_floor6_ablation.py` + `scripts/summarize_floor6_ablation.py`,
+  selection lexicographic boundary→Wilson→floor→HP→steps, never mean_return).
+- **BC pretraining into PPO** (`training/bc_pretrain.py`) is the PPO
+  warm-start path; its actor is evaluated on the 100 checkpoint seeds before
+  PPO starts (`runs/pretrain_eval/`).
+
 ## Status of the delivery stages (updated 2026-09-01, session 2)
 
 1. **Training environment contract — done.** Expanded fixed-width observation
