@@ -172,9 +172,19 @@ touched.
   student visits states the teacher corrects (the coverage BC alone cannot
   manufacture). The manifest records the student checkpoint hash so each
   correction cycle is attributable.
-- **Teacher batch 1 in progress**: 18,000 seeds × 10 shards (≈25.5k records at
-  last check, target ≈35k) for the next distillation round; triple audit
-  required before use, same bar as batch 0.
+- **Teacher batch 1 COMPLETE and triple-audited: 35,268 records** (18,000
+  seeds × 10 shards from 1,400,200,000). Offline provenance **0 violations**,
+  **60/60 live replay zero failures**, **150/150 rescore zero best-action
+  flips** — all three shards-complete manifests report capture==reverify.
+  Phase balance combat 19,892 / relic-reward 6,521 / Neow 2,600 / route
+  2,111 / event 1,780 / card-reward 1,723 / shop 513 / rest 85 / transform
+  43; 15.8% explicit enemy-target decisions; gap median 1.50, max 7.02.
+  **Cumulative audited teacher dataset: 44,001 records** (batch 0 8,733 +
+  batch 1 35,268), far past the ~10k first-batch goal and into the planned
+  50k–200k expansion range with the quality bar held. Batch-1 BC
+  materialization (hash-verified replay of every record) is running;
+  merged distillation round 2 follows.
+
 
 
 - **Known contract gaps (tracked, not blockers):** relic counters and enemy
