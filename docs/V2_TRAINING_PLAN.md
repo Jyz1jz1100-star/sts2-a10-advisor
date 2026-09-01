@@ -34,8 +34,20 @@ Date: 2026-09-01
    `bcd623ce…34bc4`, scope `simulator_act1`, gap median 1.50, 14.7% explicit
    enemy-target decisions; 60-record BC conversion produced 60/60
    hash-verified samples). Expanding to 50k–200k is now a budget decision.
-4. BC/DAgger, 5. fixed-seed ablations, 6. promotion budget, 7. real-game
-   adapter: not started — they consume this batch's output.
+4. **BC + DAgger — first cycle complete.** batch0 materialized 8,733/8,733
+   through the contract stack with per-state hash verification; the
+   phase-split masked scorer (combat/non-combat heads, prefix-hash holdout)
+   reached holdout top-1 0.560 / top-3 0.782. Harness-evaluated student:
+   floor3 boundary 0.80 with zero illegal actions and zero unclassified dead
+   ends; floor6 0.12 and Act-1 mean floor 2.92 confirm imitation alone
+   plateaus — the curriculum ladder and DAgger corrections carry from here.
+   DAgger generator (`training/dagger_batch.py`) reuses the teacher record
+   format and adds student provenance + teacher_agreement; a real 6-seed
+   probe found 4/8 teacher-student disagreements (all audited clean).
+5. Fixed-seed ablations, 6. promotion budget: not started. The official V2
+   `floor3` stage (full config budget) is running now, and batch-1 (~35k
+   records) is generating for the next distillation/DAgger round.
+7. Real-game adapter: not started.
 
 ## Why V1 stopped
 

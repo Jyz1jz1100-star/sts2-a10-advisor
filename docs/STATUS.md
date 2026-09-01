@@ -91,14 +91,41 @@ touched.
   decision.  Method lesson recorded: *state* replayability is necessary but
   not sufficient — label *semantics* must match the training contract, and
   the converter is the tripwire.
-- **Tests: 118/118** (was 78): +27 contract tests
-  (`tests/test_v2_contract.py`, including real-emulator determinism,
-  max-floor, dead-end classification, mask-purity/property tests), +8
-  teacher tests (`tests/test_teacher_batch.py`, incl. two rejection-safety
-  tests), +3 BC-converter tests
-  (`tests/test_teacher_bc_dataset.py`), and a metrics regression for mixed
-  win/boundary accounting. The metrics schema assertion moved 1 → 2 with the
-  new fields.
+- **Tests: 126/126** (was 78): +27 contract tests, +8 teacher tests,
+  +3 BC-converter tests, +5 V2-BC-trainer tests, +3 DAgger tests, plus the
+  metrics regression for mixed win/boundary accounting. The metrics schema
+  assertion moved 1 → 2 with the new fields.
+- **BC distillation (plan step 4) — first cycle complete.** All 8,733 batch-0
+  records materialized through the *real contract stack* with per-state hash
+  verification (8,733/8,733 zero drift) into samples carrying the exact
+  1739-int expanded observation, the flat legal mask, and the teacher label
+  (`training/teacher_bc_dataset.py`). The phase-split masked scorer
+  (`training/behavior_clone_v2.py`, combat vs non-combat heads, deterministic
+  prefix-hash holdout split) reached **holdout top-1 0.560 / top-3 0.782**
+  (combat 0.513, non-combat 0.612) with checkpoint hash sidecar + tamper
+  detection. Evaluated through the standard V2 harness
+  (`scripts/evaluate_bc_student.py`) on untouched floor3 checkpoint seeds:
+  **boundary 0.80, illegal 0, unclassified dead ends 0**; floor6 boundary
+  0.12 and Act 1 mean floor 2.92 confirm the plan's expectation that pure
+  imitation plateaus early — the curriculum/RL ladder and DAgger corrections
+  are the binding next steps, not more BC.
+- **DAgger (plan step 4, second half) — module complete.**
+  `training/dagger_batch.py`: student-driven rollouts on the contract stack
+  (noop-rejection mode) label states that are danger-relevant *or* where the
+  BC margin says the student is unsure; engine-rejected actions are excluded
+  from prefixes (the batch-0 rule) while the disagreement state is still
+  labelled; records add `student` provenance + `teacher_agreement`. A real
+  6-seed probe emitted 8 records with **4 teacher/student disagreements**,
+  triple-audited clean (0 violations, 8/8 live replay). Formal DAgger batches
+  run after batch-1 quality review.
+- **Official V2 runs started (this session):** batch-1 expansion generating
+  (18,000 seeds × 10 shards from 1,400,200,000, target ≈35k records) and the
+  **first official V2 curriculum stage `floor3`** running the full
+  `config/training_v2.toml` budget (2M steps, 250k checkpoint cadence,
+  boundary-0.90 promotion gate) into a fresh `runs/curriculum_v2/…`
+  directory. Results will be appended here as their metrics land; nothing is
+  promoted without the gates this session built.
+
 - **Known contract gaps (tracked, not blockers):** relic counters and enemy
   DefIds are absent from native API v8 (relic *presence* and enemy
   HP/intent/block/buffs are covered); event option *text* is only inferable
