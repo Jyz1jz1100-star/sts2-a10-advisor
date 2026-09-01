@@ -146,6 +146,15 @@ class LabelRecordTests(unittest.TestCase):
                          record["state_hashes"]["reverify"])
         self.assertGreaterEqual(record["score_gap"], 0.1)
         self.assertTrue(record["high_confidence"])
+        # Record version 2 embeds the full prefix so any later process can
+        # rebuild the state; the embedded JSON must hash to prefix_sha256.
+        from training.prefix_replay_teacher import ReplayPrefix
+
+        self.assertEqual(record["record_version"], 2)
+        self.assertEqual(
+            ReplayPrefix.from_json(record["prefix"]).sha256,
+            record["prefix_sha256"],
+        )
         # The teacher's best candidate must be an actual (action,target) pair
         # from this state's codec, and the runner-up must be different.
         self.assertNotEqual(record["best_action_id"], record["runner_up_action_id"])

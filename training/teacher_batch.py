@@ -49,7 +49,7 @@ from .prefix_replay_teacher import (
 )
 from .v2_constants import COMBAT_OBS_SIZE, MAP_CHOICES, MAX_ENEMIES, MAX_HAND
 
-TEACHER_RECORD_VERSION = 1
+TEACHER_RECORD_VERSION = 2
 
 
 # --------------------------------------------------------------------------
@@ -308,6 +308,10 @@ def label_decision(
             "reverify": asdict(reverified_hashes),
         },
         "prefix_sha256": prefix.sha256,
+        # The full prefix is embedded so *any* later process (BC loader,
+        # DAgger auditor) can re-verify the exact state -- not just trust a
+        # hash it cannot reproduce.
+        "prefix": prefix.to_json(),
         "replay_verified": True,
         "budget": {
             "rollout_max_steps": budget.max_steps,

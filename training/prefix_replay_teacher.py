@@ -108,6 +108,32 @@ class ReplayPrefix:
         ).encode("utf-8")
         return hashlib.sha256(encoded).hexdigest()
 
+    def to_json(self) -> dict[str, Any]:
+        """Serializable form whose ``sha256`` a later process can re-verify."""
+
+        return {
+            "scope": self.scope,
+            "seed": self.seed,
+            "steps": [asdict(step) for step in self.steps],
+            "final_state": asdict(self.final_state),
+        }
+
+    @classmethod
+    def from_json(cls, payload: Mapping[str, Any]) -> "ReplayPrefix":
+        steps = tuple(
+            PrefixStep(
+                decision=ActionTarget(**item["decision"]),
+                state=StateHashes(**item["state"]),
+            )
+            for item in payload["steps"]
+        )
+        return cls(
+            seed=payload["seed"],
+            steps=steps,
+            final_state=StateHashes(**payload["final_state"]),
+            scope=payload["scope"],
+        )
+
 
 @dataclass(slots=True)
 class ReplayedState:
