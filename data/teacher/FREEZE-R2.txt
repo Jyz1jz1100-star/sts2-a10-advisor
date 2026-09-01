@@ -1,0 +1,15 @@
+﻿R2 TEACHER DATASET — FROZEN (2026-09-01 review)
+
+batch0 (8,733), batch1 (35,268), dagger0 (3,824 partial) are frozen as
+historical training data. Their triple audit proves replay consistency and
+label-semantics alignment, NOT teacher optimality: the batch-era teacher is
+a 24-step greedy-continuation rollout scorer, not the planned beam search /
+long-horizon out-of-run evaluation.
+
+- Do not expand this lineage (no batch2 in the same design).
+- BC metrics computed on prefix-hash splits over these files are
+  run-leakage-contaminated (85.9% of holdout seeds also appear in train)
+  and are retained only as historical numbers.
+- The next distillation round must use the upgraded beam teacher
+  (training/teacher_v3.py) after it passes the teacher-strength eval
+  (scripts/evaluate_teacher_strength.py) against heuristic/BC/PPO.
