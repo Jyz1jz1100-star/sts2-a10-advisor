@@ -4,6 +4,15 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **Resume numbering verified in production**: first post-crash checkpoint
+  landed as `step_000012000000` — global-step alignment across the
+  resume-base (10,000,020) + learned delta worked exactly as designed.
+  12M metrics: win 0.020 (100 eps), floor 7.97, **truncation 0.020 ↓** (the
+  event-loop trap episodes are declining as the policy learns to prefer
+  options 1–3), illegal 1 (NODE_SHOP persists), mean 114 steps. Win rate
+  stays in the 2–5% plateau band; per the documented decision the run
+  completes to 100M as the comparison baseline before any strategy change.
+
 - **Native emulator FailFast at 07:32 (11.45M/100M steps)**: access violation
   inside C# `RunMapGenerator.FindAllPaths` during a training `run_reset` —
   uncatchable by Python, process killed by the OS. Zero data loss (five
