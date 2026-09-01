@@ -89,6 +89,8 @@ def materialize_records(
                 "scope": record["scope"],
                 "seed": record["seed"],
                 "prefix_sha256": record["prefix_sha256"],
+                "decision_index": record["decision_index"],
+                "source": record.get("source", "teacher"),
                 "phase": record["phase"],
                 "floor": record["floor"],
                 "score_gap": record["score_gap"],
