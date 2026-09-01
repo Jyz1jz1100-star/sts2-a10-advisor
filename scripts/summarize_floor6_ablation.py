@@ -38,7 +38,7 @@ SELECT_ORDER: tuple[tuple[str, bool], ...] = (
     ("mean_steps", False),
 )
 
-REPORTED_BUT_NOT_SELECTED = ("mean_episode_return", "win_rate")
+REPORTED_BUT_NOT_SELECTED = ("mean_return", "win_rate")
 
 
 def _load_json(path: Path) -> dict:
@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
             "mean_final_floor": _mean("mean_final_floor"),
             "mean_final_hp_fraction": _mean("mean_final_hp_fraction"),
             "mean_steps": _mean("mean_steps"),
-            "mean_episode_return": _mean("mean_episode_return"),
+            "mean_return": _mean("mean_return"),
             "win_rate": _mean("win_rate"),
             "per_run": {
                 str(index): {
@@ -116,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
                     "mean_final_floor": payload.get("mean_final_floor"),
                     "mean_final_hp_fraction": payload.get("mean_final_hp_fraction"),
                     "mean_steps": payload.get("mean_steps"),
-                    "mean_episode_return": payload.get("mean_episode_return"),
+                    "mean_return": payload.get("mean_return"),
                 }
                 for index, payload in enumerate(run_payloads)
             },
