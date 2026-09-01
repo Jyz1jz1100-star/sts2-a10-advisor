@@ -15,7 +15,7 @@ import sys
 sys.path.insert(0, sys_path)
 
 from tests.test_teacher_batch import make_raw, mask_of  # noqa: E402
-from training.behavior_clone_v2 import BCv2Config, PhaseSplitActionScorer  # noqa: E402
+from training.behavior_clone_v2 import BCv2Config, PhaseHeadActionScorer  # noqa: E402
 from training.dagger_batch import (  # noqa: E402
     DaggerConfig,
     generate_dagger_batch,
@@ -79,9 +79,9 @@ def _info():
             "player_max_hp": 80, "current_node_type": 1, "encounter_id": 17}
 
 
-def _tiny_model() -> PhaseSplitActionScorer:
+def _tiny_model() -> PhaseHeadActionScorer:
     torch.manual_seed(0)
-    model = PhaseSplitActionScorer(BCv2Config(hidden_dim=64, depth=1))
+    model = PhaseHeadActionScorer(BCv2Config(hidden_dim=64, depth=1))
     model.eval()
     return model
 

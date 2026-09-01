@@ -436,6 +436,21 @@ class CurriculumConfigTests(unittest.TestCase):
         self.assertGreaterEqual(final.min_win_rate, 0.35)
         self.assertGreaterEqual(final.min_wilson_lower, 0.31)
 
+    def test_floor6_boundary_gate_requires_point_and_wilson(self) -> None:
+        """Review item 4: floor6 passes only at point >= 0.93 AND Wilson
+        95% lower bound >= 0.90; other stages keep the point-only gate."""
+
+        floor6 = self.config.stage("floor6")
+        self.assertGreaterEqual(floor6.min_boundary_rate, 0.93)
+        self.assertGreaterEqual(floor6.min_boundary_wilson_lower, 0.90)
+        for stage in self.config.stages:
+            if stage.name == "floor6":
+                continue
+            self.assertIsNone(
+                stage.min_boundary_wilson_lower,
+                f"{stage.name} unexpectedly carries a boundary Wilson gate",
+            )
+
     def test_probe_metric_names_never_collide_across_intervals(self) -> None:
         """Sub-megabyte probe intervals must not overwrite earlier probes."""
 
@@ -453,17 +468,50 @@ class CurriculumConfigTests(unittest.TestCase):
         self.assertNotEqual(name(1_000_000), name(1_500_000))
         self.assertTrue(callable(callback_type))
 
+    def test_shaping_gamma_must_equal_ppo_gamma(self) -> None:
+        """Review item 2: a shaping discount different from the learner's
+        gamma biases every shaped advantage; it is now a load-time error."""
+
+        source = (PROJECT_ROOT / "config" / "training_v2.toml").read_text(
+            encoding="utf-8"
+        )
+        broken = source.replace(
+            "[reward]\ngamma = 0.995", "[reward]\ngamma = 0.99", 1
+        )
+        import tempfile
+
+        self.assertNotEqual(broken, source, "gamma mutation did not apply")
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory) / "gamma_mismatch.toml"
+            temp.write_text(broken, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "reward.gamma"):
+                load_v2_training_config(temp)
+
+    def test_checked_in_configs_have_aligned_gamma(self) -> None:
+        for name in ("training_v2.toml", "training_v2_smoke.toml"):
+            config = load_v2_training_config(
+                PROJECT_ROOT / "config" / name
+            )
+            self.assertEqual(
+                config.reward.gamma,
+                config.algorithm.gamma,
+                f"{name}: reward.gamma != algorithm.gamma",
+            )
+
     def test_overlap_is_rejected(self) -> None:
+        """Read-only-suite rule: the mutated config goes to the OS temp dir,
+        never into the checked-in config/ tree."""
+
+        import tempfile
+
         broken = (PROJECT_ROOT / "config" / "training_v2.toml").read_text(
             encoding="utf-8"
         ).replace("start = 102010000", "start = 102005000")
-        temp = PROJECT_ROOT / "config" / "_tmp_v2_overlap.toml"
-        temp.write_text(broken, encoding="utf-8")
-        try:
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory) / "_tmp_v2_overlap.toml"
+            temp.write_text(broken, encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_v2_training_config(temp)
-        finally:
-            temp.unlink(missing_ok=True)
 
 
 class DeterministicReplayTests(unittest.TestCase):

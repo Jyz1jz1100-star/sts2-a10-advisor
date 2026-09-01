@@ -34,7 +34,11 @@ from typing import Any, Callable, Iterator, Sequence
 import numpy as np
 import torch
 
-from .behavior_clone_v2 import PhaseSplitActionScorer, masked_scores
+from .behavior_clone_v2 import (
+    PhaseHeadActionScorer,
+    family_slot_for_phase,
+    masked_scores,
+)
 from .prefix_replay_teacher import ActionTarget
 from .teacher_batch import (
     TeacherBatchConfig,
@@ -56,7 +60,7 @@ class DaggerConfig(TeacherBatchConfig):
 
 
 def student_choice(
-    model: PhaseSplitActionScorer,
+    model: PhaseHeadActionScorer,
     observation: np.ndarray,
     flat_mask: np.ndarray,
     *,
@@ -73,12 +77,13 @@ def student_choice(
     with torch.no_grad():
         vector = torch.as_tensor(observation, dtype=torch.int32).view(1, -1).to(device)
         legal = torch.as_tensor(mask, dtype=torch.bool).view(1, -1).to(device)
-        combat = torch.tensor(
-            [int(observation[BLOCK_OFFSETS["run_native_passthrough"]]) == 0],
-            dtype=torch.bool,
+        family = torch.tensor(
+            [family_slot_for_phase(
+                int(observation[BLOCK_OFFSETS["run_native_passthrough"]]))],
+            dtype=torch.long,
             device=device,
         )
-        scores = masked_scores(model(vector, combat), legal)[0]
+        scores = masked_scores(model(vector, family), legal)[0]
     chosen = int(scores.argmax())
     ranked = scores[mask].sort(descending=True).values
     margin = float(ranked[0] - ranked[1]) if ranked.numel() >= 2 else float("inf")
@@ -89,7 +94,7 @@ def traverse_with_student(
     seed: int | str,
     *,
     core_factory: Callable[[], Any],
-    model: PhaseSplitActionScorer,
+    model: PhaseHeadActionScorer,
     device: str,
     rng: random.Random,
     config: DaggerConfig,
@@ -147,7 +152,7 @@ def generate_dagger_batch(
     *,
     core_factory: Callable[[], Any],
     env_factory: Callable[[int | str], Any],
-    model: PhaseSplitActionScorer,
+    model: PhaseHeadActionScorer,
     emulator_hash: str,
     device: str = "cpu",
     config: DaggerConfig = DaggerConfig(),

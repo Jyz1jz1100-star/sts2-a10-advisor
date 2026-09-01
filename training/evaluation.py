@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Protocol
 
 from .metrics import EpisodeMetric, EvaluationMetrics, summarize_episodes
+
+
+def _finite(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
 
 
 class MaskedPolicy(Protocol):
@@ -99,6 +108,15 @@ def evaluate_policy(
             final_floor = info.get("floor")
             encounter = reset_info.get("encounter")
             won = bool(terminated and info.get("player_won", False))
+            # End-of-episode HP fraction for the joint ablation metric
+            # (mean_final_hp_fraction); the V2 info stack carries player_hp /
+            # player_max_hp from the native run info on every transition.
+            hp = _finite(info.get("player_hp"))
+            max_hp = _finite(info.get("player_max_hp"))
+            if hp is None or max_hp is None or max_hp <= 0:
+                final_hp_fraction = None
+            else:
+                final_hp_fraction = min(1.0, max(0.0, hp / max_hp))
             # A V2 curriculum boundary truncation is a stage completion for
             # floor-limited levels; the run contract wrapper labels it.
             boundary = won or bool(
@@ -130,6 +148,7 @@ def evaluate_policy(
                     boundary_reached=boundary,
                     dead_end_reason=(str(dead_end) if dead_end is not None else None),
                     rejection_events=rejection_events,
+                    final_hp_fraction=final_hp_fraction,
                 )
             )
         finally:

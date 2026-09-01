@@ -10,7 +10,7 @@ from pathlib import Path
 from .seeds import seed_digest
 from .wilson import wilson_interval
 
-METRICS_SCHEMA_VERSION = 2
+METRICS_SCHEMA_VERSION = 3
 
 
 @dataclass(frozen=True)
@@ -35,6 +35,11 @@ class EpisodeMetric:
     #: Native mask-vs-engine rejections the filter absorbed during the
     #: episode (emulator anomalies, counted separately from policy quality).
     rejection_events: int = 0
+    #: Player HP fraction at the episode's end state (0.0 when the run ended
+    #: in death, 1.0 impossible to lose HP on).  Feeds the joint ablation
+    #: metric ``mean_final_hp_fraction``; None when the simulator did not
+    #: expose HP (defensive; the native stack always does).
+    final_hp_fraction: float | None = None
 
 
 @dataclass(frozen=True)
@@ -63,6 +68,15 @@ class EvaluationMetrics:
     mean_final_floor: float | None
     max_final_floor: int | None
     boundary_rate: float = 0.0
+    #: Wilson 95% lower bound on the boundary rate itself (review item 4):
+    #: the floor6 gate requires point >= 0.93 AND this bound >= 0.90.
+    boundary_wilson_95_low: float = 0.0
+    boundary_wilson_95_high: float = 0.0
+    #: Number of episodes that reached the boundary (or won); the raw count
+    #: behind boundary_rate so audits can recompute the Wilson interval.
+    boundary_hits: int = 0
+    #: Mean HP fraction at episode end (None when HP was never exposed).
+    mean_final_hp_fraction: float | None = None
     dead_end_reasons: dict[str, int] = field(default_factory=dict)
     #: Truncated episodes carrying neither a simulator dead-end label nor a
     #: curriculum boundary.  V2 promotion requires this to be zero: every
@@ -120,8 +134,14 @@ def summarize_episodes(
         for episode in episodes
     )
     low, high = wilson_interval(wins, len(episodes))
+    boundary_low, boundary_high = wilson_interval(boundary_hits, len(episodes))
     floors = [
         episode.final_floor for episode in episodes if episode.final_floor is not None
+    ]
+    hp_fractions = [
+        episode.final_hp_fraction
+        for episode in episodes
+        if episode.final_hp_fraction is not None
     ]
     encounter_buckets: dict[str, list[EpisodeMetric]] = {}
     for episode in episodes:
@@ -172,6 +192,12 @@ def summarize_episodes(
         mean_final_floor=(sum(floors) / len(floors) if floors else None),
         max_final_floor=(max(floors) if floors else None),
         boundary_rate=boundary_hits / len(episodes),
+        boundary_wilson_95_low=boundary_low,
+        boundary_wilson_95_high=boundary_high,
+        boundary_hits=boundary_hits,
+        mean_final_hp_fraction=(
+            sum(hp_fractions) / len(hp_fractions) if hp_fractions else None
+        ),
         dead_end_reasons=dict(sorted(dead_end_reasons.items())),
         unclassified_dead_ends=unclassified_dead_ends,
         defect_truncation_rate=(truncations - boundary_truncations) / len(episodes),

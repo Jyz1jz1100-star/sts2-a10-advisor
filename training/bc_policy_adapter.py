@@ -18,15 +18,14 @@ from typing import Any
 import numpy as np
 import torch
 
-from .behavior_clone_v2 import PhaseSplitActionScorer, masked_scores
-from .v2_constants import PHASE_COMBAT
+from .behavior_clone_v2 import family_slot_for_phase, masked_scores
 from .v2_observation import BLOCK_OFFSETS
 
 
 class BCFlatPolicy:
     """Deterministic/stochastic argmax student over the flat action space."""
 
-    def __init__(self, model: PhaseSplitActionScorer, *, device: str = "cpu") -> None:
+    def __init__(self, model: Any, *, device: str = "cpu") -> None:
         self._model = model.to(device).eval()
         self._device = device
 
@@ -44,11 +43,11 @@ class BCFlatPolicy:
         legal = torch.as_tensor(
             np.asarray(action_masks, dtype=bool), dtype=torch.bool
         ).view(1, -1).to(self._device)
-        # Phase flag: combat means the native observation's phase slot.
-        combat = torch.tensor(
-            [_phase_of(vector) == PHASE_COMBAT], dtype=torch.bool, device=self._device
-        )
-        logits = masked_scores(self._model(vector, combat), legal)
+        # Phase family slot from the native observation's phase entry.
+        phase = int(vector[0, BLOCK_OFFSETS["run_native_passthrough"]])
+        family = torch.tensor([family_slot_for_phase(phase)], dtype=torch.long,
+                              device=self._device)
+        logits = masked_scores(self._model(vector, family), legal)
         if deterministic:
             choice = int(logits.argmax(dim=-1).item())
         else:

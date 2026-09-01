@@ -59,6 +59,13 @@ def decide_promotion(
                 f"{metrics.boundary_rate:.4f} < required "
                 f"{requirements.min_boundary_rate:.4f}"
             )
+    if requirements.min_boundary_wilson_lower is not None:
+        if metrics.boundary_wilson_95_low < requirements.min_boundary_wilson_lower:
+            reasons.append(
+                "boundary_wilson_95_low "
+                f"{metrics.boundary_wilson_95_low:.4f} < required "
+                f"{requirements.min_boundary_wilson_lower:.4f}"
+            )
     if metrics.unclassified_dead_ends > 0:
         reasons.append(
             "unclassified_dead_ends "
@@ -79,11 +86,13 @@ def decide_promotion(
             "episodes": metrics.episodes,
             "win_rate": metrics.win_rate,
             "wilson_95_low": metrics.wilson_95_low,
+            "boundary_rate": metrics.boundary_rate,
+            "boundary_wilson_95_low": metrics.boundary_wilson_95_low,
             "truncation_rate": metrics.truncation_rate,
             "defect_truncation_rate": metrics.defect_truncation_rate,
             "illegal_actions": metrics.illegal_actions,
             "mean_final_floor": metrics.mean_final_floor,
-            "boundary_rate": metrics.boundary_rate,
+            "mean_final_hp_fraction": metrics.mean_final_hp_fraction,
             "unclassified_dead_ends": metrics.unclassified_dead_ends,
         },
         required=asdict(requirements),

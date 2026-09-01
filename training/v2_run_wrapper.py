@@ -29,10 +29,23 @@ class V2RewardConfig:
     For a non-terminal transition the returned reward is::
 
         combat_reward_scale * raw_reward + gamma * Phi(next) - Phi(current)
+        + first_floor_advance_reward * 1[floor advanced past floor 1 once]
+        + boundary_success_reward * 1[new boundary node entered]
+        - step_cost
 
     where ``Phi = floor_weight * floor + hp_weight * hp_fraction``.  A true
     terminal state has zero potential and receives exactly one win/loss bonus.
     Truncations are not losses and receive no terminal bonus.
+
+    Review item 4 adds four components (2026-09-01):
+
+    * ``first_floor_advance_reward`` — fires on the *first* transition whose
+      floor advances past floor 1 (early exit from the starting room);
+    * ``boundary_success_reward`` — fires when the next state's floor carries
+      a higher boundary-node marker than any floor seen before in the episode
+      (revisiting a floor's node never re-fires it);
+    * ``step_cost`` — a small per-step cost so stalling is never free;
+    * ``combat_reward_scale`` keeps its existing role as the combat weight.
     """
 
     gamma: float = 0.99
@@ -41,6 +54,9 @@ class V2RewardConfig:
     hp_weight: float = 1.0
     terminal_win_reward: float = 25.0
     terminal_death_reward: float = -25.0
+    first_floor_advance_reward: float = 0.0
+    boundary_success_reward: float = 0.0
+    step_cost: float = 0.0
 
     def __post_init__(self) -> None:
         values = {
@@ -50,12 +66,21 @@ class V2RewardConfig:
             "hp_weight": self.hp_weight,
             "terminal_win_reward": self.terminal_win_reward,
             "terminal_death_reward": self.terminal_death_reward,
+            "first_floor_advance_reward": self.first_floor_advance_reward,
+            "boundary_success_reward": self.boundary_success_reward,
+            "step_cost": self.step_cost,
         }
         for name, value in values.items():
             if not math.isfinite(value):
                 raise ValueError(f"{name} must be finite")
         if not 0.0 <= self.gamma <= 1.0:
             raise ValueError("gamma must be in [0, 1]")
+        if self.combat_reward_scale < 0.0:
+            raise ValueError("combat_reward_scale must be non-negative")
+        if self.step_cost < 0.0:
+            raise ValueError("step_cost must be non-negative (it is a cost)")
+        if self.first_floor_advance_reward < 0.0 or self.boundary_success_reward < 0.0:
+            raise ValueError("success bonuses must be non-negative")
 
 
 def is_run_victory(
@@ -92,6 +117,36 @@ def _finite_number(value: Any, *, default: float) -> float:
     except (TypeError, ValueError):
         return default
     return result if math.isfinite(result) else default
+
+
+#: Node type the locked emulator build reports for a floor stairway transition.
+_STAIRWAY_NODE_TYPE = 9
+
+
+def _floor_number(info: Mapping[str, Any]) -> int:
+    """Current run floor from simulator or trace-style info keys."""
+
+    floor = _finite_number(info.get("floor", 0.0), default=0.0)
+    return int(max(0.0, floor))
+
+
+def _is_boundary_node(info: Mapping[str, Any]) -> bool:
+    """True when the *next* state sits on a floor boundary node.
+
+    The native info stack exposes the current map node type; the stairway
+    transition node is node type 9 on the locked build.  Explicit boolean
+    ``stairs``-style markers are also honoured so trace-style replay data can
+    drive the same reward without the native buffer.
+    """
+
+    node_type = _finite_number(info.get("current_node_type", 0), default=0.0)
+    if int(node_type) == _STAIRWAY_NODE_TYPE:
+        return True
+    for key in ("stairs", "node_stairway", "on_stairs"):
+        marker = info.get(key)
+        if marker is not None and bool(marker):
+            return True
+    return False
 
 
 class V2RunEnvWrapper(gym.Wrapper):
@@ -141,6 +196,10 @@ class V2RunEnvWrapper(gym.Wrapper):
         self._previous_potential = 0.0
         self._empty_mask_pending = False
         self._episode_done = True
+        # Review-item-4 event-tracking state (episode scoped):
+        self._first_floor_advance_fired = False
+        self._max_floor_seen = 0
+        self._boundary_floors: set[int] = set()
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         observation, raw_info = self.env.reset(seed=seed, options=options)
@@ -152,6 +211,12 @@ class V2RunEnvWrapper(gym.Wrapper):
         self._previous_potential = run_potential(info, self.reward_config)
         self._empty_mask_pending = False
         self._episode_done = False
+        # Reset the episode-scoped event trackers.
+        self._first_floor_advance_fired = False
+        self._max_floor_seen = _floor_number(info)
+        self._boundary_floors = (
+            {self._max_floor_seen} if _is_boundary_node(info) else set()
+        )
         return observation, info
 
     def action_masks(self) -> np.ndarray:
@@ -245,7 +310,39 @@ class V2RunEnvWrapper(gym.Wrapper):
             )
         else:
             terminal_reward = 0.0
-        shaped_reward = scaled_reward + potential_reward + terminal_reward
+
+        # ---- review-item-4 event components (all logged separately) ----
+        next_floor = _floor_number(info)
+        first_floor_advance_reward = 0.0
+        boundary_success_reward = 0.0
+        if (
+            not self._first_floor_advance_fired
+            and next_floor > 1
+            and next_floor > self._max_floor_seen
+        ):
+            self._first_floor_advance_fired = True
+            first_floor_advance_reward = self.reward_config.first_floor_advance_reward
+        if _is_boundary_node(info) and next_floor not in self._boundary_floors:
+            self._boundary_floors.add(next_floor)
+            boundary_success_reward = self.reward_config.boundary_success_reward
+        self._max_floor_seen = max(self._max_floor_seen, next_floor)
+        # Step cost applies to ongoing decisions only: a truncation is either
+        # an environment dead end (never the policy's fault) or a curriculum
+        # boundary (a stage completion), and neither should be taxed.
+        step_cost = (
+            0.0
+            if terminated or truncated
+            else self.reward_config.step_cost
+        )
+
+        shaped_reward = (
+            scaled_reward
+            + potential_reward
+            + terminal_reward
+            + first_floor_advance_reward
+            + boundary_success_reward
+            - step_cost
+        )
 
         info.update(
             {
@@ -255,6 +352,9 @@ class V2RunEnvWrapper(gym.Wrapper):
                 "potential_after": observed_next_potential,
                 "potential_reward": potential_reward,
                 "terminal_reward": terminal_reward,
+                "first_floor_advance_reward": first_floor_advance_reward,
+                "boundary_success_reward": boundary_success_reward,
+                "step_cost": step_cost,
                 "shaped_reward": shaped_reward,
             }
         )

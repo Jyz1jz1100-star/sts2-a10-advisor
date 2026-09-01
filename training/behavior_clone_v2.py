@@ -1,20 +1,20 @@
 """V2 behaviour cloning from hash-verified teacher BC samples.
 
-Unlike the V1 trace converter (which hash-encoded arbitrary JSON), V2 consumes
-the *fixed-width expanded observation* that the student will see at inference:
+Review corrections implemented here (2026-09-01):
 
-* input:  the 1739-int expanded observation (verified during materialization
-  against the teacher's replayed state hashes),
-* output: a masked score per flat ``(action, target)`` candidate -- one
-  combat head and one non-combat head (the plan's phase-split scorer),
-* labels: the teacher's best action, cross-entropy restricted to the legal
-  candidate set, so every gradient step lives in the same space the
-  MaskablePPO policy will inherit.
-
-The train/holdout split is by *record prefix hash*, so two decisions from the
-same run can never leak across the boundary, and the holdout is a fresh
-generalization estimate, not a memorization score.  Metrics are explicitly
-``simulator_act1``-scoped.
+* **Run-grouped splitting.** The original prefix-hash split leaked: two
+  decisions from the same simulator *run* could land on opposite sides
+  (measured 85.9% of holdout runs also appeared in train), so its 0.603
+  top-1 is a flagged historical number only.  Samples are now grouped by
+  ``(source, seed)`` — one whole run always lands on one side — and the
+  split function asserts 0 shared runs (a leakage regression is fatal, not
+  silently reported).
+* **Per-phase heads.** Six decision-family heads (combat, map, reward,
+  shop, rest, event) replace the combat/noncombat binary, per the plan's
+  phase-split scorer requirement.
+* **Reserved final-test range.** Seeds 1,410,000,000+ are reserved for a
+  dedicated teacher-era BC test corpus (generated only by the upgraded
+  beam teacher, never trained on).
 """
 
 from __future__ import annotations
@@ -27,17 +27,58 @@ import random
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator, Sequence
+from typing import Any, Sequence
 
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
 
+from .v2_constants import (
+    PHASE_ANCIENT,
+    PHASE_CARD_REWARD,
+    PHASE_COMBAT,
+    PHASE_EVENT,
+    PHASE_MAP,
+    PHASE_RELIC_REWARD,
+    PHASE_REST,
+    PHASE_SHOP,
+    PHASE_TRANSFORM_SELECT,
+    PHASE_TREASURE,
+)
 from .v2_flat_env import FLAT_SIZE
 from .v2_observation import OBS_SIZE, observation_contract
 
-BC_V2_CHECKPOINT_VERSION = 1
-HOLDOUT_BUCKETS = 20  # bucket 0 of prefix-hash mod 20 => ~5% holdout
+BC_CHECKPOINT_VERSION = 2
+HOLDOUT_BUCKETS = 20  # bucket < 1 of the (source|seed) digest => ~5% holdout
+
+#: Reserved seed range for the FINAL BC test corpus (upgraded-teacher era).
+#: Nothing may train on seeds >= this value; the batch generators are
+#: configured to stop below it until the reserved corpus exists.
+RESERVED_TEACHER_TEST_SEED_START = 1_410_000_000
+
+#: Decision families with their own scoring head (review item 3/6).
+BC_PHASES: tuple[str, ...] = ("combat", "map", "reward", "shop", "rest", "event")
+PHASE_SLOT = {name: index for index, name in enumerate(BC_PHASES)}
+FAMILY_BY_PHASE: dict[int, str] = {
+    PHASE_COMBAT: "combat",
+    PHASE_MAP: "map",
+    PHASE_CARD_REWARD: "reward",
+    PHASE_RELIC_REWARD: "reward",
+    PHASE_TREASURE: "reward",
+    PHASE_SHOP: "shop",
+    PHASE_REST: "rest",
+    PHASE_EVENT: "event",
+    PHASE_ANCIENT: "event",
+    PHASE_TRANSFORM_SELECT: "event",
+}
+
+
+def family_for_phase(phase: int) -> str:
+    return FAMILY_BY_PHASE.get(int(phase), "event")
+
+
+def family_slot_for_phase(phase: int) -> int:
+    return PHASE_SLOT[family_for_phase(phase)]
 
 
 @dataclass(frozen=True)
@@ -71,12 +112,83 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _hash_bucket(prefix_sha: str) -> int:
-    return int(prefix_sha[:8], 16) % HOLDOUT_BUCKETS
+def run_key_of(sample: dict[str, Any]) -> tuple[str, int]:
+    """Whole-run grouping key: one simulator run, one split side.
+
+    DAgger samples from the *same student run id* share the seed key; the
+    source tag keeps the teacher/DAgger lineage separate in the key but the
+    leakage guarantee below is enforced on seeds within each source, which is
+    the same generation process, so no cross-side trajectory mixing is
+    possible either way.
+    """
+
+    return (str(sample.get("source", "teacher")), int(sample["seed"]))
 
 
-class PhaseSplitActionScorer(nn.Module):
+def holdout_bucket(run_key: tuple[str, int]) -> int:
+    digest = hashlib.blake2b(f"{run_key[0]}|{run_key[1]}".encode(), digest_size=8)
+    return int.from_bytes(digest.digest(), "big") % HOLDOUT_BUCKETS
+
+
+class PhaseHeadActionScorer(nn.Module):
     """Shared trunk + one linear scoring head per decision family."""
+
+    def __init__(self, config: BCv2Config, phases: tuple[str, ...] = BC_PHASES):
+        super().__init__()
+        self.config = config
+        self.phases = tuple(phases)
+        layers: list[nn.Module] = []
+        width = config.input_dim
+        for _ in range(config.depth):
+            layers += [
+                nn.Linear(width, config.hidden_dim),
+                nn.GELU(),
+                nn.LayerNorm(config.hidden_dim),
+            ]
+            if config.dropout:
+                layers.append(nn.Dropout(config.dropout))
+            width = config.hidden_dim
+        self.trunk = nn.Sequential(*layers)
+        self.heads = nn.ModuleList(
+            nn.Linear(config.hidden_dim, config.action_dim) for _ in self.phases
+        )
+
+    @property
+    def family_index(self) -> bool:
+        return True
+
+    def forward(self, observation: Tensor, family: Tensor) -> Tensor:
+        """Route every row of a batch to its decision-family head.
+
+        ``family`` is a long tensor of head slots (see ``PHASE_SLOT``).
+        Bool inputs keep the v1 convention (True = combat) and map
+        True->combat, False->event so no silent head misassignment occurs.
+        """
+
+        if family.dtype == torch.bool:
+            family = torch.where(
+                family,
+                torch.zeros_like(family, dtype=torch.long),          # combat
+                torch.full_like(family, PHASE_SLOT["event"], dtype=torch.long),
+            )
+        embedding = self.trunk(observation.float())
+        logits = torch.zeros(
+            embedding.shape[0], self.config.action_dim, device=embedding.device
+        )
+        for slot in range(len(self.phases)):
+            rows = family == slot
+            if bool(rows.any()):
+                logits[rows] = self.heads[slot](embedding[rows])
+        return logits
+
+
+class _LegacyScorerV1(nn.Module):
+    """The original two-head (combat/noncombat) scorer architecture.
+
+    Retained only so already-saved ``checkpoint_version: 1`` artifacts load
+    and can still be *evaluated* on the corrected harness; it must not be
+    used for new training runs.
+    """
 
     def __init__(self, config: BCv2Config):
         super().__init__()
@@ -93,18 +205,24 @@ class PhaseSplitActionScorer(nn.Module):
                 layers.append(nn.Dropout(config.dropout))
             width = config.hidden_dim
         self.trunk = nn.Sequential(*layers)
-        # Phase heads: combat (phase 0) versus every non-combat decision.
         self.combat_head = nn.Linear(config.hidden_dim, config.action_dim)
         self.noncombat_head = nn.Linear(config.hidden_dim, config.action_dim)
 
-    def forward(self, observation: Tensor, combat: Tensor) -> Tensor:
-        """Return unmasked logits; callers apply the legal-action mask."""
+    @property
+    def family_index(self) -> bool:
+        return False
 
+    def forward(self, observation: Tensor, family: Tensor) -> Tensor:
+        if family.dtype != torch.bool:
+            # Family slot 0 is combat; every other slot used the noncombat
+            # head in v1, which is exactly what this maps to.
+            family = family != 0
         embedding = self.trunk(observation.float())
-        combat_logits = self.combat_head(embedding)
-        noncombat_logits = self.noncombat_head(embedding)
-        select = combat.view(-1, 1)
-        return torch.where(select, combat_logits, noncombat_logits)
+        return torch.where(
+            family.view(-1, 1),
+            self.combat_head(embedding),
+            self.noncombat_head(embedding),
+        )
 
 
 def masked_scores(logits: Tensor, legal: Tensor) -> Tensor:
@@ -113,11 +231,52 @@ def masked_scores(logits: Tensor, legal: Tensor) -> Tensor:
     return logits.masked_fill(~legal, -1e9)
 
 
-def load_samples(paths: Sequence[Path]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Split BC samples into deterministic train/holdout lists by prefix hash."""
+def split_samples(
+    samples: Sequence[dict[str, Any]], *, holdout_bucket_size: int = 1
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+    """Run-grouped train/holdout split with a hard no-leakage assertion."""
 
     train: list[dict[str, Any]] = []
     holdout: list[dict[str, Any]] = []
+    for sample in samples:
+        seed = int(sample["seed"])
+        if seed >= RESERVED_TEACHER_TEST_SEED_START:
+            continue  # reserved final-test range is never a training input
+        if holdout_bucket(run_key_of(sample)) < holdout_bucket_size:
+            holdout.append(sample)
+        else:
+            train.append(sample)
+    train_runs = {run_key_of(s) for s in train}
+    holdout_runs = {run_key_of(s) for s in holdout}
+    shared = train_runs & holdout_runs
+    statistics = {
+        "train_samples": len(train),
+        "holdout_samples": len(holdout),
+        "train_runs": len(train_runs),
+        "holdout_runs": len(holdout_runs),
+        "shared_runs": len(shared),
+        "holdout_run_leakage_rate": (
+            round(len(shared) / len(holdout_runs), 6) if holdout_runs else 0.0
+        ),
+        "skipped_reserved_test_seeds": sum(
+            1 for s in samples if int(s["seed"]) >= RESERVED_TEACHER_TEST_SEED_START
+        ),
+        "split": f"blake2b(source|seed) bucket < {holdout_bucket_size}/{HOLDOUT_BUCKETS} (whole-run grouped)",
+    }
+    if statistics["shared_runs"] != 0:
+        raise AssertionError(
+            f"run-grouping violated: {statistics['shared_runs']} (source, seed) "
+            "runs appear on both sides of the split"
+        )
+    return train, holdout, statistics
+
+
+def load_samples(
+    paths: Sequence[Path], *, holdout_bucket_size: int = 1
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+    """Load BC samples and produce a leak-free run-grouped split."""
+
+    all_samples: list[dict[str, Any]] = []
     for path in paths:
         for line in path.read_text(encoding="utf-8-sig").splitlines():
             if not line.strip():
@@ -127,16 +286,16 @@ def load_samples(paths: Sequence[Path]) -> tuple[list[dict[str, Any]], list[dict
                 raise ValueError("V2 BC accepts simulator_act1 samples only")
             if len(sample["observation"]) != OBS_SIZE:
                 raise ValueError("sample observation violates the contract width")
-            if _hash_bucket(sample["prefix_sha256"]) == 0:
-                holdout.append(sample)
-            else:
-                train.append(sample)
+            all_samples.append(sample)
+    train, holdout, statistics = split_samples(
+        all_samples, holdout_bucket_size=holdout_bucket_size
+    )
     if not train or not holdout:
         raise ValueError(
             "need train and holdout samples (empty side means the dataset is "
-            "too small for a hash-based split)"
+            "too small for a run-grouped split)"
         )
-    return train, holdout
+    return train, holdout, statistics
 
 
 def _tensors(samples: Sequence[dict[str, Any]], device: str):
@@ -153,41 +312,39 @@ def _tensors(samples: Sequence[dict[str, Any]], device: str):
         dtype=torch.long,
         device=device,
     )
-    combat = torch.tensor(
-        [int(sample["phase"]) == 0 for sample in samples],
-        dtype=torch.bool,
+    family = torch.tensor(
+        [family_slot_for_phase(int(sample["phase"])) for sample in samples],
+        dtype=torch.long,
         device=device,
     )
-    gaps = torch.tensor([float(sample["score_gap"]) for sample in samples],
-                        dtype=torch.float32, device=device)
-    return observations, legal, labels, combat, gaps
+    gaps = torch.tensor(
+        [float(sample["score_gap"]) for sample in samples],
+        dtype=torch.float32,
+        device=device,
+    )
+    return observations, legal, labels, family, gaps
 
 
-def evaluate(model: PhaseSplitActionScorer, samples, device: str) -> dict[str, Any]:
+def evaluate(model: nn.Module, samples, device: str) -> dict[str, Any]:
     model.eval()
-    observations, legal, labels, combat, gaps = _tensors(samples, device)
+    observations, legal, labels, family, gaps = _tensors(samples, device)
     with torch.no_grad():
-        logits = model(observations, combat)
-        masked = masked_scores(logits, legal)
+        masked = masked_scores(model(observations, family), legal)
         predicted = masked.argmax(dim=-1)
         correct = (predicted == labels).float()
-        # Top-3 accuracy over the legal set.
         k = min(3, int(legal.sum(dim=-1).min().item()))
         top3 = masked.topk(k, dim=-1).indices
         in_top3 = (top3 == labels.view(-1, 1)).any(dim=-1).float()
-        # Unmasked argmax would pick an illegal action: the mask's value.
-        raw_predicted = logits.argmax(dim=-1)
-        raw_illegal = (~legal.gather(1, raw_predicted.view(-1, 1)).view(-1)).float()
     result: dict[str, Any] = {
         "episodes": len(samples),
         "top1": float(correct.mean()),
         "top3": float(in_top3.mean()),
-        "unmasked_illegal_rate": float(raw_illegal.mean()),
     }
-    for family, mask in (("combat", combat), ("noncombat", ~combat)):
-        if bool(mask.any()):
-            result[f"{family}_top1"] = float(correct[mask].mean())
-            result[f"{family}_n"] = int(mask.sum())
+    for name, slot in PHASE_SLOT.items():
+        rows = family == slot
+        if bool(rows.any()):
+            result[f"{name}_top1"] = float(correct[rows].mean())
+            result[f"{name}_n"] = int(rows.sum())
     for label, low, high in (("gap_lt1", 0.0, 1.0), ("gap_1_2", 1.0, 2.0),
                              ("gap_ge2", 2.0, math.inf)):
         bucket = (gaps >= low) & (gaps < high)
@@ -203,15 +360,15 @@ def train_behavior_clone_v2(
     config: BCv2Config,
     *,
     device: str = "cpu",
-    log: callable = print,
-) -> tuple[PhaseSplitActionScorer, dict[str, Any]]:
+    log: Any = print,
+) -> tuple[nn.Module, dict[str, Any]]:
     random.seed(config.random_seed)
     torch.manual_seed(config.random_seed)
-    model = PhaseSplitActionScorer(config).to(device)
+    model = PhaseHeadActionScorer(config).to(device)
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
     )
-    observations, legal, labels, combat, _gaps = _tensors(train, device)
+    observations, legal, labels, family, _gaps = _tensors(train, device)
     n = observations.shape[0]
     history: list[dict[str, Any]] = []
     best = {"top1": -1.0, "state": None, "epoch": 0, "metrics": {}}
@@ -223,8 +380,8 @@ def train_behavior_clone_v2(
         for start in range(0, n, config.batch_size):
             index = permutation[start : start + config.batch_size]
             optimizer.zero_grad(set_to_none=True)
-            logits = model(observations[index], combat[index])
-            masked = masked_scores(logits, legal[index])
+            masked = masked_scores(model(observations[index], family[index]),
+                                   legal[index])
             loss = F.cross_entropy(masked, labels[index])
             loss.backward()
             if config.grad_clip:
@@ -243,7 +400,8 @@ def train_behavior_clone_v2(
         if metrics["top1"] > best["top1"]:
             best = {
                 "top1": metrics["top1"],
-                "state": {k: v.detach().cpu() for k, v in model.state_dict().items()},
+                "state": {key: value.detach().cpu()
+                          for key, value in model.state_dict().items()},
                 "epoch": epoch,
                 "metrics": dict(metrics),
             }
@@ -258,23 +416,28 @@ def train_behavior_clone_v2(
 
 
 def save_checkpoint(
-    model: PhaseSplitActionScorer,
+    model: nn.Module,
     result: dict[str, Any],
     config: BCv2Config,
     *,
     sample_paths: Sequence[Path],
-    train_count: int,
-    holdout_count: int,
+    split_statistics: dict[str, Any],
     output: Path,
 ) -> dict[str, Any]:
     output.parent.mkdir(parents=True, exist_ok=True)
     metadata: dict[str, Any] = {
-        "checkpoint_version": BC_V2_CHECKPOINT_VERSION,
+        "checkpoint_version": BC_CHECKPOINT_VERSION,
         "created_at": datetime.now(UTC).isoformat(),
-        "model": "shared_trunk_phase_split_flat_action_scorer",
+        "model": "shared_trunk_phase_head_flat_action_scorer",
+        "phases": list(BC_PHASES),
         "model_config": asdict(config),
         "scope": "simulator_act1",
         "disclaimer": "Act 1 emulator teacher distillation; not a real-game A10 policy.",
+        "teacher_status_note": (
+            "labels come from the frozen R2 greedy-rollout teacher (replay-"
+            "consistent, not optimality-certified); strength-gated beam "
+            "teacher replaces them in v3"
+        ),
         "observation_contract": observation_contract(),
         "dataset": {
             "files": [
@@ -282,9 +445,7 @@ def save_checkpoint(
                  "sha256": sha256_file(path)}
                 for path in sample_paths
             ],
-            "train_samples": train_count,
-            "holdout_samples": holdout_count,
-            "split": f"prefix_sha256 bucket 0 of {HOLDOUT_BUCKETS}",
+            **split_statistics,
         },
         "training": result,
         "torch_version": torch.__version__,
@@ -304,7 +465,13 @@ def save_checkpoint(
     return sidecar
 
 
-def load_model(path: Path | str, *, verify_hash: bool = True) -> PhaseSplitActionScorer:
+def load_model(path: Path | str, *, verify_hash: bool = True) -> nn.Module:
+    """Load any BC checkpoint; v1 artifacts load into the legacy architecture.
+
+    The returned module always has ``forward(observation, family_long)``, so
+    callers are architecture-agnostic.
+    """
+
     path = Path(path)
     if verify_hash:
         sidecar_path = path.with_suffix(path.suffix + ".metadata.json")
@@ -313,7 +480,13 @@ def load_model(path: Path | str, *, verify_hash: bool = True) -> PhaseSplitActio
             raise ValueError("checkpoint SHA-256 does not match metadata sidecar")
     payload = torch.load(path, map_location="cpu", weights_only=False)
     raw_config = payload["metadata"]["model_config"]
-    model = PhaseSplitActionScorer(BCv2Config(**raw_config))
+    config = BCv2Config(**raw_config)
+    version = int(payload["metadata"].get("checkpoint_version", 1))
+    if version >= BC_CHECKPOINT_VERSION:
+        phases = tuple(payload["metadata"].get("phases", BC_PHASES))
+        model = PhaseHeadActionScorer(config, phases)
+    else:
+        model = _LegacyScorerV1(config)
     model.load_state_dict(payload["state_dict"])
     model.eval()
     return model
@@ -343,14 +516,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         epochs=args.epochs,
         random_seed=args.seed,
     )
-    train, holdout = load_samples(args.samples)
-    print(json.dumps({"train": len(train), "holdout": len(holdout),
-                      "device": device}))
+    train, holdout, statistics = load_samples(args.samples)
+    print(json.dumps({"device": device, **statistics}, ensure_ascii=False))
     model, result = train_behavior_clone_v2(train, holdout, config, device=device)
     sidecar = save_checkpoint(
         model, result, config,
         sample_paths=args.samples,
-        train_count=len(train), holdout_count=len(holdout),
+        split_statistics=statistics,
         output=args.output,
     )
     print(json.dumps(sidecar["training"]["holdout"], ensure_ascii=False, indent=2))
@@ -359,3 +531,23 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+__all__ = [
+    "BC_CHECKPOINT_VERSION",
+    "BC_PHASES",
+    "PHASE_SLOT",
+    "RESERVED_TEACHER_TEST_SEED_START",
+    "BCv2Config",
+    "PhaseHeadActionScorer",
+    "evaluate",
+    "family_for_phase",
+    "family_slot_for_phase",
+    "load_model",
+    "load_samples",
+    "masked_scores",
+    "run_key_of",
+    "save_checkpoint",
+    "split_samples",
+    "train_behavior_clone_v2",
+]

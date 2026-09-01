@@ -16,6 +16,7 @@ Design rules encoded here (from the V2 training plan):
 
 from __future__ import annotations
 
+import math
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -46,6 +47,9 @@ class V2StageConfig:
     promotion_probe_every_steps: int
     #: Promotion gate: fraction of episodes reaching the boundary (or win).
     min_boundary_rate: float
+    #: Wilson 95% lower bound required of the boundary rate itself
+    #: (review item 4).  ``None`` keeps the historical point-only gate.
+    min_boundary_wilson_lower: float | None
     min_win_rate: float
     min_wilson_lower: float
     max_truncation_rate: float
@@ -140,6 +144,11 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
                 table.get("promotion_probe_every_steps", 0)
             ),
             min_boundary_rate=float(_require(table, "min_boundary_rate", float)),
+            min_boundary_wilson_lower=(
+                float(table["min_boundary_wilson_lower"])
+                if "min_boundary_wilson_lower" in table
+                else None
+            ),
             min_win_rate=float(table.get("min_win_rate", 0.0)),
             min_wilson_lower=float(table.get("min_wilson_lower", 0.0)),
             max_truncation_rate=float(
@@ -161,6 +170,13 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
         hp_weight=float(reward_raw.get("hp_weight", 1.0)),
         terminal_win_reward=float(reward_raw.get("terminal_win_reward", 25.0)),
         terminal_death_reward=float(reward_raw.get("terminal_death_reward", -25.0)),
+        boundary_success_reward=float(
+            reward_raw.get("boundary_success_reward", 3.0)
+        ),
+        step_cost=float(reward_raw.get("step_cost", 0.0)),
+        first_floor_advance_reward=float(
+            reward_raw.get("first_floor_advance_reward", 0.0)
+        ),
     )
 
     config = V2TrainingConfig(
@@ -190,6 +206,22 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
         raise ValueError("V2 training configuration must keep save_load=false")
     if config.character != "IRONCLAD" or config.ascension != 10:
         raise ValueError("this curriculum is locked to the emulator's IRONCLAD A10 target")
+
+    # Review item 2: the shaping horizon inside the potential term must be
+    # the SAME discount the PPO learner uses.  A mismatch (the 2026-09-01
+    # state: shaping gamma=0.99 under PPO gamma=0.995) quietly biases every
+    # shaped advantage, so it is a load-time error now, not a training-time
+    # surprise.
+    if not math.isclose(
+        config.reward.gamma,
+        config.algorithm.gamma,
+        rel_tol=0.0,
+        abs_tol=1e-9,
+    ):
+        raise ValueError(
+            "reward.gamma (shaping) must equal algorithm.gamma (PPO); got "
+            f"{config.reward.gamma} vs {config.algorithm.gamma}"
+        )
 
     for stage in config.stages:
         if stage.parallel_envs > config.partition(stage.name, "train").count:
@@ -221,6 +253,7 @@ def _validate_stage(stage: V2StageConfig) -> None:
         raise ValueError(f"stage {stage.name}: counts and step limits must be positive")
     rates = (
         stage.min_boundary_rate,
+        stage.min_boundary_wilson_lower or 0.0,
         stage.min_win_rate,
         stage.min_wilson_lower,
         stage.max_truncation_rate,

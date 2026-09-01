@@ -32,16 +32,25 @@ learning_rate = 0.0003
 entropy_coefficient = 0.02
 
 # Potential-based run reward used by training/v2_run_wrapper.py:
-#   r = combat_scale * raw + gamma * Phi(next) - Phi(prev),
+#   r = combat_scale * raw + gamma * Phi(next) - Phi(prev)
+#       + first_floor_advance_reward (once per floor>1 advance)
+#       + boundary_success_reward (once per floor>1 boundary node entered)
+#       - step_cost (every non-terminal step)
 #   Phi = floor_weight * floor + hp_weight * hp_fraction,
 #   terminal: +win / death bonus; truncations get no terminal bonus.
+# gamma MUST equal [algorithm].gamma (load-time validation, review item 2).
 [reward]
-gamma = 0.99
+gamma = 0.995
 combat_reward_scale = 0.10
 floor_weight = 1.0
 hp_weight = 1.0
 terminal_win_reward = 25.0
 terminal_death_reward = -25.0
+# Baseline lineage keeps the floor10 pre-review behaviour (no new components
+# enabled); the floor6 reward ablation turns these on per-arm.
+first_floor_advance_reward = 0.0
+boundary_success_reward = 0.0
+step_cost = 0.0
 
 [curriculum]
 stages = ["floor3", "floor6", "floor10", "floor13", "act1"]
@@ -95,7 +104,12 @@ promotion_probe_every_steps = 1000000
 # at boundary 0.86 on its 1M-step probe -- passing, but with only a 6pt margin
 # over the old gate and 4x budget unused.  A marginal boundary does not
 # bootstrap the harder stages, so require 0.90 before early-stopping.
-min_boundary_rate = 0.90
+# Review item 4 (2026-09-01): a boundary pass must now clear BOTH a point
+# estimate of 0.93 AND a Wilson 95% lower bound of 0.90 -- at n=500 the lower
+# bound is the binding constraint (~93.5% needed), so thin-margin
+# promotions like the 0.86 pass can no longer happen.
+min_boundary_rate = 0.93
+min_boundary_wilson_lower = 0.90
 min_win_rate = 0.0
 min_wilson_lower = 0.0
 max_truncation_rate = 0.03

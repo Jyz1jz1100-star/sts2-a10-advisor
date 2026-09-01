@@ -59,6 +59,7 @@ def _promotion_config(stage: V2StageConfig) -> PromotionConfig:
         max_illegal_actions=stage.max_illegal_actions,
         min_mean_floor=None,
         min_boundary_rate=stage.min_boundary_rate,
+        min_boundary_wilson_lower=stage.min_boundary_wilson_lower,
     )
 
 
@@ -274,6 +275,7 @@ def _train_stage(
     previous_checkpoint: Path | None,
     sts2_gym: Any,
     resume: bool = False,
+    ppo_seed: int | None = None,
 ) -> tuple[bool, Path]:
     from sb3_contrib import MaskablePPO
     from stable_baselines3.common.callbacks import BaseCallback
@@ -332,6 +334,12 @@ def _train_stage(
                 learning_rate=config.algorithm.learning_rate,
                 ent_coef=config.algorithm.entropy_coefficient,
             )
+
+        if ppo_seed is not None:
+            # Seed only the PPO side (network init + sampling entropy).  The
+            # env SeedStream namespace is untouched, so ablation arms that
+            # share a config see byte-identical training episode seeds.
+            model.set_random_seed(int(ppo_seed))
 
         checkpoint_seeds = config.partition(stage.name, "checkpoint").seeds(
             stage.checkpoint_eval_episodes
@@ -429,6 +437,7 @@ def plan(config: V2TrainingConfig, project_root: Path) -> dict:
                 "promotion": {
                     "episodes": stage.promotion_eval_episodes,
                     "min_boundary_rate": stage.min_boundary_rate,
+                    "min_boundary_wilson_lower": stage.min_boundary_wilson_lower,
                     "min_win_rate": stage.min_win_rate,
                     "min_wilson_lower": stage.min_wilson_lower,
                     "max_truncation_rate": stage.max_truncation_rate,

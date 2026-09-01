@@ -86,7 +86,103 @@ class MetricsTests(unittest.TestCase):
 
     def test_metrics_include_seed_digest_and_wilson_interval(self) -> None:
         metrics = self._metrics(100, 200)
-        self.assertEqual(metrics.schema_version, 2)
+        self.assertEqual(metrics.schema_version, 3)
+
+    def test_boundary_wilson_and_hp_metrics(self) -> None:
+        """Review item 4: boundary Wilson lower bound + final HP fraction."""
+
+        episodes = [
+            EpisodeMetric(
+                seed=50_000_000 + index,
+                won=False,
+                terminated=False,
+                truncated=True,
+                steps=30,
+                episode_return=0.5,
+                illegal_actions=0,
+                final_floor=6,
+                boundary_reached=index < 465,  # 465/500 boundary hits
+                dead_end_reason=(None if index < 465 else "step_cap"),
+                final_hp_fraction=0.5,
+            )
+            for index in range(500)
+        ]
+        metrics = summarize_episodes(
+            episodes,
+            stage="floor6",
+            split="promotion",
+            scope="simulator_act1",
+            checkpoint="fixture.zip",
+            deterministic=True,
+        )
+        self.assertEqual(metrics.boundary_hits, 465)
+        self.assertAlmostEqual(metrics.boundary_rate, 0.93)
+        # Wilson lower of 465/500 must clear 0.90 but not 0.91.
+        self.assertGreaterEqual(metrics.boundary_wilson_95_low, 0.90)
+        self.assertAlmostEqual(metrics.mean_final_hp_fraction, 0.5)
+        # The gate: a 0.92 point pass fails the Wilson>=0.90 requirement.
+        from training.wilson import wilson_interval
+
+        low_460, _ = wilson_interval(460, 500)
+        self.assertLess(low_460, 0.90)
+        self.assertGreaterEqual(metrics.boundary_wilson_95_low, low_460)
+
+    def test_boundary_wilson_gate_rejects_thin_margin(self) -> None:
+        metrics = self._metrics(120, 200, final_floor=6)
+        requirements = PromotionConfig(
+            min_episodes=200,
+            min_win_rate=0.0,
+            min_wilson_lower=0.0,
+            max_truncation_rate=1.0,
+            max_illegal_actions=0,
+            min_boundary_rate=0.0,
+            min_boundary_wilson_lower=0.65,
+        )
+        decision = decide_promotion(metrics, requirements)
+        self.assertFalse(decision.promoted)
+        self.assertTrue(
+            any("boundary_wilson_95_low" in reason for reason in decision.reasons)
+        )
+
+    def test_boundary_wilson_gate_passes_strong_boundary(self) -> None:
+        # 465/500 boundary hits: point 0.93, Wilson low ~0.9045.
+        episodes = [
+            EpisodeMetric(
+                seed=51_000_000 + index,
+                won=False,
+                terminated=False,
+                truncated=True,
+                steps=10,
+                episode_return=1.0,
+                illegal_actions=0,
+                final_floor=6,
+                boundary_reached=index < 465,
+                dead_end_reason=(None if index < 465 else "step_cap"),
+            )
+            for index in range(500)
+        ]
+        metrics = summarize_episodes(
+            episodes,
+            stage="floor6",
+            split="promotion",
+            scope="simulator_act1",
+            checkpoint="fixture.zip",
+            deterministic=True,
+        )
+        requirements = PromotionConfig(
+            min_episodes=500,
+            min_win_rate=0.0,
+            min_wilson_lower=0.0,
+            max_truncation_rate=1.0,
+            max_illegal_actions=0,
+            min_boundary_rate=0.93,
+            min_boundary_wilson_lower=0.90,
+        )
+        decision = decide_promotion(metrics, requirements)
+        self.assertTrue(decision.promoted, decision.reasons)
+        self.assertGreaterEqual(
+            decision.observed["boundary_wilson_95_low"], 0.90
+        )
 
     def test_defect_truncation_rate_never_goes_negative_with_terminal_wins(self) -> None:
         """A won episode also sets boundary_reached; the defect rate counts

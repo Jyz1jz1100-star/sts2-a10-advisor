@@ -76,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
             "boundary_rate": payload["boundary_rate"],
             "win_rate": payload["win_rate"],
             "mean_final_floor": payload["mean_final_floor"],
+            "mean_final_hp_fraction": payload.get("mean_final_hp_fraction"),
             "defect_truncation_rate": payload["defect_truncation_rate"],
             "unclassified_dead_ends": payload["unclassified_dead_ends"],
             "illegal_actions": payload["illegal_actions"],

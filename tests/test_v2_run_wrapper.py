@@ -258,7 +258,104 @@ class RewardTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             V2RewardConfig(floor_weight=float("nan"))
         with self.assertRaises(ValueError):
+            V2RewardConfig(step_cost=-0.1)
+        with self.assertRaises(ValueError):
+            V2RewardConfig(combat_reward_scale=-1.0)
+        with self.assertRaises(ValueError):
+            V2RewardConfig(boundary_success_reward=-1.0)
+        with self.assertRaises(ValueError):
             V2RunEnvWrapper(ScriptedRunEnv(), max_floor=0)
+
+
+class NewRewardComponentTests(unittest.TestCase):
+    """Review item 4: first-floor advance, boundary success, step cost."""
+
+    @staticmethod
+    def _transition(*, floor: int, node_type: int = 1, truncated: bool = False):
+        return (
+            np.asarray([1], dtype=np.int32),
+            0.0,
+            False,
+            truncated,
+            {
+                "floor": floor,
+                "current_node_type": node_type,
+                "player_hp": 50,
+                "player_max_hp": 100,
+            },
+        )
+
+    def _wrapper(self, transitions, **reward_kwargs):
+        config = V2RewardConfig(
+            gamma=1.0,
+            combat_reward_scale=0.0,
+            floor_weight=0.0,
+            hp_weight=0.0,
+            terminal_win_reward=0.0,
+            terminal_death_reward=0.0,
+            **reward_kwargs,
+        )
+        wrapper = V2RunEnvWrapper(
+            ScriptedRunEnv(transitions), reward_config=config
+        )
+        wrapper.reset()
+        return wrapper
+
+    def test_first_floor_advance_fires_once_per_episode(self):
+        wrapper = self._wrapper(
+            [
+                self._transition(floor=2),
+                self._transition(floor=3),
+                self._transition(floor=4),
+            ],
+            first_floor_advance_reward=1.5,
+        )
+        stepped = [wrapper.step(0) for _ in range(3)]
+        fired = [info["first_floor_advance_reward"] for *_, info in stepped]
+        self.assertEqual(fired, [1.5, 0.0, 0.0])
+
+    def test_boundary_success_fires_once_per_floor(self):
+        wrapper = self._wrapper(
+            [
+                self._transition(floor=1, node_type=9),
+                self._transition(floor=1, node_type=9),
+                self._transition(floor=2, node_type=9),
+                self._transition(floor=2, node_type=9),
+            ],
+            boundary_success_reward=2.0,
+        )
+        stepped = [wrapper.step(0) for _ in range(4)]
+        fired = [info["boundary_success_reward"] for *_, info in stepped]
+        self.assertEqual(fired, [2.0, 0.0, 2.0, 0.0])
+
+    def test_step_cost_applies_to_ongoing_steps_only(self):
+        wrapper = self._wrapper(
+            [
+                self._transition(floor=2),
+                self._transition(floor=3),
+                self._transition(floor=3, truncated=True),
+            ],
+            step_cost=0.05,
+        )
+        stepped = [wrapper.step(0) for _ in range(3)]
+        costs = [info["step_cost"] for *_, info in stepped]
+        self.assertEqual(costs, [0.05, 0.05, 0.0])
+        # Ongoing steps pay the cost; the truncating step does not.
+        self.assertAlmostEqual(stepped[0][1], -0.05)
+        self.assertAlmostEqual(stepped[2][1], 0.0)
+
+    def test_components_are_logged_separately(self):
+        wrapper = self._wrapper(
+            [self._transition(floor=2, node_type=9)],
+            first_floor_advance_reward=1.0,
+            boundary_success_reward=2.0,
+            step_cost=0.25,
+        )
+        _, reward, _, _, info = wrapper.step(0)
+        self.assertAlmostEqual(info["first_floor_advance_reward"], 1.0)
+        self.assertAlmostEqual(info["boundary_success_reward"], 2.0)
+        self.assertAlmostEqual(info["step_cost"], 0.25)
+        self.assertAlmostEqual(reward, 3.0 - 0.25)
 
 
 if __name__ == "__main__":

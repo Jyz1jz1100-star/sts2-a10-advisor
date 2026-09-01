@@ -18,6 +18,10 @@ class PromotionConfig:
     min_mean_floor: float | None = None
     #: V2 curriculum stages gate on reaching the stage floor boundary.
     min_boundary_rate: float | None = None
+    #: Wilson 95% lower bound required of the boundary rate itself (review
+    #: item 4): a point estimate without an interval can pass on a thin
+    #: margin; the bound cannot.  ``None`` keeps the historical behaviour.
+    min_boundary_wilson_lower: float | None = None
 
 
 @dataclass(frozen=True)
