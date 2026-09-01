@@ -229,11 +229,16 @@ class V2FlatActionEnv(gym.Env):
             # Native says this action/target pair is illegal even though the
             # native mask offered it: a classified emulator disagreement.
             if self._rejection_mode == "noop":
-                # Prefix replay for dataset materialization: the engine
-                # itself ignored the step, so report an unchanged, active
-                # transition.  Final-state hashes are verified separately by
-                # the caller; recorded history must not end the replay.
-                return self._expanded.copy(), 0.0, False, False, dict(self._info)
+                # Prefix replay / student rollout: the engine itself ignored
+                # the step, so report an unchanged transition that is still
+                # *active* but explicitly labelled -- callers must never
+                # append a rejected step to a training prefix, and may count
+                # the disagreement instead.
+                noop = self._classify("native_rejection")
+                noop["rejected_flat_action"] = flat
+                noop["rejected_action"] = action
+                noop["rejected_target"] = target
+                return self._expanded.copy(), 0.0, False, False, noop
             # Training: end the episode as a zero-reward truncation -- it is
             # the environment's fault, not the policy's, and V1's silent
             # -1-per-step rejection spin must never return.
