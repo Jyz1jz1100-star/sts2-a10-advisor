@@ -95,6 +95,10 @@ def materialize_records(
                 "label_flat_action": int(label),
                 "label_action_id": record["best_action_id"],
                 "legal_flat_actions": [int(i) for i in mask.nonzero()[0]],
+                # The vector itself is stored (with its hash) so BC training
+                # never has to touch the emulator; the hash lets any loader
+                # prove the payload matches the replayed state.
+                "observation": [int(value) for value in observation],
                 "observation_sha256": hashlib.sha256(
                     observation.astype("int32").tobytes()
                 ).hexdigest(),
