@@ -71,6 +71,63 @@ SENTINEL_FLAT = FLAT_SIZE - 1
 NATIVE_STATUS_REJECTED = -1
 
 
+def flat_mask_from_state(raw_obs: np.ndarray, base_mask: np.ndarray) -> np.ndarray:
+    """Pure flat mask for one raw simulator state.
+
+    Shared by :class:`V2FlatActionEnv`, the teacher, and the BC materializer
+    so the candidate set is identical everywhere by construction, not by
+    duplicated logic.
+    """
+
+    base = np.asarray(base_mask, dtype=bool)
+    if base.shape != (RUN_MAX_ACTIONS,):
+        raise ValueError(f"native mask must have {RUN_MAX_ACTIONS} entries")
+    mask = np.zeros(FLAT_SIZE, dtype=bool)
+    if not bool(base.any()):
+        mask[SENTINEL_FLAT] = True
+        return mask
+    obs = np.asarray(raw_obs)
+    phase = int(obs[COMBAT_OBS_SIZE])
+    alive = _alive_enemy_indices(obs)
+    targeted = _single_target_hand_actions(obs) if phase == PHASE_COMBAT else set()
+    # With two or more living enemies, an explicit target changes the
+    # transition, so a single-target action exposes exactly one candidate
+    # per living enemy.  The "no target" alias would resolve to the first
+    # living enemy in the engine, duplicating that enemy's candidate, so
+    # it is withheld here (codec's no-alias contract).
+    split_targets = len(alive) >= 2
+    for action in np.flatnonzero(base):
+        action = int(action)
+        if action in targeted and split_targets:
+            for enemy_index in alive:
+                mask[flat_index(action, enemy_index)] = True
+        else:
+            mask[flat_index(action, None)] = True
+    return mask
+
+
+def _alive_enemy_indices(obs: np.ndarray) -> list[int]:
+    enemy_base = 54  # CombatObservation enemy block start
+    alive: list[int] = []
+    for slot in range(MAX_ENEMIES):
+        hp = int(obs[enemy_base + slot * 15])
+        max_hp = int(obs[enemy_base + slot * 15 + 1])
+        if max_hp > 0 and hp > 0:
+            alive.append(slot)
+    return alive
+
+
+def _single_target_hand_actions(obs: np.ndarray) -> set[int]:
+    from advisor_core.card_targeting_v2 import is_single_target
+
+    targeted: set[int] = set()
+    for index in range(MAX_HAND):
+        def_id = int(obs[8 + index * 2])
+        if def_id != 0 and is_single_target(def_id):
+            targeted.add(index)
+    return targeted
+
+
 def flat_index(action: int, target: int | None) -> int:
     slot = 0 if target is None or target < 0 else int(target) + 1
     if not 0 <= slot < TARGET_SLOTS:
@@ -92,9 +149,22 @@ class V2FlatActionEnv(gym.Env):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, core: RunCore) -> None:
+    def __init__(self, core: RunCore, *, rejection_mode: str = "truncate") -> None:
+        """``rejection_mode`` selects the native-rejection semantics.
+
+        * ``"truncate"`` (training): a rejected action ends the episode as a
+          zero-reward, labelled ``native_rejection`` truncation;
+        * ``"noop"`` (prefix replay for dataset materialization): the same
+          step is returned as an unchanged, still-active transition, because
+          the engine itself ignored it -- replaying recorded history must not
+          end the episode, and the final-state hash is verified separately.
+        """
+
+        if rejection_mode not in ("truncate", "noop"):
+            raise ValueError("rejection_mode must be 'truncate' or 'noop'")
         super().__init__()
         self._core = core
+        self._rejection_mode = rejection_mode
         # Bounds are deliberately signed: buff magnitudes (temporary strength
         # down), map coordinates (-1 fillers), and shop costs legitimately go
         # negative inside the native passthrough blocks.
@@ -155,9 +225,15 @@ class V2FlatActionEnv(gym.Env):
         if status != 0:
             # Native says this action/target pair is illegal even though the
             # native mask offered it: a classified emulator disagreement.
-            # The state is unchanged, so end the episode as a truncation with
-            # zero reward -- it is the environment's fault, not the policy's,
-            # and V1's silent -1-per-step rejection spin must never return.
+            if self._rejection_mode == "noop":
+                # Prefix replay for dataset materialization: the engine
+                # itself ignored the step, so report an unchanged, active
+                # transition.  Final-state hashes are verified separately by
+                # the caller; recorded history must not end the replay.
+                return self._expanded.copy(), 0.0, False, False, dict(self._info)
+            # Training: end the episode as a zero-reward truncation -- it is
+            # the environment's fault, not the policy's, and V1's silent
+            # -1-per-step rejection spin must never return.
             self._episode_done = True
             rejection = self._classify("native_rejection")
             rejection["rejected_flat_action"] = flat
@@ -186,32 +262,7 @@ class V2FlatActionEnv(gym.Env):
             if self._episode_done:
                 raise RuntimeError("reset() must be called before action_masks()")
             return np.zeros(FLAT_SIZE, dtype=bool)
-        base = self._core.action_mask()
-        base = np.asarray(base, dtype=bool)
-        if base.shape != (RUN_MAX_ACTIONS,):
-            raise ValueError(f"native mask must have {RUN_MAX_ACTIONS} entries")
-        mask = np.zeros(FLAT_SIZE, dtype=bool)
-        if not bool(base.any()):
-            mask[SENTINEL_FLAT] = True
-            return mask
-
-        phase = int(self._raw_obs[COMBAT_OBS_SIZE])
-        alive = self._alive_enemy_indices()
-        targeted = self._single_target_hand_actions() if phase == PHASE_COMBAT else set()
-        # With two or more living enemies, an explicit target changes the
-        # transition, so a single-target action exposes exactly one candidate
-        # per living enemy.  The "no target" alias would resolve to the first
-        # living enemy in the engine, duplicating that enemy's candidate, so
-        # it is withheld here (codec's no-alias contract).
-        split_targets = len(alive) >= 2
-        for action in np.flatnonzero(base):
-            action = int(action)
-            if action in targeted and split_targets:
-                for enemy_index in alive:
-                    mask[flat_index(action, enemy_index)] = True
-            else:
-                mask[flat_index(action, None)] = True
-        return mask
+        return flat_mask_from_state(self._raw_obs, self._core.action_mask())
 
     def codec(self) -> ActionTargetCodecV2:
         """Candidate codec for the current state, for teacher/BC labelling."""

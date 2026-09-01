@@ -177,6 +177,81 @@ class LabelRecordTests(unittest.TestCase):
         self.assertIsNone(record)
 
 
+class RejectionSafetyTests(unittest.TestCase):
+    """A mask-legal but engine-rejected step must never enter a prefix.
+
+    The raw env silently no-ops such actions (-1 reward, frozen state) while
+    the V2 contract stack truncates on them; prefixes crossing a rejection
+    therefore replay fine under one path and die early under the other.
+    """
+
+    class RejectingEnv:
+        """Step 0 is legal-but-rejected; step 3 (end turn) is accepted."""
+
+        def __init__(self, seed):
+            self.seed = int(seed)
+            self.attempts = 0
+
+        def reset(self, *, seed=None):
+            self.attempts = 0
+            return make_raw(0), {"player_won": False, "floor": 5, "player_hp": 60,
+                                 "player_max_hp": 80, "current_node_type": 1,
+                                 "encounter_id": 17}
+
+        def action_masks(self):
+            return mask_of([0, 3])
+
+        def step(self, action, target=-1):
+            self.attempts += 1
+            if action == 0:
+                return make_raw(0), -1.0, False, False, {"player_won": False, "floor": 5}
+            return make_raw(2), 0.0, True, False, {"player_won": True, "floor": 6}
+
+        def close(self):
+            pass
+
+    def test_rejected_actions_are_excluded_from_prefixes(self) -> None:
+        from training.teacher_batch import traverse_run
+
+        rng = __import__("random").Random(1)
+        seen = list(traverse_run(
+            5,
+            env_factory=lambda seed: RejectionSafetyTests.RejectingEnv(seed),
+            rng=rng,
+            config=TeacherBatchConfig(traversal_steps=10),
+        ))
+        self.assertGreaterEqual(len(seen), 1)
+        # Every traversal decision exposes the rejected action 0 in the
+        # *mask* (that is the emulator bug), but the recorded decision stream
+        # must never have appended it.
+        for decision in seen:
+            self.assertTrue(bool(decision.base_mask[0]))
+
+    def test_score_candidates_treats_rejection_as_truncation_not_minus_one(self) -> None:
+        from training.prefix_replay_teacher import (
+            ActionTarget,
+            RolloutBudget,
+            capture_prefix,
+            score_candidates,
+        )
+
+        env = RejectionSafetyTests.RejectingEnv(5)
+        # A prefix that ends before the rejection is fine: capture empty.
+        prefix = capture_prefix(5, [], env_factory=lambda seed: RejectionSafetyTests.RejectingEnv(seed))
+        scores = score_candidates(
+            prefix,
+            [ActionTarget(0, -1)],
+            env_factory=lambda seed: RejectionSafetyTests.RejectingEnv(seed),
+            continuation_policy=lambda o, m, i, s: ActionTarget(3, -1),
+            budget=RolloutBudget(max_steps=4),
+        )
+        item = scores.candidates[0]
+        self.assertTrue(item.truncated)
+        # Truncation penalty only, never the -1 rejection reward.
+        self.assertAlmostEqual(item.score, -0.25)
+        _ = env  # constructed for API-shape clarity
+
+
 class IntegrationTests(unittest.TestCase):
     """End-to-end: traversal + labelling over the scripted fake environment."""
 

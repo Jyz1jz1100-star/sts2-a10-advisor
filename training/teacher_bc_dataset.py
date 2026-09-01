@@ -57,12 +57,17 @@ def materialize_records(
         if record.get("scope") != prefix.scope:
             raise ValueError("record/prefix scope mismatch")
 
-        env = V2FlatActionEnv(core_factory())
+        # No-op rejection mode: batch-0 prefixes may contain steps the engine
+        # silently ignored (mask-legal, native status -1, state frozen).  The
+        # engine *was* the semantics there -- replaying history must reproduce
+        # the engine's state, not the training wrapper's episode-end choice.
+        # The final hash comparison below proves equivalence either way.
+        env = V2FlatActionEnv(core_factory(), rejection_mode="noop")
         try:
             observation, _info = env.reset(seed=record["seed"])
             for step in prefix.steps:
                 flat = flat_index(step.decision.action, step.decision.target)
-                observation, _r, terminated, truncated, _info = env.step(flat)
+                observation, _reward, terminated, truncated, _info = env.step(flat)
                 if terminated or truncated:
                     raise ValueError(
                         f"prefix ended early at step {step!r}; state drift"

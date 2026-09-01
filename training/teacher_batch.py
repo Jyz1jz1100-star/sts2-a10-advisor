@@ -348,16 +348,34 @@ def traverse_run(
     rng: random.Random,
     config: TeacherBatchConfig,
 ) -> Iterator[TraversalDecision]:
-    """Yield decision states along one behavioural traversal of a run."""
+    """Yield decision states along one rejection-free behavioural traversal.
+
+    The raw ``Sts2RunEnv`` silently no-ops a mask-legal action the engine
+    itself rejects (reward -1, unchanged state) -- the V1 hang hazard -- while
+    the V2 contract stack *truncates* on the same native status.  A prefix
+    that crossed such a step would replay fine under the raw teacher path but
+    die early under the contract stack the student trains on.  So the
+    traversal detects a rejection (reward -1 plus unchanged observation/mask
+    hashes; a genuine non-terminal combat reward can never be exactly -1 with
+    a frozen state) and excludes that action at that state instead of
+    appending it.  Prefixes therefore contain only engine-accepted steps and
+    are replayable under both semantics.
+    """
 
     env = env_factory(seed)
     try:
         observation, info = env.reset(seed=seed)
         decisions: list[ActionTarget] = []
+        rejected_here: set[int] = set()
         for _ in range(config.traversal_steps):
             base_mask = np.asarray(env.action_masks(), dtype=bool)
-            if not bool(base_mask.any()):
-                return  # dead end: stop traversal, do not label past it
+            legal = [
+                int(index)
+                for index in np.flatnonzero(base_mask)
+                if int(index) not in rejected_here
+            ]
+            if not legal:
+                return  # empty mask, or every masked action is engine-rejected
             yield TraversalDecision(
                 seed=seed,
                 decisions=list(decisions),
@@ -365,7 +383,6 @@ def traverse_run(
                 base_mask=base_mask.copy(),
                 info=dict(info),
             )
-            legal = [int(index) for index in np.flatnonzero(base_mask)]
             action = int(rng.choice(legal))
             target = -1
             if int(np.asarray(observation)[COMBAT_OBS_SIZE]) == 0:
@@ -374,7 +391,16 @@ def traverse_run(
                 if action < len(hand) and hand[action] and is_single_target(hand[action]):
                     if len(alive) >= 2:
                         target = int(rng.choice(alive))
-            observation, _reward, terminated, truncated, info = env.step(action, target)
+            pre_hashes = state_hashes(observation, base_mask)
+            observation, reward, terminated, truncated, info = env.step(action, target)
+            if not terminated and not truncated and float(reward) == -1.0:
+                post_mask = np.asarray(env.action_masks(), dtype=bool)
+                if state_hashes(observation, post_mask) == pre_hashes:
+                    # Silent native rejection: the engine ignored the action.
+                    # Never let it enter a training prefix.
+                    rejected_here.add(action)
+                    continue
+            rejected_here.clear()
             decisions.append(ActionTarget(action, target))
             if terminated or truncated:
                 return

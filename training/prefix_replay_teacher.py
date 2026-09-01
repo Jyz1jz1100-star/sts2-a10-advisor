@@ -259,6 +259,29 @@ def _assert_legal(action: ActionTarget, mask: Sequence[bool], *, position: str) 
         )
 
 
+def _is_native_rejection(
+    reward: float,
+    terminated: bool,
+    truncated: bool,
+    pre_state: StateHashes,
+    post_observation: Any,
+    env: RunEnvironment,
+) -> bool:
+    """Detect the raw simulator's silent rejection no-op.
+
+    ``Sts2RunEnv.step`` returns ``(-1.0, False, False)`` with an unchanged
+    state when the native layer rejects a mask-legal action (the V1 hang
+    hazard; event/shop mask defects).  A genuine non-terminal combat reward
+    is a shaped HP-fraction value and never exactly -1.0 on a frozen state,
+    so reward == -1 plus identical observation/mask hashes is definitive.
+    """
+
+    if terminated or truncated or float(reward) != -1.0:
+        return False
+    post_mask = tuple(bool(value) for value in env.action_masks())
+    return state_hashes(post_observation, post_mask) == pre_state
+
+
 def sts2_run_env_factory(
     *, max_episode_steps: int = 1200, max_floors: int = 16
 ) -> EnvironmentFactory:
@@ -385,9 +408,17 @@ def score_candidates(
                 position=f"candidate {candidate_index}",
             )
 
+            pre_state = state_hashes(rebuilt.observation, rebuilt.action_mask)
             observation, reward, terminated, truncated, info = rebuilt.env.step(
                 candidate.action, candidate.target
             )
+            if _is_native_rejection(
+                reward, terminated, truncated, pre_state, observation, rebuilt.env
+            ):
+                # Contract semantics: the rollout wrapper turns this step into
+                # a zero-reward truncation, not a -1 that poisons every
+                # candidate the mask happens to over-offer.
+                reward, terminated, truncated = 0.0, False, True
             score = float(reward)
             steps = 1
             discount = budget.discount
@@ -401,9 +432,14 @@ def score_candidates(
                 if not isinstance(decision, ActionTarget):
                     raise TypeError("continuation_policy must return ActionTarget")
                 _assert_legal(decision, mask, position=f"rollout step {steps}")
+                pre_state = state_hashes(observation, mask)
                 observation, reward, terminated, truncated, info = rebuilt.env.step(
                     decision.action, decision.target
                 )
+                if _is_native_rejection(
+                    reward, terminated, truncated, pre_state, observation, rebuilt.env
+                ):
+                    reward, terminated, truncated = 0.0, False, True
                 score += discount * float(reward)
                 discount *= budget.discount
                 steps += 1
