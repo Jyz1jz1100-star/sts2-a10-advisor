@@ -383,6 +383,23 @@ class CurriculumConfigTests(unittest.TestCase):
         self.assertGreaterEqual(final.min_win_rate, 0.35)
         self.assertGreaterEqual(final.min_wilson_lower, 0.31)
 
+    def test_probe_metric_names_never_collide_across_intervals(self) -> None:
+        """Sub-megabyte probe intervals must not overwrite earlier probes."""
+
+        from training.v2_curriculum import _callback_class
+        from stable_baselines3.common.callbacks import BaseCallback
+
+        callback_type = _callback_class(BaseCallback)
+
+        def name(global_steps: int) -> str:
+            # Mirrors _probe_promotion's stem; a shared "M" rounding would
+            # collide (both 250k and 1.5M round to "0m").
+            return f"early-promotion-step_{global_steps:012d}"
+
+        self.assertNotEqual(name(250_008), name(1_500_016))
+        self.assertNotEqual(name(1_000_000), name(1_500_000))
+        self.assertTrue(callable(callback_type))
+
     def test_overlap_is_rejected(self) -> None:
         broken = (PROJECT_ROOT / "config" / "training_v2.toml").read_text(
             encoding="utf-8"

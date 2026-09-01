@@ -191,15 +191,20 @@ def _callback_class(base_callback: type):
 
         def _probe_promotion(self) -> None:
             global_steps = self.global_steps
-            checkpoint_stem = f"step_{global_steps:012d}"
-            checkpoint = self.stage_dir / "checkpoints" / f"{checkpoint_stem}.zip"
+            # Filename carries the exact global step: an "M"-rounded stem
+            # would collide whenever the probe interval is below 1M (the
+            # 500k-probe floor3 stage would otherwise overwrite 1M with 1.5M
+            # evidence).
+            probe_stem = f"early-promotion-step_{global_steps:012d}"
+            checkpoint = (
+                self.stage_dir / "checkpoints" / f"step_{global_steps:012d}.zip"
+            )
             if not checkpoint.is_file():
                 return
             payload = self._evaluate(
                 self.promotion_seeds, "promotion", checkpoint
             )
-            stem = f"early-promotion-{global_steps // 1_000_000}m"
-            metrics_path = self.stage_dir / "metrics" / f"{stem}.json"
+            metrics_path = self.stage_dir / "metrics" / f"{probe_stem}.json"
             atomic_write_json(metrics_path, payload)
             decision = decide_promotion(
                 _metrics_from_payload(payload), _promotion_config(self.stage)
