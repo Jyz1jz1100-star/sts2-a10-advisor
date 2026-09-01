@@ -21,17 +21,19 @@ Date: 2026-09-01
    metrics `simulator_act1`, output confined to `runs/curriculum_v2*`. The
    real-emulator smoke run passed (floor3→floor6 including cross-stage model
    load; one live `native_rejection` correctly classified).
-3. **First teacher batch — regeneration in progress.** Generation + audit
-   pipeline complete (`training/teacher_batch.py`,
+3. **First teacher batch — done.** Generation + audit pipeline complete
+   (`training/teacher_batch.py`,
    `scripts/generate_teacher_batch.py`, `scripts/audit_teacher_batch.py`,
    `training/teacher_bc_dataset.py` for hash-verified BC conversion). The
    first batch-0 run was **quarantined**: a rescore audit found 9.2% of its
    labels would flip under the corrected native-rejection rollout semantics
    (rejections used to leak a raw -1 into candidate scores). The traversal,
-   scorer, and materializer are fixed; batch 0 is regenerating with the same
-   budget (4,500 seeds × 10 shards from 1,400,100,000, outside every
-   train/eval partition) and must pass offline audit, live replay sampling,
-   and rescore sampling before the 50k–200k expansion.
+   scorer, and materializer were fixed, and **regenerated batch 0 passed the
+   triple audit: 8,733 records, 0 offline violations, 60/60 live replay,
+   150/150 rescore with 0 best-action flips** (native hash
+   `bcd623ce…34bc4`, scope `simulator_act1`, gap median 1.50, 14.7% explicit
+   enemy-target decisions; 60-record BC conversion produced 60/60
+   hash-verified samples). Expanding to 50k–200k is now a budget decision.
 4. BC/DAgger, 5. fixed-seed ablations, 6. promotion budget, 7. real-game
    adapter: not started — they consume this batch's output.
 

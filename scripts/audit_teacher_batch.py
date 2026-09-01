@@ -229,7 +229,10 @@ def main(argv: list[str] | None = None) -> int:
     targeted = 0
     all_records: list[dict] = []
     for path in args.datasets:
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        # utf-8-sig tolerates a BOM from hand-made subset files.
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8-sig").splitlines(), 1
+        ):
             if not line.strip():
                 continue
             record = json.loads(line)

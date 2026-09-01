@@ -124,7 +124,8 @@ def main(argv: list[str] | None = None) -> int:
 
     def record_stream():
         for path in args.records:
-            for line in path.read_text(encoding="utf-8").splitlines():
+            # utf-8-sig: subset files hand-made with PowerShell carry a BOM.
+            for line in path.read_text(encoding="utf-8-sig").splitlines():
                 if line.strip():
                     yield json.loads(line)
 

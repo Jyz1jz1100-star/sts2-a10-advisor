@@ -66,7 +66,7 @@ touched.
   schema v2 and embed the *replayable prefix* itself, so any later process
   can rebuild the exact state (`training/teacher_bc_dataset.py` does this to
   emit BC samples with verified hashes, refusing tampered records).
-- **Teacher batch 0 (regenerated, quality review passed)** — the first
+- **Teacher batch 0 (regenerated, triple-audited: DONE)** — the first
   generation completed at 9,036 records with a clean *offline* audit and 80/80
   live replay, **but** the BC materializer caught a deeper defect the audit
   could not see: batch-era `score_candidates` rollouts added the raw engine's
@@ -77,12 +77,20 @@ touched.
   quarantined (`data/teacher/batch0_pre-rejection-fix/README-WARNING.txt`,
   never to be trained on), the traversal and scorer were fixed (rejections can
   no longer enter a prefix or a rollout; `rejection_mode="noop"` verified
-  200/200 zero-drift state replays of old records), and batch 0 is being
-  regenerated with the corrected pipeline.  The full audit for the new batch
-  runs offline + live-replay + rescore sampling together; expansion to
-  50k–200k starts only when all three are clean.  Method lesson recorded:
-  *state* replayability is necessary but not sufficient — label *semantics*
-  must match the training contract, and the converter is the tripwire.
+  200/200 zero-drift state replays of old records).
+  **Regenerated batch 0: 8,733 records** (4,500 seeds × 10 shards from
+  1,400,100,000, outside every V1/V2 partition), triple audit all clean:
+  offline provenance **0 violations**, **60-record live replay 0 failures**,
+  **150-record rescore 0 best-action flips** — labels now provably match the
+  training contract semantics.  Phase balance: combat 4,914 / reward 1,598 /
+  Neow 682 / route 504 / event 450 / card-reward 427 / shop 133 / rest 17 /
+  transform 8; 14.7% explicit enemy-target decisions; gap median 1.50,
+  max 5.99 (the pre-fix 25.4 outlier class — rejection-score artifacts — is
+  gone).  A 60-record contract-stack materialization run emitted 60/60
+  hash-verified BC samples.  Expansion to 50k–200k is now purely a budget
+  decision.  Method lesson recorded: *state* replayability is necessary but
+  not sufficient — label *semantics* must match the training contract, and
+  the converter is the tripwire.
 - **Tests: 118/118** (was 78): +27 contract tests
   (`tests/test_v2_contract.py`, including real-emulator determinism,
   max-floor, dead-end classification, mask-purity/property tests), +8

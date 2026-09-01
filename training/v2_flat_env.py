@@ -214,7 +214,10 @@ class V2FlatActionEnv(gym.Env):
             )
         if flat == SENTINEL_FLAT:
             self._episode_done = True
-            return self._expanded.copy(), -1.0, False, True, self._classify(
+            # Zero reward: the dead end is the environment's fault, not the
+            # policy's (aligned with the contract wrapper's own sentinel
+            # interception and the native-rejection path).
+            return self._expanded.copy(), 0.0, False, True, self._classify(
                 "empty_action_mask"
             )
 
