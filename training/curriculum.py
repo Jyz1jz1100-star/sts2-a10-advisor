@@ -49,12 +49,13 @@ def _training_environment_factory(
     train_partition: Any,
     rank: int,
     workers: int,
+    stream_suffix: str = "",
 ):
     import gymnasium as gym
     from sb3_contrib.common.wrappers import ActionMasker
 
     worker_partition = train_partition.shard(rank, workers)
-    stream = SeedStream(worker_partition, f"{stage.name}:worker:{rank}")
+    stream = SeedStream(worker_partition, f"{stage.name}:worker:{rank}{stream_suffix}")
     base_factory = _environment_factory(stage, sts2_gym)
 
     class SeededEpisodeWrapper(gym.Wrapper):
@@ -103,6 +104,7 @@ def _callback_class(base_callback: type):
             seeds: list[int],
             promotion_seeds: list[int] | None = None,
             promotion_probe_every_steps: int | None = None,
+            resume_base_steps: int = 0,
         ):
             super().__init__(verbose=0)
             self.stage = stage
@@ -111,14 +113,32 @@ def _callback_class(base_callback: type):
             self.seeds = seeds
             self.promotion_seeds = promotion_seeds
             self.promotion_probe_every_steps = promotion_probe_every_steps
-            self.last_checkpoint = 0
-            self.last_probe = 0
+            # learn() restarts the optimizer counter at zero even after
+            # MaskablePPO.load (verified empirically, 2026-09-01), so a
+            # resumed run reports progress as resume_base_steps +
+            # num_timesteps. All numbering below uses that global value so
+            # resumes align exactly with a fresh uninterrupted run.
+            self.base_steps = resume_base_steps
+            self.last_checkpoint = (
+                resume_base_steps // stage.checkpoint_every_steps
+            ) * stage.checkpoint_every_steps
+            if promotion_probe_every_steps:
+                self.last_probe = (
+                    resume_base_steps // promotion_probe_every_steps
+                ) * promotion_probe_every_steps
+            else:
+                self.last_probe = 0
             self.early_promotion: dict[str, Any] | None = None
+
+        @property
+        def global_steps(self) -> int:
+            return self.base_steps + self.num_timesteps
 
         def _probe_promotion(self) -> None:
             assert self.promotion_seeds is not None
-            stem = f"early-promotion-{self.num_timesteps // 1_000_000}m"
-            checkpoint_stem = f"step_{self.num_timesteps:012d}"
+            global_steps = self.global_steps
+            stem = f"early-promotion-{global_steps // 1_000_000}m"
+            checkpoint_stem = f"step_{global_steps:012d}"
             checkpoint = self.stage_dir / "checkpoints" / f"{checkpoint_stem}.zip"
             if not checkpoint.is_file():
                 return
@@ -152,13 +172,14 @@ def _callback_class(base_callback: type):
         def _on_step(self) -> bool:
             if self.early_promotion is not None:
                 return False
+            global_steps = self.global_steps
             if (
-                self.num_timesteps - self.last_checkpoint
+                global_steps - self.last_checkpoint
                 < self.stage.checkpoint_every_steps
             ):
                 return True
-            self.last_checkpoint = self.num_timesteps
-            stem = f"step_{self.num_timesteps:012d}"
+            self.last_checkpoint = global_steps
+            stem = f"step_{global_steps:012d}"
             checkpoint = self.stage_dir / "checkpoints" / stem
             checkpoint.parent.mkdir(parents=True, exist_ok=True)
             self.model.save(checkpoint)
@@ -178,10 +199,10 @@ def _callback_class(base_callback: type):
             )
             if (
                 self.promotion_probe_every_steps
-                and self.num_timesteps - self.last_probe
+                and global_steps - self.last_probe
                 >= self.promotion_probe_every_steps
             ):
-                self.last_probe = self.num_timesteps
+                self.last_probe = global_steps
                 self._probe_promotion()
                 if self.early_promotion is not None:
                     return False
@@ -196,11 +217,13 @@ def _train_stage(
     stage_dir: Path,
     previous_checkpoint: Path | None,
     sts2_gym: Any,
+    resume: bool = False,
 ) -> tuple[bool, Path]:
     from sb3_contrib import MaskablePPO
     from stable_baselines3.common.callbacks import BaseCallback
     from stable_baselines3.common.vec_env import DummyVecEnv
 
+    stream_suffix = ":resume" if resume else ""
     env_factory = _environment_factory(stage, sts2_gym)
     vector_env = DummyVecEnv(
         [
@@ -210,16 +233,20 @@ def _train_stage(
                 config.seeds["train"],
                 rank,
                 stage.parallel_envs,
+                stream_suffix=stream_suffix,
             )
             for rank in range(stage.parallel_envs)
         ]
     )
     try:
-        if stage.initialize_from_previous:
-            if previous_checkpoint is None:
-                raise RuntimeError(
-                    f"stage {stage.name} requires a previous checkpoint but none exists"
-                )
+        resume_base_steps = 0
+        if previous_checkpoint is not None and (resume or stage.initialize_from_previous):
+            # Resume: SB3's learn() restarts its counter at zero after load
+            # (verified empirically), so the callback receives the loaded
+            # model's global timestep to keep numbering aligned with a fresh
+            # run, and the remaining budget is a delta. Resumed workers use a
+            # different SeedStream permutation (train seeds are an
+            # optimization resource, not an evaluation claim).
             try:
                 model = MaskablePPO.load(
                     previous_checkpoint,
@@ -231,6 +258,12 @@ def _train_stage(
                     f"stage {stage.name} cannot initialize from {previous_checkpoint}; "
                     "observation/action spaces must match"
                 ) from exc
+            if resume:
+                resume_base_steps = int(model.num_timesteps)
+        elif stage.initialize_from_previous:
+            raise RuntimeError(
+                f"stage {stage.name} requires a previous checkpoint but none exists"
+            )
         else:
             model = MaskablePPO(
                 "MlpPolicy",
@@ -259,8 +292,13 @@ def _train_stage(
             seeds=checkpoint_seeds,
             promotion_seeds=promotion_seeds,
             promotion_probe_every_steps=stage.promotion_probe_every_steps,
+            resume_base_steps=resume_base_steps,
         )
-        model.learn(total_timesteps=stage.timesteps, callback=callback)
+        remaining = max(stage.timesteps - resume_base_steps, 0)
+        if remaining:
+            # learn(N) collects N additional steps after a load (verified);
+            # iteration granularity may overshoot the boundary by one rollout.
+            model.learn(total_timesteps=remaining, callback=callback)
 
         if callback.early_promotion is not None:
             promoted_checkpoint: Path = callback.early_promotion["checkpoint"]
@@ -371,6 +409,12 @@ def main() -> None:
     parser.add_argument("--allow-experimental-full-run", action="store_true")
     parser.add_argument("--only-stage", choices=("combat", "act1", "full_run"))
     parser.add_argument("--initial-checkpoint", type=Path)
+    parser.add_argument(
+        "--resume-run",
+        type=Path,
+        help="continue an existing curriculum run directory from its latest "
+        "checkpoint instead of starting a fresh run (crash recovery)",
+    )
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parent.parent
@@ -396,9 +440,22 @@ def main() -> None:
     import sts2_gym
 
     run_id = datetime.now(UTC).strftime("curriculum-%Y%m%dT%H%M%SZ")
-    run_root = _resolve(project_root, config.output_dir) / run_id
-    run_root.mkdir(parents=True, exist_ok=False)
-    atomic_write_json(run_root / "plan.json", _plan(config, project_root))
+    resume = args.resume_run is not None
+    if resume:
+        run_root = _resolve(project_root, args.resume_run)
+        if not run_root.is_dir():
+            raise SystemExit(f"--resume-run directory does not exist: {run_root}")
+        if (run_root / "plan.json").is_file():
+            config_plan = json.loads((run_root / "plan.json").read_text(encoding="utf-8"))
+            if config_plan.get("stages") != _plan(config, project_root)["stages"]:
+                raise SystemExit(
+                    "--resume-run plan.json disagrees with the current config; "
+                    "refusing to mix incompatible stage plans"
+                )
+    else:
+        run_root = _resolve(project_root, config.output_dir) / run_id
+        run_root.mkdir(parents=True, exist_ok=False)
+        atomic_write_json(run_root / "plan.json", _plan(config, project_root))
 
     previous_checkpoint = (
         _resolve(project_root, args.initial_checkpoint)
@@ -407,9 +464,24 @@ def main() -> None:
     )
     for stage in selected:
         stage_dir = run_root / stage.name
-        stage_dir.mkdir(parents=True, exist_ok=False)
+        stage_dir.mkdir(parents=True, exist_ok=resume)
+        if resume:
+            existing = sorted(
+                (stage_dir / "checkpoints").glob("step_*.zip"),
+                key=lambda path: int(path.stem.split("_", 1)[1]),
+            )
+            if existing:
+                previous_checkpoint = existing[-1]
+                atomic_write_json(
+                    stage_dir / f"resume-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.json",
+                    {
+                        "resumed_from": str(previous_checkpoint),
+                        "resumed_from_sha256": _sha256_file(previous_checkpoint),
+                        "resumed_at": datetime.now(UTC).isoformat(),
+                    },
+                )
         promoted, previous_checkpoint = _train_stage(
-            config, stage, stage_dir, previous_checkpoint, sts2_gym
+            config, stage, stage_dir, previous_checkpoint, sts2_gym, resume=resume
         )
         if not promoted:
             raise SystemExit(

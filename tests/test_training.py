@@ -336,6 +336,44 @@ class EarlyPromotionTests(unittest.TestCase):
             self.assertTrue(callback._on_step())  # checkpoint saved, probe skipped
             self.assertEqual(callback.early_promotion, None)
 
+    def test_resume_alignment_numbers_from_global_steps(self) -> None:
+        """SB3 learn() restarts its counter at zero after load (verified
+        2026-09-01); the callback must number checkpoints/probes from
+        base + num_timesteps so a resume continues a fresh run's cadence."""
+        with tempfile.TemporaryDirectory() as directory:
+            stage_dir = Path(directory)
+            (stage_dir / "checkpoints").mkdir()
+            (stage_dir / "metrics").mkdir()
+            # Large probe interval so only checkpoint numbering is exercised.
+            stage = _probe_stage(promotion_probe_every_steps=10_000_000)
+            from training.curriculum import _callback_class
+
+            base = type("FakeBase", (), {"__init__": lambda self, verbose=0: None})
+            callback = _callback_class(base)(
+                stage=stage,
+                stage_dir=stage_dir,
+                env_factory=FakeEnvironment,
+                seeds=[100],
+                promotion_seeds=[201],  # odd seed -> FakeEnvironment loses; probe never passes
+                promotion_probe_every_steps=stage.promotion_probe_every_steps,
+                resume_base_steps=10_000_020,
+            )
+            callback.model = FakeSavingPolicy()
+            callback.num_timesteps = 0  # real BaseCallback initializes this
+            self.assertEqual(callback.global_steps, 10_000_020)
+            self.assertEqual(callback.last_checkpoint, 10_000_000)
+            # below one checkpoint interval -> no save
+            callback.num_timesteps = 400  # global 10,000,420 < 10,000,500
+            self.assertTrue(callback._on_step())
+            self.assertEqual(list((stage_dir / "checkpoints").glob("*.zip")), [])
+            # cross a boundary -> checkpoint numbered by GLOBAL steps
+            callback.num_timesteps = 1_000_004  # global 11,000,024
+            self.assertTrue(callback._on_step())
+            stem = f"step_{11_000_024:012d}"
+            self.assertTrue((stage_dir / "metrics" / f"{stem}.json").is_file())
+            self.assertEqual(callback.last_checkpoint, 11_000_024)
+            self.assertIsNone(callback.early_promotion)
+
 
 if __name__ == "__main__":
     unittest.main()

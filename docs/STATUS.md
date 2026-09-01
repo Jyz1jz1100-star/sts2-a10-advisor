@@ -4,6 +4,18 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **Native emulator FailFast at 07:32 (11.45M/100M steps)**: access violation
+  inside C# `RunMapGenerator.FindAllPaths` during a training `run_reset` —
+  uncatchable by Python, process killed by the OS. Zero data loss (five
+  checkpoints + six metrics intact; 10M checkpoint verified loadable).
+  Countermeasure: curriculum now supports `--resume-run` (globally aligned
+  checkpoint/probe numbering via verified SB3 load/learn semantics,
+  regression-tested) and `scripts/run_act1_self_healing.ps1` resumes the
+  same run dir on native-crash exits only, with crash-storm guard. Live:
+  job `pwsh-27` resumed from `step_000010000020.zip` at 08:18 (py-spy shows
+  `resume_base_steps: 10000020`). Full post-mortem:
+  [NATIVE_CRASH_2026-09-01.md](NATIVE_CRASH_2026-09-01.md). Third distinct
+  emulator defect for the parity/upstream report (after the two mask bugs).
 - **10M promotion probe executed and FAILED as expected** (07:12, first live
   run of the new `_probe_promotion` code): 500 promotion seeds → **10 wins
   (2.0%, Wilson low 1.01%)**, floor 7.55, truncation 0.020, illegal 1.
