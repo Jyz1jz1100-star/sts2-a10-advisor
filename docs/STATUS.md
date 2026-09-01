@@ -118,6 +118,21 @@ touched.
   6-seed probe emitted 8 records with **4 teacher/student disagreements**,
   triple-audited clean (0 violations, 8/8 live replay). Formal DAgger batches
   run after batch-1 quality review.
+- **Mask-vs-execution contract upgrade (plan step 1, final item).** The
+  floor6 checkpoint's `defect_truncation_rate=0.44` turned out to be an
+  *evaluation-protocol* amplifier, not 44% dead episodes: wide event masks
+  offer options the engine's `StepEvent` rejects, and single-greedy-pick
+  evaluation died on the first disagreement (diagnostic traversals with
+  retry: 0/30 episodes actually trapped). The contract now **filters**
+  rejected actions per state (monotone; the engine is deterministic), so the
+  policy re-decides among honoured actions and cannot re-reject; only
+  `rejected_to_exhaustion` or a truly empty engine mask truncates, and
+  absorbed rejections are counted separately (`rejection_events`). Effect
+  measured: student floor6 defect **0.44 → 0.00**, boundary 0.12 → 0.16,
+  reruns byte-identical. floor3's promotion (zero rejections observed) is
+  unaffected by the upgrade; floor6 restarted under filter semantics
+  (pre-filter attempt archived as `aborted-pre-filter-floor6-095635Z`).
+  Suite 129/129.
 - **Official V2 curriculum: floor3 PROMOTED (first stage-level gate passed
   end to end).** `runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3`:
   the 500k probe evaluated the promotion partition (500 untouched seeds) and
@@ -139,7 +154,7 @@ touched.
   student visits states the teacher corrects (the coverage BC alone cannot
   manufacture). The manifest records the student checkpoint hash so each
   correction cycle is attributable.
-- **Teacher batch 1 in progress**: 18,000 seeds × 10 shards (≈12k records at
+- **Teacher batch 1 in progress**: 18,000 seeds × 10 shards (≈25.5k records at
   last check, target ≈35k) for the next distillation round; triple audit
   required before use, same bar as batch 0.
 

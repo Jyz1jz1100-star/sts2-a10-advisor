@@ -9,9 +9,13 @@ Date: 2026-09-01
    `observation_contract()`, whose SHA-256 is recorded in every metric),
    native `(action, target)` space as `Discrete(225)` with no-alias splitting
    (`training/v2_flat_env.py` + generated `advisor_core/card_targeting_v2.py`),
-   `max_floor` enforced by the wrapper, empty-mask and native-rejection dead
-   ends labelled and counted, `unclassified_dead_ends` gate at 0, and property
-   tests over synthetic and real-emulator states. Recorded gaps: relic
+   `max_floor` enforced by the wrapper, and mask-vs-execution handled by
+   per-state *filtering*: engine-rejected actions are removed from the
+   offered set (monotone; the V1 -1 spin is structurally impossible), with
+   `rejected_to_exhaustion` and truly-empty engine masks as the only
+   labelled dead ends and absorbed rejections counted separately;
+   `unclassified_dead_ends` gate at 0, property tests over synthetic and
+   real-emulator states. Recorded gaps: relic
    counters and enemy DefIds are not exposed by native run-API v8; event
    option text is deferred to the live adapter.
 2. **V2 curriculum entry point — done.** `python -m training.v2_curriculum`
