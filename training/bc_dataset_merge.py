@@ -25,6 +25,26 @@ from pathlib import Path
 from typing import Any
 
 
+def _prefer(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
+    """Order-independent winner between two labels of the same verified state.
+
+    The teacher is deterministic, so equal budget means equal label (checked
+    by the caller); when the same state arrives from both sources the
+    *higher* score gap is the more confident label, and a DAgger record wins
+    ties because student-distribution coverage is what DAgger adds.
+    """
+
+    gap_left = float(left.get("score_gap") or 0.0)
+    gap_right = float(right.get("score_gap") or 0.0)
+    if gap_left != gap_right:
+        return left if gap_left > gap_right else right
+    left_is_dagger = left.get("source") == "dagger"
+    right_is_dagger = right.get("source") == "dagger"
+    if left_is_dagger != right_is_dagger:
+        return left if left_is_dagger else right
+    return left
+
+
 def merge_sample_files(inputs: list[Path], out: Path) -> dict[str, Any]:
     seen: dict[tuple[str, str], dict[str, Any]] = {}
     duplicates = 0
@@ -51,6 +71,9 @@ def merge_sample_files(inputs: list[Path], out: Path) -> dict[str, Any]:
                         f"label conflict for {key}: both sources were "
                         "replay-verified; refusing to merge"
                     )
+                winner = _prefer(previous, sample)
+                if winner is not previous:
+                    seen[key] = winner
                 continue
             seen[key] = sample
             kept += 1
