@@ -304,7 +304,8 @@ def save_checkpoint(
     return sidecar
 
 
-def load_model(path: Path, *, verify_hash: bool = True) -> PhaseSplitActionScorer:
+def load_model(path: Path | str, *, verify_hash: bool = True) -> PhaseSplitActionScorer:
+    path = Path(path)
     if verify_hash:
         sidecar_path = path.with_suffix(path.suffix + ".metadata.json")
         sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
