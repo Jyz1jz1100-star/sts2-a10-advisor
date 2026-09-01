@@ -28,9 +28,13 @@ class EpisodeMetric:
     #: true terminal win), not on run completion alone.
     boundary_reached: bool = False
     #: Classified simulator dead-end label (empty_action_mask /
-    #: native_rejection).  Unclassified truncations must stay at zero, so the
-    #: evaluator records the reason for every labelled environment defect.
+    #: native_rejection / rejected_to_exhaustion).  Unclassified truncations
+    #: must stay at zero, so the evaluator records the reason for every
+    #: labelled environment defect.
     dead_end_reason: str | None = None
+    #: Native mask-vs-engine rejections the filter absorbed during the
+    #: episode (emulator anomalies, counted separately from policy quality).
+    rejection_events: int = 0
 
 
 @dataclass(frozen=True)
@@ -68,6 +72,9 @@ class EvaluationMetrics:
     #: gate reads this under the name ``max_truncation_rate``; for stages
     #: without a floor boundary it equals ``truncation_rate`` exactly.
     defect_truncation_rate: float = 0.0
+    #: Total absorbed native rejections across the evaluation (emulator
+    #: anomaly volume, reported separately from policy-quality gates).
+    rejection_events: int = 0
     by_encounter: dict[str, dict[str, float | int]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -97,6 +104,7 @@ def summarize_episodes(
         int(episode.truncated and episode.boundary_reached) for episode in episodes
     )
     illegal_actions = sum(episode.illegal_actions for episode in episodes)
+    rejection_events = sum(episode.rejection_events for episode in episodes)
     dead_end_reasons: dict[str, int] = {}
     for episode in episodes:
         if episode.dead_end_reason is not None:
@@ -167,6 +175,7 @@ def summarize_episodes(
         dead_end_reasons=dict(sorted(dead_end_reasons.items())),
         unclassified_dead_ends=unclassified_dead_ends,
         defect_truncation_rate=(truncations - boundary_truncations) / len(episodes),
+        rejection_events=rejection_events,
         by_encounter=by_encounter,
     )
 

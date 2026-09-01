@@ -71,12 +71,19 @@ SENTINEL_FLAT = FLAT_SIZE - 1
 NATIVE_STATUS_REJECTED = -1
 
 
-def flat_mask_from_state(raw_obs: np.ndarray, base_mask: np.ndarray) -> np.ndarray:
+def flat_mask_from_state(
+    raw_obs: np.ndarray,
+    base_mask: np.ndarray,
+    *,
+    exclude: set[int] | None = None,
+) -> np.ndarray:
     """Pure flat mask for one raw simulator state.
 
     Shared by :class:`V2FlatActionEnv`, the teacher, and the BC materializer
     so the candidate set is identical everywhere by construction, not by
-    duplicated logic.
+    duplicated logic.  ``exclude`` carries filter-mode's per-state known
+    rejections; the sentinel is only ever advertised when nothing else
+    remains (a fully dead state).
     """
 
     base = np.asarray(base_mask, dtype=bool)
@@ -103,6 +110,11 @@ def flat_mask_from_state(raw_obs: np.ndarray, base_mask: np.ndarray) -> np.ndarr
                 mask[flat_index(action, enemy_index)] = True
         else:
             mask[flat_index(action, None)] = True
+    for flat in exclude or ():
+        if flat != SENTINEL_FLAT:
+            mask[flat] = False
+    if not bool(mask.any()):
+        mask[SENTINEL_FLAT] = True
     return mask
 
 
@@ -149,19 +161,26 @@ class V2FlatActionEnv(gym.Env):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, core: RunCore, *, rejection_mode: str = "truncate") -> None:
+    def __init__(self, core: RunCore, *, rejection_mode: str = "filter") -> None:
         """``rejection_mode`` selects the native-rejection semantics.
 
-        * ``"truncate"`` (training): a rejected action ends the episode as a
-          zero-reward, labelled ``native_rejection`` truncation;
-        * ``"noop"`` (prefix replay for dataset materialization): the same
-          step is returned as an unchanged, still-active transition, because
-          the engine itself ignored it -- replaying recorded history must not
-          end the episode, and the final-state hash is verified separately.
+        * ``"filter"`` (training + evaluation, the default): a rejected
+          action is removed from this state's offered mask and the step is a
+          labelled no-op self-transition, so the policy re-decides among the
+          actions the engine actually honours.  Rejection sets are monotone
+          per state, so the spin of V1 is structurally impossible; an episode
+          truncates only when *every* offered action is rejected
+          (``rejected_to_exhaustion``).  Rejection counts stay visible in
+          ``info["rejection_events"]`` for separate simulator-defect reporting.
+        * ``"noop"`` (historical prefix replay): rejected steps return the
+          unchanged state silently, as the engine did when the prefix was
+          recorded; final-state hashes are verified separately.
+        * ``"truncate"`` (strict): a rejected action ends the episode as a
+          zero-reward, labelled truncation.
         """
 
-        if rejection_mode not in ("truncate", "noop"):
-            raise ValueError("rejection_mode must be 'truncate' or 'noop'")
+        if rejection_mode not in ("filter", "noop", "truncate"):
+            raise ValueError("rejection_mode must be 'filter', 'noop', or 'truncate'")
         super().__init__()
         self._core = core
         self._rejection_mode = rejection_mode
@@ -176,6 +195,10 @@ class V2FlatActionEnv(gym.Env):
         self._expanded: np.ndarray | None = None
         self._info: dict[str, Any] = {}
         self._episode_done = True
+        # Per-state monotone rejection sets (filter mode): the engine is
+        # deterministic, so a rejected action stays rejected for that state.
+        self._rejected_by_state: dict[bytes, set[int]] = {}
+        self._rejection_events = 0
 
     # ------------------------------------------------------------------ core
 
@@ -187,6 +210,8 @@ class V2FlatActionEnv(gym.Env):
         raw, info, status = self._core.reset(seed)
         if status != 0:
             raise RuntimeError(f"native run_reset failed with status {status}")
+        self._rejected_by_state = {}
+        self._rejection_events = 0
         self._accept(raw, info)
         self._episode_done = False
         return self._expanded.copy(), dict(self._info)
@@ -216,45 +241,69 @@ class V2FlatActionEnv(gym.Env):
             self._episode_done = True
             # Zero reward: the dead end is the environment's fault, not the
             # policy's (aligned with the contract wrapper's own sentinel
-            # interception and the native-rejection path).
-            return self._expanded.copy(), 0.0, False, True, self._classify(
-                "empty_action_mask"
-            )
+            # interception and the native-rejection path).  With the engine's
+            # mask non-empty, the sentinel was only ever offered because the
+            # filter removed every candidate -- that is classified as
+            # exhaustion, never as a bare empty mask.
+            base = np.asarray(self._core.action_mask(), dtype=bool)
+            label = "empty_action_mask" if not bool(base.any()) else "rejected_to_exhaustion"
+            return self._expanded.copy(), 0.0, False, True, self._classify(label)
 
         action, target = decode_flat(flat)
+        state_key = self._raw_obs.tobytes()
         raw, reward, terminated, truncated, info, status = self._core.step(
             action, target
         )
         if status != 0:
             # Native says this action/target pair is illegal even though the
             # native mask offered it: a classified emulator disagreement.
+            self._rejection_events += 1
             if self._rejection_mode == "noop":
-                # Prefix replay / student rollout: the engine itself ignored
-                # the step, so report an unchanged transition that is still
-                # *active* but explicitly labelled -- callers must never
-                # append a rejected step to a training prefix, and may count
-                # the disagreement instead.
+                # Prefix replay: the engine itself ignored the step, so
+                # report an unchanged transition that is still *active* but
+                # explicitly labelled -- callers must never append a rejected
+                # step to a training prefix, and may count the disagreement.
                 noop = self._classify("native_rejection")
                 noop["rejected_flat_action"] = flat
                 noop["rejected_action"] = action
                 noop["rejected_target"] = target
                 return self._expanded.copy(), 0.0, False, False, noop
-            # Training: end the episode as a zero-reward truncation -- it is
-            # the environment's fault, not the policy's, and V1's silent
-            # -1-per-step rejection spin must never return.
-            self._episode_done = True
-            rejection = self._classify("native_rejection")
-            rejection["rejected_flat_action"] = flat
-            rejection["rejected_action"] = action
-            rejection["rejected_target"] = target
-            rejection["native_status"] = int(status)
-            return self._expanded.copy(), 0.0, False, True, rejection
+            if self._rejection_mode == "truncate":
+                # Strict mode: end the episode as a zero-reward truncation.
+                self._episode_done = True
+                rejection = self._classify("native_rejection")
+                rejection["rejected_flat_action"] = flat
+                rejection["rejected_action"] = action
+                rejection["rejected_target"] = target
+                rejection["native_status"] = int(status)
+                return self._expanded.copy(), 0.0, False, True, rejection
+            # Filter mode: remove this action from the state's offered mask
+            # and hand the decision back to the policy.  The engine is
+            # deterministic, so per-state sets are monotone and no action is
+            # ever offered a second time after rejection -- the V1 spin is
+            # structurally impossible.
+            self._rejected_by_state.setdefault(state_key, set()).add(flat)
+            remaining = self.action_masks()
+            if bool(remaining[SENTINEL_FLAT]) and int(remaining.sum()) == 1:
+                # Every offered action at this state is now known-rejected:
+                # a genuine, fully classified simulator dead end.
+                self._episode_done = True
+                exhausted = self._classify("rejected_to_exhaustion")
+                exhausted["rejected_flat_action"] = flat
+                exhausted["rejection_events"] = self._rejection_events
+                return self._expanded.copy(), 0.0, False, True, exhausted
+            filtered = dict(self._info)
+            filtered["native_rejection_filtered"] = True
+            filtered["rejected_flat_action"] = flat
+            filtered["rejection_events"] = self._rejection_events
+            self._info = filtered
+            return self._expanded.copy(), 0.0, False, False, filtered
 
         self._accept(raw, info)
         self._episode_done = bool(terminated or truncated)
-        return self._expanded.copy(), float(reward), bool(terminated), bool(truncated), dict(
-            self._info
-        )
+        info_out = dict(self._info)
+        info_out["rejection_events"] = self._rejection_events
+        return self._expanded.copy(), float(reward), bool(terminated), bool(truncated), info_out
 
     def action_masks(self) -> np.ndarray:
         """Flat candidate mask; at a native dead end only the sentinel is on.
@@ -270,10 +319,24 @@ class V2FlatActionEnv(gym.Env):
             if self._episode_done:
                 raise RuntimeError("reset() must be called before action_masks()")
             return np.zeros(FLAT_SIZE, dtype=bool)
-        return flat_mask_from_state(self._raw_obs, self._core.action_mask())
+        mask = flat_mask_from_state(
+            self._raw_obs,
+            self._core.action_mask(),
+            exclude=self._rejected_by_state.get(self._raw_obs.tobytes())
+            if self._rejection_mode == "filter"
+            else None,
+        )
+        return mask
 
     def codec(self) -> ActionTargetCodecV2:
-        """Candidate codec for the current state, for teacher/BC labelling."""
+        """Candidate codec for the current state, for teacher/BC labelling.
+
+        The codec always describes the *engine's* raw candidate set (base
+        mask + target splitting), never filter-mode's pruned view: teacher
+        labelling and prefix replay must see the same vocabulary the batch
+        generator used.  Filter-mode's advertised mask is therefore a subset
+        of the codec (asserted below); with no exclusions it is exact.
+        """
 
         if self._raw_obs is None:
             raise RuntimeError("no active observation")
@@ -300,10 +363,18 @@ class V2FlatActionEnv(gym.Env):
             action_keys=keys,
             action_labels=labels,
         )
-        if len(candidates) != int(flat_mask.sum()):
+        advertised = int(flat_mask.sum())
+        if advertised > len(candidates):
+            raise AssertionError("advertised mask exceeds the engine candidate set")
+        if not self._rejected_by_state and advertised != len(candidates):
             raise AssertionError(
                 "codec candidates and flat mask disagree; contract bug"
             )
+        for candidate in candidates.candidates:
+            if flat_mask[flat_index(candidate.action, candidate.target)]:
+                continue
+            if not self._rejected_by_state:
+                raise AssertionError("flat mask withheld a codec candidate")
         return candidates
 
     def close(self) -> None:
@@ -327,6 +398,12 @@ class V2FlatActionEnv(gym.Env):
         """Last normalized info dict (phase/floor/hp/labels)."""
 
         return dict(self._info)
+
+    @property
+    def rejection_event_count(self) -> int:
+        """Absorbed native mask-vs-engine rejections this episode."""
+
+        return self._rejection_events
 
     # --------------------------------------------------------------- helpers
 

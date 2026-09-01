@@ -194,9 +194,10 @@ class FlatActionSpaceTests(unittest.TestCase):
             transitions=[(raw, -1.0, False, False, {"floor": 1}, -1)],
         )
         env = V2RunEnvWrapper(
-            V2FlatActionEnv(core), reward_config=V2RewardConfig(combat_reward_scale=0.0,
-                                                                floor_weight=0.0,
-                                                                hp_weight=0.0),
+            V2FlatActionEnv(core, rejection_mode="truncate"),
+            reward_config=V2RewardConfig(combat_reward_scale=0.0,
+                                         floor_weight=0.0,
+                                         hp_weight=0.0),
             sentinel_action=SENTINEL_FLAT,
         )
         env.reset(seed=7)
@@ -210,6 +211,58 @@ class FlatActionSpaceTests(unittest.TestCase):
         self.assertEqual(info["run_outcome"], "truncated")
         self.assertEqual(info["native_status"], -1)
         self.assertEqual(env.action_space.n, FLAT_SIZE)
+
+    def test_filter_mode_removes_rejected_action_without_ending_episode(self) -> None:
+        """Training default: the policy re-decides among engine-honoured acts."""
+
+        raw = make_raw_obs()  # Bash + two enemies: action 0 splits to targets 0,1
+        core = ScriptedCore(
+            masks=[base_mask([0, 3])],
+            obs=raw,
+            transitions=[(raw, 0.0, False, False, {"floor": 1}, -1)],  # reject (0,0)
+        )
+        env = V2FlatActionEnv(core)  # filter mode is the default
+        env.reset(seed=7)
+        before = int(env.action_masks().sum())
+        self.assertEqual(before, 3)  # (0,0), (0,1), end-turn
+        obs, reward, terminated, truncated, info = env.step(flat_index(0, 0))
+        self.assertFalse(terminated)
+        self.assertFalse(truncated)  # episode continues
+        self.assertEqual(reward, 0.0)
+        self.assertTrue(info["native_rejection_filtered"])
+        after = env.action_masks()
+        self.assertFalse(bool(after[flat_index(0, 0)]))  # action 0@target0 filtered
+        self.assertTrue(bool(after[flat_index(0, 1)]))   # sibling target survives
+        self.assertTrue(bool(after[flat_index(3, None)]))
+        self.assertEqual(int(after.sum()), before - 1)
+        # The filtered action can never be offered again at this state, so
+        # the policy cannot re-reject it -- the V1 spin is structurally gone.
+        with self.assertRaises(ValueError):
+            env.step(flat_index(0, 0))
+
+    def test_filter_mode_exhaustion_is_classified_not_empty_mask(self) -> None:
+        raw = make_raw_obs()
+        raw[54 + 15] = 0
+        raw[54 + 15 + 1] = 0  # single enemy: no per-target split
+        core = ScriptedCore(
+            masks=[base_mask([0, 3])],
+            obs=raw,
+            transitions=[
+                (raw, 0.0, False, False, {"floor": 1}, -1),  # reject action 0
+                (raw, 0.0, False, False, {"floor": 1}, -1),  # reject end turn
+            ],
+        )
+        env = V2FlatActionEnv(core)
+        env.reset(seed=7)
+        _obs, _r, terminated, truncated, info = env.step(flat_index(0, None))
+        self.assertFalse(truncated)  # one candidate remains
+        _obs, _r, terminated, truncated, info = env.step(flat_index(3, None))
+        self.assertFalse(terminated)
+        self.assertTrue(truncated)
+        # Every offered action is now known-rejected: engine mask is NOT
+        # empty, so this is exhaustion, not empty_action_mask.
+        self.assertEqual(info["simulator_dead_end"], "rejected_to_exhaustion")
+        self.assertTrue(bool(np.asarray(env._core.action_mask()).any()))
 
     def test_empty_native_mask_truncates_in_one_step(self) -> None:
         core = ScriptedCore(masks=[base_mask([])])

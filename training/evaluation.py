@@ -59,6 +59,7 @@ def evaluate_policy(
             total_reward = 0.0
             steps = 0
             illegal_actions = 0
+            rejection_events = 0
             terminated = False
             truncated = False
             step_capped = False
@@ -87,6 +88,11 @@ def evaluate_policy(
                 observation, reward, terminated, truncated, info = env.step(action)
                 total_reward += float(reward)
                 steps += 1
+                # Filter-mode reports its absorbed native-rejection count as a
+                # cumulative per-episode field on every step's info.
+                rejection_events = max(
+                    rejection_events, int(info.get("rejection_events", 0) or 0)
+                )
                 if max_steps_per_episode is not None and steps >= max_steps_per_episode:
                     truncated = True
                     step_capped = True
@@ -123,6 +129,7 @@ def evaluate_policy(
                     encounter=(str(encounter) if encounter is not None else None),
                     boundary_reached=boundary,
                     dead_end_reason=(str(dead_end) if dead_end is not None else None),
+                    rejection_events=rejection_events,
                 )
             )
         finally:
