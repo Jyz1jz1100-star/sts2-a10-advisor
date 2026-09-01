@@ -95,8 +95,11 @@ class V2FlatActionEnv(gym.Env):
     def __init__(self, core: RunCore) -> None:
         super().__init__()
         self._core = core
+        # Bounds are deliberately signed: buff magnitudes (temporary strength
+        # down), map coordinates (-1 fillers), and shop costs legitimately go
+        # negative inside the native passthrough blocks.
         self.observation_space = spaces.Box(
-            low=0, high=2**15, shape=(OBS_SIZE,), dtype=np.int32
+            low=-(2**15), high=2**15, shape=(OBS_SIZE,), dtype=np.int32
         )
         self.action_space = spaces.Discrete(FLAT_SIZE)
         self._raw_obs: np.ndarray | None = None
