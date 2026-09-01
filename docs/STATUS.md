@@ -62,17 +62,27 @@ touched.
   emulator, `is_interesting` selection (elite/boss, low HP, multi-target,
   every run-level non-combat decision), full root-candidate scoring via the
   prefix-replay teacher, streaming JSONL + manifest with emulator hash,
-  search budget, score gap, and capture/re-verify replay hashes. Pilot (24
-  seeds, 6 shards): 66 records, gap median 1.65, 21/66 choose an explicit
-  enemy target, 0 replay mismatches, 0 scope violations. **Batch 0**:
-  4,500 seeds × 10 shards from 1,400,100,000 (outside every train/eval
-  partition), targeting ≈10k high-confidence decisions; the manifest is the
-  completeness claim and each record carries its own re-verified replay hash.
-- **Tests: 111/111** (was 78): +27 contract tests
+  search budget, score gap, and capture/re-verify replay hashes. Records are
+  schema v2 and embed the *replayable prefix* itself, so any later process
+  can rebuild the exact state (`training/teacher_bc_dataset.py` does this to
+  emit BC samples with verified hashes, refusing tampered records).
+- **Teacher batch 0 complete and audited** (`data/teacher/batch0/`,
+  4,500 seeds × 10 shards from 1,400,100,000 — outside every V1/V2
+  train/checkpoint/promotion/final partition): **9,036 high-confidence
+  records**, offline audit **0 violations**, **80-record live replay audit
+  0 failures**, all records carry the native hash
+  `bcd623ce…34bc4` and `simulator_act1` scope. Phase balance: combat 5,122 /
+  relic reward 1,748 / route 534 / card reward 431 / event 331 / Neow 698 /
+  shop 139 / rest 24 / transform 9; 14.25% of records choose an explicit
+  enemy target; score-gap median 1.49 (min gate 0.5). Quality review passed
+  → the 50k–200k expansion is now a budget decision, not a correctness risk.
+- **Tests: 116/116** (was 78): +27 contract tests
   (`tests/test_v2_contract.py`, including real-emulator determinism,
-  max-floor, dead-end classification, mask-purity/property tests) and +6
-  teacher tests (`tests/test_teacher_batch.py`). The metrics schema assertion
-  moved 1 → 2 with the new fields.
+  max-floor, dead-end classification, mask-purity/property tests), +6
+  teacher tests (`tests/test_teacher_batch.py`), +3 BC-converter tests
+  (`tests/test_teacher_bc_dataset.py`), and a metrics regression for mixed
+  win/boundary accounting. The metrics schema assertion moved 1 → 2 with the
+  new fields.
 - **Known contract gaps (tracked, not blockers):** relic counters and enemy
   DefIds are absent from native API v8 (relic *presence* and enemy
   HP/intent/block/buffs are covered); event option *text* is only inferable
