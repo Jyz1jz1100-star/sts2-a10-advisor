@@ -12,6 +12,7 @@ runs/*
 models/*
 !models/.gitkeep
 data/local/
+data/teacher/
 *.pyc
 __pycache__/
 *.log

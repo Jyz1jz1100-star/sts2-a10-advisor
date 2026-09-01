@@ -16,6 +16,8 @@ class PromotionConfig:
     max_truncation_rate: float
     max_illegal_actions: int
     min_mean_floor: float | None = None
+    #: V2 curriculum stages gate on reaching the stage floor boundary.
+    min_boundary_rate: float | None = None
 
 
 @dataclass(frozen=True)
@@ -104,6 +106,11 @@ def load_training_config(path: Path) -> TrainingConfig:
             min_mean_floor=(
                 float(promotion_raw["min_mean_floor"])
                 if "min_mean_floor" in promotion_raw
+                else None
+            ),
+            min_boundary_rate=(
+                float(promotion_raw["min_boundary_rate"])
+                if "min_boundary_rate" in promotion_raw
                 else None
             ),
         )

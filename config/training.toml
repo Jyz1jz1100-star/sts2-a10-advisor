@@ -2,7 +2,7 @@
 character = "IRONCLAD"
 ascension = 10
 save_load = false
-game_branch = "main"
+game_branch = "public-beta-v0.111.0"
 minimum_final_games = 500
 preferred_final_games = 1000
 target_win_rate = 0.50

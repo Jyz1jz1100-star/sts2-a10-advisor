@@ -1,0 +1,104 @@
+# Smoke variant of the V2 curriculum: exercises the entire chain (contract
+# stack, checkpointing, evaluation, promotion plumbing) against the real
+# emulator with a tiny budget.  Output goes to runs/curriculum_v2_smoke so it
+# can never collide with official V2 or V1 artifacts.  Gates are deliberately
+# permissive; this file is plumbing evidence, never a training claim.
+
+version = 1
+
+[target]
+character = "IRONCLAD"
+ascension = 10
+save_load = false
+game_branch = "public-beta-v0.111.0"
+
+[runtime]
+emulator_root = "../third_party/slay-the-spire-2-emulator-main"
+run_dir = "runs/curriculum_v2_smoke"
+
+[algorithm]
+name = "MaskablePPO"
+device = "auto"
+n_steps = 512
+batch_size = 128
+n_epochs = 2
+gamma = 0.995
+learning_rate = 0.0003
+entropy_coefficient = 0.02
+
+[reward]
+gamma = 0.99
+combat_reward_scale = 0.10
+floor_weight = 1.0
+hp_weight = 1.0
+terminal_win_reward = 25.0
+terminal_death_reward = -25.0
+
+[curriculum]
+stages = ["floor3", "floor6"]
+
+[stages.floor3]
+timesteps = 2048
+parallel_envs = 2
+checkpoint_every_steps = 1024
+checkpoint_eval_episodes = 20
+promotion_eval_episodes = 30
+max_episode_steps = 300
+max_floor = 3
+initialize_from_previous = false
+promotion_probe_every_steps = 0
+min_boundary_rate = 0.0
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 1.0
+max_illegal_actions = 0
+min_episodes = 30
+
+[stages.floor3.seeds.train]
+start = 1900000000
+count = 4096
+
+[stages.floor3.seeds.checkpoint]
+start = 1900010000
+count = 100
+
+[stages.floor3.seeds.promotion]
+start = 1900020000
+count = 100
+
+[stages.floor3.seeds.final]
+start = 1900030000
+count = 100
+
+[stages.floor6]
+timesteps = 1024
+parallel_envs = 2
+checkpoint_every_steps = 1024
+checkpoint_eval_episodes = 20
+promotion_eval_episodes = 30
+max_episode_steps = 300
+max_floor = 6
+initialize_from_previous = true
+promotion_probe_every_steps = 0
+min_boundary_rate = 0.0
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 1.0
+max_illegal_actions = 0
+min_episodes = 30
+
+[stages.floor6.seeds.train]
+start = 1900040000
+count = 4096
+
+[stages.floor6.seeds.checkpoint]
+start = 1900050000
+count = 100
+
+[stages.floor6.seeds.promotion]
+start = 1900060000
+count = 100
+
+[stages.floor6.seeds.final]
+start = 1900070000
+count = 100

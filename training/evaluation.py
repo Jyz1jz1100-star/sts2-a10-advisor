@@ -61,9 +61,19 @@ def evaluate_policy(
             illegal_actions = 0
             terminated = False
             truncated = False
+            step_capped = False
             info = dict(reset_info)
             while not (terminated or truncated):
                 mask = env.action_masks()
+                # A reachable simulator defect can expose an all-zero mask
+                # (seed 20000039, map phase after a shop on the checked-in
+                # emulator).  There is no action the policy could legally
+                # choose, so classify this as an environment truncation, not
+                # as a policy illegal-action violation.
+                if not any(bool(value) for value in mask):
+                    truncated = True
+                    info = {**info, "simulator_dead_end": "empty_action_mask"}
+                    break
                 action_raw, _ = model.predict(
                     observation,
                     action_masks=mask,
@@ -79,12 +89,31 @@ def evaluate_policy(
                 steps += 1
                 if max_steps_per_episode is not None and steps >= max_steps_per_episode:
                     truncated = True
+                    step_capped = True
             final_floor = info.get("floor")
             encounter = reset_info.get("encounter")
+            won = bool(terminated and info.get("player_won", False))
+            # A V2 curriculum boundary truncation is a stage completion for
+            # floor-limited levels; the run contract wrapper labels it.
+            boundary = won or bool(
+                truncated and info.get("curriculum_truncated", False)
+            )
+            dead_end = info.get("simulator_dead_end")
+            if dead_end is None and illegal_actions:
+                dead_end = "policy_illegal_action"
+            if dead_end is None and step_capped:
+                # The evaluator's own horizon is a classification, too: it
+                # must never masquerade as an *unclassified* dead end.
+                dead_end = "step_cap"
             episode_metrics.append(
                 EpisodeMetric(
                     seed=seed,
-                    won=bool(info.get("player_won", False)),
+                    # RunEngine.player_won is actually "the most recently
+                    # completed combat was won" and remains true on later
+                    # map/shop states. Only a terminal run may be counted as
+                    # a run win; otherwise a truncated post-combat dead-end
+                    # becomes a false positive (seed 20000039, 2026-09-01).
+                    won=won,
                     terminated=bool(terminated),
                     truncated=bool(truncated),
                     steps=steps,
@@ -92,6 +121,8 @@ def evaluate_policy(
                     illegal_actions=illegal_actions,
                     final_floor=(int(final_floor) if final_floor is not None else None),
                     encounter=(str(encounter) if encounter is not None else None),
+                    boundary_reached=boundary,
+                    dead_end_reason=(str(dead_end) if dead_end is not None else None),
                 )
             )
         finally:

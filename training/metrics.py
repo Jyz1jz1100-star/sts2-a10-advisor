@@ -10,7 +10,7 @@ from pathlib import Path
 from .seeds import seed_digest
 from .wilson import wilson_interval
 
-METRICS_SCHEMA_VERSION = 1
+METRICS_SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -24,6 +24,13 @@ class EpisodeMetric:
     illegal_actions: int
     final_floor: int | None = None
     encounter: str | None = None
+    #: V2 curriculum stages promote on reaching their floor boundary (or a
+    #: true terminal win), not on run completion alone.
+    boundary_reached: bool = False
+    #: Classified simulator dead-end label (empty_action_mask /
+    #: native_rejection).  Unclassified truncations must stay at zero, so the
+    #: evaluator records the reason for every labelled environment defect.
+    dead_end_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +58,16 @@ class EvaluationMetrics:
     mean_return: float
     mean_final_floor: float | None
     max_final_floor: int | None
+    boundary_rate: float = 0.0
+    dead_end_reasons: dict[str, int] = field(default_factory=dict)
+    #: Truncated episodes carrying neither a simulator dead-end label nor a
+    #: curriculum boundary.  V2 promotion requires this to be zero: every
+    #: abnormal ending must be attributable.
+    unclassified_dead_ends: int = 0
+    #: Truncations excluding successful curriculum-boundary hits.  The V1
+    #: gate reads this under the name ``max_truncation_rate``; for stages
+    #: without a floor boundary it equals ``truncation_rate`` exactly.
+    defect_truncation_rate: float = 0.0
     by_encounter: dict[str, dict[str, float | int]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -71,7 +88,22 @@ def summarize_episodes(
         raise ValueError("cannot summarize an empty evaluation")
     wins = sum(int(episode.won) for episode in episodes)
     truncations = sum(int(episode.truncated) for episode in episodes)
+    boundary_hits = sum(int(episode.boundary_reached) for episode in episodes)
     illegal_actions = sum(episode.illegal_actions for episode in episodes)
+    dead_end_reasons: dict[str, int] = {}
+    for episode in episodes:
+        if episode.dead_end_reason is not None:
+            dead_end_reasons[episode.dead_end_reason] = (
+                dead_end_reasons.get(episode.dead_end_reason, 0) + 1
+            )
+    unclassified_dead_ends = sum(
+        int(
+            episode.truncated
+            and episode.dead_end_reason is None
+            and not episode.boundary_reached
+        )
+        for episode in episodes
+    )
     low, high = wilson_interval(wins, len(episodes))
     floors = [
         episode.final_floor for episode in episodes if episode.final_floor is not None
@@ -124,6 +156,10 @@ def summarize_episodes(
         mean_return=sum(episode.episode_return for episode in episodes) / len(episodes),
         mean_final_floor=(sum(floors) / len(floors) if floors else None),
         max_final_floor=(max(floors) if floors else None),
+        boundary_rate=boundary_hits / len(episodes),
+        dead_end_reasons=dict(sorted(dead_end_reasons.items())),
+        unclassified_dead_ends=unclassified_dead_ends,
+        defect_truncation_rate=(truncations - boundary_hits) / len(episodes),
         by_encounter=by_encounter,
     )
 

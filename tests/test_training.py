@@ -86,7 +86,7 @@ class MetricsTests(unittest.TestCase):
 
     def test_metrics_include_seed_digest_and_wilson_interval(self) -> None:
         metrics = self._metrics(100, 200)
-        self.assertEqual(metrics.schema_version, 1)
+        self.assertEqual(metrics.schema_version, 2)
         self.assertEqual(len(metrics.seed_sha256), 64)
         self.assertLess(metrics.wilson_95_low, 0.5)
         self.assertGreater(metrics.wilson_95_high, 0.5)
@@ -148,6 +148,31 @@ class EvaluationTests(unittest.TestCase):
         )
         self.assertEqual(metrics.illegal_actions, 1)
         self.assertEqual(metrics.truncations, 1)
+        self.assertEqual(metrics.mean_steps, 0)
+
+    def test_empty_environment_mask_is_truncation_not_policy_illegal_action(self) -> None:
+        class EmptyMaskEnvironment(FakeEnvironment):
+            def reset(self, *, seed=None):
+                observation, _ = super().reset(seed=seed)
+                # Mirrors RunEngine's stale LastPlayerWon flag after a combat
+                # win followed by a later map/shop dead-end.
+                return observation, {"player_won": True, "floor": 3}
+
+            def action_masks(self):
+                return [False, False]
+
+        metrics = evaluate_policy(
+            FakePolicy(action=0),
+            env_factory=EmptyMaskEnvironment,
+            seeds=[200],
+            stage="act1",
+            split="checkpoint",
+            scope="simulator_act1",
+            checkpoint="fixture.zip",
+        )
+        self.assertEqual(metrics.illegal_actions, 0)
+        self.assertEqual(metrics.truncations, 1)
+        self.assertEqual(metrics.wins, 0)
         self.assertEqual(metrics.mean_steps, 0)
 
     def test_external_step_cap_breaks_native_rejection_loop(self) -> None:
@@ -373,6 +398,16 @@ class EarlyPromotionTests(unittest.TestCase):
             self.assertTrue((stage_dir / "metrics" / f"{stem}.json").is_file())
             self.assertEqual(callback.last_checkpoint, 11_000_024)
             self.assertIsNone(callback.early_promotion)
+
+    def test_resumed_global_step_comes_from_filename_not_sb3_counter(self) -> None:
+        from training.curriculum import _checkpoint_global_steps
+
+        self.assertEqual(
+            _checkpoint_global_steps(Path("step_000016000008.zip")),
+            16_000_008,
+        )
+        with self.assertRaises(ValueError):
+            _checkpoint_global_steps(Path("final.zip"))
 
 
 if __name__ == "__main__":

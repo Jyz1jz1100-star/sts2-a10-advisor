@@ -38,16 +38,31 @@ def decide_promotion(
             f"{metrics.wilson_95_low:.4f} < required "
             f"{requirements.min_wilson_lower:.4f}"
         )
-    if metrics.truncation_rate > requirements.max_truncation_rate:
+    # Curriculum boundary truncations are stage completions, not defects: the
+    # cap applies to truncations excluding successful boundary hits.  For
+    # stages without a floor boundary this equals the raw truncation rate.
+    if metrics.defect_truncation_rate > requirements.max_truncation_rate:
         reasons.append(
-            "truncation_rate "
-            f"{metrics.truncation_rate:.4f} > allowed "
+            "defect_truncation_rate "
+            f"{metrics.defect_truncation_rate:.4f} > allowed "
             f"{requirements.max_truncation_rate:.4f}"
         )
     if metrics.illegal_actions > requirements.max_illegal_actions:
         reasons.append(
             f"illegal_actions {metrics.illegal_actions} > allowed "
             f"{requirements.max_illegal_actions}"
+        )
+    if requirements.min_boundary_rate is not None:
+        if metrics.boundary_rate < requirements.min_boundary_rate:
+            reasons.append(
+                "boundary_rate "
+                f"{metrics.boundary_rate:.4f} < required "
+                f"{requirements.min_boundary_rate:.4f}"
+            )
+    if metrics.unclassified_dead_ends > 0:
+        reasons.append(
+            "unclassified_dead_ends "
+            f"{metrics.unclassified_dead_ends} > allowed 0"
         )
     if requirements.min_mean_floor is not None:
         if metrics.mean_final_floor is None:
@@ -65,8 +80,11 @@ def decide_promotion(
             "win_rate": metrics.win_rate,
             "wilson_95_low": metrics.wilson_95_low,
             "truncation_rate": metrics.truncation_rate,
+            "defect_truncation_rate": metrics.defect_truncation_rate,
             "illegal_actions": metrics.illegal_actions,
             "mean_final_floor": metrics.mean_final_floor,
+            "boundary_rate": metrics.boundary_rate,
+            "unclassified_dead_ends": metrics.unclassified_dead_ends,
         },
         required=asdict(requirements),
     )

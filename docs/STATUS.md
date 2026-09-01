@@ -2,7 +2,135 @@
 
 Date: 2026-08-31 (handoff update, late session)
 
+## V2 contract + curriculum integration (2026-09-01, session 2)
+
+The plan's near-term delivery point — complete observation + V2 curriculum
+integration, then the first search-teacher batch — is now implemented, tested,
+and smoke-run against the real emulator. All of it lives in this repo; the
+locked emulator build was **not** modified (native hash
+`bcd623ce…34bc4` unchanged), and no V1 artifact under `runs/curriculum` was
+touched.
+
+- **Expanded observation (`training/v2_observation.py`, schema v1, 1739 ints)**:
+  native combat/run passthrough plus fixed, versioned blocks for the full deck
+  with upgrade status, relic presence, potion slots, all seven shop cards and
+  all fourteen shop prices, map candidate coordinates, Neow/reward lists,
+  phase/node one-hots, alive-enemy count, and hand single-target flags. The
+  layout is pinned by `observation_contract()`, whose SHA-256 is recorded in
+  every V2 metric file. Two gaps are recorded rather than papered over: relic
+  counters and enemy definition identities are **not exposed by any native
+  API in run-API v8**; unknown ids are counted, never collided.
+- **(action, target) is now the training action space
+  (`training/v2_flat_env.py`)**: `Discrete(225)` = 32 base actions ×
+  (no-target + 6 enemies) + 1 empty-mask sentinel. Per-enemy aliases exist
+  only where they change the transition — single-target cards (static table
+  generated from `CardEffects.cs` by
+  `scripts/regenerate_card_targeting_table.py`: 158 single-target / 20
+  excluded AoE, drift-checkable via `--check`) while ≥2 enemies live; AoE,
+  end-turn, and every non-combat action keep exactly one candidate (codec
+  no-alias contract, asserted against the flat mask in tests).
+- **Contract defects fixed at the layer boundary
+  (`training/v2_native_env.py` + wrapper stack)**: the native
+  `Sts2Run_Step` status is now surfaced, so a mask-legal-but-native-rejected
+  action (the `event_id=31` / shop-mask class) becomes a **one-step, zero-
+  reward, labelled `native_rejection` truncation** instead of V1's silent
+  -1-reward 1200-step spin; all-zero masks remain the labelled
+  `empty_action_mask` sentinel truncation; and `max_floor` is enforced
+  solely by the V2 wrapper (the native `max_floors` knob stays unused, as it
+  demonstrably never fired in V1).
+- **Attribution metrics (schema v2)**: `boundary_rate` (curriculum stage
+  completion), `defect_truncation_rate` (truncations excluding successful
+  boundary hits — the V1 gate semantics stay intact), per-reason
+  `dead_end_reasons`, and `unclassified_dead_ends`, which the promotion gate
+  requires to be **0**.
+- **Independent V2 curriculum (`training/v2_curriculum.py`,
+  `config/training_v2.toml`)**: floor 3 → 6 → 10 → 13 → Act 1 complete.
+  Twenty seed partitions (train/checkpoint/promotion/final per stage) are
+  pairwise disjoint across all stages (validated at load; `final` is never
+  read by the trainer). Intermediate stages promote on boundary rate
+  (0.90/0.80/0.70/0.60), the terminal Act 1 stage on the plan's 35% true-win /
+  Wilson ≥31%. Output goes to `runs/curriculum_v2/`, metrics are scoped
+  `simulator_act1`, and V1 artifacts are structurally unreachable.
+- **Real-emulator smoke run passed** (`config/training_v2_smoke.toml` →
+  `runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z`): floor3 → floor6
+  with checkpointing, evaluation, cross-stage model load, and promotion
+  plumbing; 20-seed floor-3 checkpoint eval: boundary 0.95, mean floor 2.95,
+  illegal 0, unclassified dead ends 0, one live `native_rejection` correctly
+  classified and counted as a defect truncation.
+- **Teacher batch pipeline (`training/teacher_batch.py`,
+  `scripts/generate_teacher_batch.py`)**: behavioural traversal over the real
+  emulator, `is_interesting` selection (elite/boss, low HP, multi-target,
+  every run-level non-combat decision), full root-candidate scoring via the
+  prefix-replay teacher, streaming JSONL + manifest with emulator hash,
+  search budget, score gap, and capture/re-verify replay hashes. Pilot (24
+  seeds, 6 shards): 66 records, gap median 1.65, 21/66 choose an explicit
+  enemy target, 0 replay mismatches, 0 scope violations. **Batch 0**:
+  4,500 seeds × 10 shards from 1,400,100,000 (outside every train/eval
+  partition), targeting ≈10k high-confidence decisions; the manifest is the
+  completeness claim and each record carries its own re-verified replay hash.
+- **Tests: 111/111** (was 78): +27 contract tests
+  (`tests/test_v2_contract.py`, including real-emulator determinism,
+  max-floor, dead-end classification, mask-purity/property tests) and +6
+  teacher tests (`tests/test_teacher_batch.py`). The metrics schema assertion
+  moved 1 → 2 with the new fields.
+- **Known contract gaps (tracked, not blockers):** relic counters and enemy
+  DefIds are absent from native API v8 (relic *presence* and enemy
+  HP/intent/block/buffs are covered); event option *text* is only inferable
+  from event id + mask (id known, options enumerable, labels deferred to the
+  live-adapter phase).
+
 ## Monitoring notes (unattended watch, 2026-09-01)
+
+- **V2 foundation implemented after the stop decision**: independent modules
+  now cover the normalized run contract/reward/floor curriculum
+  (`training/v2_run_wrapper.py`), stable `(action,target)` candidate encoding
+  (`advisor_core/action_codec_v2.py`), and deterministic seed+prefix replay
+  candidate scoring (`training/prefix_replay_teacher.py`). Prefix replay was
+  smoke-tested against the actual local Sts2RunEnv and emits only
+  `simulator_act1`-scoped results with a real-A10 disclaimer. Full suite:
+  **78/78 tests pass**. No new large training or experimental full-run process
+  was started; the next step is integration plus a bounded teacher-data
+  ablation, not another blind PPO budget.
+
+- **Flat Act1 PPO baseline intentionally stopped at 16M** (09:57 local):
+  eight identical-split checkpoint evaluations from 2M through 16M originally
+  appeared to remain in a 2–5% simulator win band. A subsequent contract audit
+  found that `player_won` is the previous *combat* result and stays true on
+  later map/shop states. Re-evaluation requiring terminal run completion gives
+  only 0–1% per checkpoint and **0/500 true wins** at the 10M promotion probe
+  (the original 10/500 were all stale combat-win flags). Continuing the
+  same collapsed policy to 100M was no longer a useful comparison for the
+  user's delivery target, so the last complete checkpoint was preserved and
+  the run was stopped before spending the remaining ~84M steps. The exact
+  evidence and claim boundary are in `act1/plateau-stop-decision.json`.
+  A self-healing wrapper restarted it once at 09:54; that recovery was also
+  stopped before a new checkpoint and marked `plateau_stopped`. No Act1
+  training process remains. The next run must use expert demonstrations or a
+  hierarchical/shaped curriculum; experimental `full_run` remains disabled.
+- **Empty-mask accounting fixed**: deterministic replay of the 16M checkpoint
+  again isolated seed 20000039 at floor 3 / map phase with zero legal actions.
+  Evaluation now counts this as an environment truncation rather than a policy
+  illegal action, and training converts the dead-end to one synthetic terminal
+  transition instead of allowing 1,200 rejected actions. Regression test
+  added; the full 54-test suite passes. The same fix also requires terminal
+  completion before counting a run win: corrected 16M result is 1/100, not
+  2/100. These changes only make attribution honest; they do not improve play.
+- **Version metadata corrected**: `game_branch` now records the actual locked
+  target `public-beta-v0.111.0`, not the stale `main` label. Historical build
+  `24724944/public-beta-v0.111.0/222455745` remains unchanged.
+- **Second-resume step accounting fixed**: post-resume SB3 archives retain the
+  current process's timestep delta, not the global total. The 16M filename was
+  authoritative while its internal counter was 5,999,988. The automatic
+  restart briefly emitted an unchanged `step_000006000000` alias before it was
+  stopped; that checkpoint and metric were moved to
+  `act1/auto-restart-artifacts/` and excluded from the official series.
+  Future resumes derive the global base from `step_<global>.zip`, with a
+  regression test, so a second recovery cannot rewind numbering or budget.
+- **Metric compatibility note**: checkpoint/probe win percentages in older
+  bullets below are preserved as incident history but use the retired stale
+  `player_won` interpretation. The authoritative corrected files end in
+  `-reevaluated-run-win-fix.json`; use their 0–1% checkpoint and 0/500
+  promotion results for every current decision.
 
 - **14M checkpoint** (09:12, resumed-run numbering `step_000014000004` ✓):
   win 0.030, floor 7.72, truncation 0.020, **illegal_actions 0 — first time**.
@@ -49,10 +177,9 @@ Date: 2026-08-31 (handoff update, late session)
   sts2-rl-agent pattern (92% combat but ~0% full runs) and the architecture
   doc's expectation that the flat MaskablePPO baseline is the *comparison*
   baseline, not the route to A10.
-  Decision: let this run finish to its 100M budget (~21 h) so the baseline
-  endpoint is documented and the promotion-decision trail is complete;
-  reward shaping / curriculum changes are strategy calls to propose to the
-  user after the run settles, not unilateral mid-run edits.
+  Earlier decision was to let this run finish to its 100M budget as a baseline.
+  The unchanged 12M, 14M, and 16M results supplied enough additional evidence
+  to retire that plan; see the 16M stop decision above.
 - **8M checkpoint metrics** (06:44:10, written ~21 min after the supervisor
   death and after adoption — confirming adoption lost nothing): win 0.030
   (4th straight in the 3–5% band), mean floor **7.54** (down from 7.97;

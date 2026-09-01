@@ -20,6 +20,28 @@ def _resolve(project_root: Path, path: Path) -> Path:
     return path if path.is_absolute() else (project_root / path).resolve()
 
 
+def _checkpoint_global_steps(checkpoint: Path) -> int:
+    """Read the authoritative global step from a numbered checkpoint name.
+
+    SB3 resets ``model.num_timesteps`` when a resumed ``learn()`` begins, so
+    checkpoints saved after a resume contain only that process's delta.  The
+    filename is deliberately global and is the only reliable value across a
+    second or later resume.
+    """
+
+    prefix = "step_"
+    if not checkpoint.stem.startswith(prefix):
+        raise ValueError(
+            f"resumed checkpoint must be named {prefix}<global steps>.zip: {checkpoint}"
+        )
+    raw = checkpoint.stem[len(prefix) :]
+    if not raw.isdecimal():
+        raise ValueError(
+            f"resumed checkpoint has a non-numeric global step: {checkpoint}"
+        )
+    return int(raw)
+
+
 def _scope(stage: StageConfig) -> str:
     if stage.environment == "combat":
         return "simulator_combat"
@@ -71,24 +93,51 @@ def _training_environment_factory(
             super().__init__(env)
             self._max_steps = max_steps
             self._steps = 0
+            self._last_observation = None
+            self._last_info: dict[str, Any] = {}
+            self._empty_mask_pending = False
 
         def reset(self, *, seed=None, options=None):
             actual_seed = stream.next() if seed is None else seed
             self._steps = 0
-            return self.env.reset(seed=actual_seed, options=options)
+            self._empty_mask_pending = False
+            observation, info = self.env.reset(seed=actual_seed, options=options)
+            self._last_observation = observation
+            self._last_info = dict(info)
+            return observation, info
+
+        def action_masks(self):
+            mask = self.env.action_masks()
+            self._empty_mask_pending = not any(bool(value) for value in mask)
+            if self._empty_mask_pending:
+                # MaskablePPO cannot represent a state with no legal action.
+                # Advertise one synthetic sentinel and intercept it in step()
+                # below so the broken simulator episode terminates in one
+                # transition instead of producing 1,200 rejected actions.
+                mask = mask.copy()
+                mask[-1] = True
+            return mask
 
         def step(self, action):
+            if self._empty_mask_pending:
+                self._empty_mask_pending = False
+                self._steps += 1
+                info = dict(self._last_info)
+                info["simulator_dead_end"] = "empty_action_mask"
+                return self._last_observation, -1.0, False, True, info
             observation, reward, terminated, truncated, info = self.env.step(action)
             self._steps += 1
             if not terminated and self._steps >= self._max_steps:
                 truncated = True
+            self._last_observation = observation
+            self._last_info = dict(info)
             return observation, reward, terminated, truncated, info
 
     def initialize():
         wrapped = SeededEpisodeWrapper(
             base_factory(worker_partition.start), stage.max_episode_steps
         )
-        return ActionMasker(wrapped, lambda env: env.unwrapped.action_masks())
+        return ActionMasker(wrapped, lambda env: env.action_masks())
 
     return initialize
 
@@ -113,11 +162,10 @@ def _callback_class(base_callback: type):
             self.seeds = seeds
             self.promotion_seeds = promotion_seeds
             self.promotion_probe_every_steps = promotion_probe_every_steps
-            # learn() restarts the optimizer counter at zero even after
-            # MaskablePPO.load (verified empirically, 2026-09-01), so a
-            # resumed run reports progress as resume_base_steps +
-            # num_timesteps. All numbering below uses that global value so
-            # resumes align exactly with a fresh uninterrupted run.
+            # learn() restarts the optimizer counter at zero after load, so a
+            # resumed process reports progress as filename-derived base +
+            # this process's num_timesteps delta. All artifact numbering uses
+            # that global value.
             self.base_steps = resume_base_steps
             self.last_checkpoint = (
                 resume_base_steps // stage.checkpoint_every_steps
@@ -259,7 +307,12 @@ def _train_stage(
                     "observation/action spaces must match"
                 ) from exc
             if resume:
-                resume_base_steps = int(model.num_timesteps)
+                # Do not use model.num_timesteps here. After the first resume,
+                # SB3 stores only that process's delta in the archive (the 16M
+                # checkpoint from 2026-09-01 contained 5,999,988). A second
+                # resume briefly mis-numbered an unchanged copy as 6M before
+                # this was corrected. The global filename remains exact.
+                resume_base_steps = _checkpoint_global_steps(previous_checkpoint)
         elif stage.initialize_from_previous:
             raise RuntimeError(
                 f"stage {stage.name} requires a previous checkpoint but none exists"

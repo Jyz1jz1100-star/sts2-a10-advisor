@@ -1,0 +1,218 @@
+# V2 floor-curriculum training contract (Act 1, Ironclad A10, simulator only).
+#
+# This file configures `python -m training.v2_curriculum`.  It is intentionally
+# separate from config/training.toml: V1 artifacts under runs/curriculum are
+# frozen history and are never written by the V2 entry point.
+#
+# Seed partitions below are pairwise DISJOINT (validated at load time, across
+# every stage).  Each stage gets its own train/checkpoint/promotion/final
+# split; the final ranges are reserved and the trainer never reads them.
+# Every metric this stack emits is labelled scope = "simulator_act1".
+
+version = 1
+
+[target]
+character = "IRONCLAD"
+ascension = 10
+save_load = false
+game_branch = "public-beta-v0.111.0"
+
+[runtime]
+emulator_root = "../third_party/slay-the-spire-2-emulator-main"
+run_dir = "runs/curriculum_v2"
+
+[algorithm]
+name = "MaskablePPO"
+device = "auto"
+n_steps = 2048
+batch_size = 256
+n_epochs = 8
+gamma = 0.995
+learning_rate = 0.0003
+entropy_coefficient = 0.02
+
+# Potential-based run reward used by training/v2_run_wrapper.py:
+#   r = combat_scale * raw + gamma * Phi(next) - Phi(prev),
+#   Phi = floor_weight * floor + hp_weight * hp_fraction,
+#   terminal: +win / death bonus; truncations get no terminal bonus.
+[reward]
+gamma = 0.99
+combat_reward_scale = 0.10
+floor_weight = 1.0
+hp_weight = 1.0
+terminal_win_reward = 25.0
+terminal_death_reward = -25.0
+
+[curriculum]
+stages = ["floor3", "floor6", "floor10", "floor13", "act1"]
+
+# ---------------------------------------------------------------- floor 3 ---
+[stages.floor3]
+timesteps = 2000000
+parallel_envs = 12
+checkpoint_every_steps = 250000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 600
+max_floor = 3
+initialize_from_previous = false
+promotion_probe_every_steps = 500000
+min_boundary_rate = 0.90
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+min_episodes = 500
+
+[stages.floor3.seeds.train]
+start = 100000000
+count = 2000000
+
+[stages.floor3.seeds.checkpoint]
+start = 102000000
+count = 10000
+
+[stages.floor3.seeds.promotion]
+start = 102010000
+count = 10000
+
+[stages.floor3.seeds.final]
+start = 102020000
+count = 10000
+
+# ---------------------------------------------------------------- floor 6 ---
+[stages.floor6]
+timesteps = 4000000
+parallel_envs = 12
+checkpoint_every_steps = 500000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 900
+max_floor = 6
+initialize_from_previous = true
+promotion_probe_every_steps = 1000000
+min_boundary_rate = 0.80
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+min_episodes = 500
+
+[stages.floor6.seeds.train]
+start = 103000000
+count = 2000000
+
+[stages.floor6.seeds.checkpoint]
+start = 105000000
+count = 10000
+
+[stages.floor6.seeds.promotion]
+start = 105010000
+count = 10000
+
+[stages.floor6.seeds.final]
+start = 105020000
+count = 10000
+
+# --------------------------------------------------------------- floor 10 ---
+[stages.floor10]
+timesteps = 8000000
+parallel_envs = 12
+checkpoint_every_steps = 1000000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 1200
+max_floor = 10
+initialize_from_previous = true
+promotion_probe_every_steps = 2000000
+min_boundary_rate = 0.70
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+min_episodes = 500
+
+[stages.floor10.seeds.train]
+start = 106000000
+count = 4000000
+
+[stages.floor10.seeds.checkpoint]
+start = 110000000
+count = 10000
+
+[stages.floor10.seeds.promotion]
+start = 110010000
+count = 10000
+
+[stages.floor10.seeds.final]
+start = 110020000
+count = 10000
+
+# --------------------------------------------------------------- floor 13 ---
+[stages.floor13]
+timesteps = 12000000
+parallel_envs = 12
+checkpoint_every_steps = 1000000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 1200
+max_floor = 13
+initialize_from_previous = true
+promotion_probe_every_steps = 2000000
+min_boundary_rate = 0.60
+min_win_rate = 0.0
+min_wilson_lower = 0.0
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+min_episodes = 500
+
+[stages.floor13.seeds.train]
+start = 111000000
+count = 6000000
+
+[stages.floor13.seeds.checkpoint]
+start = 117000000
+count = 10000
+
+[stages.floor13.seeds.promotion]
+start = 117010000
+count = 10000
+
+[stages.floor13.seeds.final]
+start = 117020000
+count = 10000
+
+# --------------------------------------------------------- Act 1 complete ---
+[stages.act1]
+timesteps = 24000000
+parallel_envs = 12
+checkpoint_every_steps = 2000000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 1600
+# No max_floor: the stage runs to the natural Act 1 terminal state, so the
+# promotion gate is the plan's 35% true-terminal win / Wilson >= 31%.
+initialize_from_previous = true
+promotion_probe_every_steps = 2000000
+min_boundary_rate = 0.0
+min_win_rate = 0.35
+min_wilson_lower = 0.31
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+min_episodes = 500
+
+[stages.act1.seeds.train]
+start = 118000000
+count = 12000000
+
+[stages.act1.seeds.checkpoint]
+start = 130000000
+count = 10000
+
+[stages.act1.seeds.promotion]
+start = 130010000
+count = 10000
+
+[stages.act1.seeds.final]
+start = 130020000
+count = 10000
