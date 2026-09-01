@@ -2,6 +2,35 @@
 
 Date: 2026-09-01
 
+## Status of the delivery stages (updated 2026-09-01, session 2)
+
+1. **Training environment contract — done.** Expanded fixed-width observation
+   (`training/v2_observation.py`, layout pinned by
+   `observation_contract()`, whose SHA-256 is recorded in every metric),
+   native `(action, target)` space as `Discrete(225)` with no-alias splitting
+   (`training/v2_flat_env.py` + generated `advisor_core/card_targeting_v2.py`),
+   `max_floor` enforced by the wrapper, empty-mask and native-rejection dead
+   ends labelled and counted, `unclassified_dead_ends` gate at 0, and property
+   tests over synthetic and real-emulator states. Recorded gaps: relic
+   counters and enemy DefIds are not exposed by native run-API v8; event
+   option text is deferred to the live adapter.
+2. **V2 curriculum entry point — done.** `python -m training.v2_curriculum`
+   with `config/training_v2.toml`: floor 3→6→10→13→Act1, twenty
+   pairwise-disjoint per-stage seed partitions, boundary-rate promotion gates
+   (0.90/0.80/0.70/0.60) then the 35%/Wilson-0.31 true-terminal gate, all
+   metrics `simulator_act1`, output confined to `runs/curriculum_v2*`. The
+   real-emulator smoke run passed (floor3→floor6 including cross-stage model
+   load; one live `native_rejection` correctly classified).
+3. **First teacher batch — in progress.** Generation + audit pipeline
+   complete (`training/teacher_batch.py`,
+   `scripts/generate_teacher_batch.py`, `scripts/audit_teacher_batch.py`);
+   pilot audited clean (0 replay mismatches, 0 provenance violations); batch
+   0 = 4,500 seeds × 10 shards from seed 1,400,100,000 (outside every
+   train/eval partition), targeting ≈10k high-confidence records, expanding
+   to 50k–200k only after the batch-0 quality review passes.
+4. BC/DAgger, 5. fixed-seed ablations, 6. promotion budget, 7. real-game
+   adapter: not started — they consume this batch's output.
+
 ## Why V1 stopped
 
 The flat run-level MaskablePPO baseline was intentionally stopped at cumulative
