@@ -166,12 +166,14 @@ touched.
   exercising the cross-stage load path on official seeds).
   A probe-naming collision found during review was fixed (sub-1M probe
   intervals shared one "M"-rounded metric stem); regression test added.
-- **Formal DAgger batch 0 running** (1,500 student seeds from 1,500,100,000 —
-  disjoint from every train/eval/teacher range). Pilot evidence: 12 seeds →
-  22 labels, **12/22 teacher-student disagreements** — direct proof the
-  student visits states the teacher corrects (the coverage BC alone cannot
-  manufacture). The manifest records the student checkpoint hash so each
-  correction cycle is attributable.
+- **DAgger batch 0 complete (interrupted-but-audited): 3,824 records** over
+  1,157 student seeds (the generator was killed by an environment-wide
+  process termination before its manifest; all streamed lines are
+  capture-time replay-verified). Triple audit passed: 0 provenance
+  violations, 50/50 live replay, 60/60 rescore zero flips; **2,000
+  teacher-student disagreements** — direct proof the student visits states
+  the teacher corrects. Manifest flags completeness `partial` with the
+  surviving dataset hash.
 - **Teacher batch 1 COMPLETE and triple-audited: 35,268 records** (18,000
   seeds × 10 shards from 1,400,200,000). Offline provenance **0 violations**,
   **60/60 live replay zero failures**, **150/150 rescore zero best-action
@@ -182,10 +184,33 @@ touched.
   **Cumulative audited teacher dataset: 44,001 records** (batch 0 8,733 +
   batch 1 35,268), far past the ~10k first-batch goal and into the planned
   50k–200k expansion range with the quality bar held. Batch-1 BC
-  materialization (hash-verified replay of every record) is running;
-  merged distillation round 2 follows.
-
-
+  materialization completed: 35,268/35,268 samples with per-record replay
+  verification (0 drift).
+- **Merged corpus + BC round 2.** `combined_bc_r2.jsonl` = **47,297
+  samples** (43,509 teacher + 3,788 DAgger; 528 cross-source duplicate
+  states resolved by the confidence rule with **0 label conflicts** — an
+  independent determinism check on shared states). Round-2 trainer: holdout
+  top-1 **0.603** (was 0.560), top-3 0.819 on a 2,359-sample holdout
+  (`models/bc_v2_r2.pt` + metadata sidecar). Harness student eval (50
+  seeds/stage): floor3 boundary 0.76, floor6 0.14, floor10 0.00 — illegal
+  0, unclassified 0 everywhere. Imitation improves with corpus size but the
+  traversal distribution (most teacher runs die by floor 5–8) keeps
+  high-floor BC weak by construction; the plan's "BC plateaus,
+  curriculum/DAgger carries" line holds.
+- **floor10 RL finding (step-5 ablation signal, contract-clean).** The
+  official floor10 stage degraded: checkpoint boundary 0.26 (1M) → 0.22 →
+  0.18 → 0.15 (4M) against a pre-training floor6-chain baseline of 0.20
+  (measured post-hoc), with mean return drifting more negative while
+  truncations (deaths) *fell* — the flat PPO policy learned to survive
+  without advancing, i.e. potential-reward exploitation. The run was
+  stopped (also caught by the environment-wide kill) and its 8M budget was
+  NOT resumed on this policy; metrics remain hash-chained at
+  `runs/curriculum_v2/v2curriculum-20260901T122903Z/floor10` for the
+  ablation. Contract quality was never implicated: defect 0.0, illegal 0,
+  unclassified 0 at every checkpoint. Next-step direction this evidence
+  supports: terminal-dominant reward tuning (larger win/advance bonus or
+  floor-potential discount) and/or PPO fine-tuning warm-started from the
+  round-2 BC policy instead of the previous RL checkpoint.
 
 - **Known contract gaps (tracked, not blockers):** relic counters and enemy
   DefIds are absent from native API v8 (relic *presence* and enemy
