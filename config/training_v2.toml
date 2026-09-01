@@ -91,7 +91,11 @@ max_episode_steps = 900
 max_floor = 6
 initialize_from_previous = true
 promotion_probe_every_steps = 1000000
-min_boundary_rate = 0.80
+# Raised 0.80 -> 0.90 from evidence: the first filter-semantics run promoted
+# at boundary 0.86 on its 1M-step probe -- passing, but with only a 6pt margin
+# over the old gate and 4x budget unused.  A marginal boundary does not
+# bootstrap the harder stages, so require 0.90 before early-stopping.
+min_boundary_rate = 0.90
 min_win_rate = 0.0
 min_wilson_lower = 0.0
 max_truncation_rate = 0.03

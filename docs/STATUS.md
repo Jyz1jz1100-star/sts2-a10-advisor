@@ -133,12 +133,24 @@ touched.
   unaffected by the upgrade; floor6 restarted under filter semantics
   (pre-filter attempt archived as `aborted-pre-filter-floor6-095635Z`).
   Suite 129/129.
-- **floor6 under filter semantics: first checkpoint boundary 0.87**
+- **floor6 under filter semantics: checkpoint boundary 0.87 → PROMOTED at the
+  1M probe (0.86/500 fresh promotion seeds)**
   (`v2curriculum-20260901T115142Z`, warm-started from floor3's promoted
-  checkpoint, 100 checkpoint seeds at 500k steps): boundary **0.87** (gate
-  0.80), defect truncation **0.0** (was 0.44 under truncate semantics),
-  illegal 0, unclassified dead ends 0, mean floor 5.85/6. The promotion
-  probe path (500 fresh seeds) decides stage promotion.
+  checkpoint): defect truncation **0.0** (was 0.44 under truncate semantics),
+  illegal 0, unclassified dead ends 0, mean floor 5.85. Hash chain verified
+  (file == metrics == decision, 100-seed checkpoint split ≠ 500-seed
+  promotion split). Early-stop fired exactly as designed at 983k steps of a
+  4M budget.
+  **Gate raised 0.80 → 0.90 for subsequent ladder runs** from this evidence:
+  a 6-point margin at 25% of budget is thin, and floor6's boundary quality
+  bootstraps the harder stages. The accepted promotion stands (it satisfied
+  the gate in force when it ran); floor10 now runs from this checkpoint with
+  the raised standard recorded in config. If floor10 stalls, the documented
+  fallback is a fresh floor6 continuation targeting ≥0.90, not extra budget
+  on a different stage.
+- **floor10 stage running** (8M budget, boundary-0.70 gate, probes every 2M)
+  from the promoted floor6 checkpoint — the third warm-start chain link
+  (floor3→floor6→floor10) exercising `--initial-checkpoint` on official seeds.
 - **Official V2 curriculum: floor3 PROMOTED (first stage-level gate passed
   end to end).** `runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3`:
   the 500k probe evaluated the promotion partition (500 untouched seeds) and

@@ -18,13 +18,15 @@ Date: 2026-09-01
    real-emulator states. Recorded gaps: relic
    counters and enemy DefIds are not exposed by native run-API v8; event
    option text is deferred to the live adapter.
-2. **V2 curriculum entry point — done.** `python -m training.v2_curriculum`
-   with `config/training_v2.toml`: floor 3→6→10→13→Act1, twenty
-   pairwise-disjoint per-stage seed partitions, boundary-rate promotion gates
-   (0.90/0.80/0.70/0.60) then the 35%/Wilson-0.31 true-terminal gate, all
-   metrics `simulator_act1`, output confined to `runs/curriculum_v2*`. The
-   real-emulator smoke run passed (floor3→floor6 including cross-stage model
-   load; one live `native_rejection` correctly classified).
+2. **V2 curriculum entry point — done + ladder running.**
+   `python -m training.v2_curriculum` with `config/training_v2.toml`:
+   floor 3→6→10→13→Act1, twenty pairwise-disjoint per-stage seed partitions,
+   boundary-rate promotion gates (0.90/0.90/0.70/0.60 after the floor6
+   evidence update; the first floor6 promotion passed under 0.80) then the
+   35%/Wilson-0.31 true-terminal gate, all metrics `simulator_act1`, output
+   confined to `runs/curriculum_v2*`. floor3 and floor6 have now promoted
+   end-to-end with hash-chained evidence; floor10 runs warm-started from the
+   promoted chain.
 3. **First teacher batch — done.** Generation + audit pipeline complete
    (`training/teacher_batch.py`,
    `scripts/generate_teacher_batch.py`, `scripts/audit_teacher_batch.py`,
