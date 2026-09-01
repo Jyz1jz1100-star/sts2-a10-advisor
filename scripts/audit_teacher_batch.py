@@ -147,6 +147,67 @@ def live_replay_check(records: list[dict], emulator_root: Path) -> list[str]:
     return failures
 
 
+def rescore_records(records: list[dict], emulator_root: Path) -> list[str]:
+    """Re-score sampled records under the *corrected* contract rollout semantics.
+
+    Batch-0 labels predate the ``score_candidates`` fix that turns a rejected
+    rollout step into a zero-reward truncation instead of adding the raw -1.
+    A rejected step is rare, so the expectation is that no best-action flips;
+    this measures it.  Returns one description per flipped (or errored) record.
+    """
+
+    import random
+
+    sys.path.insert(0, str(emulator_root / "src"))
+    from sts2_gym import native  # noqa: PLC0415
+
+    from training.prefix_replay_teacher import (
+        ActionTarget,
+        ReplayPrefix,
+        RolloutBudget,
+        score_candidates,
+        sts2_run_env_factory,
+    )
+    from training.teacher_batch import heuristic_continuation
+
+    factory = sts2_run_env_factory(max_episode_steps=1200, max_floors=16)
+    flips: list[str] = []
+    for record in records:
+        try:
+            prefix = ReplayPrefix.from_json(record["prefix"])
+            candidates = [
+                ActionTarget(item["action"], -1 if item.get("target") is None else item["target"])
+                for item in record["candidates"]
+            ]
+            budget = RolloutBudget(
+                max_steps=int(record["budget"]["rollout_max_steps"]),
+                discount=float(record["budget"]["discount"]),
+            )
+            fresh = score_candidates(
+                prefix,
+                candidates,
+                env_factory=factory,
+                continuation_policy=heuristic_continuation,
+                budget=budget,
+            )
+            best = fresh.best.candidate
+            best_action_id = record["candidates"][
+                next(
+                    index
+                    for index, item in enumerate(candidates)
+                    if (item.action, item.target) == (best.action, best.target)
+                )
+            ]["action_id"]
+            if best_action_id != record["best_action_id"]:
+                flips.append(
+                    f"seed={record['seed']} idx={record['decision_index']}: "
+                    f"{record['best_action_id']} -> {best_action_id}"
+                )
+        except Exception as exc:
+            flips.append(f"seed={record['seed']} idx={record['decision_index']}: error {exc}")
+    return flips
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("datasets", nargs="+", type=Path)
@@ -154,6 +215,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--min-records", type=int, default=1)
     parser.add_argument("--replay-sample", type=int, default=0,
                         help="rebuild N sampled states against the real emulator")
+    parser.add_argument("--rescore-sample", type=int, default=0,
+                        help="re-score N sampled records under corrected semantics")
     parser.add_argument("--emulator-root", type=Path,
                         default=PROJECT_ROOT.parent / "third_party"
                         / "slay-the-spire-2-emulator-main")
@@ -186,6 +249,12 @@ def main(argv: list[str] | None = None) -> int:
         stride = max(1, total // args.replay_sample)
         sampled = all_records[::stride][: args.replay_sample]
         replay_failures = live_replay_check(sampled, args.emulator_root)
+    rescore_failures: list[str] = []
+    rescore_sampled: list[dict] = []
+    if args.rescore_sample and total:
+        stride = max(1, total // args.rescore_sample)
+        rescore_sampled = all_records[::stride][: args.rescore_sample]
+        rescore_failures = rescore_records(rescore_sampled, args.emulator_root)
 
     gaps.sort()
     summary = {
@@ -204,13 +273,19 @@ def main(argv: list[str] | None = None) -> int:
             "sampled": len(sampled),
             "failures": len(replay_failures),
         },
+        "rescore": {
+            "sampled": len(rescore_sampled),
+            "best_action_flips_or_errors": len(rescore_failures),
+        },
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     for line_number, path, issues in violations[:20]:
         print(f"VIOLATION {path}:{line_number}: {issues}", file=sys.stderr)
     for failure in replay_failures[:20]:
         print(f"REPLAY FAILURE {failure}", file=sys.stderr)
-    if violations or replay_failures or total < args.min_records:
+    for failure in rescore_failures[:20]:
+        print(f"RESCORE DIFF {failure}", file=sys.stderr)
+    if violations or replay_failures or rescore_failures or total < args.min_records:
         return 1
     return 0
 

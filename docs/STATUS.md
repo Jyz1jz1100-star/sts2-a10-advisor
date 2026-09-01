@@ -66,20 +66,28 @@ touched.
   schema v2 and embed the *replayable prefix* itself, so any later process
   can rebuild the exact state (`training/teacher_bc_dataset.py` does this to
   emit BC samples with verified hashes, refusing tampered records).
-- **Teacher batch 0 complete and audited** (`data/teacher/batch0/`,
-  4,500 seeds × 10 shards from 1,400,100,000 — outside every V1/V2
-  train/checkpoint/promotion/final partition): **9,036 high-confidence
-  records**, offline audit **0 violations**, **80-record live replay audit
-  0 failures**, all records carry the native hash
-  `bcd623ce…34bc4` and `simulator_act1` scope. Phase balance: combat 5,122 /
-  relic reward 1,748 / route 534 / card reward 431 / event 331 / Neow 698 /
-  shop 139 / rest 24 / transform 9; 14.25% of records choose an explicit
-  enemy target; score-gap median 1.49 (min gate 0.5). Quality review passed
-  → the 50k–200k expansion is now a budget decision, not a correctness risk.
-- **Tests: 116/116** (was 78): +27 contract tests
+- **Teacher batch 0 (regenerated, quality review passed)** — the first
+  generation completed at 9,036 records with a clean *offline* audit and 80/80
+  live replay, **but** the BC materializer caught a deeper defect the audit
+  could not see: batch-era `score_candidates` rollouts added the raw engine's
+  silent-rejection `-1` to candidate scores, so labels were computed under
+  semantics that differ from the contract stack.  A targeted rescore audit
+  (120 sampled records re-scored under the corrected rollout semantics)
+  flipped the best action in **11/120 (9.2%)** — the contaminated batch was
+  quarantined (`data/teacher/batch0_pre-rejection-fix/README-WARNING.txt`,
+  never to be trained on), the traversal and scorer were fixed (rejections can
+  no longer enter a prefix or a rollout; `rejection_mode="noop"` verified
+  200/200 zero-drift state replays of old records), and batch 0 is being
+  regenerated with the corrected pipeline.  The full audit for the new batch
+  runs offline + live-replay + rescore sampling together; expansion to
+  50k–200k starts only when all three are clean.  Method lesson recorded:
+  *state* replayability is necessary but not sufficient — label *semantics*
+  must match the training contract, and the converter is the tripwire.
+- **Tests: 118/118** (was 78): +27 contract tests
   (`tests/test_v2_contract.py`, including real-emulator determinism,
-  max-floor, dead-end classification, mask-purity/property tests), +6
-  teacher tests (`tests/test_teacher_batch.py`), +3 BC-converter tests
+  max-floor, dead-end classification, mask-purity/property tests), +8
+  teacher tests (`tests/test_teacher_batch.py`, incl. two rejection-safety
+  tests), +3 BC-converter tests
   (`tests/test_teacher_bc_dataset.py`), and a metrics regression for mixed
   win/boundary accounting. The metrics schema assertion moved 1 → 2 with the
   new fields.
