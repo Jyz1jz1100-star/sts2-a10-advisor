@@ -118,13 +118,31 @@ touched.
   6-seed probe emitted 8 records with **4 teacher/student disagreements**,
   triple-audited clean (0 violations, 8/8 live replay). Formal DAgger batches
   run after batch-1 quality review.
-- **Official V2 runs started (this session):** batch-1 expansion generating
-  (18,000 seeds × 10 shards from 1,400,200,000, target ≈35k records) and the
-  **first official V2 curriculum stage `floor3`** running the full
-  `config/training_v2.toml` budget (2M steps, 250k checkpoint cadence,
-  boundary-0.90 promotion gate) into a fresh `runs/curriculum_v2/…`
-  directory. Results will be appended here as their metrics land; nothing is
-  promoted without the gates this session built.
+- **Official V2 curriculum: floor3 PROMOTED (first stage-level gate passed
+  end to end).** `runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3`:
+  the 500k probe evaluated the promotion partition (500 untouched seeds) and
+  the policy reached the floor-3 boundary in **100% of episodes** with
+  **illegal 0, unclassified dead ends 0, defect truncations 0**, mean final
+  floor exactly 3.0 — promotion recorded with checkpoint
+  `step_000000500016.zip` and a hash chain verified file == metrics ==
+  decision (69c6c32d…). Training stopped early exactly as designed
+  (early-promotion). The stage's promotion evidence is the first artifact in
+  this project produced under the corrected contract (target encoding,
+  expanded observation, boundary semantics) rather than the retired V1 stack.
+  floor6 now runs warm-started from that checkpoint (`--initial-checkpoint`,
+  exercising the cross-stage load path on official seeds).
+  A probe-naming collision found during review was fixed (sub-1M probe
+  intervals shared one "M"-rounded metric stem); regression test added.
+- **Formal DAgger batch 0 running** (1,500 student seeds from 1,500,100,000 —
+  disjoint from every train/eval/teacher range). Pilot evidence: 12 seeds →
+  22 labels, **12/22 teacher-student disagreements** — direct proof the
+  student visits states the teacher corrects (the coverage BC alone cannot
+  manufacture). The manifest records the student checkpoint hash so each
+  correction cycle is attributable.
+- **Teacher batch 1 in progress**: 18,000 seeds × 10 shards (≈12k records at
+  last check, target ≈35k) for the next distillation round; triple audit
+  required before use, same bar as batch 0.
+
 
 - **Known contract gaps (tracked, not blockers):** relic counters and enemy
   DefIds are absent from native API v8 (relic *presence* and enemy
