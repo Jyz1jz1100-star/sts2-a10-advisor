@@ -4,6 +4,16 @@ Date: 2026-08-31 (handoff update, late session)
 
 ## Monitoring notes (unattended watch, 2026-09-01)
 
+- **14M checkpoint** (09:12, resumed-run numbering `step_000014000004` ✓):
+  win 0.030, floor 7.72, truncation 0.020, **illegal_actions 0 — first time**.
+  On the identical 100 checkpoint seeds, the deterministic policy no longer
+  picks an action outside the mask (the seed-20000039 NODE_SHOP empty-mask
+  episode is gone — either route or action preference shifted enough to
+  dodge it; it could reappear on later checkpoints, so track rather than
+  declare victory). Truncation is down from the 0.05 baseline too: the two
+  mask defects no longer automatically block the ≤0.03 + illegal=0 gates.
+  Win rate remains the binding gate (plateau 2–5%).
+
 - **Resume numbering verified in production**: first post-crash checkpoint
   landed as `step_000012000000` — global-step alignment across the
   resume-base (10,000,020) + learned delta worked exactly as designed.
