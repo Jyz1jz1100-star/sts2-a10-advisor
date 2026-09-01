@@ -133,6 +133,12 @@ touched.
   unaffected by the upgrade; floor6 restarted under filter semantics
   (pre-filter attempt archived as `aborted-pre-filter-floor6-095635Z`).
   Suite 129/129.
+- **floor6 under filter semantics: first checkpoint boundary 0.87**
+  (`v2curriculum-20260901T115142Z`, warm-started from floor3's promoted
+  checkpoint, 100 checkpoint seeds at 500k steps): boundary **0.87** (gate
+  0.80), defect truncation **0.0** (was 0.44 under truncate semantics),
+  illegal 0, unclassified dead ends 0, mean floor 5.85/6. The promotion
+  probe path (500 fresh seeds) decides stage promotion.
 - **Official V2 curriculum: floor3 PROMOTED (first stage-level gate passed
   end to end).** `runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3`:
   the 500k probe evaluated the promotion partition (500 untouched seeds) and
