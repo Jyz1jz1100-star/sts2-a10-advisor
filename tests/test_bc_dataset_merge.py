@@ -54,7 +54,7 @@ class MergeTests(unittest.TestCase):
             self.assertEqual(summary["duplicate_states"], 1)
             lines = [json.loads(x) for x in out.read_text().splitlines()]
             self.assertEqual(
-                sorted((s["prefix_sha256"], s["decision_index"]) for s in lines),
+                sorted((s["prefix_sha256"], str(s["decision_index"])) for s in lines),
                 [("aa", "0"), ("aa", "1"), ("bb", "0"), ("cc", "0")],
             )
             self.assertEqual(summary["source_counts"], {"dagger": 1, "teacher": 3})
