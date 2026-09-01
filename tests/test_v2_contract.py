@@ -321,6 +321,27 @@ class CurriculumConfigTests(unittest.TestCase):
             PROJECT_ROOT / "config" / "training_v2.toml"
         )
 
+    def test_v2_and_teacher_seeds_avoid_v1_partitions_too(self) -> None:
+        """The frozen V1 corpus owns 0–50M; V2 starts at 100M and the teacher
+        ranges live beyond every partition.  A collision would silently reuse
+        V1's negative-baseline seeds as fresh evidence."""
+
+        from training.config import load_training_config
+
+        v1 = load_training_config(PROJECT_ROOT / "config" / "training.toml")
+        v1_ranges = [(p.name, p.start, p.stop) for p in v1.seeds.as_list()]
+        v2_ranges = [(p.name, p.start, p.stop) for p in self.config.seeds.as_list()]
+        for v1_name, v1_start, v1_stop in v1_ranges:
+            for v2_name, v2_start, v2_stop in v2_ranges:
+                self.assertTrue(
+                    v1_stop <= v2_start or v2_stop <= v1_start,
+                    f"V1 {v1_name} overlaps V2 {v2_name}",
+                )
+        # Teacher batches use 1.4e9+ and smoke runs 1.9e9+; keep both beyond
+        # every evaluation partition of both configs.
+        highest = max(stop for *_x, stop in v1_ranges + v2_ranges)
+        self.assertLess(highest, 1_400_000_000)
+
     def test_stage_ladder_matches_the_plan(self) -> None:
         self.assertEqual(
             [(s.name, s.max_floor) for s in self.config.stages],
