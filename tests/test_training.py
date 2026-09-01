@@ -87,6 +87,40 @@ class MetricsTests(unittest.TestCase):
     def test_metrics_include_seed_digest_and_wilson_interval(self) -> None:
         metrics = self._metrics(100, 200)
         self.assertEqual(metrics.schema_version, 2)
+
+    def test_defect_truncation_rate_never_goes_negative_with_terminal_wins(self) -> None:
+        """A won episode also sets boundary_reached; the defect rate counts
+        only *truncated* non-boundary endings, so it must not subtract wins."""
+
+        episodes = [
+            EpisodeMetric(
+                seed=40_000_000 + index,
+                won=index < 5,  # terminal wins: boundary_reached without truncation
+                terminated=index < 5,
+                truncated=index >= 5,
+                steps=10,
+                episode_return=1.0,
+                illegal_actions=0,
+                final_floor=16,
+                boundary_reached=index < 8,  # 5 wins + 3 boundary truncations
+                dead_end_reason=(None if index < 8 else "native_rejection"),
+            )
+            for index in range(10)
+        ]
+        metrics = summarize_episodes(
+            episodes,
+            stage="act1",
+            split="promotion",
+            scope="simulator_act1",
+            checkpoint="fixture.zip",
+            deterministic=True,
+        )
+        self.assertEqual(metrics.truncations, 5)
+        self.assertEqual(metrics.boundary_rate, 0.8)
+        self.assertEqual(metrics.defect_truncation_rate, 0.2)
+        self.assertGreaterEqual(metrics.defect_truncation_rate, 0.0)
+        self.assertEqual(metrics.dead_end_reasons, {"native_rejection": 2})
+        self.assertEqual(metrics.unclassified_dead_ends, 0)
         self.assertEqual(len(metrics.seed_sha256), 64)
         self.assertLess(metrics.wilson_95_low, 0.5)
         self.assertGreater(metrics.wilson_95_high, 0.5)

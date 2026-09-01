@@ -89,6 +89,13 @@ def summarize_episodes(
     wins = sum(int(episode.won) for episode in episodes)
     truncations = sum(int(episode.truncated) for episode in episodes)
     boundary_hits = sum(int(episode.boundary_reached) for episode in episodes)
+    # Boundary hits that are truncations (stage-completion).  Terminal wins
+    # also satisfy boundary_reached, so subtracting boundary_hits from
+    # truncations would go negative on the Act-1 stage; count the intersection
+    # explicitly instead.
+    boundary_truncations = sum(
+        int(episode.truncated and episode.boundary_reached) for episode in episodes
+    )
     illegal_actions = sum(episode.illegal_actions for episode in episodes)
     dead_end_reasons: dict[str, int] = {}
     for episode in episodes:
@@ -159,7 +166,7 @@ def summarize_episodes(
         boundary_rate=boundary_hits / len(episodes),
         dead_end_reasons=dict(sorted(dead_end_reasons.items())),
         unclassified_dead_ends=unclassified_dead_ends,
-        defect_truncation_rate=(truncations - boundary_hits) / len(episodes),
+        defect_truncation_rate=(truncations - boundary_truncations) / len(episodes),
         by_encounter=by_encounter,
     )
 
