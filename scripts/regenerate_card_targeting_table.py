@@ -306,7 +306,7 @@ def main(argv: list[str] | None = None) -> int:
 
     single, aoe = compute_tables(args.emulator_root)
     vocabularies = compute_vocabularies(args.emulator_root)
-    rendered = render_module(single, aoe, vocabularies)
+    rendered = render_module(single, aoe, vocabularies, compute_buff_count(args.emulator_root))
     target = Path(__file__).resolve().parents[1] / "advisor_core/card_targeting_v2.py"
     if args.check:
         current = target.read_text(encoding="utf-8") if target.is_file() else ""

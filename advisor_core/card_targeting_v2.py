@@ -115,6 +115,9 @@ ENEMY_VOCAB: tuple[int, ...] = (
        91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106,
     )
 
+#: Number of ``BuffId`` enum members; combat buffs are one slot each by ordinal.
+BUFF_COUNT: int = 124
+
 assert not (SINGLE_TARGET_CARD_IDS & EXCLUDED_AOE_CARD_IDS), (
     "single-target and AoE card tables must not overlap"
 )
@@ -141,6 +144,7 @@ def dense_index(vocab: tuple[int, ...], object_id: int) -> int:
 
 
 __all__ = [
+    "BUFF_COUNT",
     "CARD_VOCAB",
     "ENEMY_VOCAB",
     "EXCLUDED_AOE_CARD_IDS",
