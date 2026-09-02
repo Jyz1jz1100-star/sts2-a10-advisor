@@ -140,6 +140,24 @@ def _run_raw_episode(
                 continue
             rejected.clear()
             decisions.append(decision)
+            # Mirror the V2 contract wrapper's floor-cap truncation: the raw
+            # Sts2RunEnv plays past max_floors instead of stopping, so without
+            # this the raw-env policies would never report a boundary and would
+            # die on the floor-6 combat with hp 0 -- incomparable to the flat
+            # stack the BC/PPO baselines play on.
+            if not terminated and not truncated:
+                floor_now = info.get("floor")
+                if (
+                    max_floor is not None
+                    and floor_now is not None
+                    and int(floor_now) >= max_floor
+                ):
+                    truncated = True
+                    info = {
+                        **info,
+                        "curriculum_truncated": True,
+                        "curriculum_max_floor": max_floor,
+                    }
             if terminated or truncated:
                 break
         else:
@@ -159,13 +177,15 @@ def _run_raw_episode(
         )
         won = bool(terminated and info.get("player_won", False))
         boundary = won or bool(
-            truncated
-            and final_floor is not None
-            and int(final_floor) >= max_floor
+            truncated and info.get("curriculum_truncated", False)
         )
         dead_end = info.get("simulator_dead_end")
         if dead_end is None and truncated and not terminated:
-            dead_end = "native_truncation"
+            dead_end = (
+                "curriculum_truncated"
+                if info.get("curriculum_truncated", False)
+                else "native_truncation"
+            )
         return EpisodeMetric(
             seed=seed,
             won=won,
@@ -194,6 +214,7 @@ def _summarize_raw(label: str, metrics, *, stage: str, max_floor: int) -> dict:
         split=f"strength:{label}",
         scope="simulator_act1",
         checkpoint=label,
+        deterministic=True,
     ).to_dict()
     payload["policy"] = label
     payload["max_floor"] = max_floor
@@ -301,7 +322,7 @@ def main(argv: list[str] | None = None) -> int:
         "heuristic", heuristic_metrics, stage=stage.name, max_floor=max_floor
     )
     print(json.dumps({"heuristic_win_rate": policies["heuristic"]["win_rate"]},
-                     ensure_ascii=False))
+                     ensure_ascii=False), flush=True)
 
     # ---- teacher v3 --------------------------------------------------------
     from training.teacher_v3 import BeamSearchConfig  # noqa: PLC0415,E402
@@ -370,6 +391,10 @@ def main(argv: list[str] | None = None) -> int:
     teacher_metrics = []
     for seed in seeds:
         current_seed[0] = seed
+        # The beam-decision budget is per episode, not global: reset so every
+        # seed gets its own allowance instead of degrading to heuristic after
+        # the first run exhausts the counter.
+        beam_stats["combat_decisions"] = 0
         teacher_metrics.append(
             _run_raw_episode(
                 seed,
@@ -384,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     policies["teacher_v3"]["beam_stats"] = dict(beam_stats)
     print(json.dumps({"teacher_v3_win_rate": policies["teacher_v3"]["win_rate"]},
-                     ensure_ascii=False))
+                     ensure_ascii=False), flush=True)
 
     # ---- BC student (flat contract stack) ----------------------------------
     if args.bc_checkpoint and Path(args.bc_checkpoint).exists():
@@ -488,7 +513,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     atomic_write_json(out_path, report)
     print(json.dumps({"out": str(out_path), "expert_labels_approved": approved},
-                     ensure_ascii=False))
+                     ensure_ascii=False), flush=True)
     if args.strict and not approved:
         return 2
     return 0
