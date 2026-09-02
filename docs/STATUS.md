@@ -78,6 +78,48 @@ Test suite: **147 + 18 teacher-v3/freeze tests green** under the training
 venv (two-phase `scripts/test.ps1`: pure-Python contract modules + torch
 modules).
 
+## Teacher v3 strength gate + PPO comparison (2026-09-02, session 3 follow-up)
+
+- **Teacher v3 strength gate executed** (`runs/teacher_v3/strength-*.json`,
+  independent seeds 1,550,000,000+, floor6-capped, bounded teacher beam 64 /
+  256 expansions per root / ≤6 combat decisions per episode). The harness was
+  fixed first so raw-env policies mirror the V2 wrapper's floor-cap
+  truncation (the raw `Sts2RunEnv` plays past `max_floors` and would die with
+  hp 0 otherwise, making boundary/HP incomparable to the flat stack) and the
+  teacher's beam-decision budget is per episode, not global.
+  **Verdict: `expert_labels_approved: false`** — on n=4 the bounded teacher
+  ties heuristic on boundary (0.50) but loses on floor (5.25 vs 5.50), and
+  loses to the promoted floor6 PPO on every joint metric (boundary 0.50 vs
+  0.75, HP 0.172 vs 0.406). The whole gate made only 6 real beam decisions
+  (most combat states are forced moves or the run dies early), so this is a
+  *bounded-teacher* NO, not a final expert verdict. **Teacher v3 records
+  therefore stay `label_status: "candidate"`** (the generator already refuses
+  expert labels without a passing report). A meaningful YES would need a
+  fuller beam budget and more seeds. Note: the `mean_steps` check is
+  misleading against bc (bc dies earlier → shorter episodes → "fewer steps"
+  rewards dying fast); the joint signal should be boundary/floor/HP first.
+- **Pretrained-PPO vs ordinary-PPO, fixed seed 91001, floor6, 250k steps**
+  (`runs/ppo_compare/ppo-pretrain-vs-vanilla/`), joint eval on the same 100
+  floor6 checkpoint-partition seeds:
+
+  | arm | init | boundary | Wilson | floor | HP | steps |
+  |-----|------|----------|--------|-------|-----|-------|
+  | warm | floor3 ckpt ([64,64]) | **0.88** | **0.802** | **5.88** | **0.434** | 64.1 |
+  | vanilla | random ([256,256]) | 0.87 | 0.790 | 5.86 | 0.391 | 64.3 |
+  | pretrained | actor ([256,256]) | 0.83 | 0.745 | 5.80 | 0.384 | 61.8 |
+
+  Ramps: warm flat at 0.89; vanilla 0.77→0.89; pretrained 0.45→0.80 (slowest).
+  **The pretrained actor init was the worst of the three** — below random-init
+  vanilla on every joint metric. Plausible cause: the actor encodes the weak
+  BC student's floor3-era prior (it only reached floor6 boundary 0.22
+  standalone), so PPO spends the budget un-learning it, while random init
+  explores freely and the shaped reward/boundary structure is learnable fast.
+  Caveats: single PPO seed, 250k budget, n=100 eval (the pretrained-vs-vanilla
+  Wilson gap ~0.05 is within noise at n=100). This is a small-scale screening
+  signal against the pretrain-as-PPO-init path, not a final verdict; all arms
+  are contract-clean (0 illegal, 0 unclassified dead ends), and mean_return is
+  confirmed non-discriminative (pretrained −1.42 / vanilla −0.24 / warm +0.11).
+
 ## V2 contract + curriculum integration (2026-09-01, session 2)
 
 The plan's near-term delivery point — complete observation + V2 curriculum
