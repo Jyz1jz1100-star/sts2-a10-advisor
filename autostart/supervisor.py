@@ -53,7 +53,10 @@ def _single_instance(port: int):
 def _bridge_client(cfg: dict) -> BridgeClient:
     b = cfg["bridge"]
     return BridgeClient(b["base_url"], b["state_path"], b["health_path"],
-                        timeout=b.get("request_timeout_s", 4.0))
+                        timeout=b.get("request_timeout_s", 4.0),
+                        compendium_path=b.get(
+                            "compendium_path", "/api/v1/compendium"
+                        ))
 
 
 def _popen(args: list[str]) -> subprocess.Popen:

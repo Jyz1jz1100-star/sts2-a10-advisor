@@ -269,6 +269,9 @@ def main() -> None:
         state_path=cfg["bridge"]["state_path"],
         health_path=cfg["bridge"]["health_path"],
         timeout=cfg["bridge"]["request_timeout_s"],
+        compendium_path=cfg["bridge"].get(
+            "compendium_path", "/api/v1/compendium"
+        ),
     )
     model = ModelClient(cfg, logger)
     thesis_store = thesis.ThesisStore(cfg["paths"]["thesis_file"])

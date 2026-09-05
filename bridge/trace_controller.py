@@ -64,6 +64,190 @@ def decision_id(state: dict[str, Any]) -> str:
     return "local-sha256:" + hashlib.sha256(canonical).hexdigest()
 
 
+def canonicalize_game_seed(seed: str) -> str:
+    """Mirror v0.111.0 ``SeedHelper.CanonicalizeSeed`` for verification.
+
+    The compatibility bridge still records the caller's raw seed.  The game
+    trims whitespace, uppercases the seed, and disambiguates the two letters
+    that are not in its displayed alphabet (``O`` -> ``0`` and ``I`` -> ``1``)
+    before constructing ``RunRngSet``.  This helper is deliberately limited to
+    that stable, observed v0.111.0 transformation; it never hashes or converts
+    a seed to an integer.
+    """
+    if not isinstance(seed, str):
+        raise TypeError("seed must be a string")
+    return seed.strip().upper().replace("O", "0").replace("I", "1")
+
+
+def validate_requested_seed(seed: str) -> str:
+    """Validate and return the game's canonical seed without mutating input."""
+    canonical = canonicalize_game_seed(seed)
+    if not canonical or any(
+        not ("0" <= character <= "9" or "A" <= character <= "Z")
+        for character in canonical
+    ):
+        raise ValueError("seed must be a non-empty ASCII alphanumeric string")
+    return canonical
+
+
+def _nonempty(value: Any) -> Any | None:
+    if value is None or value is False:
+        return None
+    if isinstance(value, str):
+        return value if value.strip() else None
+    return value
+
+
+def _as_metadata_int(value: Any, field: str) -> int | None:
+    value = _nonempty(value)
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise BridgeProtocolError(f"run identity field {field!r} is boolean")
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    raise BridgeProtocolError(f"run identity field {field!r} is not an integer")
+
+
+def _canonical_character(value: Any) -> str | None:
+    value = _nonempty(value)
+    if value is None:
+        return None
+    token = str(value).strip().upper()
+    if token in {"铁甲战士", "THE IRONCLAD", "IRONCLAD"}:
+        return "IRONCLAD"
+    return token
+
+
+def _canonical_game_mode(value: Any) -> str | None:
+    value = _nonempty(value)
+    if value is None:
+        return None
+    return str(value).strip().lower()
+
+
+def merge_verified_run_identity(
+    state: dict[str, Any],
+    compendium: dict[str, Any],
+    *,
+    requested_seed: str | None = None,
+    canonical_seed: str | None = None,
+) -> dict[str, Any]:
+    """Merge live state and authoritative save identity without guessing.
+
+    The live state is the source for the already-verified character and run
+    metadata; ``current_run`` is the source for the saved seed and run id.  If
+    both expose a field they must agree.  Missing fields are an error here so
+    callers can decide whether to poll or fail closed; no run id/seed is
+    derived from a timestamp, hash, or action payload.
+    """
+    live_run = state.get("run")
+    if not isinstance(live_run, dict):
+        live_run = {}
+    live_player = state.get("player")
+    if not isinstance(live_player, dict):
+        live_player = {}
+    saved_run = compendium.get("current_run")
+    if not isinstance(saved_run, dict):
+        saved_run = {}
+    if saved_run.get("is_in_progress") is not True:
+        raise BridgeProtocolError("authoritative current_run is not in progress")
+
+    live_run_id = _nonempty(live_run.get("run_id") or state.get("run_id"))
+    saved_run_id = _nonempty(saved_run.get("run_id"))
+    if live_run_id is not None and saved_run_id is not None and live_run_id != saved_run_id:
+        raise BridgeProtocolError(
+            f"run identity conflict: live run_id={live_run_id!r}, "
+            f"saved run_id={saved_run_id!r}"
+        )
+    run_id = saved_run_id or live_run_id
+    if not isinstance(run_id, str) or not run_id.strip():
+        raise BridgeProtocolError("authoritative run identity has no run_id")
+
+    live_seed = _nonempty(live_run.get("seed"))
+    saved_seed = _nonempty(saved_run.get("seed"))
+    if live_seed is not None and saved_seed is not None and live_seed != saved_seed:
+        raise BridgeProtocolError(
+            f"run identity conflict: live seed={live_seed!r}, "
+            f"saved seed={saved_seed!r}"
+        )
+    seed = saved_seed or live_seed
+    if not isinstance(seed, str) or not seed.strip():
+        raise BridgeProtocolError("authoritative run identity has no string seed")
+    if requested_seed is not None and seed != canonical_seed:
+        raise BridgeProtocolError(
+            f"seed mismatch: requested canonical {canonical_seed!r}, observed {seed!r}"
+        )
+
+    live_character_id = _nonempty(live_player.get("character_id"))
+    live_character_title = _nonempty(live_player.get("character"))
+    live_character = live_character_id or live_character_title
+    saved_character = _nonempty(
+        saved_run.get("character_id") or saved_run.get("character")
+    )
+    if (
+        live_character is not None
+        and saved_character is not None
+        and _canonical_character(live_character) != _canonical_character(saved_character)
+    ):
+        raise BridgeProtocolError(
+            f"run identity conflict: live character={live_character!r}, "
+            f"saved character={saved_character!r}"
+        )
+    character = live_character or saved_character
+    if character is None:
+        raise BridgeProtocolError("verified live state has no character")
+
+    live_ascension = _as_metadata_int(live_run.get("ascension"), "ascension")
+    saved_ascension = _as_metadata_int(saved_run.get("ascension"), "ascension")
+    if (
+        live_ascension is not None
+        and saved_ascension is not None
+        and live_ascension != saved_ascension
+    ):
+        raise BridgeProtocolError(
+            f"run identity conflict: live ascension={live_ascension}, "
+            f"saved ascension={saved_ascension}"
+        )
+    ascension = saved_ascension if saved_ascension is not None else live_ascension
+    if ascension is None:
+        raise BridgeProtocolError("run identity has no ascension")
+
+    live_mode = _canonical_game_mode(
+        state.get("game_mode") or live_run.get("game_mode")
+    )
+    saved_mode = _canonical_game_mode(saved_run.get("game_mode"))
+    if live_mode is not None and saved_mode is not None and live_mode != saved_mode:
+        raise BridgeProtocolError(
+            f"run identity conflict: live game_mode={live_mode!r}, "
+            f"saved game_mode={saved_mode!r}"
+        )
+    game_mode = saved_mode or live_mode
+    if game_mode is None:
+        raise BridgeProtocolError("run identity has no game_mode")
+
+    identity: dict[str, Any] = {
+        "run_id": run_id,
+        "seed": seed,
+        "character": character,
+        "ascension": ascension,
+        "game_mode": game_mode,
+    }
+    if live_character_id is not None:
+        identity["character_id"] = live_character_id
+    if live_character_title is not None:
+        identity["character_title"] = live_character_title
+    save_scope = _nonempty(saved_run.get("save_scope"))
+    if save_scope is not None:
+        identity["save_scope"] = save_scope
+    if requested_seed is not None:
+        identity["seed_requested"] = requested_seed
+        identity["seed_canonical"] = canonical_seed
+    return identity
+
+
 @dataclass(frozen=True)
 class VersionLock:
     raw: dict[str, Any]
@@ -106,6 +290,12 @@ class VersionLock:
             "steam_build_id": manifest_value("buildid"),
             "branch": manifest_value("BetaKey") or "public",
         }
+        # The release file does not contain Steam's app id.  It is stable
+        # lock metadata, so carry it into the recorded observation when the
+        # lock declares it; otherwise downstream acceptance checks would
+        # reject an otherwise verified trace as missing game identity.
+        if self.game.get("app_id") is not None:
+            observed["app_id"] = self.game["app_id"]
         expected = {
             "version": self.game["version"],
             "commit": self.game["commit"],
@@ -224,6 +414,10 @@ class STS2MCPController:
         self.timeout = timeout
         self.allow_actions = allow_actions
         self.recorder = recorder
+        # The last start carries a complete, bridge-verified identity.  The
+        # out-of-combat allocation driver consumes this instead of guessing a
+        # run id/seed from the transient first state after Embark.
+        self.last_run_identity: dict[str, Any] | None = None
 
     def _json_request(
         self, method: str, path: str, payload: dict[str, Any] | None = None
@@ -358,29 +552,131 @@ class STS2MCPController:
         return None
 
     def _menu_action_and_wait(
-        self, state_id: str, option: str, timeout: float
+        self,
+        state_id: str,
+        option: str,
+        timeout: float,
+        *,
+        seed: str | None = None,
     ) -> tuple[dict[str, Any], str]:
+        payload: dict[str, Any] = {"action": "menu_select", "option": option}
+        if seed is not None:
+            # Keep the exact caller string in the POST and trace.  The game
+            # bridge returns its canonical form separately; no numeric cast is
+            # permitted here.
+            payload["seed"] = seed
         result, _ = self.send_action(
-            {"action": "menu_select", "option": option},
+            payload,
             expected_decision_id=state_id,
         )
         if result.get("status") != "ok":
             raise BridgeProtocolError(f"menu_select({option}) failed: {result}")
         return self.wait_for_new_decision(state_id, timeout=timeout)
 
+    def _wait_for_verified_run_identity(
+        self,
+        state: dict[str, Any],
+        *,
+        requested_seed: str | None,
+        canonical_seed: str | None,
+        timeout: float,
+    ) -> dict[str, Any]:
+        """Poll the active save until its complete identity is readable.
+
+        A newly-started run can expose live state before ``current_run.save``
+        exists.  Missing identity fields are retried only for this bounded
+        interval.  A non-empty wrong seed is permanent evidence of a failed
+        injection and stops immediately.
+        """
+        deadline = time.monotonic() + max(timeout, 0.0)
+        last_error: BridgeProtocolError | None = None
+        while True:
+            compendium = self.get_compendium(record=True)
+            current_run = compendium.get("current_run")
+            observed_seed = (
+                current_run.get("seed")
+                if isinstance(current_run, dict)
+                else None
+            )
+            if requested_seed is not None and observed_seed not in (None, ""):
+                # Do not wait for a mismatching/non-string seed to become the
+                # requested seed: the current authoritative save is wrong.
+                if observed_seed != canonical_seed:
+                    if self.recorder:
+                        self.recorder.write(
+                            "guard",
+                            {
+                                "status": "blocked",
+                                "reason": "seed_mismatch",
+                                "seed_requested": requested_seed,
+                                "seed_canonical": canonical_seed,
+                                "observed_seed": observed_seed,
+                            },
+                        )
+                    raise BridgeProtocolError(
+                        "Seeded start was not verified: "
+                        f"requested canonical seed {canonical_seed!r}, "
+                        f"observed {observed_seed!r}"
+                    )
+            try:
+                return merge_verified_run_identity(
+                    state,
+                    compendium,
+                    requested_seed=requested_seed,
+                    canonical_seed=canonical_seed,
+                )
+            except BridgeProtocolError as exc:
+                last_error = exc
+                if time.monotonic() >= deadline:
+                    if self.recorder:
+                        self.recorder.write(
+                            "guard",
+                            {
+                                "status": "blocked",
+                                "reason": "run_identity_not_verified",
+                                "seed_requested": requested_seed,
+                                "seed_canonical": canonical_seed,
+                                "last_error": str(last_error),
+                            },
+                        )
+                    raise BridgeProtocolError(
+                        "Timed out waiting for authoritative run identity: "
+                        f"{last_error}"
+                    ) from exc
+                time.sleep(min(0.1, max(deadline - time.monotonic(), 0.0)))
+
     def start_ironclad_a10(
-        self, *, confirm_ui_a10: bool = False, timeout: float = 10.0
+        self,
+        *,
+        confirm_ui_a10: bool = False,
+        timeout: float = 10.0,
+        seed: str | None = None,
     ) -> tuple[dict[str, Any], str]:
         """Navigate to an Ironclad A10 run, with a strict ascension guard.
 
         The project-local STS2MCP compatibility build exposes and validates the
         singleplayer ascension panel.  It sets A10 before Embark and then verifies
-        the resulting run state. ``confirm_ui_a10`` is retained only for backward
-        CLI compatibility and is not used when the level is machine-readable.
+        the resulting run state.  When ``seed`` is provided, the exact caller
+        string is sent with the standard singleplayer confirmation and the
+        authoritative ``current_run.seed`` must match the game's canonical form;
+        otherwise this method raises and never claims a fixed-seed start.
+        ``confirm_ui_a10`` is retained only for backward CLI compatibility and is
+        not used when the level is machine-readable.
         """
         if not self.allow_actions:
             raise ActionPermissionError("Starting a run requires --allow-actions")
+        self.last_run_identity = None
+        canonical_seed = None
+        if seed is not None:
+            # Validate before the first GET so an invalid fixed-seed request
+            # cannot accidentally continue an existing/interactive run.
+            canonical_seed = validate_requested_seed(seed)
         state, current_id = self.get_state(record=True)
+        if state.get("run") and seed is not None:
+            raise BridgeProtocolError(
+                "Refusing seeded start while a run is already active; "
+                "no seed was injected"
+            )
         selected_ironclad = False
         for _ in range(8):
             if state.get("run"):
@@ -462,7 +758,10 @@ class STS2MCPController:
                     )
                     continue
                 state, current_id = self._menu_action_and_wait(
-                    current_id, "confirm", timeout
+                    current_id,
+                    "confirm",
+                    timeout,
+                    seed=seed,
                 )
             else:
                 raise BridgeProtocolError(f"Unsupported menu screen during start: {screen}")
@@ -500,17 +799,17 @@ class STS2MCPController:
                 f"character_id={character_id!r}, character={character!r}, "
                 f"ascension={ascension!r}"
             )
-        compendium = self.get_compendium(record=True)
-        current_run = compendium.get("current_run") or {}
+        identity = self._wait_for_verified_run_identity(
+            state,
+            requested_seed=seed,
+            canonical_seed=canonical_seed,
+            timeout=timeout,
+        )
+        self.last_run_identity = dict(identity)
         if self.recorder:
             self.recorder.write(
                 "run_identity",
-                {
-                    "run_id": current_run.get("run_id"),
-                    "seed": current_run.get("seed"),
-                    "save_scope": current_run.get("save_scope"),
-                    "ascension": current_run.get("ascension"),
-                },
+                identity,
                 decision_id=current_id,
             )
         return state, current_id
@@ -550,6 +849,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--confirm-ui-a10",
         action="store_true",
         help="legacy fallback only when an unpatched bridge cannot expose ascension",
+    )
+    start.add_argument(
+        "--seed",
+        default=None,
+        help="raw ASCII alphanumeric run seed; verified against current_run.seed",
     )
     return parser
 
@@ -626,7 +930,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if command == "start-ironclad-a10":
         state, current_id = controller.start_ironclad_a10(
-            confirm_ui_a10=args.confirm_ui_a10
+            confirm_ui_a10=args.confirm_ui_a10,
+            seed=args.seed,
         )
         print(
             json.dumps(

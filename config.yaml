@@ -8,6 +8,7 @@ bridge:
   # folder (default 15526). The advisor ONLY issues GET reads — never POST.
   base_url: "http://127.0.0.1:15526"
   state_path: "/api/v1/singleplayer"   # GET ?format=json -> {state_type, run, player}
+  compendium_path: "/api/v1/compendium" # GET current_run.seed from current_run.save
   health_path: "/"                     # GET -> {"status":"ok", ...}
   poll_interval_s: 0.3                 # how often to read state while idle (faster = snappier detection)
   request_timeout_s: 4.0
