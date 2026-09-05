@@ -1,0 +1,82 @@
+# Bounded direct Act 1 simulator experiment.
+#
+# This is deliberately a one-stage experiment, not a continuation of or
+# promotion from runs/curriculum_v2.  The launcher loads only the actor weights
+# from models/bc_pretrain_r3/pretrained_actor.zip into a freshly configured
+# MaskablePPO.  All metrics remain simulator_act1 and are experimental.
+
+version = 1
+
+[target]
+character = "IRONCLAD"
+ascension = 10
+save_load = false
+game_branch = "public-beta-v0.111.0"
+
+[runtime]
+emulator_root = "../third_party/slay-the-spire-2-emulator-main"
+run_dir = "runs/bulk_training"
+
+[algorithm]
+name = "MaskablePPO"
+device = "auto"
+n_steps = 2048
+batch_size = 256
+n_epochs = 8
+gamma = 0.995
+learning_rate = 0.0003
+entropy_coefficient = 0.02
+
+# Existing floor6 ablation arm B was the strongest tested floor-progress
+# setting.  Reuse it for this bounded run rather than knowingly repeating the
+# zero-progress baseline; no new ablation is implied by this file.
+[reward]
+gamma = 0.995
+combat_reward_scale = 0.10
+floor_weight = 1.0
+hp_weight = 1.0
+terminal_win_reward = 25.0
+terminal_death_reward = -25.0
+first_floor_advance_reward = 1.0
+boundary_success_reward = 3.0
+step_cost = 0.0
+
+[curriculum]
+stages = ["act1"]
+
+[stages.act1]
+timesteps = 20000000
+parallel_envs = 8
+checkpoint_every_steps = 2000000
+checkpoint_eval_episodes = 100
+promotion_eval_episodes = 500
+max_episode_steps = 1600
+# No max_floor: this is a direct natural Act 1 simulator run.
+initialize_from_previous = false
+# The experiment launcher never early-promotes; its final evaluation is
+# recorded as experiment evidence only.
+promotion_probe_every_steps = 0
+min_boundary_rate = 0.0
+min_win_rate = 0.35
+min_wilson_lower = 0.31
+max_truncation_rate = 0.03
+max_illegal_actions = 0
+min_episodes = 500
+
+# Fresh train seeds.  Checkpoint/promotion/final partitions are disjoint and
+# the final partition is reserved: the launcher never reads it for tuning.
+[stages.act1.seeds.train]
+start = 300000000
+count = 20000000
+
+[stages.act1.seeds.checkpoint]
+start = 320000000
+count = 10000
+
+[stages.act1.seeds.promotion]
+start = 320010000
+count = 10000
+
+[stages.act1.seeds.final]
+start = 320020000
+count = 10000
