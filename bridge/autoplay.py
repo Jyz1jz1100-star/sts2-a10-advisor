@@ -552,6 +552,8 @@ class AutoPlayer:
         self.actions_by_screen: dict[str, int] = {}
         self.runs_started = 0
         self.consecutive_failures = 0
+        self._last_executed: tuple[str, str] | None = None
+        self._repeat_execution_count = 0
         self.stop_reason: str | None = None
         self.seed_allocation: SeedAllocation | None = None
         self._seed_ledger: SeedLedger | None = None
@@ -1091,6 +1093,25 @@ class AutoPlayer:
                         time.sleep(self.poll)
                         continue
                     self._stall_since = None
+                    # A mod-side silent no-op (e.g. a purchase the game
+                    # refuses without an error response) otherwise loops the
+                    # same POST forever: after three identical executions on
+                    # the same decision id, fall back to the generic proceed
+                    # exit instead of buying infinitely.
+                    execution_key = (decision_id, json.dumps(payload, sort_keys=True))
+                    if execution_key == self._last_executed:
+                        self._repeat_execution_count += 1
+                    else:
+                        self._repeat_execution_count = 0
+                    self._last_executed = execution_key
+                    if self._repeat_execution_count >= 3:
+                        if payload.get("action") != "proceed":
+                            print(
+                                "[autoplay] repeating identical action without "
+                                f"state change; falling back to proceed ({payload})",
+                                flush=True,
+                            )
+                            payload = {"action": "proceed"}
                     self.controller.send_action(payload, expected_decision_id=decision_id)
             except SeedAllocationExhausted:
                 # Exhaustion is a clean, auditable stop.  Never fall through
