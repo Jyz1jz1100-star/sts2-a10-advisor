@@ -444,6 +444,10 @@ def build_component_commands(
         config.base_url,
         "--max-battles",
         str(config.max_battles),
+        # A deep solver search can block the mod's HTTP listener longer than
+        # the default 30s runner grace; share the supervisor's loss grace.
+        "--bridge-grace-seconds",
+        str(config.game_loss_grace_seconds),
         "--automated",
     ]
     if config.max_seconds is not None:

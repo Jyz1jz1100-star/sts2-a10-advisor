@@ -300,6 +300,10 @@ class CommandPlanTests(unittest.TestCase):
         self.assertIn("--seed-mode", comparison)
         self.assertEqual(comparison[comparison.index("--seed-mode") + 1], "fixed")
         self.assertIn("--automated", comparison)
+        self.assertEqual(
+            comparison[comparison.index("--bridge-grace-seconds") + 1],
+            str(config.game_loss_grace_seconds),
+        )
         self.assertNotIn("--resume", comparison)
         self.assertIn("--allow-actions", commands["autoplay"])
         self.assertIn("--out-of-combat-only", commands["autoplay"])
