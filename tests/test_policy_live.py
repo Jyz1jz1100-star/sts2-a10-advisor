@@ -118,11 +118,21 @@ class LiveHeuristicPolicyTests(unittest.TestCase):
         rec = self.policy.recommend(state)
         self.assertEqual(rec.primary.action["type"], "shop_leave")
 
-    def test_shop_cannot_leave_when_proceed_is_not_legal(self) -> None:
+    def test_shop_leaves_via_transition_when_proceed_is_disabled(self) -> None:
+        # The mod ForceOpens the merchant inventory: the live shop reports
+        # can_proceed=false while stocked items exist.  The proceed wire
+        # action closes the inventory and leaves, so leaving stays legal.
         state = load("shop")
         state["shop"]["can_proceed"] = False
         for item in state["shop"]["items"]:
             item["can_afford"] = False
+        rec = self.policy.recommend(state)
+        self.assertEqual(rec.primary.action["type"], "shop_leave")
+        self.assertTrue(any("库存" in f for f in rec.primary.facts))
+
+    def test_shop_refuses_to_guess_exit_without_stocked_items(self) -> None:
+        state = load("shop")
+        state["shop"] = {"items": [], "can_proceed": False}
         with self.assertRaises(EmptyCandidateError):
             self.policy.recommend(state)
 

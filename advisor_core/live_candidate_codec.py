@@ -768,6 +768,7 @@ def _shop_candidates(state: Mapping[str, Any]) -> LiveCandidateSet:
     can_proceed = _required_bool(container, "can_proceed", "state.shop")
     candidates: list[LiveCandidate] = []
     indexes: set[int] = set()
+    stocked_any = False
     for number, raw in enumerate(items):
         path = f"state.shop.items[{number}]"
         item = _mapping(raw, path)
@@ -785,6 +786,8 @@ def _shop_candidates(state: Mapping[str, Any]) -> LiveCandidateSet:
         affordable = _required_bool(item, "can_afford", path)
         if category == "card":
             _required_bool(item, "on_sale", path)
+        if stocked:
+            stocked_any = True
         if not stocked or not affordable:
             continue
         item_id, text = _shop_item_identity(item, path, category)
@@ -820,14 +823,20 @@ def _shop_candidates(state: Mapping[str, Any]) -> LiveCandidateSet:
                 _present_features(item, fields, path),
             )
         )
-    if can_proceed:
+    # The mod ForceOpens the merchant inventory on entry, which disables the
+    # UI proceed button (can_proceed=false) while stocked items are shown.
+    # The wire ``proceed`` action still leaves the shop in that state: its
+    # handler closes the inventory and then clicks the re-enabled proceed
+    # button (McpMod.Actions.cs ExecuteProceed).  A shop with no stocked item
+    # and no proven exit stays fail-closed.
+    if can_proceed or stocked_any:
         candidates.append(
             _candidate(
                 "shop",
                 "shop:proceed",
                 {"action": "proceed"},
                 "离开商店",
-                {"can_proceed": True},
+                {"can_proceed": can_proceed},
             )
         )
     return _finish("shop", "shop", candidates)

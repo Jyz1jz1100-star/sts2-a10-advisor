@@ -126,6 +126,37 @@ class LiveCandidateCodecFixtureTests(unittest.TestCase):
             [{"action": "proceed"}],
         )
 
+    def test_stocked_shop_with_disabled_proceed_still_exposes_leave(self) -> None:
+        # The mod ForceOpens the merchant inventory on entry, so the live
+        # shop reports can_proceed=false while stocked items are shown; the
+        # wire proceed action closes the inventory and leaves.
+        shop = load("shop")
+        shop["shop"]["can_proceed"] = False
+        candidates = extract_live_candidates(shop)
+        proceed = [c for c in candidates if c.identity == "shop:proceed"]
+        self.assertEqual(len(proceed), 1)
+        self.assertEqual(proceed[0].wire_action, {"action": "proceed"})
+        self.assertEqual(proceed[0].features.get("can_proceed"), False)
+
+    def test_empty_shop_with_disabled_proceed_stays_fail_closed(self) -> None:
+        shop = load("shop")
+        shop["shop"] = {"items": [], "can_proceed": False}
+        with self.assertRaises(EmptyCandidateError):
+            extract_live_candidates(shop)
+
+    def test_unaffordable_stocked_shop_leaves_via_proceed(self) -> None:
+        shop = load("shop")
+        for item in shop["shop"]["items"]:
+            item["can_afford"] = False
+        shop["shop"]["can_proceed"] = False
+        self.assertEqual(
+            [candidate.wire_action for candidate in extract_live_candidates(shop)],
+            [{"action": "proceed"}],
+        )
+
+    def test_empty_arrays_are_allowed_only_when_a_real_transition_is_exposed_part2(
+        self,
+    ) -> None:
         card_reward = load("card_reward")
         card_reward["card_reward"] = {"cards": [], "can_skip": True}
         self.assertEqual(
@@ -138,7 +169,9 @@ class LiveCandidateCodecFixtureTests(unittest.TestCase):
         with self.assertRaises(EmptyCandidateError):
             extract_live_candidates(map_state)
 
+        rest = load("rest_site")
         no_transition = copy.deepcopy(rest)
+        no_transition["rest_site"]["options"] = []
         no_transition["rest_site"]["can_proceed"] = False
         with self.assertRaises(EmptyCandidateError):
             extract_live_candidates(no_transition)

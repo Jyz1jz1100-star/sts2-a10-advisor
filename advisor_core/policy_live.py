@@ -311,13 +311,24 @@ class LiveHeuristicPolicy:
             for item in ranked
         ]
         can_proceed = shop.get("can_proceed") is True
+        stocked_any = any(
+            i.get("is_stocked") for i in items if isinstance(i, dict)
+        )
+        # The mod opens the merchant inventory on entry and reports
+        # can_proceed=false while it is open; the proceed wire action still
+        # closes it and leaves.  Without stocked items the state is unknown
+        # and the driver must not guess an exit.
         leave = Candidate(
             action={"type": "shop_leave"},
             label="离开商店",
             score=0.4,
             confidence=0.0,
-            facts=("无可负担的高优先级商品", f"金币 {gold}"),
-        ) if can_proceed else None
+            facts=(
+                "无可负担的高优先级商品",
+                f"金币 {gold}",
+                *(() if can_proceed else ("库存界面打开中，proceed 会先关闭库存",)),
+            ),
+        ) if (can_proceed or stocked_any) else None
         if candidates:
             primary = candidates[0]
         elif leave is not None:

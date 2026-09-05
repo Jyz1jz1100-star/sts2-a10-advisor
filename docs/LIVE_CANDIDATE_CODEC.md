@@ -85,6 +85,15 @@ card-reward `cards: []` state is accepted only when `can_skip: true`. A map
 with no `next_options`, or any empty state with no exposed transition, fails
 closed.
 
+Live exception (2026-09-06, verified in-game against 0.29.1): the mod
+ForceOpens the merchant inventory when the shop screen is entered, so the live
+shop reports `can_proceed: false` while stocked items are listed. When at
+least one stocked item exists, the codec exposes the `shop:proceed` candidate
+even with `can_proceed: false` — the wire `proceed` handler closes the
+inventory and then clicks the re-enabled proceed button
+(`ExecuteProceed` in `McpMod.Actions.cs`). A shop with no stocked item and
+`can_proceed: false` still fails closed.
+
 ## Integration and acceptance boundary (2026-09-05)
 
 The codec is the contract boundary for the live out-of-combat policy. The
