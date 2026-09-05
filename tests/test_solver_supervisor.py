@@ -17,6 +17,7 @@ from scripts.supervise_solver_batch import (
     EXIT_STOPPED,
     BatchLock,
     BatchSupervisor,
+    DEFAULT_AUTOPLAY_LOCK,
     SupervisorAlreadyRunning,
     SupervisorConfigurationError,
     SupervisorConfig,
@@ -302,6 +303,14 @@ class CommandPlanTests(unittest.TestCase):
         self.assertNotIn("--resume", comparison)
         self.assertIn("--allow-actions", commands["autoplay"])
         self.assertIn("--out-of-combat-only", commands["autoplay"])
+        # The comparison track loads Combat Solver workshop mods, so autoplay
+        # must verify its environment against the solver lock, not the
+        # STS2_MCP-only A10 acceptance lock.
+        self.assertIn("--lock-file", commands["autoplay"])
+        self.assertEqual(
+            Path(commands["autoplay"][commands["autoplay"].index("--lock-file") + 1]),
+            DEFAULT_AUTOPLAY_LOCK,
+        )
         self.assertEqual(
             commands["autoplay"][commands["autoplay"].index("--log-dir") + 1],
             "",

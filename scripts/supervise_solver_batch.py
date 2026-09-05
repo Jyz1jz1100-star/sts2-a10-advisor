@@ -51,6 +51,7 @@ from urllib.request import Request, urlopen
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "runs" / "solver_supervisor"
+DEFAULT_AUTOPLAY_LOCK = PROJECT_ROOT / "config" / "combat_solver.lock.json"
 DEFAULT_GAME_LOG_DIR = Path.home() / "AppData" / "Roaming" / "SlayTheSpire2" / "logs"
 DEFAULT_SEED_FILE = PROJECT_ROOT / "data" / "combat_solver" / "fixed_battle_seeds.json"
 if str(PROJECT_ROOT) not in sys.path:
@@ -284,6 +285,7 @@ class SupervisorConfig:
     allow_actions: bool = False
     dry_run: bool = False
     comparison_batch_id: str | None = None
+    autoplay_lock: Path = DEFAULT_AUTOPLAY_LOCK
 
     def __post_init__(self) -> None:
         validate_batch_id(self.batch_id)
@@ -461,6 +463,8 @@ def build_component_commands(
         str(config.poll_seconds),
         "--allow-actions",
         "--out-of-combat-only",
+        "--lock-file",
+        str(config.autoplay_lock),
         "--trace",
         str(target_dir / "autoplay_trace.jsonl"),
         "--log-dir",

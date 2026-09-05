@@ -6,8 +6,11 @@
     "app_id": "2868840",
     "steam_build_id": "24724944",
     "version": "v0.111.0",
+    "commit": "41cef1ea",
     "branch": "public-beta",
-    "main_assembly_hash": 222455745
+    "main_assembly_hash": 222455745,
+    "release_info_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\release_info.json",
+    "steam_manifest_path": "G:\\SteamLibrary\\steamapps\\appmanifest_2868840.acf"
   },
   "bridge": {
     "name": "STS2MCP",
@@ -18,7 +21,7 @@
     "name": "CombatSolver",
     "workshop_item_id": "3790899961",
     "author": "Torch",
-    "installed_mod_version": "0.27.0",
+    "installed_mod_version": "0.29.1",
     "installed_mod_version_source": "workshop manifest CombatSolver.json",
     "version_history": [
       {
@@ -35,6 +38,11 @@
         "version": "0.27.0",
         "sha256": "F71F1B4799DDCDB801E118F847426EC599D5DFF10FFECD0F9B00E7AB4827C217",
         "note": "Steam auto-update at phase-1 launch (2026-09-02 16:51); grammar assumed compatible, phase-1 audit re-checks snapshot counts vs RESULT lines"
+      },
+      {
+        "version": "0.29.1",
+        "sha256": "60A9B55B125E517A8F8E34E3B0E89AD278F7DDFA794E2466703B3409E89C3A7A",
+        "note": "Workshop auto-update(s) observed 2026-09-06 (intermediate 0.28.x not individually captured on disk); grammar v1 full replay of the 2026-09-05/06 session logs verified: 1960 events, 548 snapshots, 0 empty routes, failures typed (9 STALE_STATE / 27 NO_ROUTE); settings persisted full_auto=true"
       }
     ],
     "min_game_version": "0.111.0",
@@ -74,8 +82,9 @@
       {
         "mod_id": "STS2_MCP",
         "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
-        "sha256": "095EE091F6D20D17FC0FC09AF53B46DE092F95B29FB970FF0D8714D14CC5B124",
-        "required": true
+        "sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+        "required": true,
+        "note": "seeded candidate bridge (artifacts/sts2mcp-seeded); matches live_version.lock.json after the 2026-09-06 reconciliation"
       },
       {
         "mod_id": "STS2-RitsuLib",
@@ -86,7 +95,7 @@
       {
         "mod_id": "CombatSolver",
         "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
-        "sha256": "F71F1B4799DDCDB801E118F847426EC599D5DFF10FFECD0F9B00E7AB4827C217",
+        "sha256": "60A9B55B125E517A8F8E34E3B0E89AD278F7DDFA794E2466703B3409E89C3A7A",
         "required": true
       },
       {
