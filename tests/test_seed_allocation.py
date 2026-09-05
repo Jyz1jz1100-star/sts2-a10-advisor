@@ -76,6 +76,45 @@ class SeedLedgerTests(unittest.TestCase):
             self.assertIsNotNone(state["active"])
             self.assertEqual(state["active"]["index"], entry.index)
 
+    def test_adopt_current_run_consumes_matching_next_entry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = SeedLedger(self._allocation(Path(temp)), batch_dir=Path(temp))
+            entry = ledger.adopt_current_run(
+                self._identity("1600000000", "orphan-run")
+            )
+            self.assertEqual(entry.raw_seed, "1600000000")
+            snapshot = ledger.snapshot()
+            self.assertIsNone(snapshot["active"])
+            self.assertEqual(snapshot["next_index"], 1)
+            self.assertEqual(snapshot["consumed"][0]["run_id"], "orphan-run")
+            self.assertTrue(snapshot["consumed"][0]["adopted"])
+            # the adopted entry is consumed: the next seed is 1600000001
+            self.assertEqual(ledger.reserve_next().raw_seed, "1600000001")
+
+    def test_adopt_current_run_refuses_foreign_seed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = SeedLedger(self._allocation(Path(temp)), batch_dir=Path(temp))
+            with self.assertRaisesRegex(SeedAllocationError, "next allocation entry"):
+                ledger.adopt_current_run(self._identity("1600000001", "run-b"))
+            self.assertEqual(ledger.snapshot()["next_index"], 0)
+
+    def test_adopt_current_run_refuses_already_consumed_run_id(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = SeedLedger(self._allocation(Path(temp)), batch_dir=Path(temp))
+            entry = ledger.reserve_next()
+            ledger.finalize_started(entry, self._identity("1600000000", "run-a"))
+            # defensive: a run_id that is already in the ledger must never be
+            # adopted again, even with a seed that matches the next entry
+            with self.assertRaisesRegex(SeedAllocationError, "already recorded"):
+                ledger.adopt_current_run(self._identity("1600000001", "run-a"))
+
+    def test_adopt_current_run_refuses_when_reservation_is_open(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = SeedLedger(self._allocation(Path(temp)), batch_dir=Path(temp))
+            ledger.reserve_next()
+            with self.assertRaisesRegex(SeedAllocationError, "unresolved active"):
+                ledger.adopt_current_run(self._identity("1600000000", "run-a"))
+
     def test_ordered_consumption_stops_at_exhaustion(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

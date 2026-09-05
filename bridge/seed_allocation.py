@@ -465,6 +465,54 @@ class SeedLedger:
             raise SeedAllocationError("current run seed conflicts with consumed allocation record")
         return entry
 
+    def adopt_current_run(self, identity: Mapping[str, Any]) -> SeedEntry:
+        """Adopt an already-running run whose seed is exactly the next entry.
+
+        A previous batch can be stopped between its start POST and its own
+        reconciliation, leaving the run live with no ledger reservation.  A
+        restarted fixed batch adopts that run only when the authoritative
+        identity matches the next unconsumed entry exactly: the ledger never
+        skips an entry, never adopts a consumed seed, and never invents a
+        run_id.  Anything else stays a hard stop.
+        """
+        state = self._read()
+        if state.get("active") is not None:
+            raise SeedAllocationError(
+                "seed ledger has an unresolved active reservation; reconcile it instead"
+            )
+        index = state["next_index"]
+        if index >= self.allocation.count:
+            raise SeedAllocationExhausted(
+                f"fixed seed allocation exhausted after {self.allocation.count} runs"
+            )
+        entry = self._entry(index)
+        observed_canonical, run_id = self._identity_seed(identity)
+        if observed_canonical != entry.canonical_seed:
+            raise SeedAllocationError(
+                "current run seed does not match the next allocation entry; "
+                "refusing to adopt a foreign run"
+            )
+        for record in state["consumed"]:
+            if record.get("run_id") == run_id:
+                raise SeedAllocationError(
+                    "current run_id is already recorded in the ledger"
+                )
+        consumed = {
+            **entry.as_dict(),
+            "run_id": run_id,
+            "observed_seed": identity["seed"],
+            "character": identity.get("character"),
+            "character_id": identity.get("character_id"),
+            "ascension": identity.get("ascension"),
+            "game_mode": identity.get("game_mode"),
+            "adopted": True,
+            "consumed_at_utc": _utc_now(),
+        }
+        state["consumed"].append(consumed)
+        state["next_index"] = index + 1
+        _atomic_write_json(self.path, state)
+        return entry
+
     def validate_saved_run(self, identity: Mapping[str, Any]) -> SeedEntry:
         """Validate a Continue save against consumed/reserved state."""
 

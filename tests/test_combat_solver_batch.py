@@ -55,6 +55,28 @@ class SeedContractTests(unittest.TestCase):
         self.assertFalse(audit.fixed_seed_verified)
         self.assertEqual(audit.missing_observations, 1)
 
+    def test_fixed_mode_grace_tolerates_save_write_window_then_fails_closed(self) -> None:
+        audit = SeedAudit("fixed", {"name": "p"}, {7}, missing_grace_seconds=60.0)
+        self.assertIsNone(
+            audit.observe({"state_type": "monster", "run": {"floor": 1, "seed": None}})
+        )
+        self.assertEqual(audit.missing_observations, 1)
+        self.assertFalse(audit.fixed_seed_verified)
+        # once the save lands, the merged compendium seed is accepted and the
+        # missing-window clock resets for later runs
+        self.assertEqual(
+            audit.observe({"state_type": "monster", "run": {"seed": 7}}), 7
+        )
+        self.assertIsNone(
+            audit.observe({"state_type": "monster", "run": {"seed": None}})
+        )
+
+    def test_fixed_mode_grace_expires_into_fail_closed(self) -> None:
+        audit = SeedAudit("fixed", {"name": "p"}, {7}, missing_grace_seconds=-1.0)
+        with self.assertRaises(SeedContractError):
+            audit.observe({"state_type": "monster", "run": {"floor": 1, "seed": None}})
+        self.assertEqual(audit.missing_observations, 1)
+
     def test_observational_mode_records_missing_seed_without_fixed_claim(self) -> None:
         audit = SeedAudit("observational", {"name": "p"}, {7})
         self.assertIsNone(

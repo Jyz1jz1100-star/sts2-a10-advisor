@@ -361,7 +361,13 @@ def _partition_seed_key(raw_seed: Any) -> int | None:
 class SeedAudit:
     """Observe real bridge seeds; never turn a missing value into a claim."""
 
-    def __init__(self, mode: str, partition: dict[str, Any] | None, allowed: set[int]):
+    def __init__(
+        self,
+        mode: str,
+        partition: dict[str, Any] | None,
+        allowed: set[int],
+        missing_grace_seconds: float = 0.0,
+    ):
         if mode not in SEED_MODES:
             raise ValueError(f"unknown seed mode {mode!r}")
         self.mode = mode
@@ -371,6 +377,12 @@ class SeedAudit:
         self.missing_observations = 0
         self.outside_partition: set[int] = set()
         self.observations = 0
+        # A fresh run POST becomes seed-verifiable only after the mod writes
+        # current_run.save; the first active-run observations inside that
+        # bounded window stay missing instead of killing the batch.  Zero
+        # keeps the original fail-on-first-missing behaviour.
+        self.missing_grace_seconds = max(0.0, float(missing_grace_seconds))
+        self._missing_since: float | None = None
 
     def observe(self, state: dict[str, Any]) -> int | None:
         if not _active_run(state):
@@ -381,17 +393,23 @@ class SeedAudit:
         if seed is None:
             self.missing_observations += 1
             if self.mode == "fixed":
-                name = (self.partition or {}).get("name", "unknown")
-                raise SeedContractError(
-                    "fixed-seed batch is blocked: live state has no integer-"
-                    f"compatible run.seed (observed {raw_seed!r}) for partition "
-                    f"{name!r}. The exact save value is preserved, but this "
-                    "numeric allocation cannot verify it; rerun explicitly "
-                    "with --seed-mode observational until the allocation and "
-                    "bridge seed format agree, and do not treat this batch as "
-                    "fixed-seed."
-                )
+                now = time.monotonic()
+                if self._missing_since is None:
+                    self._missing_since = now
+                if now - self._missing_since >= self.missing_grace_seconds:
+                    self._missing_since = None
+                    name = (self.partition or {}).get("name", "unknown")
+                    raise SeedContractError(
+                        "fixed-seed batch is blocked: live state has no integer-"
+                        f"compatible run.seed (observed {raw_seed!r}) for partition "
+                        f"{name!r}. The exact save value is preserved, but this "
+                        "numeric allocation cannot verify it; rerun explicitly "
+                        "with --seed-mode observational until the allocation and "
+                        "bridge seed format agree, and do not treat this batch as "
+                        "fixed-seed."
+                    )
             return None
+        self._missing_since = None
         self.observed.add(seed)
         if seed not in self.allowed:
             self.outside_partition.add(seed)
@@ -1216,6 +1234,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--solver-lock", default="config/combat_solver.lock.json")
     parser.add_argument("--seeds-file", default="data/combat_solver/fixed_battle_seeds.json")
     parser.add_argument("--max-battles", type=int, default=None)
+    parser.add_argument(
+        "--seed-readback-grace-seconds",
+        type=float,
+        default=60.0,
+        help=(
+            "fixed mode only: how long a freshly started active run may lack "
+            "a readable run.seed (current_run.save write window) before the "
+            "seed contract fails closed"
+        ),
+    )
     parser.add_argument("--max-seconds", type=int, default=None)
     parser.add_argument("--bridge-grace-seconds", type=float, default=30.0)
     parser.add_argument("--base-url", default=None)
@@ -1458,7 +1486,12 @@ def main(argv: list[str] | None = None) -> int:
         solver_lock = VersionLock.load(PROJECT_ROOT / args.solver_lock)
         seeds_payload = _load_json(seeds_path)
         partition, partition_seeds = validate_seed_payload(seeds_payload)
-        seed_audit = SeedAudit(args.seed_mode, partition, partition_seeds)
+        seed_audit = SeedAudit(
+            args.seed_mode,
+            partition,
+            partition_seeds,
+            missing_grace_seconds=args.seed_readback_grace_seconds,
+        )
         if old_manifest:
             old_mode = old_manifest.get("seed_mode")
             if old_mode is not None and old_mode != args.seed_mode:

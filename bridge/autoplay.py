@@ -937,7 +937,14 @@ class AutoPlayer:
             self._seed_continue_required = True
             return
         identity = self._verified_current_identity(state)
-        self._seed_ledger.observe_current_run(identity)
+        if active is None:
+            # A previous batch was stopped while this run was already live.
+            # Adoption is safe only because _verified_current_identity proved
+            # the full identity and the ledger checks the seed is exactly the
+            # next unconsumed entry.
+            self._seed_ledger.adopt_current_run(identity)
+        else:
+            self._seed_ledger.observe_current_run(identity)
         self._seed_identity_checked = True
 
     def _validate_seeded_continue(self, saved: dict[str, Any]) -> None:
