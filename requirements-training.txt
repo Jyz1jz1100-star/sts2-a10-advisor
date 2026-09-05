@@ -1,0 +1,12 @@
+# Optional simulator/training layer (Python 3.11+).
+#
+# These are the direct dependencies declared by the adjacent upstream
+# slay-the-spire-2-emulator pyproject.toml and locked in its uv.lock.  Keep
+# them exact: the training wrappers and native observation contract are tied
+# to that emulator baseline.  sts2_gym itself is local source under the
+# adjacent emulator checkout and is intentionally not a PyPI dependency.
+gymnasium==1.2.3
+numpy==2.4.6
+sb3-contrib==2.8.0
+stable-baselines3==2.8.0
+torch==2.12.0

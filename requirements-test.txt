@@ -1,0 +1,6 @@
+# Full repository unittest discovery: runtime plus the optional training
+# stack.  unittest is part of the Python standard library, so no test runner
+# package is required.  Native-emulator integration tests skip when the
+# adjacent emulator checkout/DLL is unavailable.
+-r requirements.txt
+-r requirements-training.txt

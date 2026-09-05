@@ -17,13 +17,23 @@ stage is consequently experimental, opt-in, and tagged
 
 ## Inspect the plan
 
-Use the emulator environment because it already contains PyTorch,
-Stable-Baselines3, and sb3-contrib:
+The training stack is optional to the advisor runtime. Its direct dependencies
+are pinned in `requirements-training.txt` to the versions declared by the
+adjacent upstream emulator's `pyproject.toml` and locked in its `uv.lock`:
+Gymnasium 1.2.3, NumPy 2.4.6, PyTorch 2.12.0, Stable-Baselines3 2.8.0, and
+sb3-contrib 2.8.0. The recommended reproducible environment is the adjacent
+emulator checkout's `.venv`:
 
 ```powershell
 & ..\third_party\slay-the-spire-2-emulator-main\.venv\Scripts\python.exe `
   -m training.curriculum --config config\training.toml --dry-run
 ```
+
+To use another Python 3.11+ environment, install `requirements-training.txt`
+there and set `STS2_TRAINING_PYTHON` to its interpreter before invoking
+`scripts\test.ps1`. The `sts2_gym` package is local source from the adjacent
+checkout (and its native DLL is a separate artifact), so it is not installed
+from PyPI.
 
 The checked-in production-sized step counts are plans, not smoke-test defaults.
 Do not start them until simulator trace parity and the locked game build have
@@ -57,6 +67,27 @@ The runner stops at the first failed promotion gate. The experimental stage is
 not entered unless `--allow-experimental-full-run` is supplied. To run only a
 stage that loads an earlier policy, pass both `--only-stage full_run` and
 `--initial-checkpoint <act1-checkpoint.zip>`.
+
+## Test environments
+
+The base `requirements.txt` contains only the advisor runtime dependencies.
+`scripts\test.ps1` runs the pure-contract modules in the lightweight project
+Python, then runs the NumPy/PyTorch/Gymnasium modules through
+`STS2_TRAINING_PYTHON` (defaulting to the adjacent emulator `.venv`). It checks
+the five required training imports first, so a configured but incomplete
+environment fails with an actionable dependency error instead of a cascade of
+module import failures. If the default emulator environment is absent, the
+optional training half is reported as skipped.
+
+For full unittest discovery in one environment:
+
+```powershell
+python -m pip install -r requirements-test.txt
+python -m unittest discover -s tests
+```
+
+Tests that require the emulator checkout or native DLL skip when those
+artifacts are unavailable.
 
 ## Seed contract
 

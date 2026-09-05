@@ -27,3 +27,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# staged STS2MCP candidate builds (re-stagable via scripts/stage_sts2mcp.py)
+artifacts/**
+!artifacts/**/
+!artifacts/sts2mcp-seeded/candidate_manifest_provenance.json

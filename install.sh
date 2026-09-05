@@ -38,6 +38,10 @@ echo "Installing Python dependencies..."
 python3 -m pip install -r requirements.txt
 echo "Downloading StS2 card/relic dataset..."
 python3 data/fetch_data.py
+echo "[i] Runtime setup intentionally excludes the optional training stack."
+echo "    Use the adjacent emulator .venv or install requirements-training.txt into a separate Python."
+echo "    For one-environment full discovery: install requirements-test.txt, then run python -m unittest discover -s tests."
+echo "    The dual-environment test runner accepts STS2_TRAINING_PYTHON."
 
 # 5. Validate the CLI -------------------------------------------------------
 if command -v claude >/dev/null 2>&1; then

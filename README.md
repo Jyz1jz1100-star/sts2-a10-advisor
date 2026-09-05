@@ -1,31 +1,30 @@
 # STS2 A10 Local Advisor
 
-本项目目标是为《杀戮尖塔2》提供本地、只读、可解释的实时决策建议：战斗中给出逐张牌、目标、药水与结束回合顺序；局外给出卡牌、路线、事件、商店、遗物和火堆建议。玩家始终在游戏界面中手动操作。
+本项目当前目标是联合已有的局内 Combat Solver，构建《杀戮尖塔2》的局外自动决策器：地图路线、卡牌奖励、商店、火堆、事件与其他可见选择由桥接器执行，战斗由 Combat Solver 的 full-auto 执行。局外策略使用启发式规则和严格的 live candidate codec；每局只声明一种执行模式，`combat_solver_full_auto` 模式下由 Mod 负责战斗、桥接器只负责局外动作，禁止并发战斗执行者。事件/Neow 目前只有可见候选枚举与保守兜底，尚无经过验证的效用评分策略。
 
-最终研究验收目标是：锁定游戏版本、战士、A10、标准单人、新随机种子、禁止 SL，真实游戏至少 500 局的点估计胜率达到 50%，并报告 Wilson 95% 置信区间。当前尚未达到该目标；仓库不会把模拟器或单战斗成绩冒充真实整局成绩。
+最终研究验收目标仍是锁定游戏版本、战士、A10、标准单人和新随机种子，完成正式验收所需的至少 500 局真实游戏，并在 `assisted A10` 与 `no-SL A10` 两个 cohort 中分别报告结果及 Wilson 95% 置信区间。按现有协议，50% 目标默认评估 `assisted A10`，`no-SL A10` 始终并列展示；具体门槛以 [验收协议](docs/ACCEPTANCE.md) 为准。当前没有可部署的局外训练模型，也没有经过验收的实机整局结果；仓库不会把模拟器、单战斗或离线 fixture 成绩冒充真实整局成绩。
 
 ## 当前已可运行部分
 
-- GET-only 本地状态轮询：`python -m advisor_core.live`
-- 合法动作枚举：战斗出牌/目标/药水/结束回合及主要局外决策
-- 模板化中文解释：只展示模型已计算的事实、分差和置信度
-- 本地训练监督器：保存命令、版本、角色、难度、心跳、日志和退出码
-- 离线行为克隆骨架：共享可见状态编码、phase 分头动作打分、严格合法动作 mask
-- 统计验收工具：Wilson 区间
-- 复用的 overlay/autostart 骨架
-- 独立下载并已构建的 NativeAOT/Gymnasium 模拟器基线
+- GET-only 建议器：`python -m advisor_core.live`，战斗屏交给 Combat Solver
+- 局外自动驾驶：`bridge/autoplay.py`，在显式 `--allow-actions` 后执行局外 POST
+- live candidate codec：从已观察状态提取带稳定 identity 的合法候选和精确 wire action
+- Combat Solver 日志解析、路线执行和 full-auto keeper 的离线契约
+- trace/版本锁/执行 owner/种子分区/哈希链的验收账本
+- 离线行为克隆和 PPO 骨架，以及独立的 NativeAOT/Gymnasium 模拟器基线
 
-当前 `SmokeBaselinePolicy` 只用于验证状态链路，明确不是训练模型，输出不得计入胜率。
+当前 `LiveHeuristicPolicy` 是局外可运行基线，不是已经训练或部署的全局最优策略；`SmokeBaselinePolicy` 仅用于验证状态链路，输出不得计入胜率。
 
 ## 架构
 
 ```text
-游戏 -> STS2MCP 只读状态 -> 可见信息过滤/合法动作
-     -> 战术或战略策略价值网络 -> 信息集搜索
-     -> 结构化中文解释 -> 置顶浮窗 -> 玩家手动操作
+游戏 -> STS2MCP 状态
+     ├─ 局外屏 -> 可见信息过滤/候选 codec -> heuristic/live policy -> 局外 POST
+     └─ 战斗屏 -> Combat Solver full-auto -> 战斗日志
+两条路径共同写入 trace/验收账本，且每局只声明一种执行模式。
 ```
 
-不采用截图 OCR 作为主输入，也不让大语言模型临场决定动作。战斗与局外策略分层训练，解释器不能重新排序候选动作。
+不采用截图 OCR 作为主输入，也不让大语言模型临场决定动作。Combat Solver 与局外策略分层；候选 codec 只枚举合法动作，不负责策略选择，解释器不能重新排序候选动作。
 
 详见：
 
@@ -34,26 +33,50 @@
 - [A10 50% 验收协议](docs/ACCEPTANCE.md)
 - [阶段式训练操作说明](docs/TRAINING.md)
 - [本地决策 Trace 数据契约](docs/TRACE_DATA.md)
+- [局外候选与 wire action 契约](docs/LIVE_CANDIDATE_CODEC.md)
+- [Combat Solver 分层与运行审计](docs/COMBAT_SOLVER.md)
 - [当前真实状态](docs/STATUS.md)
 - [真机版本锁定、trace 录制与动作门禁](docs/LIVE_BRIDGE.md)
 - [上游与许可证](UPSTREAM.md)
 
 ## 本机环境
 
-工具链完全放在本项目的 `.tools/` 下，缓存和检查点放在 G 盘，不依赖已损坏的系统 Python：
+运行时工具链完全放在本项目的 `.tools/` 下，缓存和检查点放在 G 盘，不依赖已损坏的系统 Python：
 
 - uv 0.12.7
 - CPython 3.12.14
 - .NET SDK 9.0.317
-- PyTorch 2.12.0 + CUDA 13.0、Stable Baselines3、sb3-contrib
 
-本机 RTX 4070 12GB 已通过 `torch.cuda.is_available()` 和一次 12 环境 smoke 训练验证。
+训练/模拟器使用相邻的 `third_party/slay-the-spire-2-emulator-main/.venv`，其
+Gymnasium、NumPy、PyTorch、Stable-Baselines3 和 sb3-contrib 版本由
+`requirements-training.txt` 与上游 `uv.lock` 对齐。本机 RTX 4070 12GB 的
+训练 smoke 验证使用该训练环境完成；轻量运行时环境不要求这些包。
 
 ## 测试
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\test.ps1
 ```
+
+`scripts\test.ps1` 先在轻量运行时环境执行纯契约测试，再通过
+`STS2_TRAINING_PYTHON` 执行 NumPy/PyTorch/Gymnasium 测试；未设置时默认使用上面
+相邻模拟器的 `.venv\Scripts\python.exe`。如需指定其他训练环境：
+
+```powershell
+$env:STS2_TRAINING_PYTHON = 'D:\envs\sts2-training\Scripts\python.exe'
+powershell -ExecutionPolicy Bypass -File scripts\test.ps1
+```
+
+也可以在单一环境中复现完整发现：
+
+```powershell
+python -m pip install -r requirements-test.txt
+python -m unittest discover -s tests
+```
+
+`requirements.txt` 只安装实时运行时依赖；训练环境的 `sts2_gym` 是相邻模拟器
+checkout 的本地源码，不从 PyPI 伪装安装。模拟器或其原生 DLL 不可用时，相关
+集成测试会自动跳过。
 
 ## 实时只读联调
 
@@ -122,7 +145,19 @@ train/validation/test 之间的 seed 泄漏：
 - 完整局 `first-valid`：0/20，平均约 90.8 步。
 - 6,144 步 CUDA MaskablePPO smoke：约 839 FPS；3 个快速未见种子为 0/3。
 
-因此下一阶段不是盲目拉长 PPO，而是先安装状态桥、采集真实 trace、收敛模拟器一致性，再按战斗 -> 单 Act -> A0 -> A3/A6/A9 -> A10 的课程训练。
+因此下一阶段不是继续把模拟器 PPO 当作局外部署模型，而是先修正并接通 live 候选/奖励闭环，固定 Combat Solver 版本，完成少量可审计的实机整局，再比较路线/商店/火堆策略对整局结果的影响。
+
+## 当前实验结论（2026-09-05）
+
+2026-09-03 的 Act 1 模拟器 bulk 实验确实完成了 20,000,000 steps；最终评测为
+`1/500 = 0.2%`，平均最终楼层 `7.67`，checkpoint 未晋级（`promoted=false`）。
+该结果的 scope 是 `simulator_act1`，不能作为实机整局或 Combat Solver 联合系统的胜率。
+详见 [`experiment-final.json`](runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json)。
+
+离线候选、autoplay、版本锁和 full-run ledger 测试可以证明契约与拒绝非法状态；它们不能证明真实游戏从开局运行到胜利。当前仍缺少经过锁定版本、单一执行 owner、完整 provenance 和终局证据的实机整局样本。
+
+2026-09-05 的离线小运行时集合为 `337/337` 通过；`scripts/test.ps1` 另有
+训练环境单元测试 `99/99` 通过。这些是契约/模拟器测试，不是实机整局验收。
 
 ## License
 

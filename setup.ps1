@@ -55,6 +55,10 @@ Write-Host "`nInstalling Python dependencies..." -ForegroundColor Cyan
 python -m pip install --upgrade pip 2>$null | Out-Null
 python -m pip install -r (Join-Path $root "requirements.txt")
 Write-Host "[OK] Dependencies installed" -ForegroundColor Green
+Write-Host "[i] Runtime setup intentionally excludes the optional training stack." -ForegroundColor Yellow
+Write-Host "    For training/torch tests, use the adjacent emulator .venv or install requirements-training.txt into a separate Python." -ForegroundColor Yellow
+Write-Host "    For one-environment full discovery, install requirements-test.txt and run: python -m unittest discover -s tests" -ForegroundColor Yellow
+Write-Host "    The dual-environment test runner accepts STS2_TRAINING_PYTHON." -ForegroundColor Yellow
 
 # 4. Card/relic dataset ------------------------------------------------------
 Write-Host "`nDownloading StS2 card/relic dataset..." -ForegroundColor Cyan

@@ -1,6 +1,181 @@
 # Current status
 
-Date: 2026-09-01 (review-fix stack, session 3)
+Date: 2026-09-05 (layered Combat Solver + live out-of-combat acceptance)
+
+## Current acceptance snapshot
+
+The project direction is now a layered execution design with one declared
+execution mode per run. In `combat_solver_full_auto` mode, the mod owns combat
+and `bridge/autoplay.py` owns out-of-combat decisions; concurrent combat
+owners are forbidden. The live policy is still a heuristic baseline over the
+visible candidate codec; there is no deployable out-of-combat trained model.
+The codec and policy tests are offline fixture tests and do not prove a
+real-game full run. Event/Neow candidates are enumerable, but the current
+heuristic has no validated event utility model and autoplay retains a
+conservative fallback for those screens.
+
+The 2026-09-03 Act 1 simulator bulk experiment completed 20,000,000 steps. Its
+authoritative final metrics are `wins=1`, `episodes=500`, `win_rate=0.002`
+(`1/500 = 0.2%`), mean final floor `7.67`, and `promoted=false`. The metrics
+scope is `simulator_act1`; this number is not a real-game or Combat Solver
+joint-system result. See
+[`experiment-final.json`](../runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json).
+
+The offline full-run ledger and candidate contract are useful acceptance
+infrastructure, but no verified real-game end-to-end run has yet supplied all
+of: locked game/mod provenance, a fresh Ironclad/A10/standard identity, one
+execution owner, complete decision/result evidence, and an explicit terminal
+victory or loss. Therefore the 20-run pilot and 500-run formal gates remain
+unstarted/unaccepted. The local suite must not be reported as a live-game
+win-rate result.
+
+The current reproducible offline validation command is the repository test
+entrypoint:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\test.ps1
+```
+
+This command is read-only with respect to the game: it uses fixtures and fake
+controllers. It is a contract/integration check, not a live acceptance run.
+On 2026-09-05 this entrypoint passed **337/337** small-runtime tests plus
+**99/99** training-environment unit tests (**436/436** total); these are
+unit/simulator checks and did not start the game, send POST actions, or run a
+production training job.
+The dated sections below retain prior experiments and conclusions for history;
+their old test counts and manual-operation wording are historical, not current
+acceptance claims.
+
+## Comparison batch status corrected (2026-09-02)
+
+The earlier `phase1-50` attempt is **INVALID / ARCHIVED**: it stopped after
+17 battles, its observed `run.seed` values were all null, and the resulting
+rows are polluted observational data rather than fixed-seed evidence. That
+batch is no longer running and must not be resumed or reused as a valid
+comparison result.
+
+This review round completed the lifecycle/journal recovery, seed-claim
+fail-closed, automated smoke/invariant-audit, and documentation corrections.
+The review suite reports **299 tests passing**.
+
+The seed-read plumbing is now explicit: `BridgeClient` keeps the raw
+`singleplayer.run.seed` when present and otherwise reads
+`compendium.current_run.seed` from `current_run.save`, with provenance in the
+state. This is read-only and does not alter the installed bridge DLL. STS2MCP
+still rejects a requested seed on standard singleplayer character select, and
+the checked-in allocation is numeric; an alphanumeric save seed therefore
+remains observational until a compatible fixed-seed contract is reviewed.
+
+## Fully autonomous comparison loop implemented (no valid batch running)
+
+**Zero-human-operation automation is implemented, but no valid comparison
+batch is currently running.** New `bridge/autoplay.py`
+drives every out-of-combat screen over STS2MCP POST actions (authorized by
+the explicit `--allow-actions` flag; all POSTs traced): menu/start-run
+(continue-resume for auto-saved runs), Neow (prefers the card-removal
+option), card rewards, shop, campfire (rest < 75% HP), map pathing,
+treasure/relic/bundle two-step flows, rewards-loot (claims gold/potion/
+relic, skips cards), event first-option fallback, and fresh-run starts
+after deaths. The wire contract was extracted from the STS2MCP dispatch
+source and cross-checked against real recorded POSTs: internal
+`map_choose_node` → wire `choose_map_node`, `rewards_pick_card` →
+`select_card_reward` (card_index), `shop_buy` → `shop_purchase`,
+`rest_choose_option` → option list index, removal flows are two-step
+(`select_card` toggle then `confirm_selection`, state-driven via
+`can_confirm`).
+
+**Full-auto keeper** (`bridge/fullauto_keeper.py`): the mod's full-auto
+mode can drop to off (per-battle resets, divergence exits), and a battle may
+enter `control_mode=manual_plus_solver` without any
+`FULL_AUTO enabled=false` line. The keeper watches each
+`SEARCH_REQUEST ... turn=1` plus `UI_STATE state=ready`; if
+`FULL_AUTO_DEPLOY turn=1` does not arrive before the bounded timeout, it
+requests recovery. Explicit `FULL_AUTO enabled=false` is only an auxiliary
+trigger. Clicks convert client coordinates with `ClientToScreen`, use the
+persisted/runtime overlay position, fail closed when that position is
+unavailable, and require post-click log confirmation.
+
+**Card-reward rule liberalized after user review**: pick the best offered
+card whenever any non-basic, non-curse card appears (the old skip-by-
+default rule starved the deck); skip only when the reward is literally
+only basics/curses.
+
+The prior autonomous trial verified predictions exact on 6/7 early battles
+(the one miss, err 14, is an elite fight with mid-fight replans); deploy_log
+source was 100%. Those observations belong to the invalid archived attempt
+above and are not fixed-seed evidence.
+
+## Out-of-combat advisor v1 live (2026-09-02, session 6)
+
+**The advisor now actually advises out-of-combat.** `advisor_core/live.py`
+defaults to `--policy heuristic`: the new `LiveHeuristicPolicy`
+(`advisor_core/policy_live.py`, model id `heuristic-out-of-combat-v1`)
+covers **card reward / shop / rest site / map pathing** on live STS2MCP
+states with explicit A10 rules (deck thinning with skip-by-default,
+shop priority 删卡 > 遗物 > 高稀有卡 > 药水, rest < 75% HP else smith,
+path preference by HP band incl. elite avoidance when hurt), every
+recommendation carrying its facts in Chinese. Combat screens deliberately
+raise (the Combat Solver overlay owns in-combat). The historical statement
+that event/Neow had no exposed option text is superseded by the live candidate
+codec: visible options can now be enumerated, but no event/Neow utility policy
+has been validated yet. 12 fixture-driven tests
+(`tests.test_policy_live`); full suite **132/132** green.
+
+Architecture note: wiring the trained BC/PPO models into live play is NOT a
+drop-in — the V2 1739-int observation consumes the **emulator's native
+state array**, so live states would require a full state-parity adapter.
+The heuristic advisor is the honest first deliverable; a trained live
+replacement needs its own dataset + training effort on live-shaped
+features.
+
+The archived `runs/combat_solver_compare/phase1-50/` attempt stopped at 17
+battles after re-locking Combat Solver **0.27.0**. The harness has restart,
+bridge-retry, and read-only compendium seed enrichment, but no new phase1-50
+run is authorized until a compatible fixed `run.seed` is verifiable.
+
+## Combat Solver pivot (2026-09-02, session 4)
+
+In-combat candidate generation pivots to the external **Combat Solver**
+mod (workshop 3790899961; Torch123; RitsuLib 0.5.13+ required; targets the
+same locked v0.111.0 build). **Teacher v3 and combat PPO expansion are
+frozen, not deleted** — markers: `data/teacher/FREEZE-TEACHER-V3.txt`,
+`runs/curriculum_v2/FREEZE-PPO-EXPANSION.txt`; decision record:
+[docs/FREEZE_2026-09-02.md](FREEZE_2026-09-02.md). State recording, the
+version lock, win-rate statistics, out-of-combat decisions, and the 500-run
+acceptance protocol are unchanged and stay authoritative. Phased plan and
+the structured read-only interface contract live in
+[docs/COMBAT_SOLVER.md](COMBAT_SOLVER.md); Phase B is the 50–100 fixed-battle
+independent comparison (predicted vs actual HP loss, route deviation rate,
+solve time, memory, failure rate) gated before any adoption. A separate mod
+environment lock (`config/combat_solver.lock.json`) keeps the A10
+acceptance whitelist (`allowed_mod_ids: [STS2_MCP]`) intact.
+
+**Phase A live-calibrated; formal fixed-seed Phase B BLOCKED (2026-09-02,
+session 5-6).** The raw state endpoint is GET-only and may report
+`run.seed=null`; the harness now reads `compendium.current_run.seed` from the
+active save when available. This is observation, not seed injection, and the
+current numeric allocation cannot verify alphanumeric save seeds, so only an
+explicit `--automated --seed-mode observational` smoke is honest until a
+compatible fixed seed is exposed. The mods are installed and hash-locked (CombatSolver 0.25.3,
+RitsuLib 0.5.18, RegentFX tolerated as cosmetic `affects_gameplay=false`).
+The live log adapter (`combat_solver/logformat.py`, grammar **v1**) was
+calibrated against the real installed-mod session log and verified by
+full-session replay (108 snapshots, 47 typed failures, 0 empty routes; all
+48 route-replay packages re-bound to the correct turn). Per review, five
+regression gates are now pinned by
+`tests.test_combat_solver_compare.RegressionTests2026_09_02`: (1) same-turn
+route suffixes cannot overwrite the initial full route (first-wins anchor
+binding + arrival-order fallback), (2) `final_hp` flows into the battle HP
+error via `predicted.hp_end`, (3) battles with routes but a
+SEARCH_ERROR/TIMEOUT/CRASH still count as failed, (4) the deviation-rate
+denominator counts only battles with comparable turns, (5) short/deep
+latency and process working set are aggregated separately with their own
+optional gates. The automated invariant audit covers route binding, HP/error
+accounting, typed failures, coverage, latency, process working set, and
+journal/checkpoint consistency. Human spot-check is optional; no manual
+item-by-item audit or hand-play step is required. The archived 17-battle
+artifact remains invalid; formal Phase B waits for bridge support for a
+verifiable fixed `run.seed` — procedure in `docs/COMBAT_SOLVER.md`.
 
 ## Review-fix stack (2026-09-01, session 3)
 

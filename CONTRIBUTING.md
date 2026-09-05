@@ -10,6 +10,25 @@ python data/fetch_data.py            # download the card/relic dataset locally
 python -m bridge.model_client --selftest   # validate the Claude Code CLI
 ```
 
+`requirements.txt` is intentionally the small runtime layer. Training and
+NumPy/PyTorch/Gymnasium tests are optional: use the adjacent emulator checkout's
+`.venv`, or install `requirements-training.txt` into a separate Python 3.11+
+environment. Set `STS2_TRAINING_PYTHON` to that interpreter before running
+`scripts\test.ps1`; the script defaults to
+`..\third_party\slay-the-spire-2-emulator-main\.venv\Scripts\python.exe` and
+checks all five training imports before starting those tests. The `sts2_gym`
+package is local source from that checkout, not a PyPI dependency.
+
+For one-environment full discovery instead:
+
+```bash
+python -m pip install -r requirements-test.txt
+python -m unittest discover -s tests
+```
+
+The native-emulator integration tests skip when the adjacent checkout or its
+native DLL is unavailable.
+
 Run against the live game (StS2 + the [STS2MCP](https://github.com/Gennadiyev/STS2MCP)
 mod):
 
