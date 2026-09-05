@@ -47,9 +47,11 @@ GAME_WINDOW_TITLE = "Slay the Spire 2"
 # drags the overlay.  If no trustworthy position is available, the click
 # path refuses to run rather than guessing at a screen coordinate.
 CALIBRATED_OVERLAY_POSITION = (8.0, 261.5)
-# Vertical deltas (viewport px) tried on successive unconfirmed clicks: the
-# action row rises when the panel shows fewer route rows.
-CLICK_Y_OFFSET_STEPS = (0.0, -26.0, -52.0, 26.0)
+# Vertical deltas (viewport px) tried on successive unconfirmed clicks. The
+# toggle lives on the panel's bottom action row, and the panel height depends
+# on its content mode: compact (button ~y408) and detailed (button ~y302) were
+# both observed live at the same overlay position.
+CLICK_Y_OFFSET_STEPS = (0.0, -106.0, -26.0, -52.0, -132.0, -78.0, 26.0)
 
 # The mod's first search can take seconds on the VeryHigh preset.  The timer
 # starts only once the result is ready, so this is short enough to catch a
