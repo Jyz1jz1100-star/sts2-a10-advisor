@@ -1,6 +1,35 @@
 # Current status
 
-Date: 2026-09-05 (layered Combat Solver + live out-of-combat acceptance)
+Date: 2026-09-06 (first live seeded A10 run; lock drift reconciled; batch automation hardened)
+
+## Live session 2026-09-06: real-game fixed-seed A10 run in progress
+
+With Steam healthy (the 09-03 launcher blocker was cleared by the manual
+Steam update), the machine now runs its first end-to-end automated A10 run:
+
+- **Seed injection verified live.** `start` POST with pre-registered
+  allocation seed `1600000000` produced an active standard/Ironclad/A10 run
+  whose authoritative `compendium.current_run.seed` read back `1600000000`
+  exactly. The installed seeded candidate bridge (CD3EA740...) works; the
+  fixed-seed Phase B blocker is cleared for this installation.
+- **Lock drift reconciled (2026-09-06).** `live_version.lock.json` now records
+  the installed seeded DLL; `combat_solver.lock.json` records CombatSolver
+  0.29.1 (Workshop auto-update; grammar v1 replay-verified over the
+  2026-09-05/06 logs: 1960 events, 548 snapshots, 0 empty routes) and the
+  STS2MCP seeded hash. GET-only probe passes against the solver lock.
+- **Supervisor integration fixes found by first live use:** autoplay now
+  receives the solver lock (the comparison track loads 4 mods), the runner's
+  identity-read window is 120s (VeryHigh searches block the mod listener
+  longer than 15s), the runner tolerates the save-write seed window (60s
+  grace), and the ledger can adopt an orphan run whose verified seed is
+  exactly the next allocation entry.
+- **Keeper click path fixed and recalibrated for 0.29.1:** Unicode
+  marshalling + `[NullString]::Value` for FindWindowW (PS binds `$null` as
+  empty string), nested `W.U+RECT`/`W.U+POINT` refs, and a live-recalibrated
+  toggle position with a vertical offset walk for panel-height variance.
+- Batch supervisor `ssb-*` drives run starts (fixed allocation), out-of-combat
+  autoplay, full-auto keeper recovery, and the comparison runner. Monitoring
+  continues until the run reaches an explicit terminal victory.
 
 ## Current acceptance snapshot
 
