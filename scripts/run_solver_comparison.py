@@ -564,8 +564,11 @@ def _compendium_run_identity(compendium: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-RUN_IDENTITY_READ_TIMEOUT_SECONDS = 15.0
-RUN_IDENTITY_READ_RETRY_SECONDS = 0.5
+# A Combat Solver search (VeryHigh short budget: 20s) can block the mod's
+# HTTP listener past the old 15s window and kill the whole batch mid-battle.
+# The read itself stays fail-closed; only the patience grows.
+RUN_IDENTITY_READ_TIMEOUT_SECONDS = 120.0
+RUN_IDENTITY_READ_RETRY_SECONDS = 1.5
 
 
 def _compendium_identity_ready(compendium: Any) -> bool:
