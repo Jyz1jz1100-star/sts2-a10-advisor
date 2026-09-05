@@ -707,15 +707,17 @@ def _build_click_script(overlay_position: tuple[float, float]) -> str:
 Add-Type -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
 [DllImport("user32.dll")] public static extern void mouse_event(uint f, uint dx, uint dy, uint d, UIntPtr e);
-[DllImport("user32.dll")] public static extern IntPtr FindWindowW(string cls, string title);
+[DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowW(string cls, string title);
 [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr h, out RECT r);
 [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr h, ref POINT p);
 public struct RECT {{ public int Left; public int Top; public int Right; public int Bottom; }}
 public struct POINT {{ public int X; public int Y; }}
 '@ -Name U -Namespace W
-$h = [W.U]::FindWindowW($null, "{GAME_WINDOW_TITLE}")
+# PowerShell binds $null to an empty string, not a NULL pointer; an
+# empty class name makes FindWindowW return ERROR_INVALID_NAME forever.
+$h = [W.U]::FindWindowW([NullString]::Value, "{GAME_WINDOW_TITLE}")
 if ($h -eq [IntPtr]::Zero) {{ Write-Output "window-not-found"; exit 1 }}
-$r = New-Object W.RECT
+$r = New-Object "W.U+RECT"
 [W.U]::GetClientRect($h, [ref]$r) | Out-Null
 $w = $r.Right - $r.Left
 $hh = $r.Bottom - $r.Top
@@ -726,7 +728,7 @@ if ($localX -lt $r.Left -or $localX -gt $r.Right -or $localY -lt $r.Top -or $loc
     Write-Output "target-out-of-client"
     exit 1
 }}
-$point = New-Object W.POINT
+$point = New-Object "W.U+POINT"
 $point.X = $localX
 $point.Y = $localY
 if (![W.U]::ClientToScreen($h, [ref]$point)) {{ Write-Output "client-to-screen-failed"; exit 1 }}

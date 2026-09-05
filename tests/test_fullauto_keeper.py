@@ -218,6 +218,15 @@ class LogTailTests(unittest.TestCase):
 
 class ClickContractTests(unittest.TestCase):
     def test_click_script_converts_client_point_to_screen_point(self) -> None:
+        # FindWindowW is a wide-char API: without CharSet.Unicode .NET
+        # marshals the title as ANSI and the window is never found.
+        self.assertIn('FindWindowW(string cls, string title)', _CLICK_SCRIPT)
+        self.assertIn('CharSet = CharSet.Unicode', _CLICK_SCRIPT)
+        self.assertIn("[NullString]::Value", _CLICK_SCRIPT)
+        # structs declared inside -MemberDefinition compile as nested types
+        self.assertIn('New-Object "W.U+RECT"', _CLICK_SCRIPT)
+        self.assertIn('New-Object "W.U+POINT"', _CLICK_SCRIPT)
+        self.assertNotIn("FindWindowW($null", _CLICK_SCRIPT)
         self.assertIn("ClientToScreen", _CLICK_SCRIPT)
         self.assertIn("$point.X = $localX", _CLICK_SCRIPT)
         self.assertIn("$point.Y = $localY", _CLICK_SCRIPT)
