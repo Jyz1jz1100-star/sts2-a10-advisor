@@ -35,13 +35,21 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterator
 
-BUTTON_RATIO = (0.1977, 0.4720)
+# Recalibrated live against Combat Solver 0.29.1 at a 1026x768 client:
+# the full-auto toggle sits at (256, 408) when the panel is at (8, 261.5).
+# The toggle is on the panel's BOTTOM action row, so the row's height varies
+# with the route count; unsuccessful recoveries therefore walk a small
+# vertical offset list until the log confirms the toggle.
+BUTTON_RATIO = (0.2495, 0.5313)
 GAME_WINDOW_TITLE = "Slay the Spire 2"
 # The ratio was calibrated with the mod's default persisted panel position.
 # The settings/log position is applied as a delta at click time when the user
 # drags the overlay.  If no trustworthy position is available, the click
 # path refuses to run rather than guessing at a screen coordinate.
-CALIBRATED_OVERLAY_POSITION = (8.0, 171.0)
+CALIBRATED_OVERLAY_POSITION = (8.0, 261.5)
+# Vertical deltas (viewport px) tried on successive unconfirmed clicks: the
+# action row rises when the panel shows fewer route rows.
+CLICK_Y_OFFSET_STEPS = (0.0, -26.0, -52.0, 26.0)
 
 # The mod's first search can take seconds on the VeryHigh preset.  The timer
 # starts only once the result is ready, so this is short enough to catch a
@@ -215,6 +223,7 @@ class FullAutoKeeper:
         self._click_in_flight = False
         self._click_started_at: float | None = None
         self._click_confirmation_seen = False
+        self._click_offset_step = 0
         self._last_click_at: float | None = None
         self._next_retry_at: float = 0.0
         self._forced_recovery = False
@@ -778,6 +787,16 @@ def _click_via_power_shell(
     return out
 
 
+def _offset_overlay_position(
+    position: tuple[float, float], step: int
+) -> tuple[float, float]:
+    """Shift the overlay click target by the step-th vertical delta."""
+    dy = CLICK_Y_OFFSET_STEPS[step % len(CLICK_Y_OFFSET_STEPS)]
+    if dy == 0:
+        return position
+    return (position[0], position[1] + dy)
+
+
 def _attempt_click(
     keeper: FullAutoKeeper,
     reason: str | None,
@@ -795,7 +814,13 @@ def _attempt_click(
         if keeper.overlay_position is None:
             out = _click_via_power_shell()
         else:
-            out = _click_via_power_shell(keeper.overlay_position)
+            if keeper.click_confirmation_seen:
+                keeper._click_offset_step = 0
+            position = _offset_overlay_position(
+                keeper.overlay_position, keeper._click_offset_step
+            )
+            keeper._click_offset_step += 1
+            out = _click_via_power_shell(position)
         print(f"[keeper] {out}", flush=True)
     except RuntimeError as exc:
         keeper.click_failed()

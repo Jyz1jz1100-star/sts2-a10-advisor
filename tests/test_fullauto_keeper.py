@@ -237,8 +237,27 @@ class ClickContractTests(unittest.TestCase):
     def test_dragged_overlay_changes_local_target_by_position_delta(self) -> None:
         script = _build_click_script((20.0, 200.0))
         self.assertIn("+ (12.000000)", script)
-        self.assertIn("+ (29.000000)", script)
+        # dragged 200.0 vs calibrated 261.5 -> -61.5 vertical delta
+        self.assertIn("+ (-61.500000)", script)
         self.assertIn("overlay 20.0,200.0", script)
+
+    def test_offset_overlay_position_walks_and_wraps(self) -> None:
+        from bridge.fullauto_keeper import (
+            CALIBRATED_OVERLAY_POSITION,
+            _offset_overlay_position,
+        )
+
+        self.assertEqual(
+            _offset_overlay_position(CALIBRATED_OVERLAY_POSITION, 0),
+            CALIBRATED_OVERLAY_POSITION,
+        )
+        first = _offset_overlay_position(CALIBRATED_OVERLAY_POSITION, 1)
+        self.assertLess(first[1], CALIBRATED_OVERLAY_POSITION[1])
+        self.assertEqual(first[0], CALIBRATED_OVERLAY_POSITION[0])
+        # steps wrap around the list and return to the base position
+        steps = [round(_offset_overlay_position(CALIBRATED_OVERLAY_POSITION, s)[1], 3)
+                 for s in range(4)]
+        self.assertIn(CALIBRATED_OVERLAY_POSITION[1], steps)
 
     def test_missing_overlay_position_fails_closed_before_subprocess(self) -> None:
         with patch("bridge.fullauto_keeper.subprocess.run") as run:
