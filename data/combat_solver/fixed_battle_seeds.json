@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "allocation_kind": "run_seed",
+  "seed_mode": "fixed_verification_required",
+  "seed_injection": {
+    "installed_bridge_supported": false,
+    "candidate_bridge_supported": true,
+    "verification_field": "current_run.seed",
+    "note": "The candidate bridge can inject these seeds, but the currently installed bridge is not yet verified or lock-updated for injection. A fixed run is valid only when the candidate bridge is installed and the authoritative current_run.seed is read back and matches the requested canonical seed."
+  },
+  "partition": {
+    "name": "combat_solver_fixed_battles",
+    "start": 1600000000,
+    "count": 12
+  },
+  "allocation_note": "disjoint from V2 curriculum partitions (100M-130M+), teacher batch0/1 (1,400,000,000-1,401,000,000), reserved test corpus (>=1,410,000,000), dagger0 (1,500,100,000-1,500,102,000) and teacher-strength eval (1,550,000,000+)",
+  "battles_per_seed_estimate": 9,
+  "expected_battles": 108,
+  "seeds": [
+    1600000000,
+    1600000001,
+    1600000002,
+    1600000003,
+    1600000004,
+    1600000005,
+    1600000006,
+    1600000007,
+    1600000008,
+    1600000009,
+    1600000010,
+    1600000011
+  ],
+  "generated_at_utc": "2026-09-02T05:12:41+00:00",
+  "determinism_note": "seeds are the identity range of the partition, not a random draw; the generated_at_utc field is the only non-reproducible byte"
+}

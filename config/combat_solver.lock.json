@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "track": "combat_solver_comparison",
+  "note": "Mod inventory for the Combat Solver comparison track ONLY. The A10 acceptance track keeps config/live_version.lock.json with allowed_mod_ids [STS2_MCP]; results obtained under this inventory never count toward that protocol.",
+  "game": {
+    "app_id": "2868840",
+    "steam_build_id": "24724944",
+    "version": "v0.111.0",
+    "branch": "public-beta",
+    "main_assembly_hash": 222455745
+  },
+  "bridge": {
+    "name": "STS2MCP",
+    "version": "0.4.0",
+    "base_url": "http://127.0.0.1:15526"
+  },
+  "solver": {
+    "name": "CombatSolver",
+    "workshop_item_id": "3790899961",
+    "author": "Torch",
+    "installed_mod_version": "0.27.0",
+    "installed_mod_version_source": "workshop manifest CombatSolver.json",
+    "version_history": [
+      {
+        "version": "0.25.3",
+        "sha256": "A4CBD184FCB2D16AAF1C497E0B92419E4752AFB62B5797A0F41281F39DED4C84",
+        "note": "grammar v1 calibrated against this version's godot.log session (2026-09-02)"
+      },
+      {
+        "version": "0.26.0",
+        "sha256": "127A7957E2443A109F8262E0CACC68645B8CD145BCDBE02B75CA0E34E511712E",
+        "note": "Steam auto-update before the smoke batch; log grammar re-verified compatible (same [CombatSolver/Test] event names)"
+      },
+      {
+        "version": "0.27.0",
+        "sha256": "F71F1B4799DDCDB801E118F847426EC599D5DFF10FFECD0F9B00E7AB4827C217",
+        "note": "Steam auto-update at phase-1 launch (2026-09-02 16:51); grammar assumed compatible, phase-1 audit re-checks snapshot counts vs RESULT lines"
+      }
+    ],
+    "min_game_version": "0.111.0",
+    "license_note": "Source-visible upstream repo (github.com/Torch1230/CombatSolver) currently ships NO license; this integration only consumes the installed mod's own outputs and copies none of its code.",
+    "interface_finding_2026_09_02": "Upstream source review found NO machine-facing interface (no HTTP listener, pipe, socket or file watcher). Consumption paths are: game diagnostic logs ([CombatSolver/Test] blocks in {game user data}/logs/*.log), manually exported problem packages (Desktop CombatSolver-BugReports/*.zip, includes combat-solver/combat-state.json + current-route.txt + forensics), and the settings file user://combat_solver_settings.json (Godot user:// maps to %APPDATA%\\Godot\\app_userdata\\<game>\\ on Windows). Candidate routes are in-memory only and reach disk solely inside problem packages.",
+    "log_grammar": "v1 (calibrated 2026-09-02 against godot.log of CombatSolver 0.25.3): SEARCH_REQUEST generation=N turn=T opens a block; ACTION turn=K kind=PlayCard|UsePotion|EndTurn card_id=/potion_id= target_index=; RESULT ... reused= searched_turns= battle_hp_lost_so_far= projected_battle_hp_lost= total_elapsed_ms= expanded= total_worker_allocated_bytes= final_hp= combat_ended_turn=; TURN_OUTCOME turn=K hp_lost=; SEARCH_FAILURE generation=N exception=; SEARCH_STALE generation=N.",
+    "budget_tiers": "Low / Medium / High / VeryHigh / Custom (short+deep budgets: beam/nodes/time; memory = NoGcRegionBudgetGigabytes, default 16)",
+    "observed_settings_2026_09_02": {
+      "performancePreset": "VeryHigh",
+      "shortTimeLimitSeconds": 20,
+      "deepTimeLimitSeconds": 300,
+      "noGcRegionBudgetGigabytes": 16,
+      "searchMaxDegreeOfParallelism": 8,
+      "shortMaxExpandedNodes": 10000,
+      "deepMaxExpandedNodes": 50000,
+      "enableDetailedDiagnosticLogs": false
+    },
+    "game_user_data_dir": "%APPDATA%\\SlayTheSpire2",
+    "game_log_dir": "%APPDATA%\\SlayTheSpire2\\logs",
+    "settings_path": "%APPDATA%\\SlayTheSpire2\\combat_solver_settings.json",
+    "requires": {
+      "ritsulib": {
+        "name": "RitsuLib",
+        "workshop_item_id": "3747602295",
+        "min_version": "0.5.13",
+        "installed_version": "0.5.18"
+      }
+    }
+  },
+  "evaluation_environment": {
+    "allowed_mod_ids": ["STS2_MCP", "STS2-RitsuLib", "CombatSolver", "RegentFX"],
+    "live_mod_roots": [
+      "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods",
+      "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840"
+    ],
+    "mod_dll_inventory": [
+      {
+        "mod_id": "STS2_MCP",
+        "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
+        "sha256": "095EE091F6D20D17FC0FC09AF53B46DE092F95B29FB970FF0D8714D14CC5B124",
+        "required": true
+      },
+      {
+        "mod_id": "STS2-RitsuLib",
+        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747602295\\STS2-RitsuLib.dll",
+        "sha256": "189DC61B368CDDC88440C842A86A63001CB4D1D7277798831BCFBFC0CA940883",
+        "required": true
+      },
+      {
+        "mod_id": "CombatSolver",
+        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
+        "sha256": "F71F1B4799DDCDB801E118F847426EC599D5DFF10FFECD0F9B00E7AB4827C217",
+        "required": true
+      },
+      {
+        "mod_id": "RegentFX",
+        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747497501\\RegentFX.dll",
+        "sha256": "0F0262B3C4304C824C81D908CA7F3CEDABD00AF4C6B522A02513FF380C36EF06",
+        "required": false,
+        "affects_gameplay": false,
+        "note": "cosmetic card VFX mod, affects_gameplay=false in its manifest; tolerated in the comparison environment, still excluded from the A10 acceptance track"
+      }
+    ],
+    "contaminated_run_policy": "exclude_from_training_and_evaluation"
+  }
+}

@@ -1,0 +1,58 @@
+# Combat Solver comparison track configuration (docs/COMBAT_SOLVER.md, Phase B).
+# Battle/deviation/error rates use Wilson 95% bounds so a small sample cannot
+# pass by luck. Coverage rates use the lower bound; error rates use the upper
+# bound. HP-error limits are in absolute HP points.
+
+[reader]
+# "jsonl" consumes pre-normalized snapshot lines (offline/testing path);
+# "logtail" parses the game's own diagnostic logs for [CombatSolver/Test]
+# blocks (live path; grammar v0 — calibrate on first installed run);
+# "directory" hands manually exported problem packages to an adapter.
+mode = "jsonl"
+jsonl_path = "runtime/combat_solver/snapshots.jsonl"
+directory = "runtime/combat_solver/inbox"
+pattern = "*"
+
+[reader.logtail]
+# Verified 2026-09-02: the game's Godot user-data directory is
+# %APPDATA%\SlayTheSpire2 (custom user://, not the Godot default).
+game_log_dir = "%APPDATA%\\SlayTheSpire2\\logs"
+settings_path = "%APPDATA%\\SlayTheSpire2\\combat_solver_settings.json"
+# mod_version fills snapshot provenance; verify with the in-game mod list.
+# mod_version = "0.25.3"
+
+[poll]
+interval_seconds = 0.25
+
+[comparison]
+max_battles = 100          # user protocol: 50–100 fixed battles
+min_battles = 50           # below this the batch is not decidable
+battle_id_prefix = "csb"
+
+[gates]
+failure_rate_upper95 = 0.10
+route_deviation_rate_upper95 = 0.15
+mean_abs_hp_error = 3.0
+p90_abs_hp_error = 8.0
+# Coverage is a hard release gate.  Lower Wilson bounds keep small batches
+# from passing on a point estimate while silently dropping turns/battles.
+prediction_coverage_lower95 = 0.90
+comparable_battle_coverage_lower95 = 0.90
+route_availability_lower95 = 0.90
+# A partial NO_ROUTE must remain visible even when the battle had other routes.
+no_route_turn_rate_upper95 = 0.10
+# Fresh-search classes and process-level working set.  The legacy
+# p95_solve_ms/peak_memory_mb names remain accepted by compare.py for old
+# summaries/configs, but new batches bind these explicit metrics.
+p95_short_solve_ms = 10000.0
+p95_deep_solve_ms = 300000.0
+peak_process_working_set_mb = 12288.0
+
+[automated_gates]
+# These gates are merged only for --automated batches.  Manual/advisory
+# diagnostics may legitimately use inferred state-delta execution and are
+# therefore not blocked by deploy-log provenance requirements.
+automated_deploy_log_coverage_lower95 = 0.90
+automated_inferred_turns = 0.0
+automated_ambiguous_turns = 0.0
+automated_missing_execution_turns = 0.0
