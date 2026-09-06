@@ -223,6 +223,9 @@ class ClickContractTests(unittest.TestCase):
         self.assertIn('FindWindowW(string cls, string title)', _CLICK_SCRIPT)
         self.assertIn('CharSet = CharSet.Unicode', _CLICK_SCRIPT)
         self.assertIn("[NullString]::Value", _CLICK_SCRIPT)
+        # never click into a foreign window the human put over the game
+        self.assertIn("WindowFromPoint($probe)", _CLICK_SCRIPT)
+        self.assertIn("game-window-covered", _CLICK_SCRIPT)
         # structs declared inside -MemberDefinition compile as nested types
         self.assertIn('New-Object "W.U+RECT"', _CLICK_SCRIPT)
         self.assertIn('New-Object "W.U+POINT"', _CLICK_SCRIPT)

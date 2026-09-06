@@ -720,6 +720,8 @@ Add-Type -MemberDefinition @'
 [DllImport("user32.dll")] public static extern void mouse_event(uint f, uint dx, uint dy, uint d, UIntPtr e);
 [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowW(string cls, string title);
 [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr h, out RECT r);
+[DllImport("user32.dll")] public static extern IntPtr WindowFromPoint(POINT p);
+[DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr h, uint flags);
 [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr h, ref POINT p);
 public struct RECT {{ public int Left; public int Top; public int Right; public int Bottom; }}
 public struct POINT {{ public int X; public int Y; }}
@@ -745,6 +747,14 @@ $point.Y = $localY
 if (![W.U]::ClientToScreen($h, [ref]$point)) {{ Write-Output "client-to-screen-failed"; exit 1 }}
 $x = $point.X
 $y = $point.Y
+# A human may be using the machine with other windows over the game; a
+# physical click would land in THEIR window.  Only click when the game
+# window is still the topmost window at the target point.
+$probe = New-Object "W.U+POINT"
+$probe.X = $x
+$probe.Y = $y
+$hitRoot = [W.U]::GetAncestor([W.U]::WindowFromPoint($probe), 2)
+if ($hitRoot -ne $h) {{ Write-Output "game-window-covered"; exit 1 }}
 if (![W.U]::SetCursorPos($x, $y)) {{ Write-Output "cursor-position-failed"; exit 1 }}
 Start-Sleep -Milliseconds 120
 [W.U]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
@@ -786,6 +796,7 @@ def _click_via_power_shell(
         ("invalid-client-rect", "game client rect unavailable for full-auto click"),
         ("target-out-of-client", "full-auto target is outside the game client"),
         ("client-to-screen-failed", "could not convert full-auto target to screen coordinates"),
+        ("game-window-covered", "game window is covered by another window; refusing to click over it"),
         ("cursor-position-failed", "could not move cursor to full-auto target"),
     ):
         if marker in out:
