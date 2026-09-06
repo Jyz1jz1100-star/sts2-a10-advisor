@@ -15,7 +15,10 @@
   "bridge": {
     "name": "STS2MCP",
     "version": "0.4.0",
-    "base_url": "http://127.0.0.1:15526"
+    "base_url": "http://127.0.0.1:15526",
+    "health_path": "/",
+    "singleplayer_path": "/api/v1/singleplayer",
+    "compendium_path": "/api/v1/compendium"
   },
   "solver": {
     "name": "CombatSolver",
