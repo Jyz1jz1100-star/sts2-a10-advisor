@@ -940,11 +940,15 @@ class AutoPlayer:
             return
         identity = self._verified_current_identity(state)
         if active is None:
-            # A previous batch was stopped while this run was already live.
-            # Adoption is safe only because _verified_current_identity proved
-            # the full identity and the ledger checks the seed is exactly the
-            # next unconsumed entry.
-            self._seed_ledger.adopt_current_run(identity)
+            # A previous batch may have owned this run (already consumed) or
+            # have been stopped between its start POST and its own
+            # reconciliation (next entry).  observe_current_run validates the
+            # consumed case; only an unconsumed next-entry run falls through
+            # to adoption, and anything else fails closed.
+            try:
+                self._seed_ledger.observe_current_run(identity)
+            except SeedAllocationError:
+                self._seed_ledger.adopt_current_run(identity)
         else:
             self._seed_ledger.observe_current_run(identity)
         self._seed_identity_checked = True
