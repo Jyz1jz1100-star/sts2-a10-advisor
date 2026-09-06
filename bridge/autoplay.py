@@ -34,6 +34,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -663,19 +664,22 @@ class AutoPlayer:
             return {"action": "proceed"}
         return None
 
-    @staticmethod
-    def _card_select_choice(state: dict[str, Any]) -> dict[str, Any] | None:
-        """Out-of-combat card removal (Neow/event/shop): two-step UI.
+    def _card_select_choice(self, state: dict[str, Any]) -> dict[str, Any] | None:
+        """Out-of-combat card selection (Neow/event/shop/removal): toggling UI.
 
         ``select_card`` TOGGLES the highlight, then ``confirm_selection``
-        commits it — ``can_confirm`` in the state is the truth signal, which
-        makes the flow state-driven (no history needed). In-combat card
-        selections carry a ``battle`` key and belong to the Combat Solver.
+        commits it — ``can_confirm`` in the state is the truth signal.  Some
+        events require SEVERAL picks ("选择2张普通牌...") before ``can_confirm``
+        lights up, and the exposed state carries no per-card selected flag, so
+        the driver walks a deterministic pick sequence instead of re-toggling
+        the same card forever.  In-combat card selections carry a ``battle``
+        key and belong to the Combat Solver.
         """
         if state.get("battle") is not None:
             return None
         selection = state.get("card_select") or {}
         if selection.get("can_confirm"):
+            self._last_step = None
             return {"action": "confirm_selection"}
         cards = [
             c for c in selection.get("cards") or [] if isinstance(c, dict)
@@ -686,7 +690,29 @@ class AutoPlayer:
             (c for c in cards if str(c.get("id") or "").startswith("STRIKE")),
             cards[0],
         )
-        return {"action": "select_card", "index": int(pick.get("index", 0))}
+        chosen = int(pick.get("index", 0))
+        prompt = str(selection.get("prompt") or "")
+        count_match = re.search(r"(\d+)\s*张", prompt)
+        required = int(count_match.group(1)) if count_match else 1
+        if required <= 1:
+            return {"action": "select_card", "index": chosen}
+        step = (
+            self._last_step
+            if isinstance(self._last_step, tuple)
+            and self._last_step[0] == "card_select"
+            else None
+        )
+        if step is None:
+            self._last_step = ("card_select", chosen)
+            return {"action": "select_card", "index": chosen}
+        alt = next(
+            (c for c in cards if int(c.get("index", -1)) != step[1]),
+            None,
+        )
+        self._last_step = None
+        if alt is None:
+            return {"action": "select_card", "index": chosen}
+        return {"action": "select_card", "index": int(alt.get("index", 0))}
 
     def _treasure_step(self, state: dict[str, Any]) -> dict[str, Any]:
         treasure = state.get("treasure") or {}
