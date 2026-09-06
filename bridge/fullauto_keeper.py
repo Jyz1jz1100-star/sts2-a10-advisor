@@ -768,10 +768,16 @@ def _click_via_power_shell(
         script = _build_click_script(overlay_position)
     except ValueError as exc:
         raise RuntimeError(f"invalid overlay position: {exc}") from exc
+    # PowerShell writes the system ANSI codepage (cp936 on this box); the
+    # strict default decoder killed the keeper's reader thread on the first
+    # non-ASCII byte.  The markers we match are pure ASCII, so replacement
+    # decoding is safe.
     result = subprocess.run(
         ["powershell", "-NoProfile", "-Command", script],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=15,
     )
     out = (result.stdout or "").strip()
@@ -785,7 +791,8 @@ def _click_via_power_shell(
         if marker in out:
             raise RuntimeError(message)
     if "clicked" not in out:
-        raise RuntimeError(f"click failed: {out} {result.stderr[:200]}")
+        stderr = (result.stderr or "")[:200]
+        raise RuntimeError(f"click failed: {out} {stderr}")
     return out
 
 
@@ -827,6 +834,9 @@ def _attempt_click(
     except RuntimeError as exc:
         keeper.click_failed()
         print(f"[keeper] {exc}", flush=True)
+    except Exception as exc:  # a watchdog must never die on click cosmetics
+        keeper.click_failed()
+        print(f"[keeper] click failed unexpectedly: {exc!r}", flush=True)
 
 
 def main(argv: list[str] | None = None) -> int:
