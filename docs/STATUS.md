@@ -31,6 +31,24 @@ Steam update), the machine now runs its first end-to-end automated A10 run:
   autoplay, full-auto keeper recovery, and the comparison runner. Monitoring
   continues until the run reaches an explicit terminal victory.
 
+### Live run results (updated 2026-09-06 05:40 UTC+8)
+
+| run | seed | result |
+|-----|------|--------|
+| 1 | 1600000000 | death ~floor 8 (Act 1) |
+| 2 | 1600000001 | **Act 1 boss (WATERFALL_GIANT 250hp) killed after a 15-turn fight**; death early Act 2 at ~hp 41 |
+| 3 | 1600000002 | in progress (live seed readback verified) |
+
+Automation fixes found during these runs (all committed): keeper Unicode
+decode crash on cp936 PowerShell output, catch-all around keeper clicks,
+reconcile order for already-consumed runs, `--seed-ledger` reuse across
+batches, identical-action loop breaker, and a covered-window guard so the
+keeper never clicks into a human's foreground windows (the machine is shared
+with an active user; the game was observed fullscreen-behind a browser).
+Known mod-side gap: Combat Solver 0.29.1 routes occasionally end without an
+EndTurn action, stalling the battle until the toggle is re-armed; the keeper's
+offset walk covers the two panel layouts seen so far.
+
 ## Current acceptance snapshot
 
 The project direction is now a layered execution design with one declared
