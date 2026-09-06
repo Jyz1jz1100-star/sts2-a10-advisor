@@ -1167,7 +1167,10 @@ class AutoPlayer:
         # process must reconcile it against the actual current run rather than
         # retrying the same seed blindly.
         state, decision_id = self.controller.start_ironclad_a10(
-            seed=entry.raw_seed if entry is not None else None
+            seed=entry.raw_seed if entry is not None else None,
+            # A background-throttled game (30 fps when unfocused) transitions
+            # far slower than the 10s per-wait default.
+            timeout=30.0,
         )
         if entry is not None:
             identity = self._started_identity(state, entry)
