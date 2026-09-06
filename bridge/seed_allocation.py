@@ -465,6 +465,33 @@ class SeedLedger:
             raise SeedAllocationError("current run seed conflicts with consumed allocation record")
         return entry
 
+    def abort_active_reservation(self, reason: str) -> SeedEntry | None:
+        """Roll back an unresolved reservation whose run provably no longer exists.
+
+        The game can die (or be restarted) between the start POST and the save
+        reaching disk, leaving a reservation with no run to reconcile.  The
+        seed is returned to the unconsumed pool rather than skipped: the run
+        never played a decision, so re-consuming the same seed is honest.
+        """
+        if not str(reason or "").strip():
+            raise SeedAllocationError("abort reason must not be empty")
+        state = self._read()
+        active = state.get("active")
+        if active is None:
+            return None
+        entry = self._entry(int(active["index"]))
+        state["active"] = None
+        aborted = state.setdefault("aborted_reservations", [])
+        aborted.append(
+            {
+                **active,
+                "aborted_reason": str(reason),
+                "aborted_at_utc": _utc_now(),
+            }
+        )
+        _atomic_write_json(self.path, state)
+        return entry
+
     def adopt_current_run(self, identity: Mapping[str, Any]) -> SeedEntry:
         """Adopt an already-running run whose seed is exactly the next entry.
 

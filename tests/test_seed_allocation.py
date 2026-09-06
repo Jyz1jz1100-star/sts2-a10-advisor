@@ -115,6 +115,27 @@ class SeedLedgerTests(unittest.TestCase):
             with self.assertRaisesRegex(SeedAllocationError, "unresolved active"):
                 ledger.adopt_current_run(self._identity("1600000000", "run-a"))
 
+    def test_abort_active_reservation_rolls_back_for_reflight(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = SeedLedger(self._allocation(Path(temp)), batch_dir=Path(temp))
+            entry = ledger.reserve_next()
+            self.assertEqual(
+                ledger.abort_active_reservation("run lost before save"),
+                entry,
+            )
+            snapshot = ledger.snapshot()
+            self.assertIsNone(snapshot["active"])
+            self.assertEqual(snapshot["next_index"], 0)
+            # the same seed is reserved again (never played a decision)
+            self.assertEqual(ledger.reserve_next().raw_seed, "1600000000")
+
+    def test_abort_requires_reason_and_noop_without_reservation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = SeedLedger(self._allocation(Path(temp)), batch_dir=Path(temp))
+            with self.assertRaisesRegex(SeedAllocationError, "reason"):
+                ledger.abort_active_reservation("  ")
+            self.assertIsNone(ledger.abort_active_reservation("nothing active"))
+
     def test_ordered_consumption_stops_at_exhaustion(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

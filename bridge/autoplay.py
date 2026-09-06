@@ -955,9 +955,21 @@ class AutoPlayer:
             if active is None:
                 return
             assert self.controller is not None
-            saved = _require_saved_run_identity(
-                self.controller.get_compendium(record=True)
-            )
+            try:
+                saved = _require_saved_run_identity(
+                    self.controller.get_compendium(record=True)
+                )
+            except RunIdentityError as exc:
+                # The compendium proving there is NO active or saved run means
+                # the reserved run is gone (game restarted before the save
+                # reached disk).  Roll the reservation back so the same seed
+                # is reserved again; anything else stays a hard stop.
+                if "does not confirm" in str(exc):
+                    self._seed_ledger.abort_active_reservation(
+                        "compendium proves the reserved run is gone"
+                    )
+                    return
+                raise
             # The authoritative save is enough to reconcile the pre-POST
             # reservation.  Continue itself remains separately guarded below.
             self._seed_ledger.observe_current_run(saved)
