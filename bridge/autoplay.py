@@ -1074,15 +1074,31 @@ class AutoPlayer:
                             )
                         else:
                             options = set(state.get("options") or [])
+                            saved = None
                             if "continue" in options:
                                 # A saved run may belong to another character,
                                 # mode, or ascension.  Verify it before the
                                 # POST, then verify the first resulting live
                                 # state before permitting any actions.  Never
                                 # abandon or overwrite a user save here.
-                                saved = _require_saved_run_identity(
-                                    self.controller.get_compendium(record=True)
-                                )
+                                try:
+                                    saved = _require_saved_run_identity(
+                                        self.controller.get_compendium(record=True)
+                                    )
+                                except RunIdentityError as exc:
+                                    # Only a provably absent save makes the
+                                    # continue option stale: the mod's option
+                                    # list can still carry it (fresh install,
+                                    # discarded save) and the click would be
+                                    # unverifiable.  A REAL save with a bad
+                                    # identity must keep failing closed.
+                                    if (
+                                        self._seed_continue_required
+                                        or "does not confirm" not in str(exc)
+                                    ):
+                                        raise
+                                    options = options - {"continue"}
+                            if "continue" in options:
                                 self._validate_seeded_continue(saved)
                                 self.controller.send_action(
                                     {"action": "menu_select", "option": "continue"},
