@@ -38,8 +38,14 @@ turn 绑定 72 条（v1 只有 19 条且全落在 turn=1）。对照控制组：
 
 ## E. 证据通道语义（3 个 FAIL，最需要想清楚的部分）
 - `test_route_is_taken_from_the_trace_only_when_it_is_unambiguous`：False is not true
-- `test_route_health_is_counted_but_never_substituted`：`[4, 0] != [4]`
-  （`ROUTE_HEALTH` 只能计数，绝不能替代路线）
+- `test_route_health_is_counted_but_never_substituted`：`route_health` 计数已修
+  （按 trace 而非行）；剩下 `[4, 0] != [4]` 已定性：**解析器用 RESULT 自带的
+  `searched_turns=2` 组合逐回合对，凭空补出第 2 回合的 0 损失步骤**，而契约规定
+  玩家侧逐回合损失只能来自 `TURN_OUTCOME` 记录。fixture 里该窗口的
+  `TURN_OUTCOME` 出现在 RESULT 之后，所以 turn-1 快照本应只有 `[4]`。
+  修法：`_emit_snapshot` 只为**存在 `TURN_OUTCOME` 记录**的回合产出步骤，
+  不再由 `searched_turns` 反推回合序列。这是"不发明数据"原则的一处违例，
+  不是断言写错。
 - `test_diverged_replay_suppresses_the_answer`：抑制信息里必须带 `traceId`，
   现在只带在括号里而断言找的是短形 id —— 需要决定到底是消息格式还是测试口径
 
