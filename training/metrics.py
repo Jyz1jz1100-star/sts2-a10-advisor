@@ -10,7 +10,7 @@ from pathlib import Path
 from .seeds import seed_digest
 from .wilson import wilson_interval
 
-METRICS_SCHEMA_VERSION = 3
+METRICS_SCHEMA_VERSION = 4
 
 
 @dataclass(frozen=True)
@@ -78,6 +78,13 @@ class EvaluationMetrics:
     #: Mean HP fraction at episode end (None when HP was never exposed).
     mean_final_hp_fraction: float | None = None
     dead_end_reasons: dict[str, int] = field(default_factory=dict)
+    #: Terminal-floor counts. ``mean_final_floor`` and ``max_final_floor`` cannot
+    #: separate "almost every run dies at floor 8" from "half die at 6, half at
+    #: the boss", and which of those holds decides whether the Act 1 wall is
+    #: mid-run attrition or the final fight. An empty mapping means no episode
+    #: reported a floor at all -- metrics written before schema 4 simply lack the
+    #: key, so absence is never read as "zero runs reached that floor".
+    final_floor_histogram: dict[int, int] = field(default_factory=dict)
     #: Truncated episodes carrying neither a simulator dead-end label nor a
     #: curriculum boundary.  V2 promotion requires this to be zero: every
     #: abnormal ending must be attributable.
@@ -138,6 +145,7 @@ def summarize_episodes(
     floors = [
         episode.final_floor for episode in episodes if episode.final_floor is not None
     ]
+    final_floor_histogram = {floor: floors.count(floor) for floor in sorted(set(floors))}
     hp_fractions = [
         episode.final_hp_fraction
         for episode in episodes
@@ -199,6 +207,7 @@ def summarize_episodes(
             sum(hp_fractions) / len(hp_fractions) if hp_fractions else None
         ),
         dead_end_reasons=dict(sorted(dead_end_reasons.items())),
+        final_floor_histogram=final_floor_histogram,
         unclassified_dead_ends=unclassified_dead_ends,
         defect_truncation_rate=(truncations - boundary_truncations) / len(episodes),
         rejection_events=rejection_events,

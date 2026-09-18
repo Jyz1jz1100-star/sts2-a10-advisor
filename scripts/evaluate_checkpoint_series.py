@@ -35,7 +35,28 @@ sys.path.insert(0, str(ROOT.parent / "third_party" / "slay-the-spire-2-emulator-
 sys.path.insert(0, str(ROOT))
 
 INTERESTING = ("win_rate", "wins", "episodes", "mean_final_floor", "max_final_floor",
+               "final_floor_histogram",
                "illegal_actions", "unclassified_dead_ends", "defect_truncation_rate")
+
+
+def _depth_line(histogram: dict) -> str:
+    """Cumulative "reached at least floor f" counts for the deepest floors.
+
+    Splitting "how many runs get to the end of the act" from "how many win there"
+    is the only reason this comparator prints a distribution at all: a mean
+    terminal floor of 8 is equally consistent with everyone dying at 8 and with
+    half dying at 6 and half at the boss.
+    """
+
+    if not histogram:
+        return "no floor reported"
+    total = sum(histogram.values())
+    floors = sorted(int(floor) for floor in histogram)
+    parts = []
+    for floor in floors[-3:]:
+        reached = sum(count for key, count in histogram.items() if int(key) >= floor)
+        parts.append(f">={floor}:{reached}/{total}")
+    return " ".join(parts)
 
 
 def _sha256(path: Path) -> str:
@@ -130,7 +151,7 @@ def main() -> int:
               f"sha {claimed[:12]}… win_rate={row['win_rate']!s:>6} "
               f"({row['wins']}/{row['episodes']}) "
               f"illegal={row['illegal_actions']} unclassified={row['unclassified_dead_ends']} "
-              f"max_floor={row['max_final_floor']}")
+              f"max_floor={row['max_final_floor']} depth[{_depth_line(row['final_floor_histogram'])}]")
 
     payload = {
         "schema_version": 1,

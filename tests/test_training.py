@@ -69,6 +69,40 @@ class MetricsTests(unittest.TestCase):
             deterministic=True,
         )
 
+    def test_histogram_separates_shallow_mean_from_bimodal_depth(self) -> None:
+        # The reason the field exists: these two shapes share a mean and a max, so
+        # without the distribution nobody can say whether the Act 1 wall is mid-run
+        # attrition or the boss fight.
+        bimodal = [
+            EpisodeMetric(seed=40_000_000 + index, won=False, terminated=True,
+                          truncated=False, steps=20, episode_return=-1.0,
+                          illegal_actions=0, final_floor=floor)
+            for index, floor in enumerate([6, 6, 16, 16])
+        ]
+        metrics = summarize_episodes(
+            bimodal, stage="act1", split="promotion", scope="simulator_act1",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(metrics.mean_final_floor, 11.0)
+        self.assertEqual(metrics.max_final_floor, 16)
+        self.assertEqual(metrics.final_floor_histogram, {6: 2, 16: 2})
+
+    def test_episodes_without_a_floor_leave_the_histogram_absent_not_zero(self) -> None:
+        # An empty histogram means "no episode reported a floor", never "zero runs
+        # died on every floor"; the two must not be conflated downstream.
+        episodes = [
+            EpisodeMetric(seed=41_000_000, won=False, terminated=True, truncated=True,
+                          steps=99, episode_return=0.0, illegal_actions=0,
+                          final_floor=None)
+        ]
+        metrics = summarize_episodes(
+            episodes, stage="act1", split="promotion", scope="simulator_act1",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(metrics.final_floor_histogram, {})
+        self.assertIsNone(metrics.mean_final_floor)
+        self.assertIsNone(metrics.max_final_floor)
+
     def test_promotion_requires_all_gates(self) -> None:
         requirements = PromotionConfig(
             min_episodes=200,
@@ -86,7 +120,9 @@ class MetricsTests(unittest.TestCase):
 
     def test_metrics_include_seed_digest_and_wilson_interval(self) -> None:
         metrics = self._metrics(100, 200)
-        self.assertEqual(metrics.schema_version, 3)
+        # Deliberately a literal, not METRICS_SCHEMA_VERSION: bumping the schema
+        # has to be a decision someone makes here. 4 adds final_floor_histogram.
+        self.assertEqual(metrics.schema_version, 4)
 
     def test_boundary_wilson_and_hp_metrics(self) -> None:
         """Review item 4: boundary Wilson lower bound + final HP fraction."""
