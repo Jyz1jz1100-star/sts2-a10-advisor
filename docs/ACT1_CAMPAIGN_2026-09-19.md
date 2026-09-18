@@ -47,14 +47,24 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
    6/500（`win_rate = 0.012`，`wilson_95_low = 0.0055`），离 act1 门槛要求的
    35% 点估计 / 31% 下界还差约一个半数量级；100 局 checkpoint 分区上的 2/100
    只说明"这个种子段里赢过"。这批数字证明"能赢一次"，不证明"能赢"。
-2. **模拟器只有第一幕**：这次不是靠常量名推断，而是读到了终止条件——
-   `Sts2Emulator/Core/Run/RunEngine.cs` 的 `AdvanceAfterNode` 只在
-   `State.Floor >= RunConstants.MapBossRow + 1`（= 17）时把 `Phase` 置为
-   `Complete`，也就是**一局在 Act 1 的 boss 处就结束了**，引擎里不存在通往 Act 2
-   的推进路径；配套的还有单 boss 节点、遭遇枚举只有 `ActOneEncounter`、README 自称
-   "Seeded Act 1 selection"。因此
-   **Act 1-3（含最终幕两个 boss）在模拟器内不可达成**，本文任何数字都不能被当作
-   三幕通关的证据。三幕只能在真机上完成，走 `docs/ACCEPTANCE.md` 的验收链路。
+2. **"模拟器只有第一幕"这句我写错了，正确结论更强也更有意思：模拟器一局只跑一幕，
+   而它有两幕。** 实测（走 `training.v2_curriculum._environment_factory` 这条真实评估
+   路径，不是读常量名猜的）：`Sts2Emulator/Core/Run/RunMapGenerator.cs:10` 用
+   `actRng.NextBool()` 决定这一局生成在哪一幕，对该臂 `act1/promotion` 分区前 40 个
+   种子普查得到 **20 局 `act=1`(overgrowth) / 20 局 `act=2`(underdocks)**，且 act
+   严格由种子决定（重复构造逐个一致）。`RunConstants` 只定义
+   `ActOvergrowth = 1`、`ActUnderdocks = 2`——**没有第三幕**；
+   `AdvanceAfterNode` 在该幕 boss 处把 `Phase` 置为 `Complete`（Act 1 的
+   `terminalFloor = MapBossRow + 1 = 17`，Underdocks 是 `MapBossRow*2+1 = 33`），
+   除一个硬编码演示种子 `7MS1YN8NWB` 之外，不存在"打完一幕接下一幕"的串联。
+   所以对"Act 1-3 全流程"的准确说法是：**模拟器既没有第三幕，也不会把多幕串成一局**。
+   更要紧的口径后果：训练栈里没有任何一处读取或校验 act（只在
+   `training/v2_native_env.py:139` 把它塞进 info），因此本文所有
+   `scope: simulator_act1` 的记录，真实人群是**一半 Act 1、一半 Act 2 的"单幕通关率"**，
+   不是纯 Act 1 数字。这个 50/50 不是"连续整数种子的奇偶伪影"：对该臂
+   `act1/train` 分区起点按步长 100003 抽 40 个种子，得到 **22 局 Act 1 / 18 局 Act 2**，
+   且两种奇偶里都同时出现两幕——所以**训练分布本身也是混合的**，
+   整个 "act1 课程阶段" 实际是"随机单幕"课程。分幕之后的两个数字见"分幕拆解"一节。
    真机侧**已核实的最远距离是 Act 2 floor 30**（seed `1600000001`，`game_over` +
    `hp=0`，带可归属 trace 与 assessor 的 `terminal_zero_hp`，见
    `docs/LIVE_PROGRESS_2026-09-07.md`）。也就是说"能进第二幕"有终局证据，

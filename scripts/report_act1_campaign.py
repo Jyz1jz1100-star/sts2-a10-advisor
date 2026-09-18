@@ -6,13 +6,18 @@ that on faith: it re-opens each referenced checkpoint and re-hashes it, so a
 report can only claim a win when the metrics, the checkpoint bytes and the seed
 partition all still agree.
 
-Scope is reported exactly as the metrics declare it. The bundled emulator
-generates Act 1 only (``RunConstants.MapBossRow = 16``, one boss node, the
-``ActOneEncounter`` pool), so nothing produced here can be evidence for a
-three-act clear; a real Act 1-3 victory requires the game itself.
+Scope is reported exactly as the metrics declare it, and that label is wider than
+it looks: the emulator plays **one act per run** and chooses which act at
+``RunMapGenerator.cs:10`` (``actRng.NextBool()``) between ``ActOvergrowth`` (1) and
+``ActUnderdocks`` (2) -- census of an arm's own act1/promotion seeds through the
+evaluation env factory returns ~50% Act 2 runs -- and ``RunConstants`` defines no
+third act. So a ``simulator_act1`` win rate is a single-act rate over a mixed-act
+population (split it with scripts/split_win_rate_by_generated_act.py), and nothing
+produced here can evidence a three-act clear; that requires the game itself.
 
-    python scripts/report_act1_campaign.py [--root runtime/act1_overnight]
-                                           [--out runs/act1_campaign_20260919]
+    python scripts/report_act1_campaign.py --root runtime/act1_overnight \
+                                           --root runtime/fanout \
+                                           --out runs/act1_campaign_20260919
 """
 from __future__ import annotations
 
@@ -98,9 +103,10 @@ def main() -> int:
         "generated_by": "scripts/report_act1_campaign.py",
         "scanned_roots": [_rel(root) for root in roots if root.is_dir()],
         "missing_roots": missing,
-        "scope_note": ("simulator_act1 only: the bundled emulator generates Act 1 "
-                       "(RunConstants.MapBossRow = 16, single boss node). It cannot "
-                       "evidence an Act 1-3 clear."),
+        "scope_note": ("simulator_act1 label only: the emulator plays one act per run "
+                       "and picks Act 1 or Act 2 by seed (RunMapGenerator.cs:10), and "
+                       "defines no Act 3, so these win rates are single-act rates over "
+                       "a mixed-act population and cannot evidence an Act 1-3 clear."),
         "arms": {},
     }
     wins: list[dict[str, object]] = []

@@ -126,7 +126,8 @@ def main() -> int:
     seed_sha256 = hashlib.sha256(",".join(str(seed) for seed in seeds).encode()).hexdigest()
     print(f"{stage.name}/{args.split}: {len(seeds)} seeds {seeds[0]}…{seeds[-1]} "
           f"sha256 {seed_sha256[:16]}…")
-    print(f"scope: {stage.scope} (simulator only; the emulator has no Act 2 or 3)")
+    print(f"scope: {stage.scope} (one act per run; the emulator picks Act 1 or Act 2 "
+          f"by seed and defines no Act 3)")
 
     env_factory = _environment_factory(config, stage, sts2_gym)
     probe_env = DummyVecEnv([lambda: env_factory(seeds[0])])
@@ -161,9 +162,9 @@ def main() -> int:
         "split": args.split,
         "seeds": {"count": len(seeds), "start": seeds[0], "end": seeds[-1],
                   "seed_sha256": seed_sha256},
-        "scope_note": ("simulator_act1 only; the bundled emulator generates Act 1 "
-                       "(RunConstants.MapBossRow = 16, single boss node), so nothing "
-                       "here evidences an Act 1-3 clear."),
+        "scope_note": ("simulator_act1 label only; the emulator plays one act per run, "
+                       "picks Act 1 or Act 2 by seed (RunMapGenerator.cs:10) and defines "
+                       "no Act 3, so nothing here evidences an Act 1-3 clear."),
         "results": results,
     }
     if args.out is not None:
