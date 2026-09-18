@@ -20,6 +20,7 @@ $smallOnly = @(
     "tests.test_combat_solver_batch",
     "tests.test_combat_solver_compare",
     "tests.test_combat_solver_contract",
+    "tests.test_combat_solver_grammar_v2",
     "tests.test_combat_solver_states",
     "tests.test_convert_traces",
     "tests.test_compare_route_policies",
