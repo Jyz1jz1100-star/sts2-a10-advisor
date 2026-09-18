@@ -72,3 +72,6 @@ NO_ROUTE 判定来凑绿。
   `source="deploy_log"` 的语义必须仍是"生产者日志声称部署过"。
 - 字节区间必须指向真实读到的源文件偏移，标记计数与区间覆盖同一批字节。
 - 无法表达的数据要产出显式类型化失败，不许猜值。
+
+### 已测得（签名对比，非猜测）
+在 BATTLE_A fixture 上打印两侧 `route_signature`：前三个答案的 trace 与扫描结果**逐项相等**（`(1,play,FEEL_NO_PAIN,None), (1,play,BASH,0), (1,potion,SKILL_POTION,None), (2,end_turn,None,None)`），故这三个快照确实采纳了 trace；第四个答案在 fixture 中**没有 ROUTE_ACTION trace**，按契约只能退回扫描路线。因此失败不是解析器错，而是断言把“全部快照”都当成 trace 来源。待操作员或下一棒确认：应把断言收窄为“被采纳的快照其动作注记必须来自 evidence”，还是给 fixture 补上第四个答案的 ROUTE_ACTION 记录；两者都不涉及放宽相等条件。
