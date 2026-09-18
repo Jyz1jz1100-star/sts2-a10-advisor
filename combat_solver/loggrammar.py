@@ -353,14 +353,17 @@ def discover_v2_sources(log_dir: Path | str) -> tuple[V2Source, ...]:
                 continue
             stem = path.name[: -len(JOURNAL_FILE_SUFFIX)]
             claimed = stem[len(COMBAT_FILE_PREFIX) :]
+            if not _BATTLE_ID_RE.fullmatch(claimed):
+                # Not a battle journal: a name like combat-notes.jsonl must not
+                # become a source with an unclaimed identity, or an unrelated
+                # file could be parsed as if it were a combat.
+                continue
             sources.append(
                 V2Source(
                     path=path,
                     session_dir=session,
                     kind="combat",
-                    claimed_battle_id=claimed
-                    if _BATTLE_ID_RE.fullmatch(claimed)
-                    else None,
+                    claimed_battle_id=claimed,
                 )
             )
     return tuple(sources)
