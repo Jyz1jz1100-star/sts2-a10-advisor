@@ -414,7 +414,8 @@ def _emulator_provenance(config: V2TrainingConfig, project_root: Path) -> dict:
     }
 
 
-def plan(config: V2TrainingConfig, project_root: Path) -> dict:
+def plan(config: V2TrainingConfig, project_root: Path,
+         warm_start: dict | None = None) -> dict:
     return {
         "v2_config_version": config.version,
         "character": config.character,
@@ -422,6 +423,11 @@ def plan(config: V2TrainingConfig, project_root: Path) -> dict:
         "game_branch": config.game_branch,
         "save_load": config.save_load,
         "emulator": _emulator_provenance(config, project_root),
+        # The ladder's rungs are only a chain if the parent is written down: without
+        # this, a warm-started run records its own checkpoint hashes but nothing
+        # names the checkpoint it was continued from, so "stage N started from the
+        # promoted checkpoint of stage N-1" cannot be checked after the fact.
+        "warm_start": warm_start,
         "observation_contract": observation_contract(),
         "reward": dataclasses.asdict(config.reward),
         "stages": [
@@ -510,17 +516,24 @@ def main() -> None:
                         f"--resume-run plan.json disagrees with the current config "
                         f"on {key!r}; refusing to mix incompatible V2 plans"
                     )
-    else:
-        run_id = datetime.now(UTC).strftime("v2curriculum-%Y%m%dT%H%M%SZ")
-        run_root = _resolve(project_root, config.output_dir) / run_id
-        run_root.mkdir(parents=True, exist_ok=False)
-        atomic_write_json(run_root / "plan.json", plan(config, project_root))
-
     previous_checkpoint = (
         _resolve(project_root, args.initial_checkpoint)
         if args.initial_checkpoint is not None
         else None
     )
+    warm_start = None
+    if previous_checkpoint is not None:
+        warm_start = {
+            "initial_checkpoint": str(previous_checkpoint),
+            "initial_checkpoint_sha256": _sha256_file(previous_checkpoint),
+            "exists": previous_checkpoint.is_file(),
+        }
+    if not resume:
+        run_id = datetime.now(UTC).strftime("v2curriculum-%Y%m%dT%H%M%SZ")
+        run_root = _resolve(project_root, config.output_dir) / run_id
+        run_root.mkdir(parents=True, exist_ok=False)
+        atomic_write_json(run_root / "plan.json",
+                          plan(config, project_root, warm_start=warm_start))
     for stage in selected:
         stage_dir = run_root / stage.name
         stage_dir.mkdir(parents=True, exist_ok=resume)

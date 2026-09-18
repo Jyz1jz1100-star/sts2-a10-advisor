@@ -94,6 +94,17 @@ Act 1 终局胜利"），它们才是本文对"Act 1 能赢一次"的真正证�
    检查点 `--initial-checkpoint` 热启动，经 `scripts/run_curriculum_fanout.py`
    以互不重叠的种子分区并发跑（工具会拒绝落入 teacher 保留区
    `>= 1_410_000_000` 的种子，也拒绝分区重叠）。
+   **这句话按审计口径要说清哪些是证据、哪些只是叙述**：核对臂的运行目录后，
+   `plan.json` 只记录契约（stages / seed_partitions / observation_contract /
+   emulator 等），**不记录热启动父检查点**，臂目录里也没有任何 `resume-*.json`
+   或文件提到 `floor6`——也就是说这 20 个臂"从 promoted floor6 热启动"目前只能靠
+   启动脚本（`runtime/act1_overnight/launch_fanout_v2.ps1`，在 gitignore 的
+   runtime/ 下，临时且未入库）佐证，**不是产物级证明**；`runtime/fanout/*` 那批
+   （含本文三条 Act 1 胜利所在的 b_terminal-1）连启动脚本都没留下父检查点名。
+   已修并实跑验证：`training/v2_curriculum.py` 现在把 `warm_start`
+   （父检查点路径 + SHA-256 + 是否存在）写进每次新运行的 `plan.json`，
+   一次真实 smoke 运行验证了记录值与父文件独立复算的哈希一致
+   （`b8deab061798daeb…`）。**本文以上所有臂的血缘仍是历史声明，不回溯成立。**
    上面第 2 条的混幕问题**对阶梯各级的影响不一样**，这点也核对过：
    `training/v2_run_wrapper.py` 的边界语义只看"下一状态的 floor 是否越过此前最高的
    边界节点"，`max_floor` 是纯层号边界（且明确"是课程边界、不是胜利条件"），
