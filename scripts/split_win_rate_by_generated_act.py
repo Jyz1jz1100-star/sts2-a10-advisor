@@ -61,6 +61,8 @@ def main() -> int:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=None,
                         help="cap the partition prefix; default is the whole split")
+    parser.add_argument("--act", type=int, choices=(1, 2), default=None,
+                        help="evaluate only the seeds that generate this act")
     parser.add_argument("--census-only", action="store_true",
                         help="just report which seed generates which act")
     parser.add_argument("--out", type=Path, default=None)
@@ -116,6 +118,8 @@ def main() -> int:
 
     rows: list[dict[str, object]] = []
     for act, name in sorted(ACT_NAMES.items()):
+        if args.act is not None and act != args.act:
+            continue
         subset = [seed for seed in seeds if acts[seed] == act]
         if not subset:
             continue
@@ -135,7 +139,7 @@ def main() -> int:
                "checkpoint_sha256": checkpoint_sha}
         row.update({key: metrics.get(key) for key in
                     ("win_rate", "wins", "episodes", "mean_final_floor", "max_final_floor",
-                     "truncation_rate", "defect_truncation_rate",
+                     "truncation_rate", "defect_truncation_rate", "winning_seeds", "by_act",
                      "illegal_actions", "unclassified_dead_ends")})
         rows.append(row)
         print(f"  act {act} ({name:10}) {row['wins']}/{row['seeds']} win_rate={row['win_rate']} "

@@ -10,7 +10,7 @@ from pathlib import Path
 from .seeds import seed_digest
 from .wilson import wilson_interval
 
-METRICS_SCHEMA_VERSION = 5
+METRICS_SCHEMA_VERSION = 6
 
 
 @dataclass(frozen=True)
@@ -105,6 +105,10 @@ class EvaluationMetrics:
     #: acts because the generator picks the act per seed, so this is the only field
     #: that lets a win rate be attributed to one act instead of the mix.
     by_act: dict[str, dict[str, float | int | None]] = field(default_factory=dict)
+    #: Seeds that produced a terminal win. A rate over thousands of episodes cannot
+    #: be re-checked episode by episode; this list can, and "reproduce one reviewable
+    #: win" is the thing the acceptance chain actually asks for.
+    winning_seeds: list[int] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -190,8 +194,10 @@ def summarize_episodes(
             "mean_final_floor": (sum(bucket_floors) / len(bucket_floors)
                                  if bucket_floors else None),
             "max_final_floor": max(bucket_floors) if bucket_floors else None,
+            "winning_seeds": [episode.seed for episode in bucket if episode.won],
         }
     seeds = [episode.seed for episode in episodes]
+    winning_seeds = [episode.seed for episode in episodes if episode.won]
     checkpoint_path = Path(checkpoint)
     checkpoint_sha256 = None
     if checkpoint_path.is_file():
@@ -238,6 +244,7 @@ def summarize_episodes(
         rejection_events=rejection_events,
         by_encounter=by_encounter,
         by_act=by_act,
+        winning_seeds=winning_seeds,
     )
 
 

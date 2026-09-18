@@ -123,6 +123,10 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(metrics.by_act["1"]["max_final_floor"], 17)
         self.assertEqual(metrics.by_act["2"]["win_rate"], 0.0)
         self.assertEqual(metrics.by_act["2"]["mean_final_floor"], 10.0)
+        # the aggregate cannot name a win; these lists can
+        self.assertEqual(metrics.winning_seeds, [episodes[0].seed])
+        self.assertEqual(metrics.by_act["1"]["winning_seeds"], [episodes[0].seed])
+        self.assertEqual(metrics.by_act["2"]["winning_seeds"], [])
         self.assertEqual(metrics.win_rate, 0.25)  # the mixed number says nothing of this
 
     def test_by_act_is_absent_rather_than_zero_when_act_is_unknown(self) -> None:
@@ -156,8 +160,9 @@ class MetricsTests(unittest.TestCase):
         metrics = self._metrics(100, 200)
         # Deliberately a literal, not METRICS_SCHEMA_VERSION: bumping the schema
         # has to be a decision someone makes here. 4 adds final_floor_histogram,
-        # 5 adds by_act (an act1 stage spans both emulator acts per seed).
-        self.assertEqual(metrics.schema_version, 5)
+        # 5 adds by_act (an act1 stage spans both emulator acts per seed), 6 adds
+        # winning_seeds so a single reviewable win can be named and re-run.
+        self.assertEqual(metrics.schema_version, 6)
 
     def test_boundary_wilson_and_hp_metrics(self) -> None:
         """Review item 4: boundary Wilson lower bound + final HP fraction."""
