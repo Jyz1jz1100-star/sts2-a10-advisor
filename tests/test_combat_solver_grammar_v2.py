@@ -187,9 +187,9 @@ class GrammarSniffingTests(unittest.TestCase):
                 sorted(
                     snapshot.provenance.source_file or "godot.log" for snapshot in snapshots
                 ),
-                ["godot.log", "godot.log"]
-                + sorted(
-                    [
+                sorted(
+                    ["godot.log", "godot.log"]
+                    + [
                         combat_name(BATTLE_A),
                         combat_name(BATTLE_A),
                         combat_name(BATTLE_A),
