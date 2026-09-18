@@ -84,6 +84,13 @@ subproc    12    24000      44.5     539.9     21.39      1.11
 （`docs/STATUS.md` 记录过 keeper 不得抢前台的约束）；批量并发前要留出交互余量，
 不要把 20 个线程全占满。
 
+落地入口是 `scripts/run_curriculum_fanout.py`：它按模板复制出 N 份配置（只移动
+各阶段 `train` 分区的种子起点并保留阶段间原有偏移，评估分区保持共享以便横向比较），
+在启动前用 `training.teacher_v3.assert_seeds_outside_frozen_lineages` 拒绝任何落入
+冻结 R2 谱系或 `>= 1_410_000_000` 保留 holdout 的种子，再并发拉起并汇总退出码。
+自检：`--seed-base 1700000000` 被拒（保留区），`--seed-base 1200000000 --jobs 2
+--steps 2048` 两个 job 均 exit 0（29 s 墙钟）。
+
 ## 5. 顺带澄清的一个正确性问题
 
 `DummyVecEnv` 让 12 个 env 实例共享同一进程里的 native C# 引擎状态，这正是
