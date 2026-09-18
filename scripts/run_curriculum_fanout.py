@@ -120,22 +120,26 @@ def main() -> int:
                              "start:count, refused if they would overlap")
     parser.add_argument("--allow-reserved-test-corpus", action="store_true",
                         help="permit seeds at or above the reserved teacher holdout start")
-    parser.add_argument("--extra-arg", action="append", default=[],
-                        help="repeat; extra CLI args passed to every job, e.g. "
-                             "--extra-arg --initial-checkpoint --extra-arg <zip> "
-                             "(warm-starting a ladder stage is a per-run flag, not a "
-                             "config key)")
+    parser.add_argument("job_args", nargs=argparse.REMAINDER,
+                        help="everything after `--` is forwarded verbatim to each job, "
+                             "e.g. `-- --initial-checkpoint <zip>`. Flags cannot be "
+                             "passed with --extra-arg because argparse rejects a value "
+                             "that starts with a dash.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     if args.jobs < 1 or args.stride < 1:
         raise SystemExit("--jobs and --stride must both be >= 1")
+    job_args = [token for token in args.job_args if token != "--"]
     template = args.config.read_text(encoding="utf-8")
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     bases = []
     for index in range(args.jobs):
-        run_dir = f"runtime/fanout/{args.config.stem}-{index}"
+        # run_dir must land under --out-dir; hardcoding runtime/fanout made six
+        # live arms invisible to anyone looking where they had been told the
+        # campaign would write.
+        run_dir = args.out_dir.resolve().relative_to(ROOT).as_posix() + f"/{args.config.stem}-{index}"
         path = args.out_dir / f"{args.config.stem}-{index}.toml"
         path.write_text(
             _rewrite(template, args.stage, args.seed_base + index * args.stride,
@@ -181,8 +185,13 @@ def main() -> int:
         log = path.with_suffix(".log")
         handle = log.open("w", encoding="utf-8")
         procs.append((path.name, subprocess.Popen(
-            [args.python, "-m", args.module, "--config", str(path), *args.extra_arg],
-            stdout=handle, stderr=subprocess.STDOUT, cwd=str(ROOT), text=True), log, handle))
+            [args.python, "-m", args.module, "--config", str(path), *job_args],
+            stdout=handle, stderr=subprocess.STDOUT, cwd=str(ROOT), text=True,
+            # Children otherwise inherit the console code page and emit UTF-16 or
+            # cp936 bytes into these logs, which makes a failed job unreadable
+            # exactly when it matters.
+            env={**__import__("os").environ, "PYTHONIOENCODING": "utf-8",
+                 "PYTHONUNBUFFERED": "1"}), log, handle))
     failures = []
     for name, proc, log, handle in procs:
         code = proc.wait()
