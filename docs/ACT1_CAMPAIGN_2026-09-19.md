@@ -40,10 +40,27 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 
 ## 复现状态
 
-- 检查点哈希：已复算一致（两例）。
-- 独立重跑评估：`scripts/reevaluate_checkpoint.py` 对 `b_terminal-0` 的 500 局
-  promotion 分区重跑中；结论以脚本输出的 `VERDICT: reproduced / NOT reproduced`
-  为准，**未复现则本节的胜利不成立**，届时须回退为"记录存在但未复现"。
+**已复现。** `scripts/reevaluate_checkpoint.py` 独立重跑了 `b_terminal-0` 的
+500 局 promotion 评估，逐项一致：
+
+```
+checkpoint hash OK (1E18AAE64C2EA673…)
+seed partition  500 seeds 130010000…130010499
+seed hash       OK
+win_rate                 recorded=  0.004  reevaluated=  0.004  OK
+illegal_actions          recorded=      0  reevaluated=      0  OK
+unclassified_dead_ends   recorded=      0  reevaluated=      0  OK
+max_final_floor          recorded=     17  reevaluated=     17  OK
+VERDICT: reproduced        (exit code 0)
+```
+
+复核的是同一条代码路径：脚本加载记录的 `final.zip`、按记录的分区重建种子并先校验
+`seed_sha256` 与 `checkpoint_sha256`，再调用与训练器相同的
+`training.evaluation.evaluate_policy`。它不是"又跑了一次自己的实现"，因此
+`win_rate` 相等才有意义。
+
+结论限定在：**存在一次可复核、可复现的 V2 Act 1 终局胜利（2/500）**。
+它不等于策略能稳定赢，更不等于三幕通关（见范围声明）。
 
 ## 仍在进行
 
