@@ -143,6 +143,17 @@ full-run win; battle or simulator wins cannot enter that count. Both the
 20-run pilot and 500-run formal gates use the Wilson interval and fail closed
 on missing identity, provenance, terminal evidence, or execution ownership.
 
+What "explicit terminal victory" can mean on the live side is narrower than the
+sentence suggests, and a candidate run must be read with that in mind. STS2MCP
+exposes no win/loss flag; the bridge sees `state_type == "game_over"` plus a free
+text `game_over.message`, and `run.act` / `run.floor`. `bridge/outcome.py`
+therefore treats the producer's own word as the only basis for a victory claim
+and reports `undetermined` otherwise -- surviving the screen is not a win,
+because abandoning a mid-Act run also ends with positive HP. Corroboration for an
+Act 1-3 clear has to come from the run's own trace: the terminal Act number, and
+decision/result records for both final-act bosses. A live clear that cannot show
+those is reported, not accepted.
+
 The ledger does not start either batch. A connected run must write session
 provenance (lock-verified game/mod inventory, model/checkpoint/data hashes),
 machine-verify each fresh Ironclad/A10/standard run, and declare exactly one
