@@ -101,10 +101,13 @@ Act 1 终局胜利"），它们才是本文对"Act 1 能赢一次"的真正证�
    启动脚本（`runtime/act1_overnight/launch_fanout_v2.ps1`，在 gitignore 的
    runtime/ 下，临时且未入库）佐证，**不是产物级证明**；`runtime/fanout/*` 那批
    （含本文三条 Act 1 胜利所在的 b_terminal-1）连启动脚本都没留下父检查点名。
-   已修并实跑验证：`training/v2_curriculum.py` 现在把 `warm_start`
-   （父检查点路径 + SHA-256 + 是否存在）写进每次新运行的 `plan.json`，
-   一次真实 smoke 运行验证了记录值与父文件独立复算的哈希一致
-   （`b8deab061798daeb…`）。**本文以上所有臂的血缘仍是历史声明，不回溯成立。**
+   已修并实跑验证（两处，因为我第一次只修了一半）：`training/v2_curriculum.py`
+   现在把 `warm_start`（父检查点路径 + SHA-256 + 是否存在）写进每次新运行的
+   `plan.json`；而**阶梯真正的每一级**——stage→stage 的接续——原先依然无处可查，
+   所以每个 stage 目录另写 `origin.json`（该级初始化自哪个检查点、其 SHA-256、
+   由哪一级产出、是否来自命令行热启动）。用真实两级 smoke 跑验证过链路：
+   `floor3 ← CLI 父检查点（哈希一致）`、`floor6 ← floor3 的 final.zip（哈希一致，
+   from_stage=floor3, cli_warm=false）`。**本文以上所有臂的血缘仍是历史声明，不回溯成立。**
    上面第 2 条的混幕问题**对阶梯各级的影响不一样**，这点也核对过：
    `training/v2_run_wrapper.py` 的边界语义只看"下一状态的 floor 是否越过此前最高的
    边界节点"，`max_floor` 是纯层号边界（且明确"是课程边界、不是胜利条件"），

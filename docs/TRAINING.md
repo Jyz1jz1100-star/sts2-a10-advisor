@@ -122,6 +122,17 @@ runs/curriculum/curriculum-<UTC>/
   full_run/...
 ```
 
+Warm-start lineage is recorded, not remembered. `plan.json` carries a `warm_start`
+block (`initial_checkpoint`, `initial_checkpoint_sha256`, `exists`) for the
+`--initial-checkpoint` a run was launched with, and each stage directory carries an
+`origin.json` naming the checkpoint *that rung* was initialized from, its SHA-256,
+which stage produced it, and whether it came from the command line rather than the
+previous rung. Without these, "the ladder continued from the promoted checkpoint of
+the stage before it" is a sentence about how the run was launched and cannot be
+checked afterwards — which is exactly what happened to the 2026-09-19 fan-out
+campaign, whose 20 arms have no recorded parent (see
+`docs/ACT1_CAMPAIGN_2026-09-19.md`, scope item 3).
+
 Metrics are schema-versioned and contain checkpoint and seed hashes, scope,
 experimental flag, win rate, Wilson interval, truncation and illegal-action
 counts, mean return/length/floor, and encounter breakdowns. A checkpoint can be

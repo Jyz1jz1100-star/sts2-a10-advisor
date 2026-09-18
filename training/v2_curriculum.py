@@ -534,6 +534,7 @@ def main() -> None:
         run_root.mkdir(parents=True, exist_ok=False)
         atomic_write_json(run_root / "plan.json",
                           plan(config, project_root, warm_start=warm_start))
+    previous_stage: str | None = None
     for stage in selected:
         stage_dir = run_root / stage.name
         stage_dir.mkdir(parents=True, exist_ok=resume)
@@ -553,9 +554,19 @@ def main() -> None:
                         "resumed_at": datetime.now(UTC).isoformat(),
                     },
                 )
+        origin = stage_dir / "origin.json"
+        if previous_checkpoint is not None and not origin.is_file():
+            atomic_write_json(origin, {
+                "stage": stage.name,
+                "initialized_from": str(previous_checkpoint),
+                "initialized_from_sha256": _sha256_file(previous_checkpoint),
+                "initialized_from_stage": previous_stage,
+                "from_command_line_warm_start": previous_stage is None,
+            })
         promoted, previous_checkpoint = _train_stage(
             config, stage, stage_dir, previous_checkpoint, sts2_gym, resume=resume
         )
+        previous_stage = stage.name
         if not promoted:
             raise SystemExit(
                 f"V2 stage {stage.name} did not meet its promotion gate; see "
