@@ -106,6 +106,7 @@ def evaluate_policy(
                     truncated = True
                     step_capped = True
             final_floor = info.get("floor")
+            act = reset_info.get("act")
             encounter = reset_info.get("encounter")
             won = bool(terminated and info.get("player_won", False))
             # End-of-episode HP fraction for the joint ablation metric
@@ -144,6 +145,7 @@ def evaluate_policy(
                     episode_return=total_reward,
                     illegal_actions=illegal_actions,
                     final_floor=(int(final_floor) if final_floor is not None else None),
+                    act=(int(act) if act is not None else None),
                     encounter=(str(encounter) if encounter is not None else None),
                     boundary_reached=boundary,
                     dead_end_reason=(str(dead_end) if dead_end is not None else None),

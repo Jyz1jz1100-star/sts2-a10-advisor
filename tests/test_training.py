@@ -103,6 +103,40 @@ class MetricsTests(unittest.TestCase):
         self.assertIsNone(metrics.mean_final_floor)
         self.assertIsNone(metrics.max_final_floor)
 
+    def test_by_act_splits_the_mixed_act_population(self) -> None:
+        # An act1-stage evaluation spans both emulator acts (the generator picks the
+        # act per seed), so the aggregate alone cannot say which act a win happened
+        # in. by_act is what makes the claim attributable.
+        episodes = [
+            EpisodeMetric(seed=42_000_000 + index, won=index == 0, terminated=True,
+                          truncated=False, steps=20,
+                          episode_return=1.0 if index == 0 else -1.0,
+                          illegal_actions=0, final_floor=floor, act=act)
+            for index, (act, floor) in enumerate([(1, 17), (1, 6), (2, 9), (2, 11)])
+        ]
+        metrics = summarize_episodes(
+            episodes, stage="act1", split="promotion", scope="simulator_act1",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(metrics.by_act["1"]["episodes"], 2)
+        self.assertEqual(metrics.by_act["1"]["wins"], 1)
+        self.assertEqual(metrics.by_act["1"]["max_final_floor"], 17)
+        self.assertEqual(metrics.by_act["2"]["win_rate"], 0.0)
+        self.assertEqual(metrics.by_act["2"]["mean_final_floor"], 10.0)
+        self.assertEqual(metrics.win_rate, 0.25)  # the mixed number says nothing of this
+
+    def test_by_act_is_absent_rather_than_zero_when_act_is_unknown(self) -> None:
+        episodes = [
+            EpisodeMetric(seed=43_000_000, won=True, terminated=True, truncated=False,
+                          steps=10, episode_return=1.0, illegal_actions=0,
+                          final_floor=17, act=None)
+        ]
+        metrics = summarize_episodes(
+            episodes, stage="act1", split="promotion", scope="simulator_act1",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(metrics.by_act, {})
+
     def test_promotion_requires_all_gates(self) -> None:
         requirements = PromotionConfig(
             min_episodes=200,
@@ -121,8 +155,9 @@ class MetricsTests(unittest.TestCase):
     def test_metrics_include_seed_digest_and_wilson_interval(self) -> None:
         metrics = self._metrics(100, 200)
         # Deliberately a literal, not METRICS_SCHEMA_VERSION: bumping the schema
-        # has to be a decision someone makes here. 4 adds final_floor_histogram.
-        self.assertEqual(metrics.schema_version, 4)
+        # has to be a decision someone makes here. 4 adds final_floor_histogram,
+        # 5 adds by_act (an act1 stage spans both emulator acts per seed).
+        self.assertEqual(metrics.schema_version, 5)
 
     def test_boundary_wilson_and_hp_metrics(self) -> None:
         """Review item 4: boundary Wilson lower bound + final HP fraction."""

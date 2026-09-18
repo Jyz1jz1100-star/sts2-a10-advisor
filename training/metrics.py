@@ -10,7 +10,7 @@ from pathlib import Path
 from .seeds import seed_digest
 from .wilson import wilson_interval
 
-METRICS_SCHEMA_VERSION = 4
+METRICS_SCHEMA_VERSION = 5
 
 
 @dataclass(frozen=True)
@@ -23,6 +23,10 @@ class EpisodeMetric:
     episode_return: float
     illegal_actions: int
     final_floor: int | None = None
+    #: Which act the emulator generated for this seed. RunMapGenerator chooses it by
+    #: coin flip, so an evaluation configured as "act1" really spans two acts unless
+    #: this is recorded; without it the aggregate cannot say which act a win was in.
+    act: int | None = None
     encounter: str | None = None
     #: V2 curriculum stages promote on reaching their floor boundary (or a
     #: true terminal win), not on run completion alone.
@@ -97,6 +101,10 @@ class EvaluationMetrics:
     #: anomaly volume, reported separately from policy-quality gates).
     rejection_events: int = 0
     by_encounter: dict[str, dict[str, float | int]] = field(default_factory=dict)
+    #: Per-act breakdown of the same evaluation. An ``act1`` stage spans both emulator
+    #: acts because the generator picks the act per seed, so this is the only field
+    #: that lets a win rate be attributed to one act instead of the mix.
+    by_act: dict[str, dict[str, float | int | None]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -166,6 +174,23 @@ def summarize_episodes(
             "mean_return": sum(episode.episode_return for episode in bucket)
             / len(bucket),
         }
+    act_buckets: dict[int, list[EpisodeMetric]] = {}
+    for episode in episodes:
+        if episode.act is not None:
+            act_buckets.setdefault(int(episode.act), []).append(episode)
+    by_act: dict[str, dict[str, float | int | None]] = {}
+    for act, bucket in sorted(act_buckets.items()):
+        bucket_wins = sum(int(episode.won) for episode in bucket)
+        bucket_floors = [episode.final_floor for episode in bucket
+                         if episode.final_floor is not None]
+        by_act[str(act)] = {
+            "episodes": len(bucket),
+            "wins": bucket_wins,
+            "win_rate": bucket_wins / len(bucket),
+            "mean_final_floor": (sum(bucket_floors) / len(bucket_floors)
+                                 if bucket_floors else None),
+            "max_final_floor": max(bucket_floors) if bucket_floors else None,
+        }
     seeds = [episode.seed for episode in episodes]
     checkpoint_path = Path(checkpoint)
     checkpoint_sha256 = None
@@ -212,6 +237,7 @@ def summarize_episodes(
         defect_truncation_rate=(truncations - boundary_truncations) / len(episodes),
         rejection_events=rejection_events,
         by_encounter=by_encounter,
+        by_act=by_act,
     )
 
 
