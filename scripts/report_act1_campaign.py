@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-INTERESTING = ("win_rate", "win_count", "episodes", "mean_final_floor", "max_final_floor",
+INTERESTING = ("win_rate", "wins", "episodes", "mean_final_floor", "max_final_floor",
                "illegal_actions", "unclassified_dead_ends", "defect_truncation_rate",
                "boundary_rate", "scope", "stage", "split", "seed_sha256", "checkpoint_sha256")
 
