@@ -35,6 +35,42 @@ no bridge file touched). Two findings an operator needs before any live work:
    default adjacent emulator venv. These are contract/simulator checks; no game
    was started and no live acceptance claim is made.
 
+## Overnight landing: 2026-09-19 (session 5)
+
+Read-only with respect to the game throughout: no process started, no POST, no
+Steam or Workshop state touched, and the in-game Combat Solver was never asked to
+stand down.
+
+- **Grammar v2 is merged and inside the acceptance suite.** The 0.41.0 journal
+  reader (`combat_solver/logv2.py` + `loggrammar.py`) landed as `d2b510a`, and
+  `tests.test_combat_solver_grammar_v2` (47 tests) is now registered in
+  `scripts/test.ps1` -- it never was before, so the "415 contract tests pass"
+  figure quoted above did not exercise the container the mod actually writes.
+  Suite as of this session: **473 contract + 99 training-environment tests**.
+  The codec was re-verified over the 15 real sessions with no drift from its
+  documented baseline (72 snapshots, 69 byte-ranged deploys, 22 typed failures,
+  0 envelope errors). Evidence-channel semantics are in
+  `docs/GRAMMAR_V2_TODO_2026-09-19.md`.
+- **A live batch now attests the binaries it ran against**, at both ends of its
+  window (`combat_solver/modpin.py`, wired into
+  `scripts/supervise_solver_batch.py`), replacing the precondition nobody could
+  satisfy -- Workshop has no per-item auto-update switch to turn off. A dry-run
+  manifest records `STS2_MCP 0.4.0` and `RegentFX 0.5.1` matching, `CombatSolver
+  0.41.0` and `STS2-RitsuLib 0.6.2` drifted from the 0.31.0 lock, and
+  `attested: false`.
+- **The bridge can no longer call a survived run a victory.** `bridge/outcome.py`
+  drops the `hp > 0 means won` fallback; see `docs/ACCEPTANCE.md` for what an
+  explicit terminal victory can and cannot mean over this bridge.
+- **First non-zero V2 Act 1 terminal wins**, reproduced independently four times:
+  `docs/ACT1_CAMPAIGN_2026-09-19.md`. Simulator-only (`scope:
+  simulator_act1`); the emulator has no Act 2 or 3.
+- **What still stands between here and a real three-act clear** is not code. The
+  supervisor's refusal to launch the game is deliberate and currently
+  load-bearing: the profile save tree was written at 00:03-00:04 local, so a
+  cold-started run could displace one in progress. An attempt needs the operator
+  to start the game; `python scripts/supervise_solver_batch.py --mode
+  observational --allow-actions --max-battles 50` then does the rest.
+
 ## Offline Step 4 deploy-log binding: 2026-09-14
 
 The Step 4 evidence mechanism is now implemented and fail-closed offline. The
