@@ -1,6 +1,7 @@
 """Deterministic lifecycle tests for the fresh solver-batch supervisor."""
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -15,6 +16,7 @@ from scripts.supervise_solver_batch import (
     EXIT_OK,
     EXIT_PARTIAL,
     EXIT_STOPPED,
+    AUTOPLAY_CLASSIFIED_STOP_EXIT,
     BatchLock,
     BatchSupervisor,
     DEFAULT_AUTOPLAY_LOCK,
@@ -25,6 +27,7 @@ from scripts.supervise_solver_batch import (
     _windows_pid_is_alive,
     build_component_commands,
     new_batch_id,
+    read_trace_session_end,
     validate_batch_id,
 )
 
@@ -73,9 +76,18 @@ class FakeProcess:
 
 
 class FakePopen:
-    def __init__(self, *, comparison_code: int | None = 0, fail_name: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        comparison_code: int | None = 0,
+        fail_name: str | None = None,
+        autoplay_code: int | None = None,
+        keeper_code: int | None = None,
+    ) -> None:
         self.comparison_code = comparison_code
         self.fail_name = fail_name
+        self.autoplay_code = autoplay_code
+        self.keeper_code = keeper_code
         self.started: list[tuple[list[str], dict]] = []
         self.processes: dict[str, FakeProcess] = {}
 
@@ -87,10 +99,10 @@ class FakePopen:
             process = FakeProcess(self.comparison_code)
             name = "comparison"
         elif "bridge.fullauto_keeper" in joined:
-            process = FakeProcess(None)
+            process = FakeProcess(self.keeper_code)
             name = "fullauto_keeper"
         else:
-            process = FakeProcess(None)
+            process = FakeProcess(self.autoplay_code)
             name = "autoplay"
         self.started.append((list(command), kwargs))
         self.processes[name] = process
@@ -598,7 +610,513 @@ class LifecycleTests(unittest.TestCase):
             self.assertEqual(status["stop_reason"], "test_stop")
 
 
-class LockTests(unittest.TestCase):
+class FailureConvergenceTests(unittest.TestCase):
+    """Regression tests for the ssb-20260906T102557Z-183d0b05 failure class.
+
+    That batch ended with autoplay crashing on a frozen menu state, the
+    supervisor killing the comparison child mid-write, and a sibling summary
+    left as ``status=running`` residue with ``comparison_result: null`` in the
+    manifest.  These tests pin the converged lifecycle.
+    """
+
+    def _session_end_trace(self, root: Path, batch_id: str, reason: str) -> None:
+        trace = root / batch_id / "autoplay_trace.jsonl"
+        trace.parent.mkdir(parents=True, exist_ok=True)
+        trace.write_text(
+            json.dumps(
+                {
+                    "event_type": "session_end",
+                    "raw": {
+                        "summary": {"stop_reason": reason, "runs_started": 0},
+                        "detail": f"{reason}: offline fixture",
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    def test_autoplay_clean_exit_completes_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None, autoplay_code=0)
+            config = _config(root, clock)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            _write_comparison_artifacts(supervisor)
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_OK)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "complete")
+            self.assertEqual(status["stop_reason"], "autoplay_completed")
+            self.assertEqual(status["exit_codes"]["autoplay"], 0)
+            self.assertTrue(status["comparison_result"])
+            # The other children were stopped cooperatively, not left running.
+            self.assertIsNotNone(status["exit_codes"]["comparison"])
+            self.assertIsNotNone(status["exit_codes"]["fullauto_keeper"])
+
+    def test_autoplay_clean_exit_with_partial_artifacts_is_partial(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None, autoplay_code=0)
+            config = _config(root, clock)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            _write_comparison_artifacts(
+                supervisor, status="partial", stopped_reason="max_seconds", n_battles=1
+            )
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_PARTIAL)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "autoplay_completed")
+            self.assertEqual(status["comparison_result"]["classification"], "partial")
+
+    def test_autoplay_classified_stop_preserves_reason_and_residual(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None, autoplay_code=AUTOPLAY_CLASSIFIED_STOP_EXIT)
+            config = _config(root, clock)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+
+            def start_with_trace(command, **kwargs):
+                if "bridge.autoplay" in " ".join(command):
+                    self._session_end_trace(
+                        root, config.batch_id, "stale_state"
+                    )
+                return popen(command, **kwargs)
+
+            supervisor.popen_factory = start_with_trace
+            _write_comparison_artifacts(
+                supervisor, status="running", stopped_reason="running", n_battles=0
+            )
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_CHILD_FAILED)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "failed")
+            self.assertEqual(status["stop_reason"], "autoplay_classified_stop")
+            self.assertEqual(status["autoplay_summary"]["summary"]["stop_reason"], "stale_state")
+            # The killed comparison's own artifacts still say "running"; the
+            # supervisor must record that residue explicitly, never promote it.
+            self.assertEqual(status["comparison_result"]["classification"], "partial")
+            self.assertEqual(status["comparison_result"]["status"]["summary"], "running")
+            self.assertIn("status_not_complete", status["comparison_result"]["issues"])
+
+    def test_autoplay_crash_records_comparison_classification(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None, autoplay_code=1)
+            config = _config(root, clock)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            _write_comparison_artifacts(
+                supervisor, status="running", stopped_reason="running", n_battles=0
+            )
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_CHILD_FAILED)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "autoplay_exited")
+            # A crashed child writes no session_end; the manifest must not
+            # invent one, but the residual comparison state is still recorded.
+            self.assertIsNone(status["autoplay_summary"])
+            self.assertEqual(status["comparison_result"]["classification"], "partial")
+            self.assertIn("status_not_complete", status["comparison_result"]["issues"])
+
+    def test_missing_trace_session_end_stays_none(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(read_trace_session_end(Path(tmp) / "absent.jsonl"))
+
+
+class EvidenceAttributionTests(unittest.TestCase):
+    """Solver-log snapshots are binding inputs; attribution stays explicit."""
+
+    def test_manifest_records_solver_log_snapshot_window(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            game_logs = root / "game-logs"
+            game_logs.mkdir()
+            (game_logs / "godot.log").write_text(
+                "[INFO] [CombatSolver] CombatSolver v0.31.0 initialized\n",
+                encoding="utf-8",
+            )
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None, autoplay_code=0)
+            config = _config(root, clock, game_log_dir=game_logs)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            _write_comparison_artifacts(supervisor)
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_OK)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            logs = status["combat_solver_logs"]
+            self.assertEqual(logs["log_dir"], str(game_logs))
+            self.assertEqual(len(logs["at_start"]), 1)
+            self.assertEqual(len(logs["at_end"]), 1)
+            started = logs["at_start"][0]
+            self.assertTrue(started["sha256"])
+            self.assertEqual(started["sha256"], logs["at_end"][0]["sha256"])
+            self.assertIn("timestamp proximity is not evidence", logs["purpose"])
+
+    def test_comparison_completed_path_also_finalizes(self) -> None:
+        """The comparison-exit-0 branches must run the terminal reconciliation.
+
+        Regression: the complete branch returned after stopping the other
+        children without finalizing, so a normally completed batch could
+        still end with ``combat_solver_logs.at_end = null``.
+        """
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            game_logs = root / "game-logs"
+            game_logs.mkdir()
+            (game_logs / "godot.log").write_text(
+                "[INFO] [CombatSolver] CombatSolver v0.31.0 initialized\n",
+                encoding="utf-8",
+            )
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=0)
+            config = _config(root, clock, game_log_dir=game_logs)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            _write_comparison_artifacts(supervisor)
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_OK)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "comparison_complete")
+            self.assertIsNotNone(status["combat_solver_logs"]["at_end"])
+            self.assertEqual(len(status["combat_solver_logs"]["at_end"]), 1)
+
+    def test_comparison_partial_and_invalid_paths_also_finalize(self) -> None:
+        for write_artifacts, expected_code, expected_reason in (
+            (True, EXIT_PARTIAL, "comparison_partial"),
+            (False, EXIT_CHILD_FAILED, "comparison_artifacts_invalid"),
+        ):
+            with self.subTest(write_artifacts=write_artifacts):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    game_logs = root / "game-logs"
+                    game_logs.mkdir()
+                    (game_logs / "godot.log").write_text("log\n", encoding="utf-8")
+                    clock = FakeClock()
+                    popen = FakePopen(comparison_code=0)
+                    config = _config(root, clock, game_log_dir=game_logs)
+                    supervisor = BatchSupervisor(
+                        config,
+                        popen_factory=popen,
+                        game_probe=lambda _config: True,
+                        clock=clock,
+                        sleep=clock.sleep,
+                        comparison_output_dir=root / "comparison",
+                    )
+                    if write_artifacts:
+                        _write_comparison_artifacts(
+                            supervisor, status="partial", stopped_reason="max_seconds"
+                        )
+
+                    result = supervisor.run()
+                    self.assertEqual(result, expected_code)
+                    status = json.loads(
+                        supervisor.status_path.read_text(encoding="utf-8")
+                    )
+                    self.assertEqual(status["stop_reason"], expected_reason)
+                    self.assertIsNotNone(
+                        status["combat_solver_logs"]["at_end"]
+                    )
+
+    def test_torn_trace_tail_does_not_lose_session_end(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            trace = Path(tmp) / "autoplay_trace.jsonl"
+            complete_row = json.dumps(
+                {
+                    "event_type": "session_end",
+                    "raw": {"summary": {"stop_reason": "stale_state"}, "detail": "x"},
+                }
+            ).encode("utf-8")
+            # A killed process can leave a truncated append: a valid prefix of
+            # the next JSON row ending in a partial UTF-8 sequence.
+            torn_tail = b'{"event_type": "sta\xff'
+            trace.write_bytes(complete_row + b"\n" + torn_tail)
+            summary = read_trace_session_end(trace)
+            self.assertEqual(summary["summary"]["stop_reason"], "stale_state")
+            self.assertTrue(summary["trace_tail_corrupt"])
+
+    def test_fully_corrupt_trace_yields_no_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            trace = Path(tmp) / "autoplay_trace.jsonl"
+            trace.write_bytes(b"\xff\xfe not json at all \x00")
+            self.assertIsNone(read_trace_session_end(trace))
+
+    def test_intact_trace_has_no_corruption_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            trace = Path(tmp) / "autoplay_trace.jsonl"
+            trace.write_text(
+                json.dumps(
+                    {
+                        "event_type": "session_end",
+                        "raw": {"summary": {"stop_reason": None}, "detail": None},
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            summary = read_trace_session_end(trace)
+            self.assertNotIn("trace_tail_corrupt", summary)
+
+    def test_report_marks_historical_logs_unattributable(self) -> None:
+        from scripts.report_solver_log_attribution import build_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_dir = root / "logs"
+            log_dir.mkdir()
+            (log_dir / "godot2026-09-06T18.25.02.log").write_text(
+                "[INFO] [CombatSolver] CombatSolver v0.31.0 initialized\n"
+                "[INFO] [CombatSolver] SEARCH_REQUEST generation=1 turn=1\n",
+                encoding="utf-8",
+            )
+            supervisor_root = root / "supervisor"
+            batch_dir = supervisor_root / "ssb-20260906T102557Z-183d0b05"
+            batch_dir.mkdir(parents=True)
+            (batch_dir / "manifest.json").write_text(
+                json.dumps({"batch_id": "ssb-20260906T102557Z-183d0b05"}),
+                encoding="utf-8",
+            )
+
+            report = build_report(log_dir, supervisor_root)
+            self.assertEqual(report["summary"]["total_logs"], 1)
+            self.assertEqual(report["summary"]["unattributable"], 1)
+            entry = report["logs"][0]
+            self.assertFalse(entry["attributable"])
+            self.assertEqual(entry["verdict"], "无法归属")
+            self.assertIn(
+                "no supervisor batch manifest inventory observed this file's hash",
+                entry["reasons"],
+            )
+            self.assertIn("log_contains_no_run_identity_binding", entry["reasons"])
+            self.assertEqual(entry["observed_solver_versions"], ["0.31.0"])
+
+    def test_snapshot_observation_never_claims_production(self) -> None:
+        from scripts.report_solver_log_attribution import build_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_dir = root / "logs"
+            log_dir.mkdir()
+            pre_existing = log_dir / "godot-old.log"
+            pre_existing.write_text("CombatSolver v0.31.0\n", encoding="utf-8")
+            created = log_dir / "godot-new.log"
+            created.write_text("CombatSolver v0.31.0 new\n", encoding="utf-8")
+            pre_digest = hashlib.sha256(pre_existing.read_bytes()).hexdigest().upper()
+            created_digest = hashlib.sha256(created.read_bytes()).hexdigest().upper()
+            supervisor_root = root / "supervisor"
+            batch_dir = supervisor_root / "ssb-test-0002"
+            batch_dir.mkdir(parents=True)
+            (batch_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "batch_id": "ssb-test-0002",
+                        "combat_solver_logs": {
+                            # The pre-existing log appears in BOTH inventories:
+                            # the union must not read as "produced by batch".
+                            "at_start": [
+                                {"path": str(pre_existing), "sha256": pre_digest}
+                            ],
+                            "at_end": [
+                                {"path": str(pre_existing), "sha256": pre_digest},
+                                {"path": str(created), "sha256": created_digest},
+                            ],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report = build_report(log_dir, supervisor_root)
+            by_name = {
+                Path(entry["path"]).name: entry for entry in report["logs"]
+            }
+            old = by_name["godot-old.log"]
+            self.assertFalse(old["attributable"])
+            self.assertEqual(old["verdict"], "无法归属到具体运行")
+            self.assertEqual(
+                old["observed_in_batch_inventories"],
+                [
+                    {
+                        "batch_id": "ssb-test-0002",
+                        "observation": "hash_observed_at_start",
+                    }
+                ],
+            )
+            new = by_name["godot-new.log"]
+            self.assertFalse(new["attributable"])
+            self.assertEqual(new["verdict"], "无法归属到具体运行")
+            self.assertEqual(
+                new["observed_in_batch_inventories"],
+                [
+                    {
+                        "batch_id": "ssb-test-0002",
+                        "observation": "hash_observed_at_end_only",
+                    }
+                ],
+            )
+            self.assertIn(
+                "inventory observation only; binding to a run would require "
+                "content-range and run-identity association inside the log, "
+                "which no current format provides",
+                new["reasons"],
+            )
+            # No creation claim may survive anywhere in the report.
+            self.assertNotIn("created", json.dumps(report))
+
+    def test_appended_legacy_log_is_not_claimed_as_window_creation(self) -> None:
+        """An appended file changes its hash; that is not a new file.
+
+        Regression for the ``created_during_window`` over-inference: the same
+        ``godot.log`` exists before the batch (hash H1) and is appended to
+        during it (hash H2 at end).  H2 may only be reported as
+        ``hash_observed_at_end_only`` — never as a creation/production claim.
+        """
+
+        from scripts.report_solver_log_attribution import build_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_dir = root / "logs"
+            log_dir.mkdir()
+            log_path = log_dir / "godot.log"
+            log_path.write_text("CombatSolver v0.31.0\n", encoding="utf-8")
+            h1 = hashlib.sha256(log_path.read_bytes()).hexdigest().upper()
+            log_path.write_text(
+                "CombatSolver v0.31.0\n+ appended line during batch\n",
+                encoding="utf-8",
+            )
+            h2 = hashlib.sha256(log_path.read_bytes()).hexdigest().upper()
+            self.assertNotEqual(h1, h2)
+            supervisor_root = root / "supervisor"
+            batch_dir = supervisor_root / "ssb-test-0003"
+            batch_dir.mkdir(parents=True)
+            (batch_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "batch_id": "ssb-test-0003",
+                        "combat_solver_logs": {
+                            "at_start": [{"path": str(log_path), "sha256": h1}],
+                            "at_end": [{"path": str(log_path), "sha256": h2}],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report = build_report(log_dir, supervisor_root)
+            self.assertEqual(len(report["logs"]), 1)
+            entry = report["logs"][0]
+            self.assertFalse(entry["attributable"])
+            self.assertEqual(
+                entry["observed_in_batch_inventories"],
+                [
+                    {
+                        "batch_id": "ssb-test-0003",
+                        "observation": "hash_observed_at_end_only",
+                    }
+                ],
+            )
+            self.assertNotIn("created", json.dumps(report))
+
+    def test_missing_or_unhashed_start_snapshot_does_not_imply_creation(self) -> None:
+        from scripts.report_solver_log_attribution import build_report
+
+        for broken_start in (None, [{"path": "x", "sha256": None, "hash_error": "OSError"}]):
+            with self.subTest(broken_start=broken_start):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    log_dir = root / "logs"
+                    log_dir.mkdir()
+                    log_path = log_dir / "godot.log"
+                    log_path.write_text("CombatSolver v0.31.0\n", encoding="utf-8")
+                    digest = hashlib.sha256(
+                        log_path.read_bytes()
+                    ).hexdigest().upper()
+                    supervisor_root = root / "supervisor"
+                    batch_dir = supervisor_root / "ssb-test-0004"
+                    batch_dir.mkdir(parents=True)
+                    (batch_dir / "manifest.json").write_text(
+                        json.dumps(
+                            {
+                                "batch_id": "ssb-test-0004",
+                                "combat_solver_logs": {
+                                    "at_start": broken_start,
+                                    "at_end": [
+                                        {"path": str(log_path), "sha256": digest}
+                                    ],
+                                },
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+
+                    report = build_report(log_dir, supervisor_root)
+                    entry = report["logs"][0]
+                    self.assertFalse(entry["attributable"])
+                    self.assertEqual(
+                        entry["observed_in_batch_inventories"],
+                        [
+                            {
+                                "batch_id": "ssb-test-0004",
+                                "observation": "hash_observed_at_end_only",
+                            }
+                        ],
+                    )
+                    self.assertNotIn("created", json.dumps(report))
+
+
+
     def test_active_lock_rejects_duplicate_start(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

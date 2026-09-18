@@ -2,15 +2,24 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from bridge.autoplay import (
     AutoPlayer,
+    AutoplayClassifiedStop,
     RunIdentityError,
     _require_continued_run_identity,
     _require_saved_run_identity,
     _to_payload,
+)
+from bridge.seed_allocation import load_seed_allocation
+from bridge.trace_controller import (
+    BridgeConnectionError,
+    BridgeProtocolError,
+    TraceRecorder,
 )
 from advisor_core.live_candidate_codec import LiveCandidateContractError
 
@@ -616,6 +625,233 @@ class AutoplayRunIdentityTests(unittest.TestCase):
             controller.posts,
             [{"action": "menu_select", "option": "continue"}],
         )
+
+
+class AutoplayClassifiedStopTests(unittest.TestCase):
+    """Regressions for the ssb-20260906T102557Z-183d0b05 failure class.
+
+    The live batch faced a frozen main menu (byte-identical options listing
+    ``continue``/``abandon_run`` but no ``singleplayer``) while the compendium
+    proved no saved run, and autoplay crash-looped 61 identical attempts
+    before dying with a bare traceback.  These tests pin the classified,
+    bounded behaviour that replaced it.
+    """
+
+    FROZEN_MENU = {
+        "state_type": "menu",
+        "menu_screen": "main",
+        "options": [
+            "continue",
+            "abandon_run",
+            "multiplayer",
+            "compendium",
+            "timeline",
+            "settings",
+            "quit",
+        ],
+    }
+
+    def _frozen_menu_controller(self) -> Any:
+        class FrozenMenuController:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.start_seeds: list[str | None] = []
+
+            def get_state(self):
+                return dict(self.MENU), "local-sha256:c07eab"
+
+            def get_compendium(self, record: bool = True):
+                return {"current_run": None}
+
+            def start_ironclad_a10(self, **kwargs):
+                self.start_seeds.append(kwargs.get("seed"))
+                raise BridgeProtocolError(
+                    "Singleplayer is not currently actionable"
+                )
+
+        controller = FrozenMenuController()
+        controller.MENU = self.FROZEN_MENU
+        return controller
+
+    def test_frozen_menu_stops_classified_after_bounded_retries(self) -> None:
+        controller = self._frozen_menu_controller()
+        with self.assertRaises(AutoplayClassifiedStop) as ctx:
+            AutoPlayer(
+                controller,
+                max_runs=1,
+                max_actions=1,
+                poll=0,
+                failure_backoff=0,
+            ).run()
+        self.assertEqual(ctx.exception.reason, "stale_state")
+        self.assertIn(
+            "Singleplayer is not currently actionable", ctx.exception.detail
+        )
+        # 60 consecutive same-state failures are tolerated, the 61st ends the
+        # batch: bounded, and every attempt re-read the same frozen state.
+        self.assertEqual(len(controller.start_seeds), 61)
+
+    def test_stale_menu_never_clicks_continue_or_abandon(self) -> None:
+        controller = self._frozen_menu_controller()
+
+        def no_posts(payload, **kwargs):  # pragma: no cover - must not run
+            raise AssertionError(f"unexpected POST {payload}")
+
+        controller.send_action = no_posts  # type: ignore[method-assign]
+        with self.assertRaises(AutoplayClassifiedStop):
+            AutoPlayer(
+                controller,
+                max_runs=1,
+                max_actions=1,
+                poll=0,
+                failure_backoff=0,
+            ).run()
+
+    def test_failed_starts_never_consume_seed_allocation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            allocation_path = Path(tmp) / "allocation.json"
+            ledger_path = Path(tmp) / "seed_allocation.ledger.json"
+            allocation_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "allocation_kind": "run_seed",
+                        "seeds": [1600000000, 1600000001],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            load_seed_allocation(allocation_path)
+            controller = self._frozen_menu_controller()
+            player = AutoPlayer(
+                controller,
+                max_runs=1,
+                max_actions=1,
+                poll=0,
+                failure_backoff=0,
+                seed_file=allocation_path,
+                seed_ledger=ledger_path,
+            )
+            with self.assertRaises(AutoplayClassifiedStop):
+                player.run()
+            snapshot = player._seed_ledger.snapshot()
+            self.assertEqual(snapshot["consumed"], [])
+            self.assertEqual(snapshot["next_index"], 0)
+            # The same reserved seed is retried; no second seed is ever
+            # touched and the reservation stays reconcilable for recovery.
+            self.assertEqual(set(controller.start_seeds), {"1600000000"})
+            self.assertEqual(snapshot["active"]["raw_seed"], "1600000000")
+
+    def test_bridge_loss_stops_classified_within_budget(self) -> None:
+        class GoneBridge:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.get_calls = 0
+
+            def get_state(self):
+                self.get_calls += 1
+                raise BridgeConnectionError(
+                    "GET http://127.0.0.1:15526/api/v1/singleplayer failed: "
+                    "connection refused"
+                )
+
+        controller = GoneBridge()
+        with self.assertRaises(AutoplayClassifiedStop) as ctx:
+            AutoPlayer(
+                controller,
+                max_runs=1,
+                max_actions=1,
+                poll=0,
+                bridge_backoff=0,
+                bridge_unavailable_timeout_seconds=0,
+            ).run()
+        self.assertEqual(ctx.exception.reason, "bridge_unavailable")
+        self.assertIn("connection refused", ctx.exception.detail)
+        self.assertEqual(controller.get_calls, 1)
+
+    def test_transient_bridge_failure_recovers(self) -> None:
+        class FlakyBridge:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.get_calls = 0
+
+            def get_state(self):
+                self.get_calls += 1
+                if self.get_calls <= 2:
+                    raise BridgeConnectionError("transient blip")
+                return {
+                    "state_type": "menu",
+                    "menu_screen": "main",
+                    "options": ["singleplayer"],
+                }, "menu-1"
+
+            def start_ironclad_a10(self, **kwargs):
+                return {"state_type": "monster"}, "run-1"
+
+        summary = AutoPlayer(
+            FlakyBridge(), max_runs=1, max_actions=1, poll=0, bridge_backoff=0
+        ).run()
+        self.assertEqual(summary["runs_started"], 1)
+
+    def test_classified_stop_writes_session_end_event(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            trace_path = Path(tmp) / "autoplay_trace.jsonl"
+            trace_recorder = TraceRecorder(
+                trace_path, metadata={"component": "autoplay"}
+            )
+
+            class GoneBridge:
+                recorder = trace_recorder
+
+                def get_state(self):
+                    raise BridgeConnectionError("gone")
+
+            with self.assertRaises(AutoplayClassifiedStop):
+                AutoPlayer(
+                    GoneBridge(),
+                    max_runs=1,
+                    max_actions=1,
+                    poll=0,
+                    bridge_backoff=0,
+                    bridge_unavailable_timeout_seconds=0,
+                ).run()
+            rows = [
+                json.loads(line)
+                for line in trace_path.read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(rows[-1]["event_type"], "session_end")
+            self.assertEqual(
+                rows[-1]["raw"]["summary"]["stop_reason"], "bridge_unavailable"
+            )
+
+    def test_repeated_state_read_failures_stop_classified(self) -> None:
+        class Http500Bridge:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.get_calls = 0
+
+            def get_state(self):
+                self.get_calls += 1
+                raise BridgeProtocolError(
+                    "GET http://127.0.0.1:15526/api/v1/singleplayer -> HTTP 500: boom"
+                )
+
+        controller = Http500Bridge()
+        with self.assertRaises(AutoplayClassifiedStop) as ctx:
+            AutoPlayer(
+                controller,
+                max_runs=1,
+                max_actions=1,
+                poll=0,
+                failure_backoff=0,
+                max_total_failures=3,
+            ).run()
+        self.assertEqual(ctx.exception.reason, "repeated_state_failures")
+        self.assertEqual(controller.get_calls, 4)
 
 
 if __name__ == "__main__":

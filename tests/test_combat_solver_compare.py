@@ -17,6 +17,7 @@ from combat_solver.compare import (
     evaluate_gates,
 )
 from combat_solver.reader import JsonlSource, SourceEvent
+from combat_solver.logranges import LogRange, MARKER_EVENTS
 from combat_solver.session import BattleTracker
 
 from tests.test_combat_solver_contract import snapshot_payload
@@ -31,6 +32,20 @@ from tests.test_combat_solver_states import (
 def _write_snapshot(source_path: Path, payload: dict) -> None:
     with source_path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
+
+def _captured_range() -> LogRange:
+    counts = {name: 0 for name in MARKER_EVENTS}
+    counts.update(
+        {"SEARCH_REQUEST": 1, "DEPLOY_START": 1, "DEPLOY_ACTION": 1, "DEPLOY_END": 1}
+    )
+    return LogRange(
+        source_path="fixture-godot.log",
+        byte_start=0,
+        byte_end=1,
+        sha256="0" * 64,
+        marker_counts=counts,
+    )
 
 
 class CompareTurnTests(unittest.TestCase):
@@ -349,6 +364,9 @@ class AggregationTests(unittest.TestCase):
                 ambiguous=ambiguous,
                 notes=executed.notes,
                 source=source,
+                source_evidence=(
+                    _captured_range().to_json() if source == "deploy_log" else None
+                ),
             )
             return record
 
@@ -812,6 +830,7 @@ class RegressionTests2026_09_02(unittest.TestCase):
                         actions=(RouteAction(kind="play", card_id="STRIKE", target_index=0),),
                         end_turn=True,
                         captured_at_utc="2099-01-01T00:00:00Z",
+                        log_range=_captured_range(),
                     )
                 )
             )
@@ -864,6 +883,7 @@ class RegressionTests2026_09_02(unittest.TestCase):
                         actions=(RouteAction(kind="play", card_id="DEFEND", target_index=None),),
                         end_turn=True,
                         captured_at_utc="2099-01-01T00:00:00Z",
+                        log_range=_captured_range(),
                     )
                 )
             )
@@ -956,6 +976,239 @@ class RegressionTests2026_09_02(unittest.TestCase):
         self.assertIsNone(record.heal_adjustment)
         # hp_end comes from the last monster state, not the closing screen
         self.assertEqual(record.hp_end, 60)
+
+
+def _raise_stop_batch(signum, frame):
+    raise AssertionError("handler must not fire during the test")
+
+
+class StopSignalHandlerTests(unittest.TestCase):
+    """The supervisor stops this process group with Windows CTRL_BREAK.
+
+    Without a SIGBREAK handler the OS killed the runner mid-write and left
+    ``status=running`` summary residue (ssb-20260906T102557Z-183d0b05); the
+    handler must be installed so a stop publishes an honest final summary.
+    """
+
+    def test_windows_ctrl_break_is_a_cooperative_stop(self) -> None:
+        import os
+        import signal
+
+        from scripts.run_solver_comparison import (
+            install_stop_signal_handlers,
+            restore_stop_signal_handlers,
+        )
+
+        if os.name != "nt" or not hasattr(signal, "SIGBREAK"):
+            self.skipTest("SIGBREAK is Windows-only")
+        previous_break = signal.getsignal(signal.SIGBREAK)
+        previous_term = signal.getsignal(signal.SIGTERM)
+        installed = install_stop_signal_handlers(_raise_stop_batch)
+        try:
+            self.assertIn(signal.SIGBREAK, [signum for signum, _ in installed])
+            self.assertIn(signal.SIGTERM, [signum for signum, _ in installed])
+        finally:
+            restore_stop_signal_handlers(installed)
+        # The exact previous dispositions are back in place.
+        self.assertIs(signal.getsignal(signal.SIGBREAK), previous_break)
+        self.assertIs(signal.getsignal(signal.SIGTERM), previous_term)
+
+
+class CtrlBreakSubprocessTests(unittest.TestCase):
+    """Real Windows subprocess: CTRL_BREAK must converge the runner summary.
+
+    This is the end-to-end regression for the ssb-20260906T102557Z residue:
+    a child killed by the supervisor's CTRL_BREAK_EVENT used to leave
+    ``status=running`` behind.  The child here is a real
+    ``scripts/run_solver_comparison.py`` process pointed at a test-local HTTP
+    bridge (no game is started); once its polling loop is observably running
+    the test sends ``CTRL_BREAK_EVENT`` exactly like the supervisor does and
+    requires a cooperative shutdown publishing ``status=partial`` /
+    ``stopped_reason=signal``.
+    """
+
+    def test_ctrl_break_converges_running_summary(self) -> None:
+        import os
+        import shutil
+        import signal
+        import subprocess
+        import sys
+        import tempfile
+        import threading
+        import time
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+        if os.name != "nt" or not hasattr(signal, "CTRL_BREAK_EVENT"):
+            self.skipTest("CTRL_BREAK_EVENT is Windows-only")
+
+        project_root = Path(__file__).resolve().parents[1]
+        payload = json.dumps(
+            {"state_type": "menu", "menu_screen": "main", "options": []}
+        ).encode("utf-8")
+        health = json.dumps(
+            {"status": "ok", "message": "STS2MCP v0.4.0 ready"}
+        ).encode("utf-8")
+
+        # Test-local lock fixtures derived from the real locks: the repo's
+        # version locks must never be touched by tests, and the child must
+        # not depend on the live install (mods/game can drift at any time).
+        # The fixture keeps the full verification path real while pointing
+        # the "installed game" at two tiny fixture files and disabling the
+        # mod-inventory hash enforcement that belongs to installation time.
+        live_lock_raw = json.loads(
+            (project_root / "config" / "live_version.lock.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        game = live_lock_raw["game"]
+        bridge = live_lock_raw["bridge"]
+        for key in (
+            "dll_path",
+            "dll_sha256",
+            "manifest_path",
+            "manifest_sha256",
+        ):
+            bridge.pop(key, None)
+        tmp = Path(tempfile.mkdtemp(prefix="csb-ctrlbreak-"))
+        (tmp / "game").mkdir()
+        release_path = tmp / "game" / "release_info.json"
+        release_path.write_text(
+            json.dumps(
+                {
+                    "version": game["version"],
+                    "commit": game["commit"],
+                    "main_assembly_hash": game["main_assembly_hash"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        manifest_path = tmp / "game" / "appmanifest.acf"
+        manifest_path.write_text(
+            f'"buildid"\t\t"{game["steam_build_id"]}"\n'
+            f'"BetaKey"\t\t"{game["branch"]}"\n',
+            encoding="utf-8",
+        )
+        game["release_info_path"] = str(release_path)
+        game["steam_manifest_path"] = str(manifest_path)
+        live_lock_copy = tmp / "live_version.lock.json"
+        live_lock_copy.write_text(
+            json.dumps(live_lock_raw), encoding="utf-8"
+        )
+        solver_lock_raw = json.loads(
+            (project_root / "config" / "combat_solver.lock.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        for entry in (solver_lock_raw.get("evaluation_environment") or {}).get(
+            "mod_dll_inventory"
+        ) or []:
+            entry["required"] = False
+        solver_lock_copy = tmp / "combat_solver.lock.json"
+        solver_lock_copy.write_text(
+            json.dumps(solver_lock_raw), encoding="utf-8"
+        )
+
+        class FakeBridgeHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                body = health if self.path.split("?")[0] == "/" else payload
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *args) -> None:  # keep test output quiet
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), FakeBridgeHandler)
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+        server_thread.start()
+        batch_id = f"csb-test-ctrlbreak-{os.getpid()}"
+        out_dir = project_root / "runs" / "combat_solver_compare" / batch_id
+        output_path = out_dir.parent / f"{batch_id}-child-output.txt"
+        proc: subprocess.Popen | None = None
+        try:
+            command = [
+                sys.executable,
+                str(project_root / "scripts" / "run_solver_comparison.py"),
+                "--batch-id",
+                batch_id,
+                "--seed-mode",
+                "observational",
+                "--live-lock",
+                str(live_lock_copy),
+                "--solver-lock",
+                str(solver_lock_copy),
+                "--base-url",
+                f"http://127.0.0.1:{server.server_address[1]}",
+                "--max-battles",
+                "1",
+                "--reader-mode",
+                "jsonl",
+                "--automated",
+            ]
+            with output_path.open("w", encoding="utf-8") as output_handle:
+                proc = subprocess.Popen(  # noqa: S603 - fixed argv, no shell
+                    command,
+                    cwd=str(project_root),
+                    stdout=output_handle,
+                    stderr=subprocess.STDOUT,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                )
+
+                # Wait until the child's polling loop is observably running:
+                # the per-poll state rows are written strictly after the
+                # stop-signal handlers are installed, so a CTRL_BREAK now
+                # cannot race setup.
+                trace_path = out_dir / "trace.jsonl"
+                deadline = time.time() + 90
+                loop_running = False
+                while time.time() < deadline:
+                    if proc.poll() is not None:
+                        self.fail(
+                            "comparison child exited before the loop started; "
+                            f"returncode={proc.returncode}, output="
+                            f"{output_path.read_text(encoding='utf-8', errors='replace')[-2000:]}"
+                        )
+                    try:
+                        rows = trace_path.read_text(encoding="utf-8").splitlines()
+                    except OSError:
+                        rows = []
+                    if any('"event_type": "state"' in row for row in rows):
+                        loop_running = True
+                        break
+                    time.sleep(0.2)
+            self.assertTrue(
+                loop_running, "comparison child never started polling the bridge"
+            )
+
+            proc.send_signal(signal.CTRL_BREAK_EVENT)
+            proc.wait(timeout=30)
+            self.assertEqual(proc.returncode, 0)
+
+            summary = json.loads(
+                (out_dir / "summary.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(summary["batch"]["status"], "partial")
+            self.assertEqual(summary["batch"]["stopped_reason"], "signal")
+            self.assertIsNone(summary["batch"]["error"])
+            manifest = json.loads(
+                (out_dir / "manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["status"], "partial")
+            self.assertIsNotNone(manifest["completed_at_utc"])
+        finally:
+            if proc is not None and proc.poll() is None:
+                proc.kill()
+                proc.wait(timeout=10)
+            shutil.rmtree(out_dir, ignore_errors=True)
+            try:
+                output_path.unlink()
+            except OSError:
+                pass
+            shutil.rmtree(tmp, ignore_errors=True)
+            server.shutdown()
+            server.server_close()
 
 
 if __name__ == "__main__":

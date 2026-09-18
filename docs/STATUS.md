@@ -1,5 +1,129 @@
 # Current status
 
+## Handoff environment audit: 2026-09-19
+
+Takeover pass, read-only with respect to the game (no process started, no POST,
+no bridge file touched). Two findings an operator needs before any live work:
+
+1. **The mod environment drifted again.** Steam Workshop silently updated
+   CombatSolver to **0.41.0** (`41BDB5DA3CD90115965B1CFDA55CB2E899F346F6366680BE589E5E757E6E5783`,
+   files timestamped 2026-09-18 16:31) and STS2-RitsuLib to **0.6.2**
+   (`E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6`).
+   `config/combat_solver.lock.json` still pins 0.31.0 / an older RitsuLib hash,
+   so the lock's *uncommitted* working-tree edit is itself now stale and was
+   deliberately **not** committed. STS2_MCP (`CD3EA740…`) and RegentFX
+   (`0F0262B3…`) still match their locks. Game build is unchanged
+   (`24724944` / v0.111.0 / `41cef1ea` / `222455745`). The 09-11~09-18 game
+   sessions produced no `ssb-*` batch directory, so their solver logs have no
+   run binding and remain 无法归属 under
+   `scripts/report_solver_log_attribution.py` semantics.
+2. **`G:\qoder\sts2-a10-advisor` is now the authoritative copy.** It was not
+   self-sufficient: the copy lost uv's `.tools/python/cpython-3.12-*` junction
+   (so `scripts/test.ps1` refused to start) and had no sibling `third_party`
+   (which every training script resolves as `ROOT.parent/third_party`). Both
+   are restored — the junction to the copy's own interpreter, and a
+   `G:\qoder\third_party` junction to the existing
+   `G:\ds harness\third_party` (no duplicate GB-scale copy, no move of the
+   shared emulator checkout). `live_version.lock.json`'s
+   `evaluation_environment.disabled_mods_backup_dir` and the
+   `ACCEPTANCE_BASELINE_2026-09-08.md` command paths now point at `G:\qoder`;
+   frozen provenance records (`data/teacher/*/manifest.json`,
+   `models/*.metadata.json`) intentionally keep their historical
+   `G:\ds harness\…` `emulator_root` strings and must not be rewritten.
+   `scripts/test.ps1` after the repair: **415 contract + 99 training
+   environment tests pass (514 total)**, with the training half resolving the
+   default adjacent emulator venv. These are contract/simulator checks; no game
+   was started and no live acceptance claim is made.
+
+## Offline Step 4 deploy-log binding: 2026-09-14
+
+The Step 4 evidence mechanism is now implemented and fail-closed offline. The
+log tailer records LF-aligned half-open byte ranges for each mod deploy,
+including SHA-256 and exact `SEARCH_REQUEST`/`DEPLOY_*` marker counts; it
+buffers torn tails, resets state on rotation/truncation or any consumed-prefix
+rewrite, and keeps legacy deploy records diagnostic-only. Durable comparison
+records bind the range to concrete run/battle/decision/turn identity. The
+assessor reopens the permitted log source, verifies path/identity/range/hash,
+ordered grammar, and action-by-action agreement before accepting an in-memory
+trusted deploy event. Missing, tampered, overlapping cross-run, mismatched, or
+serialized-only evidence cannot clear the deploy-log blocker, which is also
+checked per run so one run cannot lend evidence to another.
+
+DeepSeek implementation/test workers produced the patch candidates and
+regression tests; independent DeepSeek adversarial reviews ended at GO after
+the identified Debug-marker, LF-boundary, reset, decision-binding, dedupe, and
+per-run aggregation defects were fixed. The project small-runtime suite and
+all 99 training-environment tests pass. This was offline only: no game was
+started, no POST/action was sent, and no lock file was changed. The remaining
+Step 4 work is a controlled live batch proving that real current-version log
+grammar and rotation behavior produce these bindings end to end; until then,
+no live acceptance or win-rate claim is made.
+
+## Acceptance baseline for the next live phase: 2026-09-08
+
+Step 1 of the agreed plan is done offline (no game was started, no HTTP was
+sent): code/workspace/test state recorded, game and bridge verified **equal**
+to `live_version.lock.json` (v0.111.0 / build 24724944 / STS2MCP DLL+manifest
+hashes match), while the Workshop-updated RitsuLib/CombatSolver DLLs **drift**
+from the user's `combat_solver.lock.json` (drift documented, verification not
+relaxed — the comparison child therefore refuses to start until the operator
+re-reconciles that lock). The godot log-count differences across reports are
+point-in-time snapshots of a log directory the game itself rewrites; the
+authoritative 2026-09-08 inventory is
+[`runs/evidence_baseline_20260908/attribution.json`](../runs/evidence_baseline_20260908/attribution.json)
+(5 logs, all 无法归属). Precise commands, stop conditions, and acceptance
+checklists for the stop-rehearsal (step 2) and the first fixed-seed full game
+(step 3) are in
+[`ACCEPTANCE_BASELINE_2026-09-08.md`](ACCEPTANCE_BASELINE_2026-09-08.md).
+
+## Batch lifecycle fix + evidence attribution: 2026-09-07 (second pass)
+
+Task-scoped fix round after the read-only audit below. The failed batch
+`ssb-20260906T102557Z-183d0b05` was root-caused offline (no game was started):
+the game served a byte-identical frozen main menu (options
+`continue/abandon_run/…` with **no** `singleplayer`) for 72 s while the
+compendium proved no saved run, so autoplay correctly refused the unverifiable
+Continue but crash-looped 61 identical start attempts and died with exit 1;
+the supervisor's CTRL_BREAK stop killed the comparison child before its final
+summary, leaving `status=running` residue. Fixes: `BridgeConnectionError`
+classification, bounded retries with a re-read of fresh state, autoplay
+classified stop (trace `session_end` + exit code 3 with the recorded reason),
+comparison SIGBREAK cooperative shutdown, supervisor-side final verification
+that records residual comparison state honestly (never promotes it) on every
+terminal path including comparison-driven completion, autoplay exit-0
+completion path, torn-tail-tolerant trace summary reading, and
+`combat_solver_logs` inventory snapshots (observation semantics:
+`pre_existing` vs `created_during_window`) in every new batch manifest. New offline tooling:
+`scripts/report_solver_log_attribution.py` marks all five historical solver
+logs **无法归属** with explicit reasons (no run binding, no snapshot window);
+time proximity is never attribution evidence, and missing evidence keeps
+`assess_full_run.py` at `accepted=false`. Full details and evidence:
+[`BATCH_LIFECYCLE_FIX_2026-09-07.md`](BATCH_LIFECYCLE_FIX_2026-09-07.md).
+No version lock, seed allocation, route policy, or acceptance whitelist was
+changed; `config/combat_solver.lock.json` keeps its pre-existing user edits.
+
+## Read-only audit update: 2026-09-07
+
+The dated live-session section below is historical; the latest audit found the
+supervisor batch `ssb-20260906T102557Z-183d0b05` failed with the bridge
+unavailable, and no game process or bridge listener was available during the
+read-only check. The layered direction remains valid, but the joint system has
+not reached an accepted full-run result. See
+[`LIVE_PROGRESS_2026-09-07.md`](LIVE_PROGRESS_2026-09-07.md) for the evidence.
+
+The new route planner is an offline map-only prototype. A real historical
+`ssb` autoplay trace was read line by line and compared without game I/O:
+7,450 input lines produced 75 map events, 30 unique map states, 20 successful
+two-policy comparisons, 3 legal action divergences, 45 duplicate drops, and
+10 excluded map states with no legal candidates. The report is at
+[`comparison.jsonl`](../runs/route_comparison/ssb-20260905T193903Z-4e8b9eb1-20260907/comparison.jsonl),
+with provenance and input SHA-256 in its summary. These divergences are an
+observational policy difference and are not a win-rate or full-run result.
+
+The 2026-09-07 `scripts/test.ps1` run passed 371 small-runtime tests and 99
+training-environment tests (470 total). It did not start the game, send POST
+actions, or run a production training job.
+
 Date: 2026-09-06 (first live seeded A10 run; lock drift reconciled; batch automation hardened)
 
 ## Live session 2026-09-06: real-game fixed-seed A10 run in progress

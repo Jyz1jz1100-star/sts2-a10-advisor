@@ -425,6 +425,9 @@ class FullRunLedgerTests(unittest.TestCase):
         self.assertFalse(report["gates"]["execution_owner_unique"]["passed"])
 
     def test_fullauto_uses_deploy_log_without_http_combat_coverage_penalty(self) -> None:
+        from tests.test_deploy_evidence import _record, _write_journal
+        from scripts.assess_full_run import merge_comparison_evidence
+
         events = _valid_trace()
         events[0]["raw"]["execution_owner"] = "combat_solver_full_auto"
         terminal = events[-1]
@@ -437,19 +440,25 @@ class FullRunLedgerTests(unittest.TestCase):
                     _state("run-0", act=1, floor=2, state_type="monster"),
                     decision_id="combat-0",
                 ),
-                _event(
-                    "deploy_log",
-                    8,
-                    {"run_id": "run-0", "turn": 1, "status": "applied"},
-                    decision_id="combat-0",
-                ),
             ]
         )
         with tempfile.TemporaryDirectory() as temp:
-            path = Path(temp) / "fullauto-deploy.jsonl"
+            root = Path(temp)
+            path = root / "fullauto-deploy.jsonl"
             _write_trace(path, events)
+            trace = load_trace(path)
+            comparison = root / "comparison"
+            comparison.mkdir()
+            record = _record(
+                run_id="run-0", seed="seed-run-0", decision_id="combat-0"
+            )
+            _write_journal(
+                comparison,
+                [{"battle_id": "b-1", "record_checkpoint": record}],
+            )
+            merge_comparison_evidence(trace, comparison)
             runs, quality = analyze_traces(
-                [load_trace(path)], cohort="assisted", seed_mode="observational"
+                [trace], cohort="assisted", seed_mode="observational"
             )
             report = build_report(
                 runs,
@@ -508,7 +517,147 @@ class FullRunLedgerTests(unittest.TestCase):
         self.assertEqual(report["execution"]["combat_http_actions"], 1)
         self.assertIn("combat_http_actions_under_full_auto", report["verdict"]["blockers"])
 
+    def test_one_verified_run_cannot_mask_another_run_missing_deploy_log(self) -> None:
+        from tests.test_deploy_evidence import _record, _write_journal
+        from scripts.assess_full_run import merge_comparison_evidence
+
+        first_events = _valid_trace()
+        first_events[0]["raw"]["execution_owner"] = "combat_solver_full_auto"
+        first_events.append(
+            _event(
+                "state",
+                20,
+                _state("run-0", act=1, floor=2, state_type="monster"),
+                decision_id="combat-0",
+            )
+        )
+        second_events = _valid_trace()
+        second_events[0]["raw"]["execution_owner"] = "combat_solver_full_auto"
+        for event in second_events:
+            raw = event.get("raw")
+            if isinstance(raw, dict):
+                if raw.get("run_id") == "run-0":
+                    raw["run_id"] = "run-1"
+                    raw["seed"] = "seed-run-1"
+                run = raw.get("run")
+                if isinstance(run, dict) and run.get("run_id") == "run-0":
+                    run["run_id"] = "run-1"
+                    run["seed"] = "seed-run-1"
+        second_events.append(
+            _event(
+                "state",
+                20,
+                _state("run-1", act=1, floor=2, state_type="monster"),
+                decision_id="combat-1",
+            )
+        )
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            first_path = root / "run-0.jsonl"
+            second_path = root / "run-1.jsonl"
+            _write_trace(first_path, first_events)
+            _write_trace(second_path, second_events)
+            first_trace = load_trace(first_path)
+            comparison = root / "comparison"
+            comparison.mkdir()
+            _write_journal(
+                comparison,
+                [
+                    {
+                        "battle_id": "b-0",
+                        "record_checkpoint": _record(
+                            battle_id="b-0",
+                            run_id="run-0",
+                            seed="seed-run-0",
+                            decision_id="combat-0",
+                        ),
+                    }
+                ],
+            )
+            merge_comparison_evidence(first_trace, comparison)
+            runs, quality = analyze_traces(
+                [first_trace, load_trace(second_path)],
+                cohort="assisted",
+                seed_mode="observational",
+            )
+            report = build_report(
+                runs,
+                quality,
+                cohort="assisted",
+                seed_mode="observational",
+                pilot_runs=2,
+                formal_runs=500,
+                lock=LOCK,
+                model_id="trained-test",
+            )
+
+        self.assertNotIn(
+            "combat_deploy_log_missing_for_run:run-0",
+            report["verdict"]["blockers"],
+        )
+        self.assertIn(
+            "combat_deploy_log_missing_for_run:run-1",
+            report["verdict"]["blockers"],
+        )
+
+    def test_top_level_owner_and_source_are_not_deduped_away(self) -> None:
+        identity = {
+            "run_id": "run-0",
+            "seed": "seed-run-0",
+            "character": "IRONCLAD",
+            "ascension": 10,
+            "game_mode": "standard",
+        }
+        first = [
+            _event(
+                "run_identity",
+                0,
+                identity,
+                execution_owner="http_route_executor",
+                source="http_route",
+            )
+        ]
+        second = [
+            _event(
+                "run_identity",
+                0,
+                identity,
+                execution_owner="combat_solver_full_auto",
+                source="deploy_log",
+            )
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            first_path = Path(temp) / "owner-a.jsonl"
+            second_path = Path(temp) / "owner-b.jsonl"
+            _write_trace(first_path, first)
+            _write_trace(second_path, second)
+            runs, quality = analyze_traces(
+                [load_trace(first_path), load_trace(second_path)],
+                cohort="assisted",
+                seed_mode="observational",
+            )
+            report = build_report(
+                runs,
+                quality,
+                cohort="assisted",
+                seed_mode="observational",
+                pilot_runs=1,
+                formal_runs=500,
+                lock=LOCK,
+                model_id="trained-test",
+            )
+
+        self.assertEqual(
+            report["execution"]["owners"],
+            ["combat_solver_full_auto", "http_route_executor"],
+        )
+        self.assertIn("execution_owner_conflict", report["verdict"]["blockers"])
+
     def test_http_owner_rejects_mod_deploy_evidence(self) -> None:
+        from tests.test_deploy_evidence import _record, _write_journal
+        from scripts.assess_full_run import merge_comparison_evidence
+
         events = _valid_trace()
         events[0]["raw"]["execution_owner"] = "http_route_executor"
         events.extend(
@@ -519,19 +668,25 @@ class FullRunLedgerTests(unittest.TestCase):
                     _state("run-0", act=1, floor=2, state_type="monster"),
                     decision_id="combat-0",
                 ),
-                _event(
-                    "deploy_log",
-                    9,
-                    {"run_id": "run-0", "turn": 1, "status": "applied"},
-                    decision_id="combat-0",
-                ),
             ]
         )
         with tempfile.TemporaryDirectory() as temp:
-            path = Path(temp) / "http-mod-deploy.jsonl"
+            root = Path(temp)
+            path = root / "http-mod-deploy.jsonl"
             _write_trace(path, events)
+            trace = load_trace(path)
+            comparison = root / "comparison"
+            comparison.mkdir()
+            record = _record(
+                run_id="run-0", seed="seed-run-0", decision_id="combat-0"
+            )
+            _write_journal(
+                comparison,
+                [{"battle_id": "b-1", "record_checkpoint": record}],
+            )
+            merge_comparison_evidence(trace, comparison)
             runs, quality = analyze_traces(
-                [load_trace(path)], cohort="assisted", seed_mode="observational"
+                [trace], cohort="assisted", seed_mode="observational"
             )
             report = build_report(
                 runs,

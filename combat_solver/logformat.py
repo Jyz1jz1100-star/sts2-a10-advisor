@@ -33,12 +33,14 @@ canonical state hash) and bind by ``battle_turn`` with the freshness guard.
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
+from combat_solver.logranges import LogRangeError, capture_log_range
 from combat_solver.reader import DeployRecord, SourceEvent
 from combat_solver.snapshot import (
     FAILURE_REASONS,
@@ -178,6 +180,33 @@ class _SearchBlock:
 _BYTES_PER_MB = 1024 * 1024
 
 
+@dataclass(frozen=True)
+class _RawLine:
+    path: Path
+    byte_start: int
+    byte_end: int
+    text: str
+
+
+_HASH_CHUNK_BYTES = 1 << 20
+_EMPTY_DIGEST = hashlib.sha256().digest()
+
+
+def _prefix_digest(path: Path, end: int) -> bytes:
+    """Hash a consumed prefix in bounded chunks to detect in-place rewrites."""
+
+    hasher = hashlib.sha256()
+    remaining = end
+    with path.open("rb") as handle:
+        while remaining > 0:
+            chunk = handle.read(min(_HASH_CHUNK_BYTES, remaining))
+            if not chunk:
+                break
+            hasher.update(chunk)
+            remaining -= len(chunk)
+    return hasher.digest()
+
+
 class LogTailSource:
     """Tails ``*.log`` files and emits solver snapshots/failures.
 
@@ -208,7 +237,10 @@ class LogTailSource:
         self._time_budget_ms = settings.get("time_budget_ms")
         self._memory_limit_mb = settings.get("memory_limit_mb")
         self._offsets: dict[Path, int] = {}
+        self._file_identities: dict[Path, tuple[int, int]] = {}
+        self._prefix_digests: dict[Path, bytes] = {}
         self._started: set[Path] = set()
+        self._active_path: Path | None = None
         self._block = _SearchBlock()
         self._emitted_signature: tuple | None = None
         self._emitted_reuse_turn: int | None = None
@@ -216,15 +248,38 @@ class LogTailSource:
         # present when the mod itself deployed the route)
         self._deploy_actions: dict[int, list[RouteAction]] = {}
         self._deploy_end_turn: dict[int, bool] = {}
+        self._deploy_range_starts: dict[int, tuple[Path, int]] = {}
+        self._last_search: tuple[Path, int, int] | None = None
+
+    @property
+    def log_dir(self) -> Path:
+        return self._log_dir
+
+    def _reset_parser_state(self) -> None:
+        """Discard incomplete state when the producer file identity changes."""
+
+        self._block = _SearchBlock()
+        self._emitted_signature = None
+        self._emitted_reuse_turn = None
+        self._deploy_actions.clear()
+        self._deploy_end_turn.clear()
+        self._deploy_range_starts.clear()
+        self._last_search = None
 
     def poll(self) -> list[SourceEvent]:
         events: list[SourceEvent] = []
         if not self._log_dir.is_dir():
             return events
         for path in sorted(self._log_dir.glob("*.log")):
-            fresh = self._read_new(path)
-            for line in fresh.splitlines():
-                self._feed_line(line, events)
+            fresh, reset = self._read_new(path)
+            if (reset and self._active_path in (None, path)) or (
+                fresh and self._active_path not in (None, path)
+            ):
+                self._reset_parser_state()
+            if fresh:
+                self._active_path = path
+            for line in fresh:
+                self._feed_line(line.text, events, line)
         # End-of-stream flush: the last block of a battle may never see a
         # following SEARCH_REQUEST (combat ends first). Emitting here keeps
         # single-block sessions (and tests) correct; live battles always end
@@ -233,29 +288,80 @@ class LogTailSource:
         self._flush_block(events)
         return events
 
-    def _read_new(self, path: Path) -> str:
+    def _read_new(self, path: Path) -> tuple[list[_RawLine], bool]:
+        """Read complete appended lines with real byte offsets.
+
+        The cursor stops before an unterminated tail.  That tail is retried on
+        the next poll, so a writer killed mid-UTF-8 sequence cannot create a
+        synthetic marker or shift later offsets.  A digest of the entire
+        consumed prefix detects rewrites anywhere before the cursor.
+        """
+
+        reset = False
         try:
-            size = path.stat().st_size
+            file_stat = path.stat()
+            size = file_stat.st_size
+            identity = (file_stat.st_dev, file_stat.st_ino)
             if path not in self._started:
                 self._started.add(path)
                 self._offsets[path] = 0 if self._replay else size
+                self._file_identities[path] = identity
+                self._prefix_digests[path] = _prefix_digest(
+                    path, self._offsets[path]
+                )
                 if not self._replay:
-                    return ""
+                    return [], False
             offset = self._offsets.get(path, 0)
-            if size < offset:  # rotated/truncated
+            if self._file_identities.get(path) != identity or size < offset:
+                reset = True
+            elif offset and (
+                _prefix_digest(path, offset) != self._prefix_digests.get(path)
+            ):
+                reset = True
+            if reset:
+                self._file_identities[path] = identity
+                # Persist this before early returns: an empty or unterminated
+                # replacement must not retain the old cursor or parser state.
                 offset = 0
+                self._offsets[path] = 0
+                self._prefix_digests[path] = _EMPTY_DIGEST
             if size == offset:
-                return ""
-            with path.open("r", encoding="utf-8", errors="replace") as handle:
+                return [], reset
+            with path.open("rb") as handle:
                 handle.seek(offset)
-                text = handle.read()
-                self._offsets[path] = handle.tell()
-            return text
+                payload = handle.read(size - offset)
+            final_newline = payload.rfind(b"\n")
+            if final_newline < 0:
+                return [], reset
+            complete = payload[: final_newline + 1]
+            lines: list[_RawLine] = []
+            relative = 0
+            # Use LF-only boundaries, matching logranges._complete_lines.  A
+            # lone CR remains content and cannot create a parser-only event.
+            for body in complete.split(b"\n")[:-1]:
+                end = relative + len(body) + 1
+                lines.append(
+                    _RawLine(
+                        path=path,
+                        byte_start=offset + relative,
+                        byte_end=offset + end,
+                        text=body.decode("utf-8", errors="replace"),
+                    )
+                )
+                relative = end
+            self._offsets[path] = offset + len(complete)
+            self._prefix_digests[path] = _prefix_digest(path, self._offsets[path])
+            return lines, reset
         except OSError:
-            return ""
+            return [], reset
 
     # ------------------------------------------------------------------ feed
-    def _feed_line(self, line: str, events: list[SourceEvent]) -> None:
+    def _feed_line(
+        self,
+        line: str,
+        events: list[SourceEvent],
+        source_line: _RawLine | None = None,
+    ) -> None:
         if not is_solver_line(line):
             return
         kv = parse_kv_tokens(line)
@@ -269,6 +375,12 @@ class LogTailSource:
                 generation=_kv_int(kv, "generation"),
                 request_turn=_kv_int(kv, "turn"),
             )
+            if source_line is not None:
+                self._last_search = (
+                    source_line.path,
+                    source_line.byte_start,
+                    self._block.request_turn or -1,
+                )
             return
         if marker == "RESET":
             self._flush_block(events)
@@ -282,6 +394,15 @@ class LogTailSource:
             if turn is not None:
                 self._deploy_actions[turn] = []
                 self._deploy_end_turn[turn] = False
+                if source_line is not None:
+                    start = source_line.byte_start
+                    if (
+                        self._last_search is not None
+                        and self._last_search[0] == source_line.path
+                        and self._last_search[2] == turn
+                    ):
+                        start = self._last_search[1]
+                    self._deploy_range_starts[turn] = (source_line.path, start)
             return
         if marker == "DEPLOY_ACTION":
             self._feed_deploy_action(kv, events)
@@ -294,6 +415,24 @@ class LogTailSource:
             end_turn = bool(self._deploy_end_turn.pop(turn, False)) or (
                 _kv_bool(kv, "end_turn") or False
             )
+            log_range = None
+            range_start = self._deploy_range_starts.pop(turn, None)
+            if (
+                source_line is not None
+                and range_start is not None
+                and range_start[0] == source_line.path
+            ):
+                try:
+                    log_range = capture_log_range(
+                        source_line.path,
+                        range_start[1],
+                        source_line.byte_end,
+                        allowed_root=self._log_dir,
+                    )
+                except LogRangeError:
+                    # Keep the deploy as a diagnostic event, but the tracker
+                    # marks it unverified and the assessor will not accept it.
+                    log_range = None
             events.append(
                 SourceEvent.deployed(
                     DeployRecord(
@@ -301,6 +440,7 @@ class LogTailSource:
                         actions=actions,
                         end_turn=end_turn,
                         captured_at_utc=_utc_now(),
+                        log_range=log_range,
                     )
                 )
             )
@@ -551,19 +691,20 @@ def _group_route(
 
 
 def _line_event(line: str) -> str | None:
-    """Extract the event word right after the ``[CombatSolver/Test]`` marker."""
-    idx = line.find("[CombatSolver/Test]")
-    if idx < 0:
-        idx = line.find("[CombatSolver/Debug]")
-    if idx < 0:
-        return None
-    rest = line[idx + len("[CombatSolver/Test]") :].strip()
-    if not rest:
-        return None
-    token = rest.split()[0]
-    if token.startswith("["):  # extra logger scopes between marker and event
-        return None
-    return token
+    """Extract the event word after the exact solver marker that matched."""
+
+    for marker in SOLVER_LINE_MARKERS:
+        idx = line.find(marker)
+        if idx < 0:
+            continue
+        rest = line[idx + len(marker) :].strip()
+        if not rest:
+            return None
+        token = rest.split()[0]
+        if token.startswith("["):  # extra logger scopes between marker and event
+            return None
+        return token
+    return None
 
 
 def failure_from_line(line: str) -> SolverFailure | None:

@@ -46,6 +46,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from training.wilson import wilson_interval  # noqa: E402
 from combat_solver.evidence import (  # noqa: E402
     EvidenceIntegrityError,
+    VerifiedComparisonEvidence,
     adapt_comparison_evidence,
 )
 
@@ -108,6 +109,21 @@ _MOD_DEPLOY_SOURCES = {
     "solver_deploy",
     "full_auto_deploy",
 }
+_OWNER_FINGERPRINT_FIELDS = (
+    "execution_owner",
+    "execution_owners",
+    "owner",
+    "owners",
+    "combat_execution_owner",
+    "combat_owner",
+    "execution_watchdog",
+    "execution_watchdogs",
+    "watchdog",
+    "watchdogs",
+    "source",
+    "execution_source",
+    "action_source",
+)
 
 
 def _owner_token(value: Any) -> str:
@@ -200,7 +216,15 @@ def _event_owner_values(
     return owners, watchdogs, unknown
 
 
-def _is_mod_deploy_evidence(kind: str, event: Mapping[str, Any], raw: Any) -> bool:
+def _is_mod_deploy_evidence(
+    kind: str,
+    event: Mapping[str, Any],
+    raw: Any,
+    *,
+    verified: bool = False,
+) -> bool:
+    if not verified:
+        return False
     if kind in {"deploy_log", "combat_deploy", "solver_deploy", "full_auto_deploy"}:
         return True
     for item in (event, raw):
@@ -757,6 +781,11 @@ class TraceInput:
     observed_mods: list[str] = field(default_factory=list)
     model_metadata: dict[str, Any] = field(default_factory=dict)
     comparison_evidence: dict[str, Any] = field(default_factory=dict)
+    # In-memory trust boundary: only events inserted (or matched exactly) by
+    # ``merge_comparison_evidence`` after raw-range verification are accepted.
+    # Serializing and reloading a trace deliberately loses this trust and
+    # requires the comparison directory to be supplied again.
+    verified_deploy_event_ids: set[int] = field(default_factory=set, repr=False)
 
 
 def _evidence_identity_pairs(evidence: Mapping[str, Any]) -> set[tuple[str, str]]:
@@ -829,18 +858,21 @@ def merge_comparison_evidence(
     with different payload is rejected so a copied/partial journal cannot be
     made to look like a clean full-run execution history.
     """
-    evidence = (
-        dict(comparison)
-        if isinstance(comparison, Mapping)
-        else adapt_comparison_evidence(comparison)
-    )
+    if isinstance(comparison, Mapping):
+        if not isinstance(comparison, VerifiedComparisonEvidence):
+            raise EvidenceIntegrityError(
+                "in-memory comparison evidence must come directly from the verified adapter"
+            )
+        evidence = comparison
+    else:
+        evidence = adapt_comparison_evidence(comparison)
     if evidence.get("valid") is not True or not isinstance(evidence.get("events"), list):
         raise EvidenceIntegrityError("comparison evidence is not a valid adapter result")
     if not _comparison_matches_trace(trace, evidence):
         raise EvidenceIntegrityError(
             "comparison deploy evidence has no unique run_id/seed identity in target trace"
         )
-    existing_by_key: dict[tuple[Any, ...], str] = {}
+    existing_by_key: dict[tuple[Any, ...], tuple[str, dict[str, Any]]] = {}
     for event in trace.events:
         if not isinstance(event, Mapping) or event.get("event_type") != "deploy_log":
             continue
@@ -850,10 +882,14 @@ def merge_comparison_evidence(
         key = (
             raw.get("run_id"),
             str(raw.get("seed")),
+            raw.get("battle_id"),
             event.get("decision_id") or raw.get("decision_id"),
             raw.get("turn"),
         )
-        existing_by_key[key] = json.dumps(raw, ensure_ascii=False, sort_keys=True)
+        existing_by_key[key] = (
+            json.dumps(raw, ensure_ascii=False, sort_keys=True),
+            event,
+        )
     for event in evidence["events"]:
         if not isinstance(event, dict) or event.get("event_type") != "deploy_log":
             raise EvidenceIntegrityError("comparison evidence contains a non-deploy event")
@@ -863,6 +899,7 @@ def merge_comparison_evidence(
         key = (
             raw.get("run_id"),
             str(raw.get("seed")),
+            raw.get("battle_id"),
             event.get("decision_id") or raw.get("decision_id"),
             raw.get("turn"),
         )
@@ -870,9 +907,12 @@ def merge_comparison_evidence(
         prior = existing_by_key.get(key)
         if prior is None:
             trace.events.append(event)
-            existing_by_key[key] = encoded
-        elif prior != encoded:
+            trace.verified_deploy_event_ids.add(id(event))
+            existing_by_key[key] = (encoded, event)
+        elif prior[0] != encoded:
             raise EvidenceIntegrityError(f"trace/comparison deploy evidence conflict for {key!r}")
+        else:
+            trace.verified_deploy_event_ids.add(id(prior[1]))
     source = evidence.get("source")
     if isinstance(source, dict):
         trace.comparison_evidence = dict(source)
@@ -1089,6 +1129,7 @@ def analyze_traces(
         ):
             kind = str(event.get("event_type") or "")
             raw = event.get("raw")
+            verified_deploy = id(event) in trace.verified_deploy_event_ids
             # Multiple recorder files may contain the same run (for example,
             # a supervisor copy and an autoplay copy).  Do not double-count
             # action/result/terminal evidence merely because the trace path
@@ -1100,6 +1141,11 @@ def analyze_traces(
                     "sequence": event.get("sequence"),
                     "decision_id": event.get("decision_id"),
                     "state_type": event.get("state_type"),
+                    "owner_fields": {
+                        key: event.get(key)
+                        for key in _OWNER_FINGERPRINT_FIELDS
+                        if key in event
+                    },
                     "raw": raw,
                 }
                 try:
@@ -1260,7 +1306,9 @@ def analyze_traces(
                 # A deploy_log is already authoritative Mod execution
                 # evidence.  It is not an HTTP POST and therefore must not
                 # create a synthetic missing-result/HTTP-combat action.
-                if _is_mod_deploy_evidence(kind, event, raw):
+                if _is_mod_deploy_evidence(
+                    kind, event, raw, verified=verified_deploy
+                ):
                     run_id = _event_run_hint(raw) or run_id
                     if run_id is None:
                         run_id = f"UNATTRIBUTED_DEPLOY:{trace.path.name}:{event.get('sequence', len(actions))}"
@@ -1369,6 +1417,9 @@ def analyze_traces(
                 if run_id is None:
                     run_id = f"UNATTRIBUTED_DEPLOY:{trace.path.name}:{event.get('sequence', len(actions))}"
                 run = _new_run(runs, run_id, trace.path)
+                if not verified_deploy:
+                    run.issues.append("unverified_combat_deploy_evidence")
+                    continue
                 _attach_execution_evidence(
                     run, event_owners, event_watchdogs, event_unknown
                 )
@@ -1806,6 +1857,16 @@ def build_report(
     for row in rows:
         if not row.get("execution_owners") and not row.get("unknown_execution_owners"):
             owner_issues.append(f"execution_owner_missing_for_run:{row['run_id']}")
+        row_owners = {str(value) for value in (row.get("execution_owners") or [])}
+        combat = row.get("combat_execution") or {}
+        if (
+            "combat_solver_full_auto" in row_owners
+            and int(combat.get("decisions_observed") or 0) > 0
+            and int(combat.get("mod_deploy_actions") or 0) == 0
+        ):
+            owner_issues.append(
+                f"combat_deploy_log_missing_for_run:{row['run_id']}"
+            )
     combat_http_actions = sum(
         int((row.get("combat_execution") or {}).get("http_actions") or 0)
         for row in rows

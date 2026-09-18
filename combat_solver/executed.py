@@ -21,6 +21,9 @@ class ExecutedTurn:
     ambiguous: bool
     notes: tuple[str, ...] = ()
     source: str = "inferred"  # "inferred" from state deltas | "deploy_log"
+    # Exact producer-log bytes.  Presence means the capture side supplied a
+    # range; the acceptance adapter still has to re-read and verify it.
+    source_evidence: dict[str, Any] | None = None
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -29,6 +32,7 @@ class ExecutedTurn:
             "ambiguous": self.ambiguous,
             "notes": list(self.notes),
             "source": self.source,
+            "source_evidence": self.source_evidence,
         }
 
 

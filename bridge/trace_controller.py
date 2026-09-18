@@ -31,6 +31,17 @@ class BridgeProtocolError(RuntimeError):
     """The local bridge was unavailable or violated its JSON contract."""
 
 
+class BridgeConnectionError(BridgeProtocolError):
+    """The bridge HTTP endpoint could not be reached at all.
+
+    Deliberately a subclass of :class:`BridgeProtocolError` so every existing
+    handler keeps working, while drivers can distinguish "game/bridge is
+    unreachable" (transport) from a protocol/contract violation.  A transport
+    failure is the only case where retrying a GET can ever observe a different
+    state; protocol errors need a state change first.
+    """
+
+
 class ActionPermissionError(PermissionError):
     """A POST was attempted without the explicit action capability."""
 
@@ -436,7 +447,7 @@ class STS2MCPController:
             detail = exc.read().decode("utf-8", errors="replace")
             raise BridgeProtocolError(f"{method} {url} -> HTTP {exc.code}: {detail}") from exc
         except (URLError, TimeoutError, OSError) as exc:
-            raise BridgeProtocolError(f"{method} {url} failed: {exc}") from exc
+            raise BridgeConnectionError(f"{method} {url} failed: {exc}") from exc
         except json.JSONDecodeError as exc:
             raise BridgeProtocolError(f"{method} {url} returned non-JSON") from exc
         if not isinstance(data, dict):

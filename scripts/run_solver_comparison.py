@@ -29,7 +29,7 @@ import time
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -266,6 +266,39 @@ class _StopBatch(RuntimeError):
     def __init__(self, reason: str):
         super().__init__(reason)
         self.reason = reason
+
+
+def install_stop_signal_handlers(
+    handler: Callable[[int, Any], None],
+) -> list[tuple[int, Any]]:
+    """Install cooperative stop handlers and return ``(signum, previous)``.
+
+    SIGTERM is the generic cooperative stop.  On Windows the batch supervisor
+    stops this process group with ``CTRL_BREAK_EVENT``, which CPython exposes
+    as SIGBREAK: without a handler the OS terminates the process outright and
+    the batch summary is left as ``status=running`` residue.  Installing the
+    SIGBREAK handler lets the ``finally`` block publish an honest final
+    summary (``stopped_reason=signal``) instead.
+    """
+
+    installed: list[tuple[int, Any]] = [
+        (signal.SIGTERM, signal.getsignal(signal.SIGTERM))
+    ]
+    signal.signal(signal.SIGTERM, handler)
+    if os.name == "nt" and hasattr(signal, "SIGBREAK"):
+        installed.append((signal.SIGBREAK, signal.getsignal(signal.SIGBREAK)))
+        signal.signal(signal.SIGBREAK, handler)
+    return installed
+
+
+def restore_stop_signal_handlers(installed: list[tuple[int, Any]]) -> None:
+    """Restore the exact previous handlers returned by the install helper."""
+
+    for signum, previous in installed:
+        try:
+            signal.signal(signum, previous)
+        except (OSError, ValueError):  # pragma: no cover - non-main thread
+            pass
 
 
 def _utc_now() -> str:
@@ -1048,6 +1081,11 @@ def _restore_record(payload: Any) -> BattleRecord:
                     ambiguous=bool(executed_payload["ambiguous"]),
                     notes=tuple(executed_payload.get("notes", [])),
                     source=str(executed_payload.get("source", "inferred")),
+                    source_evidence=(
+                        dict(executed_payload["source_evidence"])
+                        if isinstance(executed_payload.get("source_evidence"), dict)
+                        else None
+                    ),
                 )
             route_payload = item.get("route_step")
             route_step = (
@@ -1440,6 +1478,11 @@ def main(argv: list[str] | None = None) -> int:
             "config": config,
             "git_head": _git_head(),
             "reader": reader.name if reader is not None else None,
+            "solver_log_root": (
+                str(reader.log_dir.resolve())
+                if reader is not None and getattr(reader, "log_dir", None) is not None
+                else None
+            ),
             "resume": {
                 "requested": bool(args.resume),
                 "existing_battles": initial_record_count,
@@ -1633,12 +1676,10 @@ def main(argv: list[str] | None = None) -> int:
         started = time.monotonic()
         bridge_lost_since: float | None = None
         bridge_last_error: str | None = None
-        old_sigterm = signal.getsignal(signal.SIGTERM)
-
         def _handle_stop(signum: int, _frame: Any) -> None:
-            raise _StopBatch("signal" if signum == signal.SIGTERM else "interrupt")
+            raise _StopBatch("interrupt" if signum == signal.SIGINT else "signal")
 
-        signal.signal(signal.SIGTERM, _handle_stop)
+        installed_handlers = install_stop_signal_handlers(_handle_stop)
         try:
             while len(existing_ids) < max_battles:
                 if args.max_seconds and time.monotonic() - started > args.max_seconds:
@@ -1727,7 +1768,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 time.sleep(poll_seconds)
         finally:
-            signal.signal(signal.SIGTERM, old_sigterm)
+            restore_stop_signal_handlers(installed_handlers)
     except KeyboardInterrupt:
         stopped_reason = "interrupt"
     except _StopBatch as exc:

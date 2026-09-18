@@ -418,7 +418,23 @@ def _execution_counts(record: BattleRecord) -> dict[str, int | bool]:
     deploy_log_turns = sum(
         1
         for turn in turns
-        if turn.executed is not None and turn.executed.source == "deploy_log"
+        if (
+            turn.executed is not None
+            and turn.executed.source == "deploy_log"
+            and isinstance(turn.executed.source_evidence, dict)
+        )
+    )
+    unverified_deploy_turns = sum(
+        1
+        for turn in turns
+        if (
+            turn.executed is not None
+            and turn.executed.source.startswith("deploy_log")
+            and not (
+                turn.executed.source == "deploy_log"
+                and isinstance(turn.executed.source_evidence, dict)
+            )
+        )
     )
     inferred_turns = sum(
         1
@@ -446,6 +462,7 @@ def _execution_counts(record: BattleRecord) -> dict[str, int | bool]:
     return {
         "total_turns": total,
         "deploy_log_turns": deploy_log_turns,
+        "unverified_deploy_turns": unverified_deploy_turns,
         "inferred_turns": inferred_turns,
         "ambiguous_turns": ambiguous_turns,
         "missing_turns": missing_turns,
@@ -487,6 +504,9 @@ def aggregate_battles(records: Sequence[BattleRecord]) -> dict[str, Any]:
     no_route_turns = sum(no_route for _, _, no_route in turn_coverage)
     execution = [_execution_counts(record) for record in records]
     deploy_log_turns = sum(int(item["deploy_log_turns"]) for item in execution)
+    unverified_deploy_turns = sum(
+        int(item["unverified_deploy_turns"]) for item in execution
+    )
     inferred_execution_turns = sum(int(item["inferred_turns"]) for item in execution)
     ambiguous_execution_turns = sum(int(item["ambiguous_turns"]) for item in execution)
     missing_execution_turns = sum(int(item["missing_turns"]) for item in execution)
@@ -624,6 +644,7 @@ def aggregate_battles(records: Sequence[BattleRecord]) -> dict[str, Any]:
         "no_route_rate": no_route_rate,
         "no_route_rate_wilson95": [no_route_low, no_route_high],
         "n_turns_deploy_log": deploy_log_turns,
+        "n_turns_unverified_deploy_log": unverified_deploy_turns,
         "n_turns_inferred": inferred_execution_turns,
         "n_turns_ambiguous_execution": ambiguous_execution_turns,
         "n_turns_missing_execution": missing_execution_turns,
@@ -653,6 +674,7 @@ def aggregate_battles(records: Sequence[BattleRecord]) -> dict[str, Any]:
         "execution_source": {
             "total_turns": n_turns,
             "deploy_log_turns": deploy_log_turns,
+            "unverified_deploy_turns": unverified_deploy_turns,
             "inferred_turns": inferred_execution_turns,
             "ambiguous_turns": ambiguous_execution_turns,
             "missing_turns": missing_execution_turns,
@@ -671,6 +693,7 @@ def aggregate_battles(records: Sequence[BattleRecord]) -> dict[str, Any]:
             "route_unavailable": route_unavailable_turns,
             "no_route": no_route_turns,
             "deploy_log": deploy_log_turns,
+            "unverified_deploy_log": unverified_deploy_turns,
             "inferred": inferred_execution_turns,
             "ambiguous_execution": ambiguous_execution_turns,
             "missing_execution": missing_execution_turns,

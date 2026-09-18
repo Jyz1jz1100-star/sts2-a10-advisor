@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Protocol
 
+from combat_solver.logranges import LogRange
 from combat_solver.snapshot import (
     RouteAction,
     SnapshotError,
@@ -38,6 +39,7 @@ class DeployRecord:
     actions: tuple[RouteAction, ...]
     end_turn: bool
     captured_at_utc: str
+    log_range: LogRange | None = None
 
 
 @dataclass(frozen=True)

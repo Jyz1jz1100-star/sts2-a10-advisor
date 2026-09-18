@@ -345,7 +345,15 @@ class BattleTracker:
                 actions=tuple(actions),
                 ambiguous=False,
                 notes=("executed per the solver deploy log",),
-                source="deploy_log",
+                # A legacy/manual DeployRecord without byte provenance stays
+                # useful diagnostically but is not acceptance-grade evidence.
+                source=(
+                    "deploy_log" if deploy.log_range is not None
+                    else "deploy_log_unverified"
+                ),
+                source_evidence=(
+                    deploy.log_range.to_json() if deploy.log_range is not None else None
+                ),
             )
         else:
             executed = infer_executed_turn(anchor.state, next_state, anchor.turn)

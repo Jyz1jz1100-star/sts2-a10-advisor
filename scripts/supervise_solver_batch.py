@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import errno
+import hashlib
 import json
 import os
 import re
@@ -75,6 +76,12 @@ EXIT_BATCH_EXISTS = 7
 EXIT_STOPPED = 130
 EXIT_RUN_TIMEOUT = 8
 EXIT_PARTIAL = 9
+
+# Mirrors ``bridge.autoplay.EXIT_CLASSIFIED_STOP``: the autoplay child ended
+# itself on purpose for a recorded reason (stale state, bridge unavailable).
+# This is a deliberate stop, not a component crash, and the batch manifest
+# records the child's own summary with the concrete reason.
+AUTOPLAY_CLASSIFIED_STOP_EXIT = 3
 
 _BATCH_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{2,80}$")
 _CONTAMINATED_ID_RE = re.compile(r"(?:^|[-_.])phase1(?:[-_.]50)?(?:$|[-_.])", re.IGNORECASE)
@@ -517,6 +524,106 @@ def _load_json_object(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     return payload, None
 
 
+def read_trace_session_end(trace_path: Path) -> dict[str, Any] | None:
+    """Read the autoplay child's final summary event from its trace.
+
+    ``bridge.autoplay`` appends a ``session_end`` event when the batch ends
+    normally or as a classified stop.  The supervisor only reads this file
+    (never rewrites a child artifact) so its manifest can carry the concrete
+    stop reason; a trace without the event stays ``None`` — an abrupt child
+    death must not be upgraded into a summary that never existed.
+
+    The file is decoded line by line from binary content: a process killed
+    mid-append can leave a torn final line with truncated UTF-8 bytes, and
+    that must degrade to "corrupt tail skipped" instead of losing the last
+    complete summary.  When any such line was skipped before the record was
+    found, the returned dict carries ``trace_tail_corrupt: true`` so
+    consumers can see the record is degraded while the original exit reason
+    is preserved verbatim.
+    """
+
+    try:
+        raw_bytes = Path(trace_path).read_bytes()
+    except OSError:
+        return None
+    corrupt_tail = False
+    for line in reversed(raw_bytes.splitlines()):
+        try:
+            row = json.loads(line.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            # A torn append or an otherwise unparseable trailing line; keep
+            # scanning earlier complete records instead of failing.
+            corrupt_tail = True
+            continue
+        if isinstance(row, dict) and row.get("event_type") == "session_end":
+            raw = row.get("raw")
+            if not isinstance(raw, dict):
+                return None
+            if corrupt_tail:
+                raw = dict(raw)
+                raw["trace_tail_corrupt"] = True
+            return raw
+    return None
+
+
+SOLVER_LOG_GLOB = "godot*.log"
+SOLVER_LOG_MAX_HASH_BYTES = 64 * 1024 * 1024
+
+
+def snapshot_solver_logs(
+    log_dir: Path, *, max_hash_bytes: int = SOLVER_LOG_MAX_HASH_BYTES
+) -> list[dict[str, Any]]:
+    """Read-only content inventory of the saved game/solver logs.
+
+    The manifest of every new batch records which ``godot*.log`` files existed
+    at batch start (path, size, mtime, SHA-256) and, at finalization, which
+    existed afterwards.  A later assessor can then bind a Combat Solver log to
+    this batch by exact hash and window instead of guessing from timestamps.
+    Recording the snapshot is binding *input* only; it never attributes a log
+    to a run by itself.
+    """
+
+    inventory: list[dict[str, Any]] = []
+    try:
+        entries = sorted(Path(log_dir).glob(SOLVER_LOG_GLOB))
+    except OSError:
+        return inventory
+    for entry in entries:
+        if not entry.is_file():
+            continue
+        try:
+            stat = entry.stat()
+        except OSError:
+            continue
+        row: dict[str, Any] = {
+            "path": str(entry),
+            "size_bytes": stat.st_size,
+            "mtime_utc": datetime.fromtimestamp(
+                stat.st_mtime, tz=UTC
+            ).isoformat().replace("+00:00", "Z"),
+        }
+        if stat.st_size <= max_hash_bytes:
+            digest = hashlib.sha256()
+            try:
+                with entry.open("rb") as handle:
+                    for block in iter(
+                        lambda: handle.read(1024 * 1024), b""
+                    ):
+                        digest.update(block)
+            except OSError as exc:
+                row["sha256"] = None
+                row["hash_error"] = f"{type(exc).__name__}: {exc}"
+            else:
+                row["sha256"] = digest.hexdigest().upper()
+        else:
+            row["sha256"] = None
+            row["hash_skipped"] = (
+                f"file larger than {max_hash_bytes} bytes; hash refused"
+            )
+        inventory.append(row)
+    return inventory
+
+
 def verify_comparison_artifacts(
     comparison_dir: Path,
     expected_batch_id: str,
@@ -944,6 +1051,9 @@ class BatchSupervisor:
         self._stop_signal_reason: str | None = None
         self._old_signal_handlers: dict[int, Any] = {}
         self.comparison_result: dict[str, Any] | None = None
+        self.autoplay_summary: dict[str, Any] | None = None
+        self.solver_logs_at_start: list[dict[str, Any]] | None = None
+        self.solver_logs_at_end: list[dict[str, Any]] | None = None
         self.seed_allocation = (
             load_seed_allocation(config.resolved_seed_file)
             if config.mode == "fixed" and config.resolved_seed_file is not None
@@ -978,6 +1088,9 @@ class BatchSupervisor:
                 "a", encoding="utf-8", buffering=1, newline="\n"
             )
             self.commands = build_component_commands(self.config, self.batch_dir)
+            # Record which Combat Solver/game logs exist before any child
+            # starts, so post-batch log bindings have an exact baseline.
+            self.solver_logs_at_start = snapshot_solver_logs(self.config.game_log_dir)
             self._prepared = True
             self._log(
                 "batch_created",
@@ -1098,6 +1211,29 @@ class BatchSupervisor:
             "children": self._child_snapshot(),
             "exit_codes": self.exit_codes,
             "comparison_result": self.comparison_result,
+            # Read-only Combat Solver/game log inventory around the batch
+            # window.  Hash-observation semantics only: the fields say which
+            # hashes were observed at start / end.  A hash missing from
+            # ``at_start`` never implies the file was created in the window
+            # (an appended file changes its hash; a start snapshot can be
+            # missing or refuse to hash), and no observation attributes a
+            # log to a run — that requires content-range and run-identity
+            # association inside the log.
+            "combat_solver_logs": {
+                "log_dir": str(self.config.game_log_dir),
+                "glob": SOLVER_LOG_GLOB,
+                "at_start": self.solver_logs_at_start,
+                "at_end": self.solver_logs_at_end,
+                "purpose": (
+                    "hash-observation inventories only; hash absence at "
+                    "start never infers creation time, and timestamp "
+                    "proximity is not evidence"
+                ),
+            },
+            # The autoplay child's own final summary (stop reason, runs,
+            # seed-allocation state) when it ended audibly.  Read-only copy:
+            # the trace itself stays the authoritative artifact.
+            "autoplay_summary": self.autoplay_summary,
             # Whole-run assessment is a separate read-only step.  Publish all
             # of its required inputs up front, including both spellings of
             # the checkpoint key used by older consumers.
@@ -1383,6 +1519,23 @@ class BatchSupervisor:
         self._persist()
         return result
 
+    def _finalize_stop(self) -> dict[str, Any]:
+        """Reconcile recorded state after children stopped.
+
+        A stopped comparison child may have been unable to publish its final
+        summary (force kill, crash mid-write).  Its on-disk artifacts are
+        never rewritten here; instead the supervisor verifies them read-only
+        and records the resulting classification — including a residual
+        ``running`` status — in the batch manifest, so the layers converge on
+        an honest terminal state instead of pretending completion.
+        """
+
+        self.autoplay_summary = read_trace_session_end(
+            self.batch_dir / "autoplay_trace.jsonl"
+        )
+        self.solver_logs_at_end = snapshot_solver_logs(self.config.game_log_dir)
+        return self._verify_comparison()
+
     def _monitor(self) -> int:
         started = self.clock()
         game_missing_since: float | None = None
@@ -1391,6 +1544,7 @@ class BatchSupervisor:
             if self._stop_requested:
                 self.stop_reason = self._stop_signal_reason or "stop_requested"
                 self._stop_children(self.stop_reason)
+                self._finalize_stop()
                 return EXIT_STOPPED
 
             states = {
@@ -1405,6 +1559,7 @@ class BatchSupervisor:
                         self.stop_reason = "comparison_complete"
                         self._log("comparison_complete", exit_code=comparison_code)
                         self._stop_children("comparison_complete")
+                        self._finalize_stop()
                         return EXIT_OK
                     if classification == "partial":
                         self.stop_reason = "comparison_partial"
@@ -1415,6 +1570,7 @@ class BatchSupervisor:
                             issues=comparison_result["issues"],
                         )
                         self._stop_children("comparison_partial")
+                        self._finalize_stop()
                         return EXIT_PARTIAL
                     self.stop_reason = "comparison_artifacts_invalid"
                     self._log(
@@ -1423,10 +1579,12 @@ class BatchSupervisor:
                         issues=comparison_result["issues"],
                     )
                     self._stop_children("comparison_artifacts_invalid")
+                    self._finalize_stop()
                     return EXIT_CHILD_FAILED
                 self.stop_reason = "comparison_failed"
                 self._log("comparison_failed", exit_code=comparison_code)
                 self._stop_children("comparison_failed")
+                self._finalize_stop()
                 return EXIT_CHILD_FAILED
 
             unexpected = [
@@ -1436,9 +1594,32 @@ class BatchSupervisor:
             ]
             if unexpected:
                 name, code = unexpected[0]
-                self.stop_reason = f"{name}_exited"
-                self._log("child_unexpected_exit", component=name, exit_code=code)
-                self._stop_children("child_unexpected_exit")
+                if name == "autoplay" and code == 0:
+                    # The driver finished its quota cleanly (max runs/actions
+                    # or seed exhaustion).  The batch is over; wrap up instead
+                    # of labelling a normal completion a child failure.
+                    self.stop_reason = "autoplay_completed"
+                    self._log("autoplay_completed", exit_code=code)
+                elif name == "autoplay" and code == AUTOPLAY_CLASSIFIED_STOP_EXIT:
+                    # The driver ended itself for a recorded reason (stale
+                    # state, bridge unavailable).  Preserve that reason rather
+                    # than reporting an unexpected crash.
+                    self.stop_reason = "autoplay_classified_stop"
+                    self._log("autoplay_classified_stop", exit_code=code)
+                elif code == 0:
+                    self.stop_reason = f"{name}_finished"
+                    self._log("child_finished", component=name, exit_code=code)
+                else:
+                    self.stop_reason = f"{name}_exited"
+                    self._log("child_unexpected_exit", component=name, exit_code=code)
+                self._stop_children(self.stop_reason)
+                comparison_result = self._finalize_stop()
+                if self.stop_reason == "autoplay_completed":
+                    return (
+                        EXIT_OK
+                        if comparison_result["classification"] == "complete"
+                        else EXIT_PARTIAL
+                    )
                 return EXIT_CHILD_FAILED
 
             if not self._probe():
@@ -1453,6 +1634,7 @@ class BatchSupervisor:
                         missing_seconds=round(now - game_missing_since, 3),
                     )
                     self._stop_children("game_lost_timeout")
+                    self._finalize_stop()
                     return EXIT_GAME_LOST
             else:
                 if game_missing_since is not None:
@@ -1464,6 +1646,7 @@ class BatchSupervisor:
                 self.stop_reason = "supervisor_timeout"
                 self._log("supervisor_timeout", elapsed_seconds=round(elapsed, 3))
                 self._stop_children("supervisor_timeout")
+                self._finalize_stop()
                 return EXIT_RUN_TIMEOUT
             self.sleep(max(0.01, self.config.poll_seconds))
 
@@ -1521,6 +1704,10 @@ class BatchSupervisor:
             self.result_code = EXIT_STOPPED
             if self._prepared:
                 self.completed_at_utc = _utc_now()
+                try:
+                    self._finalize_stop()
+                except OSError:
+                    pass
                 self._persist("stopped")
             return self.result_code
         except BaseException as exc:
@@ -1530,6 +1717,10 @@ class BatchSupervisor:
             self.result_code = EXIT_CHILD_FAILED
             if self._prepared:
                 self.completed_at_utc = _utc_now()
+                try:
+                    self._finalize_stop()
+                except OSError:
+                    pass
                 self._persist("failed")
             return self.result_code
         finally:

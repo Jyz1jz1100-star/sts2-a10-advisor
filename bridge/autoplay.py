@@ -54,6 +54,7 @@ from combat_solver.snapshot import RouteAction  # noqa: E402
 
 from bridge.trace_controller import (  # noqa: E402
     ActionPermissionError,
+    BridgeConnectionError,
     BridgeProtocolError,
     merge_verified_run_identity,
     STS2MCPController,
@@ -114,6 +115,28 @@ def _read_provenance(path: Path | None) -> dict[str, Any]:
 
 class RunIdentityError(BridgeProtocolError):
     """A saved/continued run failed the automated identity contract."""
+
+
+# Exit codes for ``python -m bridge.autoplay``: 0 is a clean quota or
+# allocation end; EXIT_CLASSIFIED_STOP ends the batch on purpose for a
+# recorded reason (stale state, bridge unavailable) instead of crashing.
+# scripts/supervise_solver_batch.py mirrors this constant.
+EXIT_CLASSIFIED_STOP = 3
+
+
+class AutoplayClassifiedStop(RuntimeError):
+    """A bounded, classified reason to end the autoplay batch.
+
+    Raised only after retries that re-read fresh state were exhausted, and
+    never to mask an exception: ``reason`` names the failure class
+    (``stale_state``, ``bridge_unavailable``, ``repeated_failures``) and
+    ``detail`` carries the last concrete error for the batch record.
+    """
+
+    def __init__(self, reason: str, detail: str) -> None:
+        super().__init__(f"{reason}: {detail}")
+        self.reason = reason
+        self.detail = detail
 
 
 def hand_index_for(card_id: str, nth: int, hand: list[dict[str, Any]]) -> int | None:
@@ -531,12 +554,24 @@ class AutoPlayer:
         seed_file: Path | str | None = None,
         seed_ledger: Path | str | None = None,
         batch_dir: Path | str | None = None,
+        failure_backoff: float = 1.0,
+        bridge_backoff: float = 2.0,
+        bridge_unavailable_timeout_seconds: float = 180.0,
+        max_consecutive_failures: int = 60,
+        max_total_failures: int = 600,
     ):
         self.controller = controller
         self.policy = LiveHeuristicPolicy()
         self.max_runs = max_runs
         self.max_actions = max_actions
         self.poll = poll
+        # Retry budgets: every retry re-reads fresh state first; when a budget
+        # is exhausted the batch ends as a classified stop instead of a crash.
+        self._failure_backoff = failure_backoff
+        self._bridge_backoff = bridge_backoff
+        self._bridge_unavailable_timeout_seconds = bridge_unavailable_timeout_seconds
+        self._max_consecutive_failures = max_consecutive_failures
+        self._max_total_failures = max_total_failures
         # combat route executor: the mod (advice mode) auto-searches every
         # player turn and logs the route; we execute it over the bridge
         self._route_source = route_source
@@ -1032,18 +1067,72 @@ class AutoPlayer:
             raise RunIdentityError("Seeded start identity is not standard")
         return identity
 
-    # ------------------------------------------------------------------- run
+    # ------------------------------------------------------------- run
+    def _write_session_end(self, detail: str | None = None) -> None:
+        """Append the final summary to the trace so batches end auditable."""
+
+        recorder = getattr(self.controller, "recorder", None)
+        if recorder is None:
+            return
+        recorder.write(
+            "session_end",
+            {
+                "summary": self.summary(),
+                "detail": detail,
+            },
+        )
+
+    def _classified_stop(self, reason: str, detail: str) -> None:
+        """End the batch for a recorded reason; never swallow the cause."""
+
+        self.stop_reason = reason
+        self._write_session_end(detail)
+        raise AutoplayClassifiedStop(reason, detail)
+
     def run(self) -> dict[str, Any]:
         assert self.controller is not None
         failures = 0
         last_fail_id: str | None = None
+        bridge_unavailable_since: float | None = None
         while self.runs_started < self.max_runs and self._actions_total() < self.max_actions:
             try:
                 state, decision_id = self.controller.get_state()
-            except BridgeProtocolError as exc:
+            except BridgeConnectionError as exc:
+                # Transport failure: no state can be read, so the only honest
+                # retry is bounded waiting for the endpoint to come back.  The
+                # supervisor's own probe normally ends the batch sooner when
+                # the game is gone; this bound covers standalone runs.  Deep
+                # Combat Solver searches can block the listener for a while,
+                # so the default budget is generous (>= the 120s identity
+                # window) and every retry re-attempts a fresh GET.
+                now = time.monotonic()
+                bridge_unavailable_since = bridge_unavailable_since or now
                 print(f"bridge unavailable ({exc}); retrying", flush=True)
-                time.sleep(2.0)
+                if (
+                    now - bridge_unavailable_since
+                    >= self._bridge_unavailable_timeout_seconds
+                ):
+                    self._classified_stop(
+                        "bridge_unavailable",
+                        f"no readable state for "
+                        f"{now - bridge_unavailable_since:.1f}s; last error: {exc}",
+                    )
+                time.sleep(self._bridge_backoff)
                 continue
+            except BridgeProtocolError as exc:
+                # Protocol-level state read failure (HTTP error status or a
+                # non-JSON body): bounded like any other failure, never the
+                # old unbounded retry, and each retry re-reads fresh state.
+                failures += 1
+                print(f"state read failed ({exc}); retrying", flush=True)
+                if failures > self._max_total_failures:
+                    self._classified_stop(
+                        "repeated_state_failures", f"last error: {exc}"
+                    )
+                time.sleep(self._failure_backoff)
+                continue
+            # A fresh readable state resets the bridge-unavailable window.
+            bridge_unavailable_since = None
             state_type = str(state.get("state_type") or "unknown")
             try:
                 self._reconcile_seed_state(state, state_type)
@@ -1183,16 +1272,27 @@ class AutoPlayer:
                 raise
             except (BridgeProtocolError, ActionPermissionError, ValueError) as exc:
                 # game-boot and screen-transition races produce transient
-                # failures; only a STREAK on the same state is fatal
+                # failures; only a STREAK on the same state is fatal.  Every
+                # retry re-reads fresh state at the loop head, and an
+                # exhausted budget ends the batch as a classified stop that
+                # names the failure class instead of a bare crash.
                 if decision_id != last_fail_id:
                     self.consecutive_failures = 0
                 last_fail_id = decision_id
                 failures += 1
                 self.consecutive_failures += 1
                 print(f"action failed ({exc}); retrying", flush=True)
-                if failures > 600 or self.consecutive_failures > 60:
-                    raise
-                time.sleep(1.0)
+                if self.consecutive_failures > self._max_consecutive_failures:
+                    self._classified_stop(
+                        "stale_state",
+                        f"no state change across {self.consecutive_failures} "
+                        f"attempts on decision {last_fail_id!r}; last error: {exc}",
+                    )
+                if failures > self._max_total_failures:
+                    self._classified_stop(
+                        "repeated_failures", f"last error: {exc}"
+                    )
+                time.sleep(self._failure_backoff)
                 continue
             self.actions_by_screen[state_type] = self.actions_by_screen.get(state_type, 0) + 1
             self.consecutive_failures = 0
@@ -1203,6 +1303,7 @@ class AutoPlayer:
             # fixed-allocation exhaustion reason in that boundary case.
             if self._seed_ledger.snapshot().get("exhausted") is True:
                 self.stop_reason = "seed_allocation_exhausted"
+        self._write_session_end()
         return self.summary()
 
     def _start_run(self, state_type: str) -> tuple[dict[str, Any], str]:
@@ -1522,7 +1623,15 @@ def main(argv: list[str] | None = None) -> int:
 
     print("[autoplay] driving out-of-combat screens; combat stays with the mod",
           flush=True)
-    summary = player.run()
+    try:
+        summary = player.run()
+    except AutoplayClassifiedStop as exc:
+        # A classified stop already wrote its session_end trace event and set
+        # the summary stop_reason; end with a distinct exit code so a
+        # supervisor can separate a deliberate bounded stop from a crash.
+        print(f"[autoplay] stopping: {exc.reason} ({exc.detail})", flush=True)
+        print(json.dumps(player.summary(), ensure_ascii=False))
+        return EXIT_CLASSIFIED_STOP
     print(json.dumps(summary, ensure_ascii=False))
     return 0
 
