@@ -216,6 +216,40 @@ VERDICT: reproduced        (exit code 0)
    不在夜时长。
 4. 这条负结论只在模拟器 Act 1 口径内成立（`scope: simulator_act1`）。
 
+### 全盘扫描后的防误读一段（别把历史数字读成"我们退步了"）
+
+把本机**所有** 274 份 V2/V1 指标文件按 `win_rate` 排序，act1 口径里最高的一批
+不属于本晚战役，而属于 8 月 31 日的 V1 课程运行：
+`curriculum-20260831T205351Z/act1`，`step_..._02` 是 **5/100（0.05）**，另有
+`10/500（0.02）`。看上去比本晚的 0.012–0.02 更高，但**不能与本晚比较**，三条理由都可在盘上核对：
+
+1. **契约不同。** 那份运行的 `metrics` 是 `schema_version 1`、无 `v2` 段，其
+   `plan.json` 也没有 `v2_config_version` / `observation_contract` 两个键——即 V1
+   观测与动作定义。V2 栈是 **1739 维扩展观测** + **`Discrete(225)`**（225 =
+   `RUN_MAX_ACTIONS` 32 × `TARGET_SLOTS` 7 + 1，7 = 无目标 + 6 个敌人位；来自
+   `training/v2_observation.py:80` 的 `sum(width for _name, width in _BLOCKS)` 与
+   `training/v2_flat_env.py:65`）。加载 V1 检查点属于形状与语义双重错配，任何
+   "同一把尺子"的假设都不成立。两个数字可一条命令复核：
+   `../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe -c
+   "from training.v2_observation import OBS_SIZE; from training.v2_flat_env import FLAT_SIZE; print(OBS_SIZE, FLAT_SIZE)"`
+   → `1739 225`。
+2. **它们同样是两幕混合的，而且这一点已无法回溯核实。** 同一台模拟器、同一个按
+   种子选幕的生成器，所以 5/100 大概率以 Act 2 胜利为主，而不是 Act 1 能力的证据。
+   注意这只是**推断**：`schema_version 1` 既没有 `act` 字段，也不记录原始种子
+   （只有 `seed_sha256`，`seed_count = 100`），因此无法像本晚那样把这 5 局拆到幕。
+   顺带一个反向信号：同一份文件 `mean_final_floor = 7.24`（本晚 V2 各臂为 8.36–8.37），
+   即"更高胜率"并没有伴随"走得更深"——跨契约的 `final_floor` 定义本身也未必同尺，
+   这更说明两个体系的历史数字不该并排读。
+3. **那份旗舰记录自身不是契约干净的。** 同一个 `step_000002000004.json` 里
+   `illegal_actions = 1`（100 局中 1 次非法动作），而本晚在 10000 局上是 0。
+   目标要求的是"0 非法动作、无未分类死局"，按这条口径 V1 的 5/100 连参赛资格都不满足。
+
+结论：**目前盘面上不存在任何一个按幕拆开后的 Act 1 历史基线**，因此"V2 战役相对
+V1 是进步还是退步"这个问题现在无法回答；能回答的部分只有本晚给出的
+"V2 某臂 Act 1 = 3/5014"。若要把这个问题做扎实，做法是用
+`scripts/split_win_rate_by_generated_act.py` 对某个 V1 时代检查点在其自己的
+V1 环境里重跑并按幕拆分——那是另一次工作，不该被本晚数字顺带代替。
+
 ## 分幕拆解（结果和预期相反）
 
 `scripts/split_win_rate_by_generated_act.py` 先普查种子生成在哪一幕，再分别用
