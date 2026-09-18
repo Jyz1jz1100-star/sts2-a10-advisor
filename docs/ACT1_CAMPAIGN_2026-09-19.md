@@ -31,7 +31,8 @@ Act 1 还是 Act 2，而训练栈不记录 act。把 10000 局按生成幕拆开
 因此严格回答"第一幕能不能通关"这个问题的证据是 **3/5014**，不是 0.4%–2%；
 混合数字把 Act 1 的能力显著高估了。而且按分幕速率回算，那条被当作里程碑的
 6/500 记录**很可能一局 Act 1 胜利都不含**（其前缀只有 254 个 Act 1 种子，
-期望胜局 0.15）。详见"分幕拆解"一节。
+期望胜局 0.15）。这 3 局已点名并可逐个种子复现（见"三条可逐 seed 复核的
+Act 1 终局胜利"），它们才是本文对"Act 1 能赢一次"的真正证据。详见"分幕拆解"一节。
 
 历史对照：本仓库此前 **22 份 V2 指标文件里 win_rate 全为 0**，所以这是第一次非零。
 `max_final_floor = 17` 表示这一局走到了 **boss 节点**（0 基第 16 行，在 `Floor` 里
@@ -232,8 +233,39 @@ VERDICT: reproduced        (exit code 0)
 
 两种解释都成立且无法从现有数据区分：要么 6 胜几乎全在 Act 2（与 0.15 的期望一致），
 要么这个前缀本身就偏向 Act 2 的好种子。无论哪种，把 6/500 读作"Act 1 能通关"都是
-不成立的。真正能指名道姓的 Act 1 胜利，只来自上面 5014 局里的 3 局；把种子逐个
-点出来并复现的评估正在跑，结果会追加到本节。
+不成立的。真正能指名道姓的 Act 1 胜利，只来自上面 5014 局里的 3 局，种子已点出并
+逐个复现，见下面"三条可逐 seed 复核的 Act 1 终局胜利"。
+
+### 三条可逐seed复核的 Act 1 终局胜利（本轮最强、也最诚实的产出）
+
+Act-1 单独评估把胜利种子写进了 `winning_seeds`（指标 schema 6），于是"一次可复核的
+胜利"第一次有了可点名的对象，而不是一个比率：
+
+- 检查点 `step_000002000016.zip`，SHA-256
+  `A1ADA27AD997A425E6AD10D33C13D11F5A2F2C3A67003732A68F27CF73E57C1E`；
+- Act-1 子集（5014 个种子）的分区摘要
+  `bab5c7a69e07bdcf…6c7d65`；
+- 获胜种子：**130015189、130017978、130019400**。
+
+三者逐个复现，每一局都独立验证了"该种子生成的确实是 Act 1"：
+
+```
+"G:/qoder/third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe" \
+  scripts/split_win_rate_by_generated_act.py \
+  --config runtime/fanout/b_terminal-1.toml --stage act1 --split promotion \
+  --act 1 --only-seeds 130015189 \
+  --checkpoint runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip
+
+  act1/promotion: 1 seeds, generated acts: {'overgrowth': 1}
+    act 1 (overgrowth) 1/1 win_rate=1.0 mean_floor=17.0 max_floor=17 trunc=0.0 illegal=0 unclassified=0
+```
+
+三个种子都是这个结果（1/1、floor 17、0 非法、0 未分类）。
+
+口径要说满：这证明的是**存在三局可指名、可确定性复现、契约干净的 Act 1 终局胜利**，
+不证明策略能赢——它在 5014 局里只赢 3 局（0.06%）。另外那 5014 局里有 1 局是被
+分类过的截断（`defect_truncation_rate = 0.0002`），`unclassified_dead_ends` 保持 0，
+所以"无未分类死局"成立，但"零截断"不成立，别混着引用。
 
 ## 仍在进行
 

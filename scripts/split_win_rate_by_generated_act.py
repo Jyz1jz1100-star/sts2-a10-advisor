@@ -61,6 +61,9 @@ def main() -> int:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=None,
                         help="cap the partition prefix; default is the whole split")
+    parser.add_argument("--only-seeds", default=None,
+                        help="comma list of seeds to re-evaluate; must fall inside the "
+                             "declared partition, so a win can be named and re-run")
     parser.add_argument("--act", type=int, choices=(1, 2), default=None,
                         help="evaluate only the seeds that generate this act")
     parser.add_argument("--census-only", action="store_true",
@@ -80,6 +83,13 @@ def main() -> int:
     if args.split == "train" and not args.census_only:
         raise SystemExit("the train split cannot evidence a win rate")
     seeds = _seed_list(config.partition(stage.name, args.split), args.episodes)
+    if args.only_seeds:
+        wanted = [int(value) for value in args.only_seeds.split(",") if value.strip()]
+        outside = [seed for seed in wanted if seed not in set(seeds)]
+        if outside:
+            raise SystemExit(f"seeds outside the declared {stage.name}/{args.split} "
+                             f"partition: {outside[:5]}")
+        seeds = wanted
 
     # Phase 1: which act does each seed generate? Reset-only, so this is cheap and
     # touches no weights. One env is reused on purpose: NativeRunCore.reset frees the
