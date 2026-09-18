@@ -159,9 +159,35 @@ class V2CombatParser:
         )
         self.stats: Counter[str] = Counter()
         self.stats["failures"] = Counter()
-        self.stats["combat_log_begin"] = 0
-        self.stats["combat_log_end"] = 0
         self.stats["combat_log_end_reasons"] = Counter()
+        # Declare the counter schema instead of letting a counter appear only
+        # when it is first incremented: a reader cannot otherwise tell
+        # "counted zero" from "the producer never implemented this", and a
+        # summed replay report fails with KeyError on the quiet case.
+        for counter in (
+            "records",
+            "logical_lines",
+            "solver_lines",
+            "error_level_records",
+            "combat_log_begin",
+            "combat_log_end",
+            "snapshots",
+            "deploys",
+            "resets",
+            "route_actions",
+            "route_health",
+            "route_replays",
+            "replay_divergences",
+            "evidence_traces",
+            "evidence_adopted",
+            "evidence_ambiguous",
+            "unusable_route_actions",
+            "answers_without_replay_validation",
+            "death_route_answers",
+            "empty_routes",
+            "budget_markers",
+        ):
+            self.stats[counter] = 0
 
     # ------------------------------------------------------------- identity
     def _note_boundary(self, boundary: tuple[str, str]) -> None:
