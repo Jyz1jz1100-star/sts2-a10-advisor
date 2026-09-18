@@ -7,6 +7,7 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 | 臂 | 分区 | 局数 | win_rate | max_final_floor | 非法动作 | 未分类死局 | 检查点复算 | 独立复现 |
 |----|------|------|----------|-----------------|----------|------------|------------|----------|
 | `b_terminal-0`（fan-out） | promotion（未见种子） | 500 | 0.004（2 胜） | 17 | 0 | 0 | 一致 | **已复现** |
+| `b_terminal-1`（fan-out） | promotion（未见种子） | 500 | 0.012（6 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `c_explore-0`（fan-out） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `b_terminal-0`（fan-out） | checkpoint @1M | 100 | 0.020（2 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `a_base`（手工臂） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | 待复现 |
@@ -53,10 +54,22 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 
 ## 复现状态
 
-**已复现三次，跨两个不同臂与两种不同分区（checkpoint 100 局 ×2、未见 promotion 500 局）。**
+**已复现四次，跨三个不同臂与两种不同分区（未见 promotion 500 局 ×2、checkpoint
+100 局 ×2）。** 其中 `b_terminal-1` 的 6/500 是这批里最强的一个未见分区证据。
 `scripts/reevaluate_checkpoint.py` 独立重跑了
 `b_terminal-0` 的 500 局 promotion 评估与 `c_explore-0` 的 100 局 checkpoint 评估，
-逐项一致（第一例输出如下）：
+逐项一致。
+
+复核要用**装了 numpy/torch 的那个解释器**（模拟器自己的 venv），仓库 `.venv` 与
+`.tools/python` 都不含评估依赖；用错解释器只会以 `ModuleNotFoundError` 崩掉，
+而经过管道时退出码还会显示成 0。命令与第一例输出如下：
+
+```
+"G:/qoder/third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe" \
+    scripts/reevaluate_checkpoint.py \
+    --metrics runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/metrics/promotion.json \
+    --config runtime/fanout/b_terminal-0.toml
+```
 
 ```
 checkpoint hash OK (1E18AAE64C2EA673…)
