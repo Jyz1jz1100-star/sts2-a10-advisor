@@ -527,7 +527,12 @@ def adapt_comparison_evidence(
                 log_range, _payload, marker_events = verify_log_range(
                     raw_range, allowed_root=Path(allowed_log_root)
                 )
-                validate_deploy_grammar(marker_events, turn=turn_value)
+                # The range itself declares which producer grammar its bytes
+                # were written in; re-verifying a grammar v2 range under v1's
+                # request marker would reject every reuse-anchored deploy.
+                validate_deploy_grammar(
+                    marker_events, turn=turn_value, grammar=log_range.grammar
+                )
                 _validate_deploy_action_alignment(
                     marker_events,
                     actions,
