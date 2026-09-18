@@ -33,6 +33,11 @@ class DeployRecord:
     Only produced when the mod itself deployed (full-auto or execute-turn
     mode). It is the exact ground truth of what was played and supersedes
     state-delta inference for automated batches.
+
+    ``battle_log_id`` is the combat identifier the *producer* wrote
+    (``COMBAT_LOG_BEGIN id=`` in the grammar v2 journal); it is never inferred
+    from a file name, so it stays ``None`` until the stream confirms it. It
+    binds a deploy to one combat of one game process, not to an advisor run.
     """
 
     turn: int
@@ -40,6 +45,7 @@ class DeployRecord:
     end_turn: bool
     captured_at_utc: str
     log_range: LogRange | None = None
+    battle_log_id: str | None = None
 
 
 @dataclass(frozen=True)

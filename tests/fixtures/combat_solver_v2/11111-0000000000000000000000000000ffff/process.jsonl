@@ -1,0 +1,10 @@
+{"Time": 1789738007000, "Level": "info", "Message": "[CombatSolver/PreCombatApi] MOD_SOURCES_PINNED mods=4 sources=4 root=<path>"}
+{"Time": 1789738007007, "Level": "info", "Message": "[CombatSolver/Test] INIT mod=0.41.0 simulation_engine=embedded full_auto=true"}
+{"Time": 1789738007014, "Level": "info", "Message": "COMBAT_LOG_BEGIN id=a1a1a1a1b2b2c3c4d5d6e7e8f9f0a1a2"}
+{"Time": 1789738007021, "Level": "info", "Message": "[CombatSolver/Test] HEAP_RECLAIM gen2=1 freed_bytes=4185446184"}
+{"Time": 1789738007028, "Level": "info", "Message": "COMBAT_LOG_BEGIN id=b1b1b1b1b2b2c3c4d5d6e7e8f9f0b1b2"}
+{"Time": 1789738007035, "Level": "info", "Message": "[CombatSolver/Test] GC_SEARCH_ALLOCATION_LIMIT limit=3119547696 remaining_region=4679321544"}
+{"Time": 1789738007042, "Level": "info", "Message": "COMBAT_LOG_BEGIN id=d1d1d1d1b2b2c3c4d5d6e7e8f9f0d1d2"}
+{"Time": 1789738007049, "Level": "warning", "Message": "[CombatSolver/Online] Heartbeat connection failed."}
+{"Time": 1789738007056, "Level": "info", "Message": "COMBAT_LOG_END reason=combat_ended"}
+{"Time": 1789738007063, "Level": "info", "Message": "[CombatSolver/Test] MAIN_THREAD_FRAMES frames=4096 over_50ms=0"}

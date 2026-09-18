@@ -1,0 +1,4 @@
+{"Time": 1789738007560, "Level": "info", "Message": "[CombatSolver/Test] SEARCH_REQUEST generation=80 reason=AutoTurnStart turn=1"}
+{"Time": 1789738007567, "Level": "info", "Message": "[CombatSolver/Test] DEPLOY_START turn=1 action_count=2 fast_mode=FollowGame"}
+{"Time": 1789738007574, "Level": "info", "Message": "[CombatSolver/Test] DEPLOY_ACTION turn=1 card=BASH target_index=0 target_combat_id=1 choice=-"}
+{"Time":1789738007581,"Level":"info","Message":"[CombatSolver/Debug] DEPLOY_STATE turn=1 action_index=1 action=DARK_EMBR

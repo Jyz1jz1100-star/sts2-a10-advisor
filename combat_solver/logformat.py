@@ -29,96 +29,76 @@ block whose REQUEST never got a RESULT flushes as a ``NO_ROUTE`` failure.
 
 Records carry ``state_hash=None`` (the mod cannot compute the bridge's
 canonical state hash) and bind by ``battle_turn`` with the freshness guard.
+
+Grammar **v2** (CombatSolver 0.35.5 - 0.41.0, the per-combat JSON Lines
+journal under ``logs\\CombatSolver\\<pid>-<guid>\\``) reads the same block
+payloads through ``combat_solver.logv2``, which documents the turn-binding,
+search re-arm, answer-echo and failure-taxonomy differences.  The v1 rules
+above are unchanged by that work: they are pinned by replay against the 0.25.3,
+0.29.1 and 0.31.0 sessions and must not be perturbed by v2 changes.
+
+Selection is by content (``combat_solver.loggrammar.sniff_grammar``) or by the
+explicit ``grammar=`` parameter, never by file name; a pinned reader that meets
+a file of the other grammar reports it instead of reinterpreting it.
 """
 from __future__ import annotations
 
 import json
 import hashlib
-import re
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Any
 
+from combat_solver.loggrammar import (
+    CARD_KEYS as _CARD_KEYS,
+    _EMPTY_DIGEST,
+    GRAMMAR_V1,
+    GRAMMAR_V2,
+    GRAMMARS,
+    KIND_TOKENS as _KIND_TOKENS,
+    POTION_KEYS as _POTION_KEYS,
+    SNIFF_UNDECIDED,
+    SOLVER_LINE_MARKERS as _SOLVER_LINE_MARKERS,
+    TURN_KEYS as _TURN_KEYS,
+    journal_roots,
+    _PendingAction,
+    _first_int,
+    _first_str,
+    _kv_bool,
+    _kv_index,
+    _kv_int,
+    _line_event,
+    _prefix_digest,
+    _RawLine,
+    _SearchBlock,
+    _utc_now,
+    discover_v2_sources,
+    group_route,
+    is_solver_line,
+    parse_kv_tokens,
+    snapshot_payload,
+    sniff_grammar,
+)
 from combat_solver.logranges import LogRangeError, capture_log_range
+from combat_solver.logv2 import V2CombatParser, is_v2_process_boundary
 from combat_solver.reader import DeployRecord, SourceEvent
 from combat_solver.snapshot import (
     FAILURE_REASONS,
     RouteAction,
-    RouteStep,
-    SCHEMA_VERSION,
     SolverFailure,
     snapshot_from_json,
 )
 
-SOLVER_LINE_MARKERS = ("[CombatSolver/Test]", "[CombatSolver/Debug]")
-
-_KIND_TOKENS = {
-    "PlayCard": "play",
-    "UsePotion": "potion",
-    "EndTurn": "end_turn",
-}
-
-_TURN_KEYS = ("turn", "battle_turn", "turn_index")
-_CARD_KEYS = ("card_id", "card", "cardid")
-_POTION_KEYS = ("potion_id", "potion")
-
-_TOKEN = re.compile(r"([A-Za-z_][A-Za-z0-9_\[\]]*)=([^\s,;]+)")
-_INT_NULLS = {"-", "None", "null", "n/a"}
-
-
-def is_solver_line(line: str) -> bool:
-    return any(marker in line for marker in SOLVER_LINE_MARKERS)
-
-
-def parse_kv_tokens(line: str) -> dict[str, str]:
-    return {key: value for key, value in _TOKEN.findall(line)}
-
-
-def _kv_int(kv: dict[str, str], key: str) -> int | None:
-    raw = kv.get(key)
-    if raw is None or raw in _INT_NULLS:
-        return None
-    try:
-        return int(raw)
-    except ValueError:
-        return None
-
-
-def _kv_bool(kv: dict[str, str], key: str) -> bool | None:
-    raw = kv.get(key)
-    if raw is None:
-        return None
-    if raw.lower() == "true":
-        return True
-    if raw.lower() == "false":
-        return False
-    return None
-
-
-def _kv_index(kv: dict[str, str], key: str) -> int | None:
-    value = _kv_int(kv, key)
-    return None if value is None or value < 0 else value
-
-
-def _first_int(kv: dict[str, str], keys: Iterable[str]) -> int | None:
-    for key in keys:
-        value = _kv_int(kv, key)
-        if value is not None:
-            return value
-    return None
-
-
-def _first_str(kv: dict[str, str], keys: Iterable[str]) -> str | None:
-    for key in keys:
-        raw = kv.get(key)
-        if raw and raw not in _INT_NULLS:
-            return raw
-    return None
+#: ``grammar=`` value that classifies every source file by content
+GRAMMAR_AUTO = "auto"
+#: re-exported: the marker vocabulary and line helpers live in ``loggrammar`` so
+#: both grammars parse the same tokens
+SOLVER_LINE_MARKERS = _SOLVER_LINE_MARKERS
 
 
 def read_solver_settings(settings_path: str | Path) -> dict[str, int | str | None]:
     """Extract the budget-relevant fields from combat_solver_settings.json."""
+
     try:
         with Path(settings_path).open("r", encoding="utf-8") as handle:
             data = json.load(handle)
@@ -137,83 +117,19 @@ def read_solver_settings(settings_path: str | Path) -> dict[str, int | str | Non
     }
 
 
-@dataclass
-class _PendingAction:
-    kind: str
-    card_id: str | None
-    target_index: int | None
-    turn: int | None
-
-
-@dataclass
-class _SearchBlock:
-    generation: int | None = None
-    request_turn: int | None = None
-    actions: list[_PendingAction] = field(default_factory=list)
-    result: dict[str, str] | None = None
-    turn_losses: dict[int, int] = field(default_factory=dict)
-
-    @property
-    def has_result(self) -> bool:
-        return self.result is not None
-
-    def searched_turns(self) -> int | None:
-        if self.result is None:
-            return None
-        return _kv_int(self.result, "searched_turns")
-
-    def route_signature(self) -> tuple | None:
-        """Comparable identity of the emitted route (turn, kind, card, target)."""
-        if not self.actions:
-            return None
-        return tuple(
-            (
-                action.turn if action.turn is not None else -1,
-                action.kind,
-                action.card_id,
-                action.target_index,
-            )
-            for action in self.actions
-        )
-
-
-_BYTES_PER_MB = 1024 * 1024
-
-
-@dataclass(frozen=True)
-class _RawLine:
-    path: Path
-    byte_start: int
-    byte_end: int
-    text: str
-
-
-_HASH_CHUNK_BYTES = 1 << 20
-_EMPTY_DIGEST = hashlib.sha256().digest()
-
-
-def _prefix_digest(path: Path, end: int) -> bytes:
-    """Hash a consumed prefix in bounded chunks to detect in-place rewrites."""
-
-    hasher = hashlib.sha256()
-    remaining = end
-    with path.open("rb") as handle:
-        while remaining > 0:
-            chunk = handle.read(min(_HASH_CHUNK_BYTES, remaining))
-            if not chunk:
-                break
-            hasher.update(chunk)
-            remaining -= len(chunk)
-    return hasher.digest()
-
 
 class LogTailSource:
-    """Tails ``*.log`` files and emits solver snapshots/failures.
+    """Tails solver log sources and emits snapshots/failures for both grammars.
 
     ``settings_path`` (optional) points at ``combat_solver_settings.json`` so
     budget tier/limits come from the mod's own persistence instead of the
     log lines. Historical log content is never replayed: files are first
     seen at EOF (live tailing only).
+
+    ``grammar`` selects the codec for every source: ``"auto"`` (default)
+    classifies each file by content, ``"v1"``/``"v2"`` pin it. A pinned reader
+    that meets content sniffing as the other grammar yields a typed
+    ``READER_DOWN`` failure for that file instead of reinterpreting it.
     """
 
     name = "logtail"
@@ -224,10 +140,14 @@ class LogTailSource:
         settings_path: Path | str | None = None,
         mod_version: str | None = None,
         replay: bool = False,
+        grammar: str = GRAMMAR_AUTO,
     ):
+        if grammar not in (GRAMMAR_AUTO, *GRAMMARS):
+            raise ValueError(f"unknown log grammar {grammar!r}")
         self._log_dir = Path(log_dir)
         self._mod_version = mod_version
         self._replay = replay
+        self._grammar = grammar
         settings = (
             read_solver_settings(settings_path)
             if settings_path is not None
@@ -250,10 +170,24 @@ class LogTailSource:
         self._deploy_end_turn: dict[int, bool] = {}
         self._deploy_range_starts: dict[int, tuple[Path, int]] = {}
         self._last_search: tuple[Path, int, int] | None = None
+        # grammar v2: one parser per journal file, because a v2 file is one combat
+        self._file_grammar: dict[Path, str] = {}
+        self._v2_parsers: dict[Path, V2CombatParser] = {}
+        self._confirmed_battle_ids: set[str] = set()
+        self._reported_rejections: set[Path] = set()
+        self.stats: dict[str, Any] = {
+            "v1_files": set(),
+            "v2_files": set(),
+            "rejected_files": set(),
+        }
 
     @property
     def log_dir(self) -> Path:
         return self._log_dir
+
+    @property
+    def grammar(self) -> str:
+        return self._grammar
 
     def _reset_parser_state(self) -> None:
         """Discard incomplete state when the producer file identity changes."""
@@ -271,6 +205,16 @@ class LogTailSource:
         if not self._log_dir.is_dir():
             return events
         for path in sorted(self._log_dir.glob("*.log")):
+            grammar = self._resolve_grammar(path, default=GRAMMAR_V1)
+            if grammar is None:
+                events.extend(self._reject_file(path))
+                continue
+            if grammar != GRAMMAR_V1:
+                # a Godot-named file that carries journal envelopes is v2 content;
+                # reading it with the v1 block machine would mis-bind every offset
+                events.extend(self._poll_v2_file(path, claimed_battle_id=None))
+                continue
+            self.stats["v1_files"].add(path.name)
             fresh, reset = self._read_new(path)
             if (reset and self._active_path in (None, path)) or (
                 fresh and self._active_path not in (None, path)
@@ -280,13 +224,159 @@ class LogTailSource:
                 self._active_path = path
             for line in fresh:
                 self._feed_line(line.text, events, line)
+        if self._grammar == GRAMMAR_V1:
+            refused = [root for root in journal_roots(self._log_dir) if root.is_dir()]
+            if refused and self._log_dir not in self._reported_rejections:
+                # Solver data is present that this reader will not parse. Saying
+                # nothing would look like "no battles happened"; one aggregated
+                # refusal names the directory so the gap is visible to the
+                # assessor instead of being inferred from silence.
+                self._reported_rejections.add(self._log_dir)
+                self.stats["rejected_files"].add(str(self._log_dir))
+                events.append(
+                    SourceEvent.failed(
+                        SolverFailure(
+                            reason="READER_DOWN",
+                            captured_at_utc=_utc_now(),
+                            detail=(
+                                f"{self._log_dir}: refused to read (reader is "
+                                f"pinned to grammar {GRAMMAR_V1}) while "
+                                f"{len(refused)} grammar {GRAMMAR_V2} journal "
+                                "session(s) are present; they are not parsed "
+                                "under any other grammar"
+                            ),
+                        )
+                    )
+                )
+        if self._grammar != GRAMMAR_V1:
+            events.extend(self._poll_v2())
         # End-of-stream flush: the last block of a battle may never see a
         # following SEARCH_REQUEST (combat ends first). Emitting here keeps
         # single-block sessions (and tests) correct; live battles always end
         # with a RESET/GC_COMBAT_LIFECYCLE_DETACHED line that arrives later,
         # so this cannot double-emit.
         self._flush_block(events)
+        for parser in self._v2_parsers.values():
+            parser.finish(events)
         return events
+
+    # ------------------------------------------------------- grammar selection
+    def _resolve_grammar(self, path: Path, *, default: str) -> str | None:
+        """Classify one source once and freeze the answer for its lifetime.
+
+        Returns ``None`` when the file cannot be classified safely: content that
+        smells like a journal envelope but does not decode, or content of the
+        other grammar while a grammar is pinned.
+        """
+
+        cached = self._file_grammar.get(path)
+        if cached is not None:
+            return cached
+        sniffed = sniff_grammar(path)
+        if sniffed == SNIFF_UNDECIDED:
+            # nothing to reinterpret yet: keep the container default and re-sniff
+            return default
+        if sniffed is None:
+            return None
+        if self._grammar != GRAMMAR_AUTO and sniffed != self._grammar:
+            return None
+        self._file_grammar[path] = sniffed
+        return sniffed
+
+    def _reject_file(self, path: Path) -> list[SourceEvent]:
+        """Report an unclassifiable source once per file, never silently."""
+
+        if path in self._reported_rejections:
+            return []
+        self._reported_rejections.add(path)
+        self.stats["rejected_files"].add(path.name)
+        pinned = (
+            f"reader is pinned to grammar {self._grammar}"
+            if self._grammar != GRAMMAR_AUTO
+            else "no grammar classifies its first record"
+        )
+        return [
+            SourceEvent.failed(
+                SolverFailure(
+                    reason="READER_DOWN",
+                    captured_at_utc=_utc_now(),
+                    detail=(
+                        f"{path.name}: refused to read ({pinned}); the file is not "
+                        "parsed under any other grammar"
+                    ),
+                )
+            )
+        ]
+
+    # --------------------------------------------------------------- grammar v2
+    def _poll_v2(self) -> list[SourceEvent]:
+        events: list[SourceEvent] = []
+        for source in discover_v2_sources(self._log_dir):
+            events.extend(self._poll_v2_file(source.path, source.claimed_battle_id))
+        return events
+
+    def _poll_v2_file(
+        self, path: Path, claimed_battle_id: str | None
+    ) -> list[SourceEvent]:
+        events: list[SourceEvent] = []
+        grammar = self._resolve_grammar(path, default=GRAMMAR_V2)
+        if grammar is None:
+            events.extend(self._reject_file(path))
+            return events
+        if grammar != GRAMMAR_V2:
+            # a journal-named file holding plain Godot lines: not this codec's
+            return events
+        parser = self._v2_parsers.get(path)
+        fresh, reset = self._read_new(path)
+        if parser is not None and reset:
+            self._v2_parsers.pop(path, None)
+            parser = None
+        if parser is None and (fresh or path in self._started):
+            parser = self._v2_parsers[path] = V2CombatParser(
+                path,
+                log_dir=self._log_dir,
+                mod_version=self._mod_version,
+                tier=self._tier,
+                time_budget_ms=self._time_budget_ms,
+                memory_limit_mb=self._memory_limit_mb,
+                confirmed_battle_ids=self._confirmed_battle_ids,
+                report_abandoned_deploys=self._replay,
+            )
+        if parser is None:
+            return events
+        if fresh:
+            self.stats["v2_files"].add(path.name)
+        if claimed_battle_id and claimed_battle_id in self._confirmed_battle_ids:
+            parser.set_battle_id(claimed_battle_id)
+        for line in fresh:
+            parser.feed_record(line, events)
+        return events
+
+    def file_grammar(self, path: Path | str) -> str | None:
+        """The frozen classification of one source, ``None`` if never read."""
+
+        return self._file_grammar.get(Path(path))
+
+    def v2_stats(self) -> dict[str, dict[str, Any]]:
+        """Per-file grammar v2 counters, for the offline replay report."""
+
+        return {
+            str(path): {
+                key: (dict(value) if isinstance(value, dict) else value)
+                for key, value in parser.stats.items()
+            }
+            for path, parser in self._v2_parsers.items()
+        }
+
+    def battle_ids(self) -> dict[str, str]:
+        """Combat file name -> battle id confirmed by the producer's own records."""
+
+        return {
+            path.name: parser.battle_id
+            for path, parser in self._v2_parsers.items()
+            if parser.battle_id is not None
+        }
+
 
     def _read_new(self, path: Path) -> tuple[list[_RawLine], bool]:
         """Read complete appended lines with real byte offsets.
@@ -592,17 +682,18 @@ class LogTailSource:
         self._emitted_signature = signature
         self._emitted_reuse_turn = turn if reused else None
         steps = _group_route(block.actions, block.turn_losses)
-        reused = _kv_bool(result, "reused")
-        worker_bytes = _kv_int(result, "total_worker_allocated_bytes")
-        ws_bytes = _kv_int(result, "process_working_set_bytes")
-        predicted: dict[str, int | bool | None] = {}
-        final_hp = _kv_int(result, "final_hp")
-        projected = _kv_int(result, "projected_battle_hp_lost")
-        if final_hp is not None:
-            predicted["hp_end"] = final_hp
-        if projected is not None:
-            predicted["hp_loss"] = projected
-        if not predicted:
+        payload = snapshot_payload(
+            block,
+            turn=turn,
+            steps=steps,
+            tier=self._tier,
+            time_limit_ms=self._time_budget_ms,
+            memory_limit_mb=self._memory_limit_mb,
+            reader=self.name,
+            mod_version=self._mod_version,
+            source_file=None,
+        )
+        if payload is None:
             return [
                 SourceEvent.failed(
                     SolverFailure(
@@ -613,42 +704,6 @@ class LogTailSource:
                     )
                 )
             ]
-        payload = {
-            "schema_version": SCHEMA_VERSION,
-            "state_hash": None,
-            "battle_turn": turn,
-            "route": [step.to_json() for step in steps],
-            "predicted": predicted,
-            "budget": {
-                "tier": self._tier,
-                "time_limit_ms": self._time_budget_ms,
-                "node_limit": None,
-                "memory_limit_mb": self._memory_limit_mb,
-                "elapsed_ms": None if reused else _kv_int(result, "total_elapsed_ms"),
-                "nodes_expanded": None if reused else _kv_int(result, "expanded"),
-                "peak_memory_mb": (
-                    worker_bytes // _BYTES_PER_MB if worker_bytes is not None else None
-                ),
-                "short_elapsed_ms": (
-                    None if reused else _kv_int(result, "short_elapsed_ms")
-                ),
-                "deep_elapsed_ms": (
-                    None if reused else _kv_int(result, "deep_elapsed_ms")
-                ),
-                # process working set is an instantaneous process-level
-                # observation, meaningful on every RESULT (fresh or reused)
-                "process_working_set_mb": (
-                    ws_bytes // _BYTES_PER_MB if ws_bytes is not None else None
-                ),
-            },
-            "provenance": {
-                "reader": self.name,
-                "captured_at_utc": _utc_now(),
-                "mod_version": self._mod_version,
-                "source_file": None,
-            },
-            "candidates": [],
-        }
         try:
             snapshot = snapshot_from_json(payload)
         except Exception as exc:
@@ -665,49 +720,14 @@ class LogTailSource:
         return [SourceEvent.of(snapshot)]
 
 
-def _group_route(
-    actions: list[_PendingAction], turn_losses: dict[int, int]
-) -> list[RouteStep]:
-    grouped: dict[int, list[RouteAction]] = {}
-    for action in actions:
-        grouped.setdefault(action.turn if action.turn is not None else 1, []).append(
-            RouteAction(
-                kind=action.kind,
-                card_id=action.card_id,
-                target_index=action.target_index,
-            )
-        )
-    steps: list[RouteStep] = []
-    for step_turn in sorted(grouped):
-        loss = turn_losses.get(step_turn)
-        steps.append(
-            RouteStep(
-                turn=step_turn,
-                actions=tuple(grouped[step_turn]),
-                predicted_hp_lost=loss,
-            )
-        )
-    return steps
-
-
-def _line_event(line: str) -> str | None:
-    """Extract the event word after the exact solver marker that matched."""
-
-    for marker in SOLVER_LINE_MARKERS:
-        idx = line.find(marker)
-        if idx < 0:
-            continue
-        rest = line[idx + len(marker) :].strip()
-        if not rest:
-            return None
-        token = rest.split()[0]
-        if token.startswith("["):  # extra logger scopes between marker and event
-            return None
-        return token
-    return None
+# ``_group_route``/``_line_event``/``_utc_now`` are the shared grammar helpers;
+# they stay importable from this module because the v1 block machine uses them.
+_group_route = group_route
 
 
 def failure_from_line(line: str) -> SolverFailure | None:
+    """Grammar v1 only: a failure declared by a ``failure=``/``reason=`` token."""
+
     kv = parse_kv_tokens(line)
     for reason in FAILURE_REASONS:
         if kv.get("failure") == reason or kv.get("reason") == reason:
@@ -717,14 +737,14 @@ def failure_from_line(line: str) -> SolverFailure | None:
     return None
 
 
-def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
-
-
 __all__ = [
     "LogTailSource",
     "read_solver_settings",
     "is_solver_line",
     "parse_kv_tokens",
     "failure_from_line",
+    "GRAMMAR_AUTO",
+    "GRAMMAR_V1",
+    "GRAMMAR_V2",
+    "SOLVER_LINE_MARKERS",
 ]

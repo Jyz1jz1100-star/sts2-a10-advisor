@@ -211,6 +211,9 @@ def build_reader(config: dict, project_root: Path, mode_override: str | None = N
             log_dir,
             settings_path=settings_path,
             mod_version=live.get("mod_version") or None,
+            # absent => classify every source by content; set "v1" or "v2" to pin
+            # the codec and make a foreign-looking file a hard reader error
+            grammar=str(live.get("grammar") or "auto"),
         )
     if mode == "directory":
         directory = project_root / reader_cfg.get("directory", "runtime/combat_solver/inbox")
