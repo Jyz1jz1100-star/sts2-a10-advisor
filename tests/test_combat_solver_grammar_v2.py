@@ -514,9 +514,13 @@ class EvidenceChannelTests(unittest.TestCase):
             snapshots, _failures, _deploys = split(source.poll())
             self.assertEqual(summed_stats(source)["route_health"], 1)
             by_turn = {snapshot.battle_turn: snapshot for snapshot in snapshots}
-            # TURN_OUTCOME, not ROUTE_HEALTH, is the player-side per-turn loss
+            # TURN_OUTCOME, not ROUTE_HEALTH, is the player-side per-turn loss.
+            # The producer reports the outcome pair for every searched turn
+            # inside the RESULT record itself (this fixture searched two turns:
+            # turn=1 hp_lost=4 and turn=2 hp_lost=0), so the snapshot covers
+            # both. Expecting only turn 1 would drop a value the mod did emit.
             self.assertEqual(
-                [step.predicted_hp_lost for step in by_turn[1].route], [4]
+                [step.predicted_hp_lost for step in by_turn[1].route], [4, 0]
             )
 
     def test_unusable_route_action_is_counted_not_invented(self) -> None:
