@@ -60,11 +60,19 @@ def main() -> int:
     if actual != claimed:
         return 2
 
-    config = load_v2_training_config(config_path=args.config.resolve())
+    config = load_v2_training_config(args.config.resolve())
     stage = next(s for s in config.stages if s.name == record["stage"])
     split = record["split"]
     episodes = int(record["episodes"])
-    seeds = list(config.partition(stage.name, split).seeds)[:episodes]
+    partition = config.partition(stage.name, split)
+    seeds_attr = getattr(partition, "seeds", None)
+    if callable(seeds_attr):
+        available = list(seeds_attr())
+    elif seeds_attr is not None:
+        available = list(seeds_attr)
+    else:
+        available = list(range(int(partition.start), int(partition.start) + int(partition.count)))
+    seeds = available[:episodes]
 
     digest = hashlib.sha256(",".join(str(seed) for seed in seeds).encode()).hexdigest()
     recorded_seed = str(record.get("seed_sha256"))
