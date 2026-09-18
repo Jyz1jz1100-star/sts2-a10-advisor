@@ -32,3 +32,6 @@ venv/
 artifacts/**
 !artifacts/**/
 !artifacts/sts2mcp-seeded/candidate_manifest_provenance.json
+
+# machine-local agent settings (absolute G:\ paths, this operator only)
+.qoder/settings.local.json
