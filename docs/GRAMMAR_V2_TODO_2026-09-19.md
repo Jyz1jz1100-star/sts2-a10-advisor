@@ -37,7 +37,12 @@ turn 绑定 72 条（v1 只有 19 条且全落在 turn=1）。对照控制组：
 - `test_blocks_can_span_polls_and_ranges_stay_valid`：`[] != [1]`（跨 poll 块与字节区间一致性）
 
 ## E. 证据通道语义（3 个 FAIL，最需要想清楚的部分）
-- `test_route_is_taken_from_the_trace_only_when_it_is_unambiguous`：False is not true
+- `test_route_is_taken_from_the_trace_only_when_it_is_unambiguous`：False is not true。
+  已排除"逐动作混用来源"这一猜测：`_route_for` 本来就整条选用 trace 或整条退回扫描，
+  且 `group_route` 会传递 `note`。真实原因是该 fixture 的 trace 与扫描结果**签名不相等**
+  （走了 evidence_no_match 分支）。下一步是打印两侧签名差异，判定是扫描侧缺字段
+  （如药水 PotionId）还是 trace 侧多/少动作；不得为了让 note 都以 evidence: 开头而
+  放宽相等条件——签名相等是采纳 trace 的唯一理由。
 - `test_route_health_is_counted_but_never_substituted`：已完成。`route_health`
   改为按 trace 计数（原按行，等于在数 beam width）；`[4, 0] != [4]` 一条**已判明是
   断言写错**：fixture 里没有独立的 `TURN_OUTCOME` 行，逐回合对（`turn=1 hp_lost=4`
