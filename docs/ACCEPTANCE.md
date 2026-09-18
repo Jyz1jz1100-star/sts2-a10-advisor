@@ -40,12 +40,28 @@ and moved STS2-RitsuLib to 0.6.2, and the 0.41.0 log grammar no longer matches
 the v1 parser at all (0 snapshots over 13 real combat logs). Evidence and
 consequences: [`COMBAT_SOLVER_0_41_DRIFT_2026-09-19.md`](COMBAT_SOLVER_0_41_DRIFT_2026-09-19.md).
 
-No live batch may start until (a) Workshop auto-update for CombatSolver and
-STS2-RitsuLib is stopped, (b) the solver lock is re-reconciled against the DLLs
-actually on disk with measured hashes, and (c) the reconciled grammar is
+No live batch may start until (b) the solver lock is re-reconciled against the
+DLLs actually on disk with measured hashes, and (c) the reconciled grammar is
 replay-verified over a fresh session log. Until then the comparison child is
 expected to fail closed, and any run performed against a moving mod build is
-excluded from acceptance regardless of what it records.
+excluded from acceptance regardless of what it returns.
+
+(a) is **not achievable non-invasively and has been dropped as a precondition**:
+`steamapps/workshop/appworkshop_2868840.acf` carries no per-item auto-update
+flag (keys present: `appid`, `manifest`, `size`, `latest_manifest`,
+`latest_timeupdated`, `timeupdated`, `timetouched`, `subscribedby`), and the
+alternatives are editing live Steam state on a machine shared with a human user
+or moving Workshop files aside — either of which risks the in-game solver
+disappearing. The operator's standing instruction is that the solver and
+full-auto ownership are core and must not be switched off, so update drift is
+treated as an environment property rather than something to prevent.
+
+The replacement is **per-batch attestation**, which is stronger than a promise
+that nothing changed: every batch records the mod versions and DLL SHA-256 it
+actually observed at start and end, and the batch's evidence is only admissible
+against the grammar that was replay-verified for *that* build. A mid-batch
+Workshop update then invalidates that batch instead of silently poisoning it,
+and no external guarantee about Steam's behaviour is required to trust a run.
 
 ## Exact target
 
