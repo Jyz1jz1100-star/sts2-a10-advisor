@@ -391,6 +391,9 @@ class _TraceActions:
     completed_steps: int | None = None
     first_difference: Any = None
     replay_seen: bool = False
+    #: ROUTE_HEALTH arrives as several records per trace (one per portfolio
+    #: member), so the counter tracks assessed traces, not raw line volume.
+    health_seen: bool = False
 
     def complete(self) -> bool:
         return (

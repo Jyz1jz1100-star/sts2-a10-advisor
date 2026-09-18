@@ -479,7 +479,9 @@ class V2CombatParser:
             # ``change.Target`` indexes the *enemy* taking the change, so this
             # stream cannot supply the player-side per-turn loss TURN_OUTCOME
             # gives; it is counted, never substituted.
-            self.stats["route_health"] += 1
+            if not trace.health_seen:
+                trace.health_seen = True
+                self.stats["route_health"] += 1
             return
         if tag == "ROUTE_REPLAY":
             self.stats["route_replays"] += 1
