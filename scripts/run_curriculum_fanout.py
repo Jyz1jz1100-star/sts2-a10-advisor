@@ -85,15 +85,22 @@ def _is_train_line(text: str, position: int) -> bool:
     return header != -1 and text[header:position].split("]")[0].endswith(".seeds.train")
 
 
-def _train_seeds(config_path: Path) -> dict[str, int]:
+def _train_seeds(config_path: Path) -> dict[str, tuple[int, int]]:
+    """Train (start, count) for the stages this run actually executes.
+
+    A template keeps every stage table on disk even when ``curriculum.stages``
+    selects one, so collecting all of them would report collisions between
+    stages that never run.
+    """
     data = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    stages = data.get("stages", {})
-    result: dict[str, int] = {}
-    for name, table in stages.items():
-        seeds = (table or {}).get("seeds", {}) if isinstance(table, dict) else {}
-        train = seeds.get("train") if isinstance(seeds, dict) else None
+    executed = set(data.get("curriculum", {}).get("stages", []))
+    result: dict[str, tuple[int, int]] = {}
+    for name, table in data.get("stages", {}).items():
+        if executed and name not in executed:
+            continue
+        train = ((table or {}).get("seeds") or {}).get("train")
         if isinstance(train, dict) and "start" in train:
-            result[name] = int(train["start"])
+            result[name] = (int(train["start"]), int(train.get("count", 1)))
     return result
 
 
@@ -108,8 +115,16 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, default=ROOT / "runtime" / "fanout")
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--module", default="training.v2_curriculum")
+    parser.add_argument("--exclude", action="append", default=[],
+                        help="repeat; train ranges already in use elsewhere as "
+                             "start:count, refused if they would overlap")
     parser.add_argument("--allow-reserved-test-corpus", action="store_true",
                         help="permit seeds at or above the reserved teacher holdout start")
+    parser.add_argument("--extra-arg", action="append", default=[],
+                        help="repeat; extra CLI args passed to every job, e.g. "
+                             "--extra-arg --initial-checkpoint --extra-arg <zip> "
+                             "(warm-starting a ladder stage is a per-run flag, not a "
+                             "config key)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -129,24 +144,31 @@ def main() -> int:
         )
         bases.append((path, _train_seeds(path)))
 
-    seen: list[tuple[str, int]] = []
+    ranges: list[tuple[int, int, str]] = []
     for path, seeds in bases:
-        for stage, start in seeds.items():
-            seen.append((f"{path.name}/{stage}", start))
+        for stage_name, (start, count) in seeds.items():
+            ranges.append((start, start + count, f"{path.name}/{stage_name}"))
     assert_seeds_outside_frozen_lineages(
-        [start for _, start in seen],
+        [start for start, _end, _label in ranges],
         allow_reserved_test_corpus=args.allow_reserved_test_corpus,
     )
-    ordered = sorted(start for _, start in seen)
-    if len(set(ordered)) != len(ordered):
-        raise SystemExit("job train partitions collide: identical seed bases")
-    for (name_a, a), (name_b, b) in zip(
-            sorted(seen, key=lambda item: item[1]), sorted(seen, key=lambda item: item[1])[1:]):
-        if a == b:
-            raise SystemExit(f"{name_a} and {name_b} share train base {a}")
+    for spec in args.exclude:
+        try:
+            ex_start, ex_count = (int(part) for part in spec.split(":", 1))
+        except ValueError:
+            raise SystemExit(f"--exclude expects start:count, got {spec!r}")
+        ranges.append((ex_start, ex_start + ex_count, f"excluded({spec})"))
+    ranges.sort()
+    for (a_start, a_end, a_label), (b_start, b_end, b_label) in zip(ranges, ranges[1:]):
+        if b_start < a_end:
+            raise SystemExit(
+                f"train partitions overlap: {a_label} [{a_start}, {a_end}) and "
+                f"{b_label} [{b_start}, {b_end}) -- raise --stride above the "
+                f"largest train count"
+            )
 
-    print(f"{len(bases)} jobs, train bases: "
-          f"{', '.join(str(start) for _, start in sorted(seen, key=lambda item: item[1]))}")
+    print(f"{len(bases)} jobs, train ranges: "
+          f"{', '.join(f'{start}-{end}' for start, end, _ in ranges)}")
     for path, _ in bases:
         print(f"  {path}")
     if args.dry_run:
@@ -159,7 +181,7 @@ def main() -> int:
         log = path.with_suffix(".log")
         handle = log.open("w", encoding="utf-8")
         procs.append((path.name, subprocess.Popen(
-            [args.python, "-m", args.module, "--config", str(path)],
+            [args.python, "-m", args.module, "--config", str(path), *args.extra_arg],
             stdout=handle, stderr=subprocess.STDOUT, cwd=str(ROOT), text=True), log, handle))
     failures = []
     for name, proc, log, handle in procs:
