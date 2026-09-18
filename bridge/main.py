@@ -15,6 +15,7 @@ import time
 from . import client as client_mod
 from . import grounding, screens, signature, thesis, util, worker
 from .model_client import ModelClient
+from .outcome import game_over_message
 
 
 class RunTracker:
@@ -211,37 +212,6 @@ def _load_sample(cfg) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-_WIN_WORDS = ("victor", "triumph", " win", "won", "ascend", "cleared", "complete", "escape")
-_LOSS_WORDS = ("died", "death", "defeat", "lost", "slain", "fell", "perish")
-
-
-def _game_over_message(state: dict) -> str:
-    """Build a victory/defeat acknowledgement. STS2MCP gives no win/loss flag, so
-    infer from the game_over message text, falling back to HP (you finish a won
-    run alive; death is 0 HP)."""
-    go = state.get("game_over") or {}
-    run = state.get("run") or {}
-    player = state.get("player") or {}
-    raw = str(go.get("message") or "").lower()
-    char = (player.get("character") or "?").replace("The ", "")
-    act = run.get("act", "?")
-    floor = run.get("floor", "?")
-    hp = player.get("hp")
-
-    if any(w in raw for w in _WIN_WORDS):
-        won = True
-    elif any(w in raw for w in _LOSS_WORDS):
-        won = False
-    else:
-        won = (hp or 0) > 0  # finished alive -> victory
-
-    if won:
-        return (f"[ run complete ]\n🏆 VICTORY — {char}! You beat the Spire.\n"
-                f"Reached Act {act}. GG — start a new run when ready.")
-    return (f"[ run over ]\n💀 Defeated — {char}, Act {act}, Floor {floor}.\n"
-            f"{go.get('message') or 'The run has ended.'}")
-
-
 def main() -> None:
     cfg = util.load_config()
     logger = util.setup_logging(cfg["paths"]["log_file"])
@@ -320,7 +290,7 @@ def main() -> None:
                 # Run end: announce victory/defeat once, then reset for the next run.
                 if state.get("state_type") == "game_over" or state.get("game_over"):
                     if not game_over_handled:
-                        msg = _game_over_message(state)
+                        msg = game_over_message(state)
                         util.resolve(cfg["paths"]["advice_file"]).write_text(
                             msg + "\n", encoding="utf-8")
                         logger.info("Run ended: %s", msg.splitlines()[0])
