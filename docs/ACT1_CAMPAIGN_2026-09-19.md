@@ -11,11 +11,18 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 | `b_terminal-0`（fan-out） | checkpoint @1M | 100 | 0.020（2 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `a_base`（手工臂） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | 待复现 |
 
-战役总览：14 个臂产出指标，其中 3 个臂记录到非零胜局。
+战役总览（截至本报告更新时）：**20 个臂、47 份评估文件、21 份记录到非零胜局**
+——其中 **12 份来自 500 局的未见 promotion 分区**、9 份来自 100 局 checkpoint 分区。
+这 21 份**全部**满足 `illegal_actions=0`、`unclassified_dead_ends=0`、
+`checkpoint_verified=True`、`max_final_floor=17`；最高 `win_rate = 0.02`。
+
+也就是说"能不能赢一次"已经不再依赖单点观察：**多臂、多分区、多时间点上重复出现**。
+但仍未越过任何晋升门槛（act1 门槛是 35% 胜率 / Wilson 下界 31%），
+所以这批证据的结论是"可达"，不是"可靠"。
 
 历史对照：本仓库此前 **22 份 V2 指标文件里 win_rate 全为 0**，所以这是第一次非零。
 `max_final_floor = 17` 表示越过第 16 层（`RunConstants.MapBossRow = 16`）到达幕终局，
-不是中途截断；两场的 `illegal_actions = 0`、`unclassified_dead_ends = 0`、
+不是中途截断；上述 21 份记录的 `illegal_actions = 0`、`unclassified_dead_ends = 0`、
 `defect_truncation_rate = 0`。
 
 哈希链（可自己重算）：
