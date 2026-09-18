@@ -55,6 +55,7 @@ _REQUEST_MARKERS_V1 = ("SEARCH_REQUEST",)
 _REQUEST_MARKERS_V2 = ("SEARCH_REQUEST", "SEARCH_REUSED", "TURN_SETUP_SEARCH_START")
 _MARKER_RES = {GRAMMAR_V1: _SOLVER_EVENT_RE, GRAMMAR_V2: _SOLVER_EVENT_RE_V2}
 _MARKER_EVENTS = {GRAMMAR_V1: MARKER_EVENTS, GRAMMAR_V2: MARKER_EVENTS_V2}
+_PREFIX_TOKEN = b"[CombatSolver/"
 _TOKEN_RE = re.compile(rb"([A-Za-z_][A-Za-z0-9_\[\]]*)=([^\s,;]+)")
 #: a v2 token value ends at the JSON string quote, the escaped newline that
 #: separates embedded payload lines, or the record's closing brace
@@ -103,6 +104,12 @@ def scan_markers(
     for line in _complete_lines(payload):
         match = pattern.search(line)
         if match is None:
+            continue
+        if grammar == GRAMMAR_V1 and line.find(_PREFIX_TOKEN) != match.start():
+            # A v1 record is one marker per line, so a marker that sits behind a
+            # second "[CombatSolver/...]" prefix on the same line is payload text,
+            # not an event.  Counting it would let a v2 record's embedded lines be
+            # booked into a v1 byte range.
             continue
         marker = match.group(1).decode("ascii")
         counts[marker] += 1

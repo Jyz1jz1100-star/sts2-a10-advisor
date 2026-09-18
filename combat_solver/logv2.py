@@ -120,6 +120,12 @@ def result_identity(kv: dict[str, str]) -> dict[str, str]:
     }
 
 
+def _identity_key(kv: dict[str, str]) -> frozenset[tuple[str, str]]:
+    """Hashable form of ``result_identity``, for remembering consumed answers."""
+
+    return frozenset(result_identity(kv).items())
+
+
 class V2CombatParser:
     """Block machine for one ``combat-*.jsonl`` file."""
 
@@ -151,9 +157,10 @@ class V2CombatParser:
         self._pending_deploy_turn: int | None = None
         self._last_search: tuple[Path, int, int] | None = None
         self._battle_id: str | None = None
-        #: identity of the last RESULT already turned into a snapshot, so a
-        #: restated answer with no new request can be dropped as an echo
-        self._last_consumed_identity: str | None = None
+        #: identities of every RESULT already turned into a snapshot in this
+        #: combat, so a restated answer with no new request is dropped as an echo
+        #: whatever it restates -- not only the immediately preceding one
+        self._consumed_result_identities: set[frozenset[tuple[str, str]]] = set()
         self._report_abandoned_deploys = report_abandoned_deploys
         #: ids confirmed by a COMBAT_LOG_BEGIN record; shared between the journal
         #: files of one poll because process.jsonl confirms what combat files claim
@@ -288,8 +295,7 @@ class V2CombatParser:
             if (
                 not self._block.has_result
                 and self._block.request_turn is None
-                and self._last_consumed_identity is not None
-                and result_identity(kv) == self._last_consumed_identity
+                and _identity_key(kv) in self._consumed_result_identities
             ):
                 # The producer restated an answer it had already published, with
                 # no new request in between. Re-consuming it would double the
@@ -664,7 +670,7 @@ class V2CombatParser:
         block = self._block
         if block.has_result:
             if block.result is not None:
-                self._last_consumed_identity = result_identity(block.result)
+                self._consumed_result_identities.add(_identity_key(block.result))
             events.extend(self._emit_snapshot())
         elif block.request_turn is not None:
             reason = "TIMEOUT" if block.budget_exhausted else "NO_ROUTE"
@@ -805,14 +811,17 @@ class V2CombatParser:
                         battle_turn=block.request_turn,
                         detail=(
                             "the mod's own route replay did not reproduce the "
-                            "published route (traceId=" + ",".join(sorted(diverged)) + ")"
+                            f"published route in combat {self._battle_id or 'unknown'} "
+                            "(traceId=" + ",".join(sorted(diverged)) + ")"
                         ),
                     )
                 )
             ]
         if not block.traces:
             # absence of the evidence channel is not a failure: pre-0.38 journals
-            # predate it, so it is disclosed instead of being punished
+            # predate it, and 0.41.0 emits ROUTE_ACTION only inside the window of a
+            # combat's first non-reused RESULT, so every reused answer of a real
+            # combat is traceless by design. Disclose it, do not punish it.
             self.stats["answers_without_replay_validation"] += 1
         return None
 

@@ -293,9 +293,18 @@ class DiscoveryTests(unittest.TestCase):
                 [(source.kind, source.path.name) for source in sources][0],
                 ("process", "process.jsonl"),
             )
-            # a second session is a second group, ordered by directory name
-            second = copy_session(logs) / ".." / "22222-0000000000000000000000000000fffe"
-            self.assertEqual(len(discover_v2_sources(logs)), 10)
+            # a second session is a second group: sessions ordered by directory
+            # name, and process.jsonl ahead of its own combat files
+            second = session.parent / "22222-0000000000000000000000000000fffe"
+            shutil.copytree(session, second)
+            found = discover_v2_sources(logs)
+            self.assertEqual(len(found), 10)
+            self.assertEqual(
+                [source.path.parent.name for source in found],
+                [session.name] * 5 + [second.name] * 5,
+            )
+            self.assertEqual([source.kind for source in found],
+                             ["process"] + ["combat"] * 4 + ["process"] + ["combat"] * 4)
 
     def test_non_journal_files_are_not_sources(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -408,10 +417,14 @@ class SnapshotEmissionTests(unittest.TestCase):
     def test_reused_answer_keeps_the_full_route_and_the_new_turn(self) -> None:
         # the v1 "re-bind a reused package to its first action turn" rule would
         # label every answer of this battle turn 1, because v2 blocks always
-        # carry the whole battle-length route starting at turn 1
+        # carry the whole battle-length route starting at turn 1.  The producer's
+        # own Turn fields run this plan to turn 2 (ROUTE_ACTION index 3 is the
+        # EndTurn with "Turn": 2, and the RESULT ACTION lines agree), so the point
+        # is that a reused answer keeps the whole route while reporting its own
+        # battle turn -- not that the route is a single step.
         by_turn = {snapshot.battle_turn: snapshot for snapshot in self.snapshots}
-        self.assertEqual([step.turn for step in by_turn[1].route], [1])
-        self.assertEqual([step.turn for step in by_turn[2].route], [1])
+        self.assertEqual([step.turn for step in by_turn[1].route], [1, 2])
+        self.assertEqual([step.turn for step in by_turn[2].route], [1, 2])
         self.assertEqual(actions_of(by_turn[2]), actions_of(by_turn[1]))
         self.assertIsNone(by_turn[2].budget.elapsed_ms)
         self.assertIsNone(by_turn[2].budget.nodes_expanded)
@@ -435,24 +448,45 @@ class SnapshotEmissionTests(unittest.TestCase):
 
 
 class EvidenceChannelTests(unittest.TestCase):
-    def test_route_is_taken_from_the_trace_only_when_it_is_unambiguous(self) -> None:
+    def test_route_is_taken_from_the_trace_only_by_the_answer_that_owns_it(self) -> None:
+        # Measured on the 10 real 0.41.0 combats on this machine that contain RESULT
+        # records: every one of them emits its ROUTE_ACTION records in a single burst
+        # inside the window of the first non-reused RESULT, and zero records inside
+        # every later window (those later answers all carry reused=True plus a
+        # SEARCH_REUSED line).  So "every answer has a trace" is not a producer
+        # behaviour and must not be asserted -- but the flip side is the part that
+        # matters for acceptance: an answer may cite a trace only when its own window
+        # carried one, even when an earlier answer traced an identical route.
         with tempfile.TemporaryDirectory() as tmp:
             session_a = copy_session(Path(tmp) / "a", keep=("process", BATTLE_A))
-            snapshots, _failures, _deploys = split(replay(session_a).poll())
-            notes = {
-                action.note
-                for snapshot in snapshots
-                for step in snapshot.route
-                for action in step.actions
-            }
-            self.assertTrue(notes)
+            source = replay(session_a)
+            snapshots, _failures, _deploys = split(source.poll())
+            by_turn = {snapshot.battle_turn: snapshot for snapshot in snapshots}
+            owned = [action.note
+                     for step in by_turn[1].route for action in step.actions]
+            self.assertTrue(owned)
             self.assertTrue(
-                all(str(note).startswith(f"evidence:{TRACE}#") for note in notes)
+                all(str(note).startswith(f"evidence:{TRACE}#") for note in owned)
             )
+            self.assertEqual(sorted(int(str(note).split("#")[1]) for note in owned),
+                             list(range(len(owned))))
+
+            # turn 2 scraped the very same four-action route turn 1 traced, from a
+            # window with no evidence records of its own.  It keeps the route and
+            # must not inherit the trace id.
+            self.assertEqual(actions_of(by_turn[2]), actions_of(by_turn[1]))
+            reused = [action.note
+                      for step in by_turn[2].route for action in step.actions]
+            self.assertEqual(reused, [None] * len(reused))
+            later = [action.note
+                     for step in by_turn[3].route for action in step.actions]
+            self.assertEqual(later, [None] * len(later))
+
+            self.assertEqual(summed_stats(source)["evidence_adopted"], 1)
+            self.assertEqual(summed_stats(source)["answers_without_replay_validation"], 3)
             potion = [
                 action
-                for snapshot in snapshots
-                for step in snapshot.route
+                for step in by_turn[1].route
                 for action in step.actions
                 if action.kind == "potion"
             ]
@@ -540,8 +574,9 @@ class EvidenceChannelTests(unittest.TestCase):
                     )
                     + "\n"
                 )
-            _snapshots, _failures, _deploys = split(replay(session).poll())
-            self.assertEqual(summed_stats(replay(session))["unusable_route_actions"], 1)
+            source = replay(session)
+            _snapshots, _failures, _deploys = split(source.poll())
+            self.assertEqual(summed_stats(source)["unusable_route_actions"], 1)
 
 
 class DeployBindingTests(unittest.TestCase):
@@ -771,8 +806,21 @@ class FailureTaxonomyTests(unittest.TestCase):
             )
 
     def test_identical_answer_republished_in_one_window_is_one_snapshot(self) -> None:
+        # What is under test is that an echo stays invisible: the snapshot list and
+        # the failure list must come out identical to the same session without the
+        # appended record.  "No failures at all" is not the property -- this fixture
+        # legitimately reports a death-route NO_ROUTE and a TIMEOUT on its own.
         with tempfile.TemporaryDirectory() as tmp:
-            session = copy_session(Path(tmp), keep=("process", BATTLE_A))
+            pristine = copy_session(Path(tmp) / "pristine", keep=("process", BATTLE_A))
+            pristine_source = replay(pristine)
+            pristine_snapshots, pristine_failures, _ = split(pristine_source.poll())
+            pristine_key = (
+                [snapshot.battle_turn for snapshot in pristine_snapshots],
+                [(failure.reason, failure.battle_turn) for failure in pristine_failures],
+            )
+            self.assertEqual(pristine_key[1], [("NO_ROUTE", 3), ("TIMEOUT", 4)])
+
+            session = copy_session(Path(tmp) / "echoed", keep=("process", BATTLE_A))
             combat = session / combat_name(BATTLE_A)
             records = combat.read_text(encoding="utf-8").splitlines(keepends=True)
             result_records = [
@@ -783,57 +831,110 @@ class FailureTaxonomyTests(unittest.TestCase):
             source = replay(session)
             snapshots, failures, _deploys = split(source.poll())
             self.assertEqual(
+                (
+                    [snapshot.battle_turn for snapshot in snapshots],
+                    [(failure.reason, failure.battle_turn) for failure in failures],
+                ),
+                pristine_key,
+            )
+            self.assertEqual(
                 [snapshot.battle_turn for snapshot in snapshots].count(1), 1
             )
-            self.assertEqual(failures, [])
             self.assertEqual(summed_stats(source)["suppressed_echoes"], 1)
+            self.assertEqual(summed_stats(pristine_source)["suppressed_echoes"], 0)
 
 
 class IncrementalPollTests(unittest.TestCase):
     def test_blocks_can_span_polls_and_ranges_stay_valid(self) -> None:
+        # A live tail first meets every file at its EOF, so a real batch has to have
+        # the reader running before the producer writes.  Split one combat across
+        # three polls and require the accumulated stream to equal what a single
+        # replay of the same bytes yields -- same snapshots, same failures, same
+        # deploys, byte ranges still verifiable, identity still bound.
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "logs" / "CombatSolver" / "live-session"
             root.mkdir(parents=True)
-            (root / "process.jsonl").write_text(
-                json.dumps(
-                    {"Time": 1, "Level": "info", "Message": f"COMBAT_LOG_BEGIN id={BATTLE_A}"}
-                )
-                + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
+            process = root / "process.jsonl"
             combat = root / combat_name(BATTLE_A)
+            process.write_text("", encoding="utf-8", newline="\n")
+            combat.write_text("", encoding="utf-8", newline="\n")
             records = (V2_SESSION / combat_name(BATTLE_A)).read_text(
                 encoding="utf-8"
             ).splitlines(keepends=True)
+            begin = [
+                line
+                for line in (V2_SESSION / "process.jsonl").read_text(
+                    encoding="utf-8"
+                ).splitlines(keepends=True)
+                if f"COMBAT_LOG_BEGIN id={BATTLE_A}" in line
+            ]
             deploy_start = next(i for i, line in enumerate(records) if "DEPLOY_START" in line)
             deploy_end = next(i for i, line in enumerate(records) if "DEPLOY_END" in line)
-            with combat.open("a", encoding="utf-8", newline="\n") as handle:
-                handle.writelines(records[:deploy_start])
+
             source = LogTailSource(root.parent.parent)
-            first = split(source.poll())
+            self.assertEqual(source.poll(), [])  # history is never replayed
+
+            def append(lines: list[str]) -> None:
+                with combat.open("a", encoding="utf-8", newline="\n") as handle:
+                    handle.writelines(lines)
+
+            def append_process(lines: list[str]) -> None:
+                with process.open("a", encoding="utf-8", newline="\n") as handle:
+                    handle.writelines(lines)
+
+            seen: list = []
+
+            append_process(begin)
+            append(records[:deploy_start])
+            polled = source.poll()
+            seen.extend(polled)
+            first = split(polled)
+            self.assertEqual([snapshot.battle_turn for snapshot in first[0]], [1])
             self.assertEqual(first[2], [])  # nothing deployed yet
-            with combat.open("a", encoding="utf-8", newline="\n") as handle:
-                handle.writelines(records[deploy_start : deploy_end + 1])
-            snapshots, failures, deploys = split(source.poll())
-            self.assertEqual([snapshot.battle_turn for snapshot in snapshots], [1])
-            self.assertEqual(failures, [])
-            self.assertEqual([deploy.turn for deploy in deploys], [1])
-            self.assertEqual(deploys[0].battle_log_id, BATTLE_A)
+
+            append(records[deploy_start : deploy_end + 1])
+            polled = source.poll()
+            seen.extend(polled)
+            second = split(polled)
+            self.assertEqual(second[0], [])
+            self.assertEqual(second[1], [])
+            self.assertEqual([deploy.turn for deploy in second[2]], [1])
+            self.assertEqual(second[2][0].battle_log_id, BATTLE_A)
+            deploy = second[2][0]
             _verified, payload, marker_events = verify_log_range(
-                deploys[0].log_range.to_json(), allowed_root=root.parent.parent
+                deploy.log_range.to_json(), allowed_root=root.parent.parent
             )
             validate_deploy_grammar(marker_events, turn=1, grammar=GRAMMAR_V2)
             self.assertEqual(payload.count(b"DEPLOY_ACTION"), 2)
-            with combat.open("a", encoding="utf-8", newline="\n") as handle:
-                handle.writelines(records[deploy_end + 1 :])
-            later = split(source.poll())
-            self.assertEqual([deploy.turn for deploy in later[2]], [2, 3])
+
+            append(records[deploy_end + 1 :])
+            polled = source.poll()
+            seen.extend(polled)
+            third = split(polled)
+            self.assertEqual([deploy.turn for deploy in third[2]], [2, 3])
             self.assertEqual(
-                [failure.battle_turn for failure in later[1]], [3, 4, None]
+                [failure.battle_turn for failure in third[1]], [3, 4]
             )
             self.assertEqual(
-                [failure.reason for failure in later[1]], ["NO_ROUTE", "TIMEOUT", "PARSE_ERROR"]
+                [failure.reason for failure in third[1]], ["NO_ROUTE", "TIMEOUT"]
+            )
+
+            reference_session = copy_session(
+                Path(tmp) / "reference", keep=("process", BATTLE_A)
+            )
+            reference = split(replay(reference_session).poll())
+            live = split(seen)
+            self.assertEqual(
+                [snapshot.battle_turn for snapshot in live[0]],
+                [snapshot.battle_turn for snapshot in reference[0]],
+            )
+            self.assertEqual(
+                [(failure.reason, failure.battle_turn) for failure in live[1]],
+                [(failure.reason, failure.battle_turn) for failure in reference[1]],
+            )
+            self.assertEqual(
+                [deploy.turn for deploy in live[2]],
+                [deploy.turn for deploy in reference[2]],
             )
 
 
