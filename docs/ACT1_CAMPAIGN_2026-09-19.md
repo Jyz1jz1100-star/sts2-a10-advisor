@@ -43,10 +43,16 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 
 ## 范围声明（必须一起读）
 
-1. **`scope` 是 `simulator_act1`，不是真机 A10 验收**。两场的统计含义是 1/100 与
-   2/500，Wilson 下界千分之二级别——它证明"能赢一次"，不证明"能赢"。
-2. **模拟器只有第一幕**：`RunConstants.MapBossRow = 16`、单 boss 节点、遭遇枚举
-   只有 `ActOneEncounter`、README 自称 "Seeded Act 1 selection"。因此
+1. **`scope` 是 `simulator_act1`，不是真机 A10 验收**。最强的未见分区记录是
+   6/500（`win_rate = 0.012`，`wilson_95_low = 0.0055`），离 act1 门槛要求的
+   35% 点估计 / 31% 下界还差约一个半数量级；100 局 checkpoint 分区上的 2/100
+   只说明"这个种子段里赢过"。这批数字证明"能赢一次"，不证明"能赢"。
+2. **模拟器只有第一幕**：这次不是靠常量名推断，而是读到了终止条件——
+   `Sts2Emulator/Core/Run/RunEngine.cs` 的 `AdvanceAfterNode` 只在
+   `State.Floor >= RunConstants.MapBossRow + 1`（= 17）时把 `Phase` 置为
+   `Complete`，也就是**一局在 Act 1 的 boss 处就结束了**，引擎里不存在通往 Act 2
+   的推进路径；配套的还有单 boss 节点、遭遇枚举只有 `ActOneEncounter`、README 自称
+   "Seeded Act 1 selection"。因此
    **Act 1-3（含最终幕两个 boss）在模拟器内不可达成**，本文任何数字都不能被当作
    三幕通关的证据。三幕只能在真机上完成，走 `docs/ACCEPTANCE.md` 的验收链路。
    真机侧**已核实的最远距离是 Act 2 floor 30**（seed `1600000001`，`game_over` +
