@@ -9,7 +9,7 @@
 turn 绑定 72 条（v1 只有 19 条且全落在 turn=1）。对照控制组：v1 在同一批解码行上
 95 事件 / 19 快照 / 7 失败。**所以 codec 已经能用，但还不能算验收过。**
 
-`python -m unittest tests.test_combat_solver_grammar_v2` → 47 项，11 失败 + 3 报错。
+`python -m unittest tests.test_combat_solver_grammar_v2` → 47 项，当前 10 失败 + 1 报错（原 11+3）。
 按根因归类，不是同一个原因：
 
 ## A. 汇总字典缺键（3 个 ERROR，纯机械）
@@ -43,9 +43,13 @@ turn 绑定 72 条（v1 只有 19 条且全落在 turn=1）。对照控制组：
 - `test_diverged_replay_suppresses_the_answer`：抑制信息里必须带 `traceId`，
   现在只带在括号里而断言找的是短形 id —— 需要决定到底是消息格式还是测试口径
 
-## F. 重复发布去重（1 个 FAIL）
-`test_identical_answer_republished_in_one_window_is_one_snapshot`：同一窗口内重复
-答案被误判成 `NO_ROUTE` 失败，实际应为 0 失败、1 快照。
+## F. 重复发布去重（部分完成）
+`test_identical_answer_republished_in_one_window_is_one_snapshot`。已实现跨窗口的
+RESULT 回显抑制（`suppressed_echoes`）：块外再次出现、且身份与上次已消费答案完全
+相同、中间没有新请求的 RESULT，计为 echo 并丢弃。该断言的幻影失败从 **3 条降到
+1 条**，仍未归零——剩下那条来自追加记录之后仍挂着的一个"有请求无 RESULT"的块，
+需要顺着 `_flush_block` 的块生命周期与 fixture 实际顺序再查，不能靠放宽
+NO_ROUTE 判定来凑绿。
 
 ## G. reader 分类与复用（2 个 FAIL）
 - `test_default_reader_classifies_each_file_separately`：godot.log 与 jsonl 混在

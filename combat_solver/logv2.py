@@ -151,6 +151,9 @@ class V2CombatParser:
         self._pending_deploy_turn: int | None = None
         self._last_search: tuple[Path, int, int] | None = None
         self._battle_id: str | None = None
+        #: identity of the last RESULT already turned into a snapshot, so a
+        #: restated answer with no new request can be dropped as an echo
+        self._last_consumed_identity: str | None = None
         self._report_abandoned_deploys = report_abandoned_deploys
         #: ids confirmed by a COMBAT_LOG_BEGIN record; shared between the journal
         #: files of one poll because process.jsonl confirms what combat files claim
@@ -182,6 +185,8 @@ class V2CombatParser:
             "evidence_adopted",
             "evidence_ambiguous",
             "unusable_route_actions",
+            "suppressed_echoes",
+            "result_echo_records",
             "answers_without_replay_validation",
             "death_route_answers",
             "empty_routes",
@@ -280,6 +285,18 @@ class V2CombatParser:
         if marker == "SEARCH_INTERIM_RESULT":
             return
         if marker == "RESULT":
+            if (
+                not self._block.has_result
+                and self._block.request_turn is None
+                and self._last_consumed_identity is not None
+                and result_identity(kv) == self._last_consumed_identity
+            ):
+                # The producer restated an answer it had already published, with
+                # no new request in between. Re-consuming it would double the
+                # snapshot and invent a failure for the leftover state, so the
+                # echo is counted and dropped.
+                self.stats["suppressed_echoes"] += 1
+                return
             if self._block.has_result:
                 # A v2 block is self-contained (one record carries RESULT +
                 # TURN_OUTCOME* + ACTION*), so a second RESULT inside the same
@@ -644,6 +661,8 @@ class V2CombatParser:
     def _flush_block(self, events: list[SourceEvent]) -> None:
         block = self._block
         if block.has_result:
+            if block.result is not None:
+                self._last_consumed_identity = result_identity(block.result)
             events.extend(self._emit_snapshot())
         elif block.request_turn is not None:
             reason = "TIMEOUT" if block.budget_exhausted else "NO_ROUTE"
