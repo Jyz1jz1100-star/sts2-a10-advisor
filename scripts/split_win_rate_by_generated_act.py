@@ -135,10 +135,12 @@ def main() -> int:
                "checkpoint_sha256": checkpoint_sha}
         row.update({key: metrics.get(key) for key in
                     ("win_rate", "wins", "episodes", "mean_final_floor", "max_final_floor",
-                     "final_floor_histogram", "illegal_actions", "unclassified_dead_ends")})
+                     "truncation_rate", "defect_truncation_rate",
+                     "illegal_actions", "unclassified_dead_ends")})
         rows.append(row)
         print(f"  act {act} ({name:10}) {row['wins']}/{row['seeds']} win_rate={row['win_rate']} "
               f"mean_floor={row['mean_final_floor']} max_floor={row['max_final_floor']} "
+              f"trunc={row['truncation_rate']} "
               f"illegal={row['illegal_actions']} unclassified={row['unclassified_dead_ends']}")
 
     payload = {"schema_version": 1,
