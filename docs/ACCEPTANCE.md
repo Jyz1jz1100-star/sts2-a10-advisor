@@ -1,5 +1,36 @@
 # Acceptance protocol
 
+## Verdict update (2026-09-19)
+
+Still **not accepted**; nothing below changes that verdict. What changed overnight,
+in terms of what the gates can now actually check:
+
+- The 0.41.0 journal reader (grammar v2) is merged and registered in
+  `scripts/test.ps1`, so a live batch's in-combat evidence is readable and
+  judgeable; before this, a real batch could play but not be assessed.  Suite:
+  482 contract + 99 training-environment tests.
+- The precondition "stop Workshop auto-update" was dropped as un-actionable and
+  replaced by **per-batch mod attestation** (`combat_solver/modpin.py`, wired into
+  `scripts/supervise_solver_batch.py`): every batch hashes the locked mod binaries
+  and manifest versions at both ends of its window.  With
+  `config/combat_solver.lock.json` still pinning 0.31.0 while 0.41.0 / RitsuLib
+  0.6.2 are on disk, a batch correctly reports `attested: false` — reconciling that
+  lock is the operator's call, not the agent's.
+- The bridge can no longer report a survived run as a victory (see
+  `bridge/outcome.py` and "explicit terminal victory" below): a live clear must be
+  corroborated by the run's own trace, not inferred from positive HP.
+- Simulator evidence has a measured ceiling and a measured scope.  Split by the act
+  the emulator actually generated, the one arm measured per-act so far runs Act 1 at
+  **3/5014** (three named, individually re-run seeds); `simulator_act1` labels in
+  earlier reports mixed two acts.  The bundled emulator defines two acts, ends every
+  run at its own act's boss, and has no Act 3 and no act chaining, so **no simulator
+  result can satisfy these gates at any checkpoint quality** — the three-act target
+  is a real-game question only.
+
+What still blocks a live attempt is operational, not code: the game is not running,
+and the supervisor deliberately never starts it.  `docs/STATUS.md` names the command
+to run once the operator has launched the game.
+
 ## Current verdict (2026-09-05)
 
 The acceptance machinery is present and its offline fixture ledger is covered by
