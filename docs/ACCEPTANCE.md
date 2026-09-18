@@ -30,6 +30,23 @@ process, live bridge action, deployment, or production training job was started
 by these checks. The full-run ledger's intentionally synthetic negative report
 remained `accepted: false` with missing live provenance/identity blockers.
 
+## Precondition: pin the Workshop mods (2026-09-19)
+
+`config/combat_solver.lock.json` is only meaningful if the mods it pins stay in
+place. They have not: between 2026-09-11 and 2026-09-18 Steam auto-updated
+CombatSolver eight times (0.35.5 → 0.41.0, visible in the
+`INIT mod=` lines of `%APPDATA%\SlayTheSpire2\logs\CombatSolver\*\process.jsonl`)
+and moved STS2-RitsuLib to 0.6.2, and the 0.41.0 log grammar no longer matches
+the v1 parser at all (0 snapshots over 13 real combat logs). Evidence and
+consequences: [`COMBAT_SOLVER_0_41_DRIFT_2026-09-19.md`](COMBAT_SOLVER_0_41_DRIFT_2026-09-19.md).
+
+No live batch may start until (a) Workshop auto-update for CombatSolver and
+STS2-RitsuLib is stopped, (b) the solver lock is re-reconciled against the DLLs
+actually on disk with measured hashes, and (c) the reconciled grammar is
+replay-verified over a fresh session log. Until then the comparison child is
+expected to fail closed, and any run performed against a moving mod build is
+excluded from acceptance regardless of what it records.
+
 ## Exact target
 
 - Game: the version-locked installed public-beta build described by
