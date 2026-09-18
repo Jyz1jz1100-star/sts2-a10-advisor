@@ -63,7 +63,12 @@ stand down.
   explicit terminal victory can and cannot mean over this bridge.
 - **First non-zero V2 Act 1 terminal wins**, reproduced independently four times:
   `docs/ACT1_CAMPAIGN_2026-09-19.md`. Simulator-only (`scope:
-  simulator_act1`); the emulator has no Act 2 or 3.
+  simulator_act1`) — and that label is qualified by a later measurement the same
+  session: the emulator defines exactly two acts (`ActOvergrowth`, `ActUnderdocks`)
+  and picks one per run by seed (`RunMapGenerator.cs:10`), so a "simulator_act1" win
+  rate is a single-act clearance over a ~50/50 two-act population, and a run always
+  ends at its own act's boss. There is no Act 3 and no act chaining, so no simulator
+  result can evidence a three-act clear.
 - **What still stands between here and a real three-act clear** is not code. The
   supervisor's refusal to launch the game is deliberate and currently
   load-bearing: the profile save tree was written at 00:03-00:04 local, so a
