@@ -9,7 +9,7 @@
 turn 绑定 72 条（v1 只有 19 条且全落在 turn=1）。对照控制组：v1 在同一批解码行上
 95 事件 / 19 快照 / 7 失败。**所以 codec 已经能用，但还不能算验收过。**
 
-`python -m unittest tests.test_combat_solver_grammar_v2` → 47 项，当前 10 失败 + 1 报错（原 11+3）。
+`python -m unittest tests.test_combat_solver_grammar_v2` → 47 项，当前 8 失败 + 1 报错（原 11+3）。
 按根因归类，不是同一个原因：
 
 ## A. 汇总字典缺键（3 个 ERROR，纯机械）
@@ -27,7 +27,7 @@ turn 绑定 72 条（v1 只有 19 条且全落在 turn=1）。对照控制组：
 `test_non_journal_files_are_not_sources`：`combat-not-a-guid.jsonl` 被当成源。
 要求是只接受 `combat-<32 hex>.jsonl`；名字不合法就不是战斗日志。
 
-## C. 读取失败必须显式化（1 个 FAIL，安全属性）
+## C. 读取失败必须显式化（已完成，安全属性）
 `test_pinned_grammar_refuses_the_other_container`：期望
 `['READER_DOWN']` 类型化失败，实际 `[]`。静默空列表会把"读不到"伪装成"没有事件"。
 

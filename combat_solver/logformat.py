@@ -60,6 +60,7 @@ from combat_solver.loggrammar import (
     SNIFF_UNDECIDED,
     SOLVER_LINE_MARKERS as _SOLVER_LINE_MARKERS,
     TURN_KEYS as _TURN_KEYS,
+    journal_roots,
     _PendingAction,
     _first_int,
     _first_str,
@@ -223,6 +224,30 @@ class LogTailSource:
                 self._active_path = path
             for line in fresh:
                 self._feed_line(line.text, events, line)
+        if self._grammar == GRAMMAR_V1:
+            refused = [root for root in journal_roots(self._log_dir) if root.is_dir()]
+            if refused and self._log_dir not in self._reported_rejections:
+                # Solver data is present that this reader will not parse. Saying
+                # nothing would look like "no battles happened"; one aggregated
+                # refusal names the directory so the gap is visible to the
+                # assessor instead of being inferred from silence.
+                self._reported_rejections.add(self._log_dir)
+                self.stats["rejected_files"].add(str(self._log_dir))
+                events.append(
+                    SourceEvent.failed(
+                        SolverFailure(
+                            reason="READER_DOWN",
+                            captured_at_utc=_utc_now(),
+                            detail=(
+                                f"{self._log_dir}: refused to read (reader is "
+                                f"pinned to grammar {GRAMMAR_V1}) while "
+                                f"{len(refused)} grammar {GRAMMAR_V2} journal "
+                                "session(s) are present; they are not parsed "
+                                "under any other grammar"
+                            ),
+                        )
+                    )
+                )
         if self._grammar != GRAMMAR_V1:
             events.extend(self._poll_v2())
         # End-of-stream flush: the last block of a battle may never see a
