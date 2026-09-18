@@ -80,15 +80,23 @@ def _rows(arm_dir: Path) -> list[dict[str, object]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=ROOT / "runtime" / "act1_overnight")
+    parser.add_argument("--root", type=Path, action="append",
+                        help="campaign root; repeat to scan several (default: runtime/act1_overnight)")
     parser.add_argument("--out", type=Path, default=ROOT / "runs" / "act1_campaign_20260919")
     args = parser.parse_args()
 
+    roots = args.root or [ROOT / "runtime" / "act1_overnight"]
+    missing = [_rel(root) for root in roots if not root.is_dir()]
+    for root in missing:
+        print(f"WARNING: campaign root does not exist: {root}")
+
     # run_dir/<run-id>/<stage>/metrics/*.json  ->  one entry per <stage> dir
-    arms = sorted({path.parent.parent for path in args.root.rglob("metrics/*.json")})
+    arms = sorted({path.parent.parent for root in roots for path in root.rglob("metrics/*.json")})
     report: dict[str, object] = {
         "schema_version": 1,
         "generated_by": "scripts/report_act1_campaign.py",
+        "scanned_roots": [_rel(root) for root in roots if root.is_dir()],
+        "missing_roots": missing,
         "scope_note": ("simulator_act1 only: the bundled emulator generates Act 1 "
                        "(RunConstants.MapBossRow = 16, single boss node). It cannot "
                        "evidence an Act 1-3 clear."),

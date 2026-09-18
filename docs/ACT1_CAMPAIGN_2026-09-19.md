@@ -11,10 +11,12 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 | `b_terminal-0`（fan-out） | checkpoint @1M | 100 | 0.020（2 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `a_base`（手工臂） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | 待复现 |
 
-战役总览（截至本报告更新时）：**20 个臂、47 份评估文件、21 份记录到非零胜局**
-——其中 **12 份来自 500 局的未见 promotion 分区**、9 份来自 100 局 checkpoint 分区。
-这 21 份**全部**满足 `illegal_actions=0`、`unclassified_dead_ends=0`、
-`checkpoint_verified=True`、`max_final_floor=17`；最高 `win_rate = 0.02`。
+战役总览（`python scripts/report_act1_campaign.py --root runtime/act1_overnight --root runtime/fanout`，
+2026-09-19 04:36 本地时间）：**20 个臂、59 份评估文件、28 份记录到非零胜局**
+——其中 **15 份来自 500 局的未见 promotion 分区**、13 份来自 100 局 checkpoint 分区。
+这 28 份**全部**满足 `illegal_actions=0`、`unclassified_dead_ends=0`、
+`checkpoint_verified=True`、`max_final_floor=17`；最高 `win_rate = 0.02`（100 局臂），
+未见 500 局分区上最高 `win_rate = 0.012`。
 
 也就是说"能不能赢一次"已经不再依赖单点观察：**多臂、多分区、多时间点上重复出现**。
 但仍未越过任何晋升门槛（act1 门槛是 35% 胜率 / Wilson 下界 31%），
@@ -79,6 +81,10 @@ VERDICT: reproduced        (exit code 0)
 
 - 3 个续训臂从已验证的 `final.zip` 热启动，换新种子段（400M/406M/412M），
   目的不是刷胜率，而是检验"未见分区上是否仍能赢"。
-- 真机侧两个拦路石仍未完成：grammar v2（WIP 分支 `wip/grammar-v2`，
-  47 项测试里 11 失败 + 3 错误）与逐批次模组自证（任务 #6）。在它们完成前，
-  真机三幕即使打完也无法判定为验收通过。
+- 真机侧拦路石：grammar v2（WIP 分支 `wip/grammar-v2`）仍未完成，所以真机批次
+  即使打完也无法产出可判定的局内证据。逐批次模组自证已经落地
+  （`combat_solver/modpin.py` + `scripts/supervise_solver_batch.py` + 6 项测试），
+  不再是拦路石。
+- 2026-09-19 04:37 实测：`127.0.0.1:15526/health` 连接被拒、无游戏进程，
+  即真机链路当前根本不在线。冷启动它要拉起 Steam 与游戏窗口，而这台机器同时有
+  真人在用，所以本报告不把它记成"随时可走通的已验证路径"。
