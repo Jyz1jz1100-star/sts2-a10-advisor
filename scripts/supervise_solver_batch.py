@@ -107,6 +107,35 @@ class ChildStartError(SupervisorError):
     """A child could not be started."""
 
 
+def _attest_mods() -> dict[str, Any]:
+    """Measure the locked mod binaries; an unavailable measurement is recorded, never assumed clean.
+
+    A batch that cannot state which mod bytes it ran against is not attested, so
+    the error text becomes the evidence instead of a default to pass on.
+    """
+    try:
+        from combat_solver.modpin import attest_lock_mods
+    except Exception as exc:  # pragma: no cover - environment dependent
+        return {"error": f"attestation module unavailable: {type(exc).__name__}: {exc}"}
+    try:
+        return attest_lock_mods(DEFAULT_AUTOPLAY_LOCK).to_json()
+    except Exception as exc:
+        return {"error": f"attestation failed: {type(exc).__name__}: {exc}"}
+
+
+def _moved_mods(start: Mapping[str, Any] | None, end: Mapping[str, Any] | None) -> list[str]:
+    """Mod ids whose bytes changed between the two in-batch measurements.
+
+    An absent or errored measurement yields no verdict, not an empty one that
+    would read as "nothing moved"; ``attested`` carries that distinction.
+    """
+    if not start or not end or "error" in start or "error" in end:
+        return []
+    before = {r.get("mod_id"): r.get("actual_sha256") for r in start.get("records", [])}
+    after = {r.get("mod_id"): r.get("actual_sha256") for r in end.get("records", [])}
+    return sorted(mod for mod in set(before) | set(after) if before.get(mod) != after.get(mod))
+
+
 def _utc_now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
@@ -1054,6 +1083,10 @@ class BatchSupervisor:
         self.autoplay_summary: dict[str, Any] | None = None
         self.solver_logs_at_start: list[dict[str, Any]] | None = None
         self.solver_logs_at_end: list[dict[str, Any]] | None = None
+        # Read-only measurement of the mod binaries the batch actually ran
+        # against, at both ends of the window (see combat_solver/modpin.py).
+        self.mods_at_start: dict[str, Any] | None = None
+        self.mods_at_end: dict[str, Any] | None = None
         self.seed_allocation = (
             load_seed_allocation(config.resolved_seed_file)
             if config.mode == "fixed" and config.resolved_seed_file is not None
@@ -1091,6 +1124,7 @@ class BatchSupervisor:
             # Record which Combat Solver/game logs exist before any child
             # starts, so post-batch log bindings have an exact baseline.
             self.solver_logs_at_start = snapshot_solver_logs(self.config.game_log_dir)
+            self.mods_at_start = _attest_mods()
             self._prepared = True
             self._log(
                 "batch_created",
@@ -1233,6 +1267,25 @@ class BatchSupervisor:
             # The autoplay child's own final summary (stop reason, runs,
             # seed-allocation state) when it ended audibly.  Read-only copy:
             # the trace itself stays the authoritative artifact.
+            # Read-only measurement of the mod binaries behind this batch, at
+            # both ends of the window.  Steam updates Workshop mods on its own,
+            # so "we were locked to 0.31.0" is only meaningful if the batch
+            # states what was actually loaded.  ``invalidated_by_mod_update``
+            # means the bytes moved during the window, which makes every
+            # decision in it unverifiable against a single grammar/build.
+            "mod_attestation": {
+                "lock_file": str(DEFAULT_AUTOPLAY_LOCK),
+                "at_start": self.mods_at_start,
+                "at_end": self.mods_at_end,
+                "drifted_from_lock_at_start": (self.mods_at_start or {}).get(
+                    "drifted_from_lock", []
+                ),
+                "moved_during_batch": _moved_mods(self.mods_at_start, self.mods_at_end),
+                "attested": bool(self.mods_at_start)
+                and "error" not in self.mods_at_start
+                and bool(self.mods_at_end)
+                and "error" not in self.mods_at_end,
+            },
             "autoplay_summary": self.autoplay_summary,
             # Whole-run assessment is a separate read-only step.  Publish all
             # of its required inputs up front, including both spellings of
@@ -1534,6 +1587,7 @@ class BatchSupervisor:
             self.batch_dir / "autoplay_trace.jsonl"
         )
         self.solver_logs_at_end = snapshot_solver_logs(self.config.game_log_dir)
+        self.mods_at_end = _attest_mods()
         return self._verify_comparison()
 
     def _monitor(self) -> int:
