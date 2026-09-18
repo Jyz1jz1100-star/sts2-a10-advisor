@@ -46,6 +46,19 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest().upper()
 
 
+def reject_unusable_split(split: str) -> None:
+    """Refuse a split the weights were fit on.
+
+    A win rate measured on the train split is not evidence of anything, and this
+    tool exists precisely to make numbers comparable, so the guard has to be
+    impossible to trip over by passing the wrong ``--split``.
+    """
+
+    if split == "train":
+        raise SystemExit("the train split is what the weights were fit on; it cannot "
+                         "evidence a win rate")
+
+
 def _partition_seeds(partition, episodes: int) -> list[int]:
     seeds_attr = getattr(partition, "seeds", None)
     if callable(seeds_attr):
@@ -86,9 +99,7 @@ def main() -> int:
     stage = next((s for s in config.stages if s.name == args.stage), None)
     if stage is None:
         raise SystemExit(f"stage {args.stage!r} is not in {args.config}")
-    if args.split == "train":
-        raise SystemExit("the train split is what the weights were fit on; it cannot "
-                         "evidence a win rate")
+    reject_unusable_split(args.split)
     seeds = _partition_seeds(config.partition(stage.name, args.split), args.episodes)
     assert_seeds_outside_frozen_lineages(seeds)
     seed_sha256 = hashlib.sha256(",".join(str(seed) for seed in seeds).encode()).hexdigest()

@@ -47,6 +47,10 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
    只有 `ActOneEncounter`、README 自称 "Seeded Act 1 selection"。因此
    **Act 1-3（含最终幕两个 boss）在模拟器内不可达成**，本文任何数字都不能被当作
    三幕通关的证据。三幕只能在真机上完成，走 `docs/ACCEPTANCE.md` 的验收链路。
+   真机侧**已核实的最远距离是 Act 2 floor 30**（seed `1600000001`，`game_over` +
+   `hp=0`，带可归属 trace 与 assessor 的 `terminal_zero_hp`，见
+   `docs/LIVE_PROGRESS_2026-09-07.md`）。也就是说"能进第二幕"有终局证据，
+   "通关三幕"至今一例都没有——两者都不在本文的口径里。
 3. 目标要求的"逐阶段 warm-start 阶梯"在这里体现为：所有臂都从 promoted floor6
    检查点 `--initial-checkpoint` 热启动，经 `scripts/run_curriculum_fanout.py`
    以互不重叠的种子分区并发跑（工具会拒绝落入 teacher 保留区

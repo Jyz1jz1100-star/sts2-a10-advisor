@@ -17,6 +17,7 @@ $smallOnly = @(
     "tests.test_bc_dataset_merge",
     "tests.test_bridge_client",
     "tests.test_bridge_outcome",
+    "tests.test_checkpoint_series_guards",
     "tests.test_combat_solver_batch",
     "tests.test_combat_solver_compare",
     "tests.test_combat_solver_contract",
