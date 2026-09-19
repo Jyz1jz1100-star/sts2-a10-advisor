@@ -543,5 +543,13 @@
     "the_window_had_nothing_to_convert_which_explains_the_zero_delta": true,
     "no_pass_bought_a_win_with_a_contract_violation": true,
     "the_rule_is_declared_as_a_hand_written_bound": true
+  },
+  "boss_reward_rule_population": {
+    "the_plain_pass_reproduces_the_committed_baseline": true,
+    "the_converted_seeds_are_the_recorded_losses": true,
+    "the_rule_never_costs_a_win": true,
+    "no_win_was_bought_with_a_contract_violation": true,
+    "the_partition_is_covered_once": true,
+    "the_bound_declares_that_it_is_a_bound": true
   }
 }

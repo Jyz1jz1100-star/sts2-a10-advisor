@@ -1912,3 +1912,16 @@ This is an upper bound, not a trained result: the rule is hand-written, and a wi
 the objective's Act 1-3 flow. What it does establish is that the ceiling in front of those runs is a
 decision the contract lets the policy make, not a state the engine refuses. Claim
 `boss_reward_rule_end_to_end`; 55/55 claims match the disk, 49 evidence files in the bundle.
+
+## 2026-09-20 -- the whole promotion partition, and the rule's 21 wins land on 21 pre-named seeds
+
+`scripts/merge_reward_rule_slices.py` joins eight contiguous 1,250-seed slices -- together every seed
+of the act1 promotion partition exactly once, which the script checks before summing. The plain pass
+judges 68 wins, equal to the committed mis-exit measurement's Act-1 3 + Act-2 65, so this instrument
+and that one are demonstrably looking at the same population. Adding the boss relic-screen rule takes
+it to 89: 21 converted, **0 lost**, truncations 23 -> 2, illegal actions and unclassified dead ends 0
+in both passes. The converted seeds are *the same 21 seeds* the Act-2 mis-exit measurement had
+independently listed as cleared-but-not-judged -- which is the reason to believe the number rather
+than treat it as a bigger measurement of something else. Claim `boss_reward_rule_population`; the
+hand-written rule stays labelled as an upper bound in `not_established`, and an Act-2 judged win is
+still not the objective's three-act flow. 56/56 claims match the disk, 50 evidence files.

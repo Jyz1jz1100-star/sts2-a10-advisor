@@ -92,6 +92,8 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=None,
                         help="cap the seed list (used with --split-window to widen the question)")
     parser.add_argument("--split", default="promotion")
+    parser.add_argument("--start-offset", type=int, default=None,
+                        help="first index of the partition slice to roll")
     parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--rule", default="highest_legal",
                         choices=("argmax", "highest_legal", "lowest_legal"))
@@ -112,11 +114,21 @@ def main() -> int:
     if args.seeds:
         seeds = [int(value) for value in args.seeds.split(",") if value.strip()]
         seed_source = "--seeds"
+    elif args.start_offset is not None or args.limit:
+        # A contiguous slice of the declared partition, so the population rate can be measured
+        # without hand-writing 10,000 integers (and so a shard boundary is auditable).
+        from training.v2_config import load_v2_training_config as _load
+
+        partition = _load(args.config.resolve()).partition(args.stage, args.split).seeds()
+        start = args.start_offset or 0
+        seeds = partition[start:start + (args.limit or len(partition))]
+        seed_source = (f"{args.stage}/{args.split} partition slice "
+                       f"[{start}:{start + len(seeds)}] of {len(partition)}")
     else:
         recovered = json.loads(args.recoverability.read_text(encoding="utf-8"))
         seeds = sorted({int(row["seed"]) for group in recovered["groups"] for row in group["rows"]})
         seed_source = str(args.recoverability.relative_to(ROOT).as_posix())
-    if args.limit:
+    if args.limit and args.seeds:
         seeds = seeds[:args.limit]
 
     config = load_v2_training_config(args.config.resolve())
@@ -165,6 +177,14 @@ def main() -> int:
         },
         "after_rule": ruled,
         "before_rule": plain,
+        # The exact 2x2, joined on the seeds each pass reports as terminal wins. An aggregate delta
+        # cannot tell "converted three and broke three" from "did nothing", and this can.
+        "win_seed_join": {
+            "converted_seeds": sorted(set(ruled["winning_seeds"])
+                                      - set(plain["winning_seeds"])),
+            "kept_seeds": sorted(set(ruled["winning_seeds"]) & set(plain["winning_seeds"])),
+            "lost_seeds": sorted(set(plain["winning_seeds"]) - set(ruled["winning_seeds"])),
+        },
         "per_seed": per_seed,
         "per_seed_tally": {
             "converted_to_win": sum(1 for row in per_seed

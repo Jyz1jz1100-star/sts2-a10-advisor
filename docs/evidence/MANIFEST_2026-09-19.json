@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "d1828bfc93b892f8a034ccf41292e66b99759802e73f8044f9f7e157ed17f0b7",
-  "evidence_file_count": 49,
-  "generated_at": "2026-09-19T19:16:25+00:00",
-  "git_head_at_generation": "80d93d6",
+  "bundle_root": "3cac7b6ccd05fcdba364d726c4b9906a5b53c2183d46def4a6f81244883250de",
+  "evidence_file_count": 50,
+  "generated_at": "2026-09-19T19:35:12+00:00",
+  "git_head_at_generation": "1faee20",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2384,8 +2384,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "15f33be9dd112a955ac93fa1e47f0edd3d52492f5232d5e6a8e72cd90286fcc7",
-      "bytes": 20424
+      "sha256": "f579bde1f1fe06c23537654aa4be0e65c00699750064d7c584ed603c15254adb",
+      "bytes": 20781
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2456,6 +2456,11 @@
       "file": "boss_reward_rule_population_window_20260920.json",
       "sha256": "fd13e8fb179510065e229b712446afc28b9dbd2304e2e32883bcfae2e3303e13",
       "bytes": 139977
+    },
+    {
+      "file": "boss_reward_rule_promotion_partition_20260920.json",
+      "sha256": "7d3bd5a32a45933ce7652d2bd5f5d88eb33ab0b41e6c39e2e6ee4b08a6d7374f",
+      "bytes": 5961
     },
     {
       "file": "boss_reward_rule_second_checkpoint_20260920.json",

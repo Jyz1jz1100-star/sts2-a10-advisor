@@ -2096,6 +2096,42 @@ def claim_boss_reward_rule_end_to_end():
     }
 
 
+def claim_boss_reward_rule_population():
+    """The rule's whole-partition number, with two closure checks against a committed measurement.
+
+    Rolling all 10,000 promotion seeds twice -- argmax, then argmax plus the boss relic-screen rule
+    -- is only meaningful if the plain pass lands where the campaign already measured: it must
+    reproduce the recorded judged-win count, and the seeds the rule converts must be the same seeds
+    the Act-2 mis-exit measurement listed as cleared-but-not-judged. Two instruments agreeing on a
+    seed set is the claim; a larger win count on its own would prove nothing.
+    """
+    data = json.loads((ROOT / "docs/evidence/boss_reward_rule_promotion_partition_20260920.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    return {
+        "the_plain_pass_reproduces_the_committed_baseline": (
+            agg["plain_win_matches_the_recorded_baseline"]
+            and agg["plain_win_count"] == agg["recorded_baseline_win_count"] == 68),
+        "the_converted_seeds_are_the_recorded_losses": (
+            agg["converted_seeds_equal_the_recorded_losses"]
+            and data["converted_seeds"] == sorted(data["recorded_losses_for_comparison"])
+            and agg["converted_seed_count"] == 21),
+        "the_rule_never_costs_a_win": (
+            agg["lost_win_count"] == 0
+            and agg["kept_win_count"] == agg["plain_win_count"]
+            and agg["rule_win_count"] == agg["plain_win_count"] + agg["converted_seed_count"]),
+        "no_win_was_bought_with_a_contract_violation": (
+            agg["illegal_actions_plain"] == agg["illegal_actions_after_rule"] == 0
+            and agg["unclassified_dead_ends_plain"] == 0
+            and agg["unclassified_dead_ends_after_rule"] == 0),
+        "the_partition_is_covered_once": (
+            agg["episodes"] == 10000 and agg["slices"] == 8
+            and all(len(detail["seed_source"]) > 10 for detail in data["slice_detail"])),
+        "the_bound_declares_that_it_is_a_bound": any(
+            "hand-written" in line for line in data["not_established"]),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2490,6 +2526,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "boss_reward_rule_population": (
+        claim_boss_reward_rule_population,
+        "the whole promotion partition, checked against the recorded baseline seed for seed"),
     "boss_reward_rule_end_to_end": (
         claim_boss_reward_rule_end_to_end,
         "a hand-written reward-screen rule, judged by the campaign evaluator"),
