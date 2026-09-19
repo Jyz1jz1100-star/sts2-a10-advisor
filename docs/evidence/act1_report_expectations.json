@@ -367,5 +367,12 @@
     "every_cited_file_exists": true,
     "every_cited_claim_is_registered": true,
     "conclusion_still_refuses_completion": true
+  },
+  "retraction_ledger_integrity": {
+    "ledger_has_fourteen_rows": true,
+    "every_row_has_three_populated_cells": true,
+    "no_row_is_a_bare_restatement": true,
+    "prose_count_matches_the_ledger": true,
+    "the_objective_clause_is_in_the_ledger_or_the_audit": true
   }
 }

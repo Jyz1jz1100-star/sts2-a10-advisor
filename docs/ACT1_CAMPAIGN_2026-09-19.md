@@ -1254,7 +1254,7 @@ digest mismatches: 0
 **每条拒绝的根因逐行重放**（原生掩码 vs 我们的展开、药水容量、事件 default 臂，753 行全重分类）、
 **幽灵药水格的代价**（结论是这项设计不具判定力，并要求四个格子都有样本）、
 **引擎问题清单里的每个数字回到它的产物**（清单点名的证据文件必须仍然存在、必须声明没改引擎）。
-当前 **37/37 与盘上一致**；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验。）期望值是**照本文正文手抄**的，
+当前 **38/38 与盘上一致**；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验。）期望值是**照本文正文手抄**的，
 不是从脚本输出复制的，所以盘上一变就会报 DRIFT 而不是悄悄把期望改成实测。
 
 **这一版还堵掉一个自我欺骗的口子。** 期望值是"等值快照"，所以一条**算出 false、又被照抄进期望**
@@ -2081,8 +2081,8 @@ Wound 锁死只是其中一档的一个已解剖样本。
 | **无未分类死局** | **达成** | unclassified_dead_ends 在 8,853 个截断上恒为 0；死因词表普查为三项（empty_action_mask 50、step_cap 3、native_rejection 861），跨幕路径上也是 0 | `dead_end_vocabulary_20260919.json`、`chained_terminal_gates_20260919.json` | `dead_end_vocabulary`、`dead_end_reason_census`、`chained_terminal_gates` |
 | 用 **V2 契约栈** | **达成** | OBS_SIZE 1739 / FLAT_SIZE 225 / TARGET_SLOTS 7，全部按代码重算而非引用 | —（由声明直接对代码重算） | `v2_contract_sizes` |
 | **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise），但配置里的 5 级实际是 floor3→floor6 两级 + 一次跳到 act1：floor13 盘上无目录、floor10 无晋升判定。09-18 那 13 个臂缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests` |
-| 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | 夜间 9 臂 fan-out 全部落盘（含被采纳与被拒的晋升判定）；吞吐另测：单臂约 370-885 fps 视阶段、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
-| 产出**含哈希链证据**的评估报告 | **达成** | 28 个证据文件由 bundle_root 绑定；产物里 14 个检查点摘要在本机全部对上真实文件并重算相符；37 条声明逐条与盘核对。清单不是可信来源——它自己也被独立重算 | `MANIFEST_2026-09-19.json` | `evidence_bundle_integrity`、`engine_findings_checklist` |
-| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 4 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂），门槛全绿只等于「这台模拟器判据下全绿」。另有 13 行自我推翻账目在最前面 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
+| 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | fan-out 的落盘不靠回忆计数：全仓 282 份指标文件（现行 schema 225 份）覆盖各臂各分区，`runtime/fanout/*` 与 `runtime/act1_overnight/*` 下共 15 个臂目录，晋升判定含采纳与被拒两类。正文另一处按更宽的根目录记 20 个臂，那个数与这里的 15 不是同一个口径。吞吐另测：单臂约 370-885 fps 视阶段而定、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
+| 产出**含哈希链证据**的评估报告 | **达成** | 28 个证据文件由 bundle_root 绑定；产物里 14 个检查点摘要在本机全部对上真实文件并重算相符；38 条声明逐条与盘核对。清单不是可信来源——它自己也被独立重算 | `MANIFEST_2026-09-19.json` | `evidence_bundle_integrity`、`engine_findings_checklist` |
+| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 4 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 14 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
 
 **审计结论（不美化）**：九项里七项达成或达成但带明确限定；第一项（Act 1-3 全流程胜利）**没达成，也不是「再努力一点」的问题**——模拟器没有第三幕，跨幕只有一条演示种子门控的分支，84 个检查点穷举后 0 次走完两幕。因此本目标不能标记为完成；剩下的路不在这台模拟器里，而在真机三幕那条当前被模组清单门卡住的路上。

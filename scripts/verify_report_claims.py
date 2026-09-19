@@ -1328,6 +1328,34 @@ def claim_report_exec_table_citations():
     }
 
 
+def claim_retraction_ledger_integrity():
+    """The self-retraction ledger must stay counted, non-empty, and consistent with prose.
+
+    This is the artifact that says what the night got wrong. It grew during the session, and the
+    number quoted for it in the objective-clause audit lagged behind by one row -- the same class
+    of drift as a stale verdict, just easier to prevent: parse the ledger, require three populated
+    cells per row, and require every "N 行自我推翻账目" mention in the document to equal it.
+    """
+    report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
+    header = "| 曾经写下 | 被什么推翻 | 现在的结论 |"
+    block = report[report.index(header):]
+    block = block[:block.index("\n\n")]
+    rows = [[cell.strip() for cell in line.strip().strip("|").split("|")]
+            for line in block.splitlines()
+            if line.startswith("|") and "---" not in line and "曾经写下" not in line]
+    quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
+    return {
+        "ledger_has_fourteen_rows": len(rows) == 14,
+        "every_row_has_three_populated_cells": all(
+            len(row) == 3 and all(cell for cell in row) for row in rows),
+        "no_row_is_a_bare_restatement": all(
+            len(row[1]) > 8 and len(row[2]) > 8 for row in rows if len(row) == 3),
+        "prose_count_matches_the_ledger": bool(quoted) and quoted == {len(rows)},
+        "the_objective_clause_is_in_the_ledger_or_the_audit": (
+            "未达成" in report and "不能标记为完成" in report),
+    }
+
+
 def claim_objective_clause_audit():
     """Keep the clause-by-clause audit honest: nine clauses, and the failing one stays failing.
 
@@ -1448,6 +1476,8 @@ CLAIMS = {
                                    "each decision-table row cites something that exists"),
     "objective_clause_audit": (claim_objective_clause_audit,
                               "the goal clause by clause, with the failing clause still failing"),
+    "retraction_ledger_integrity": (claim_retraction_ledger_integrity,
+                                 "the self-retraction ledger, counted and consistent with the prose"),
 }
 
 
