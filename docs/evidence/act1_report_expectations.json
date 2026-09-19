@@ -388,12 +388,12 @@
     "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": true
   },
   "retraction_ledger_integrity": {
+    "closing_paragraph_count_matches_the_ledger": true,
     "every_row_has_three_populated_cells": true,
     "no_row_is_a_bare_restatement": true,
     "prose_count_matches_the_ledger": true,
-    "closing_paragraph_count_matches_the_ledger": true,
-    "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_twenty_four_rows": true
+    "the_ledger_row_count_is_the_pinned_number": true,
+    "the_objective_clause_is_in_the_ledger_or_the_audit": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -578,5 +578,11 @@
     "the_conversion_arithmetic_matches_the_truncation_drop": true,
     "the_holdout_declares_the_same_clean_contracts": true,
     "the_holdout_plain_rate_is_in_line_with_the_tuned_window": true
+  },
+  "boss_reward_rule_window_self_consistency": {
+    "a_reconciliation_group_is_backed_by_a_pre_registered_seed_list": true,
+    "every_merged_artifact_names_the_window_it_rolled": true,
+    "the_four_windows_are_not_one_partition_wearing_four_labels": true,
+    "the_holdout_still_declares_no_baseline_to_match": true
   }
 }

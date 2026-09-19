@@ -2035,3 +2035,34 @@ The artifact also demonstrates the discipline the campaign keeps needing: becaus
 measurement listed seeds in this window, the reconciliation keys are `None`, not `true`. `--compare-
 group none` exists so a holdout can only claim what it can actually show. Claim
 `boss_reward_rule_holdout` (5 checks); 59/59 claims and 54 evidence files.
+
+## 2026-09-20 -- the eight-command re-audit list is finished, and writing it found two real holes
+
+Closing out the report's "reproduce this yourself" list meant writing commands 6-8, which meant re-running
+the merge steps so the list could state what they output. Two things came out of that.
+
+**The dead-end census artifact reproduces exactly.** Re-merging the same seven shard artifacts with the same
+five `--explain-seed` values yields `empty_mask_endings_20260920.json` on every key except `generated_at`.
+That pass also exposed the instrument gap: the merge accepted *any* set of files the glob matched. Two rounds
+exist in that scratch directory (`--work-count 6` and `--work-count 7`), a strided split overlaps between
+rounds, and the duplicated file's episodes would be summed twice while each file's own closure check still
+closed -- so nothing would have complained. `check_shard_set()` now refuses a set that is not one full round
+of one split (missing/duplicated index, differing `--work-count`, a file rolled by two shards); the committed
+seven-shard round passes it, and six tests sit on that guard -- five refusals plus one accepted round.
+
+**Four artifacts stated the wrong population.** `merge_reward_rule_slices.py` wrote a hardcoded `scope`
+sentence naming "the act1 promotion partition" into every artifact it assembled -- including the two
+generality ones, which rolled `act1/checkpoint`, and the holdout, which rolled `act1/final`. The prose was
+right and `slice_detail` carried the true `seed_source`, so only a reader of the machine-readable field was
+misled, and for the holdout that field is the whole point. The merger now derives the sentence from the
+slices, refuses to join slices from different partitions, and records its own argv so a re-merge does not
+depend on remembering `--label` (losing it on the first re-run flipped an existing claim red, which is the
+only reason this was noticed). Re-merged, all four keep their numbers exactly: converted 21/6/7/16, lost 0,
+baselines unchanged. Claim `boss_reward_rule_window_self_consistency` (4 checks); retraction ledger row 25;
+60/60 claims, 54 evidence files, 22 instrument tests.
+
+Also measured while writing item 8: one fan-out job tiles **30,000,000** seeds (the template's five stage train
+ranges abut, 100M-130M), so `--stride` must exceed that, not the largest single train count (12M) -- which is
+what the driver's own error message advised, and why two legitimate rejections looked like a broken driver.
+The message now prints the measured span.
+

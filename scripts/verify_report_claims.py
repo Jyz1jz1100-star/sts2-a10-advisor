@@ -1430,7 +1430,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_twenty_four_rows": len(rows) == 24,
+        "the_ledger_row_count_is_the_pinned_number": len(rows) == 25,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -2281,6 +2281,47 @@ def claim_boss_reward_rule_holdout():
     }
 
 
+def claim_boss_reward_rule_window_self_consistency():
+    """Each merged reward-screen artifact must name the window its own slices rolled.
+
+    All four carried one hardcoded `scope` sentence that named the promotion partition -- including
+    the two generality artifacts, which rolled `act1/checkpoint`, and the holdout, which rolled
+    `act1/final`. The prose described each correctly and `slice_detail` held the true window, so a
+    reader trusting the machine-readable population field got a false statement about the seeds
+    behind the numbers -- and for the holdout, which window it rolled is the entire point. The
+    merger now derives the sentence from the slices and refuses to join slices from different
+    partitions; this checks the artifacts rather than the source, since the artifacts are what the
+    report cites.
+    """
+    merged = ("boss_reward_rule_promotion_partition_20260920.json",
+              "boss_reward_rule_generality_cp1_20260920.json",
+              "boss_reward_rule_generality_cp2_20260920.json",
+              "boss_reward_rule_holdout_final_20260920.json")
+    stated_windows, all_agree, reconciliation_is_backed = set(), True, True
+    for name in merged:
+        data = json.loads((ROOT / "docs/evidence" / name).read_text(encoding="utf-8"))
+        stated = str(data["scope"]).split("every seed of the ")[-1].split(" partition")[0]
+        rolled = {str(row["seed_source"]).split(" partition slice")[0]
+                  for row in data["slice_detail"]}
+        stated_windows.add(stated)
+        all_agree = all_agree and rolled == {stated}
+        group = data.get("compare_group")
+        # A group other than "none" means some earlier measurement pre-registered a seed list for
+        # this window; without one the reconciliation keys would be comparing against nothing.
+        reconciliation_is_backed = reconciliation_is_backed and bool(
+            (group not in (None, "none")) == bool(data.get("recorded_losses_for_comparison")))
+    return {
+        "every_merged_artifact_names_the_window_it_rolled": all_agree,
+        "the_four_windows_are_not_one_partition_wearing_four_labels": len(stated_windows) >= 2,
+        "a_reconciliation_group_is_backed_by_a_pre_registered_seed_list": (
+            reconciliation_is_backed),
+        "the_holdout_still_declares_no_baseline_to_match": (
+            json.loads((ROOT / "docs/evidence/boss_reward_rule_holdout_final_20260920.json")
+                       .read_text(encoding="utf-8"))["aggregates"]
+            ["converted_seeds_equal_the_recorded_losses"] is None),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2699,6 +2740,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "boss_reward_rule_window_self_consistency": (
+        claim_boss_reward_rule_window_self_consistency,
+        "each merged rule artifact states the partition its own slices actually rolled"),
     "boss_reward_rule_holdout": (
         claim_boss_reward_rule_holdout,
         "the rule on the untouched final partition: wins gained, none lost"),

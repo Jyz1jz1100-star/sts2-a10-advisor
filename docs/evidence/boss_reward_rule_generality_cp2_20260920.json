@@ -34,11 +34,12 @@
     130003427
   ],
   "established": [
-    "the plain pass over 3500 promotion seeds reproduces the 21 judged wins the committed mis-exit measurement recorded, so the two instruments are looking at the same population",
-    "the rule adds 7 judged wins, removes 0, and the added seeds are exactly the runs recorded as cleared-the-boss-but-not-judged",
+    "the plain pass over 3500 act1/checkpoint seeds reproduces the 21 judged wins the committed mis-exit measurement recorded, so the two instruments are looking at the same population",
+    "the rule adds 7 judged wins and removes 0, and the added seeds are exactly the runs recorded as cleared-the-boss-but-not-judged",
     "truncations fall 8 -> 1 while illegal actions and unclassified dead ends stay 0 in both passes"
   ],
-  "generated_at": "2026-09-19T19:47:21+00:00",
+  "generated_at": "2026-09-19T21:30:50+00:00",
+  "invocation": "scripts/merge_reward_rule_slices.py --slices runtime/census_scratch/gen/cp2_*.json --compare-group second_checkpoint_generality --label another arm's checkpoint, same window --out docs/evidence/boss_reward_rule_generality_cp2_20260920.json",
   "kept_win_seeds": [
     130000155,
     130000286,
@@ -67,7 +68,7 @@
   "not_established": [
     "that a trained policy would find this rule: it is hand-written and applied at one screen, so the number bounds what that one decision is worth, not what training gets",
     "anything about Act 3 or the shipped game -- an Act-2 judged win is still two acts, not the three-act flow the objective names",
-    "that the +7 transfers to other checkpoints or policies: this is one checkpoint's promotion partition, and the rule only pays where a run reaches the screen"
+    "that the +7 transfers to other checkpoints or policies: this is one checkpoint's act1/checkpoint partition, and the rule only pays where a run reaches the screen"
   ],
   "recorded_losses_for_comparison": [
     130001110,
@@ -83,7 +84,7 @@
     "chosen": "highest_legal",
     "screen": "relic_reward at current_node_type=6"
   },
-  "scope": "every seed of the act1 promotion partition at one checkpoint, argmax everywhere except a stated action at the boss relic_reward screen, judged by training/evaluation.py",
+  "scope": "every seed of the act1/checkpoint partition at one checkpoint, argmax everywhere except a stated action at the boss relic_reward screen, judged by training/evaluation.py",
   "slice_detail": [
     {
       "converted": 0,

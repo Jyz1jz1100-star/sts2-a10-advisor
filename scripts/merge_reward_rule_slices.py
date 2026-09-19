@@ -1,14 +1,16 @@
-"""Join the reward-rule slices for the whole promotion partition, with its closure checks.
+"""Join one partition's reward-rule slices, with the closure checks that make the total trustworthy.
 
-`probe_boss_reward_rule.py` rolls one contiguous slice per invocation (8 slices x 1,250 seeds), and
-each slice already carries the exact 2x2 join of winning seeds between the plain and rule passes.
-This adds them up and, more importantly, runs the two checks that make the total trustworthy rather
-than just larger: the plain pass must reproduce the judged-win count the committed Act-2 mis-exit
-measurement recorded, and the converted seeds must be the same seed set that measurement listed as
+`probe_boss_reward_rule.py` rolls contiguous slices per invocation (the promotion round was 8 slices
+x 1,250 seeds; the holdout 4 x 2,500), and each slice already carries the exact 2x2 join of winning
+seeds between the plain and rule passes. This adds them up and, more importantly, runs the two
+checks that make the total trustworthy rather than just larger: the plain pass must reproduce the
+judged-win count the committed Act-2 mis-exit measurement recorded for the group being reconciled,
+and the converted seeds must be the same seed set that measurement listed as
 cleared-but-not-judged. Two independent instruments agreeing on the same seeds is the claim; the win
 count on its own would only say a rule helps.
 
-Reads the scratch slices this script names, so re-running it after a fresh set is one command.
+Reads the scratch slices this script names, so re-running it after a fresh set is one command, and
+writes its own argv into the artifact so a later re-merge can be replayed rather than guessed.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -60,6 +63,14 @@ def main() -> int:
     seeds_covered = [int(seed) for data in slices for seed in data["seeds"]]
     if len(seeds_covered) != len(set(seeds_covered)):
         raise SystemExit("two slices rolled the same seed; the partition would be double counted")
+    # The artifact states one population, so every slice must come from the same one: mixing a
+    # promotion round with the holdout round would sum 20,000 seeds and name a single partition,
+    # and the holdout is the artifact whose whole point is which partition it rolled.
+    partitions = {str(data["seed_source"]).split(" partition slice")[0] for data in slices}
+    if len(partitions) != 1:
+        raise SystemExit(f"slices cover different partitions {sorted(partitions)}; the merged "
+                         "artifact would name one population and sum another")
+    partition = partitions.pop()
 
     if args.compare_group == "none":
         recorded_losses, baseline = [], None
@@ -111,11 +122,16 @@ def main() -> int:
             f"(x{len(slices)})",
             "scripts/merge_reward_rule_slices.py joins them; every seed of the declared partition "
             "appears in exactly one slice, which this script checks before summing"],
+        # argv as typed, because a re-merge needs more than the glob: --compare-group and --label
+        # decide which pre-registered list this artifact reconciles against, and neither is
+        # recoverable from the slices. A transcription of what was run, not a proof of it -- the
+        # spaces in a --label are not quoted here.
+        "invocation": " ".join(sys.argv),
         "aggregates": agg,
         "checkpoint": str(slices[0]["after_rule"]["checkpoint"]).replace(BACKSLASH, "/"),
         "converted_seeds": converted,
         "established": (
-            [f"the plain pass over {agg['episodes']} promotion seeds reproduces the "
+            [f"the plain pass over {agg['episodes']} {partition} seeds reproduces the "
              f"{baseline} judged wins the committed mis-exit measurement recorded, so the two "
              "instruments are looking at the same population"]
             if baseline is not None else
@@ -137,10 +153,11 @@ def main() -> int:
             "anything about Act 3 or the shipped game -- an Act-2 judged win is still two acts, not "
             "the three-act flow the objective names",
             f"that the +{len(converted)} transfers to other checkpoints or policies: this is one "
-            "checkpoint's promotion partition, and the rule only pays where a run reaches the screen"],
+            f"checkpoint's {partition} partition, and the rule only pays where a run reaches the "
+            "screen"],
         "recorded_losses_for_comparison": recorded_losses,
         "rule": slices[0]["rule"],
-        "scope": ("every seed of the act1 promotion partition at one checkpoint, argmax everywhere "
+        "scope": (f"every seed of the {partition} partition at one checkpoint, argmax everywhere "
                   "except a stated action at the boss relic_reward screen, judged by "
                   "training/evaluation.py"),
         "slice_detail": [{"converted": len(d["win_seed_join"]["converted_seeds"]),

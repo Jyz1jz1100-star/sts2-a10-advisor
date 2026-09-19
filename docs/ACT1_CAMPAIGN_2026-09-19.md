@@ -63,10 +63,11 @@
 | "链分支那处地图死路的机制是'合成哨兵被引擎拒绝 6 次、第 7 次才判空'（我写下'还没测的'那段时这样说的） | 在分叉处逐步对比拒绝计数：那一步**之前 6、之后仍 6**，且 `dead_end_label=empty_action_mask`；`v2_run_wrapper.py:238-253` 在引擎掩码为空时**直接以 truncated 收尾而不调用引擎** | 该状态产生 **0 次原生拒绝**；整局那 6 次拒绝来自别的相位（普通种子里只有 shop/event 会拒绝）。这也让相位普查的"map 相位 11,060 决策 0 拒绝"与"map 相位存在无后继死路"**不再互相矛盾**。**教训：解释一个计数器之前先看负责那个计数器的代码走不走这条路**——我把"filter 模式会吸收拒绝"这条一般规律套到了一个根本不过 filter 的分支上，而正确的判据（逐步 delta）当时已经在我手边的工件里 |
 | 上一条改口后我写下的机制归属："是 `v2_run_wrapper.py:238-253` 那层短路接的手" | 普查把 49 局逐局记下来后：只有外层会写的 `synthetic_sentinel_action` 这个键**49 局里一次也没出现**（`labelling_layers_observed`）；给分叉探针补一个 `which_contract_layer_labelled_it` 再重跑，两枚链上死路也一律 `v2_flat_env_sentinel_step` | 接手的是 **`v2_flat_env.py:240-250`**：平掩码环境自己广告那个哨兵动作（`v2_flat_env.py:308-329`），自己在 `step()` 里按**引擎那份掩码**给结局分类（空 → `empty_action_mask`；非空而候选被 filter 摘光 → `rejected_to_exhaustion`）。外层 `v2_run_wrapper.py:241-253` 是同一条短路的备手，本战役的记录里没轮到它。**因果结论没变**（引擎从未被问 → 0 次原生拒绝、0 非法动作、死路已分类），错的是我指出的那一层。**教训：上一行那条"先看负责计数器的代码"要问到具体哪一层，问到文件级还是会指错** |
 | "两枚链进第二幕的局是'丢了地图后继'（前沿工件里的标签）" | 把那个 map 决策点重放并读两份掩码（`probe_map_fork_successors.py` → `chained_map_deadend_fork_20260920.json`，声明 `chained_map_deadend`）：**引擎自己那份 32 位掩码里合法基元为空**，V2 平掩码唯一合法的是空掩码时故意放的合成哨兵动作 (`training/v2_run_wrapper.py:222-230`)；`evaluate_policy` 同一局给出 `rejection_events 6 / illegal 0 / empty_action_mask 1 / unclassified 0` | "丢了后继"这个标签同时容得下"策略选错节点"和"引擎没给节点"两种意思，而这两条对目标的含义相反：测出来是后者——**Act 2 floor 19 的天花板是引擎地图结构，不是策略也不是步数**。**教训：一个允许两种因果的标签不能留在结论里，必须重放到那一幕去把它拆开**；同一趟也确认了"0 非法/无未分类死局"在这条路径上仍然成立，但成立的方式是合成动作吸收 6 次拒绝 + 下一次判空 |
+| 四份领奖屏规则工件的 `scope` 字段都写着"act1 promotion 分区的每一个种子"——其中两份滚的其实是 `act1/checkpoint` 窗口，另一份滚的是从未被任何人评估过的 `act1/final` 保留分区 | 给普查合并补分片守卫时，要把那几条合并命令原样重跑一遍、和盘上工件逐字段对账，才发现同一份工件里 `scope` 与 `slice_detail[].seed_source` 自相矛盾：**正文一直是对的**（该节按"独立窗口/另一枚检查点/保留分区"分别描述），错的是机器可读的那个总体字段——而保留分区那一份的全部价值就在于"它是哪个总体" | `merge_reward_rule_slices.py` 现在从 slices 自己推出这句话，并**拒绝合并来自不同分区的 slices**（一个松散 glob 会把 promotion 那 10,000 与保留分区那 10,000 加成"单一分区 20,000"），工件另存自己的 argv 以便原样重放。重跑后**数值一格未动**：converted 仍是 21/6/7/16、lost 仍是 0、基线复现判据不变（新声明 `boss_reward_rule_window_self_consistency` 逐份核对 stated == rolled）。**教训：范围字段不能是被复制的句子**——它必须和证据同源，否则它过期时没有任何检查会喊，而这正是本文最反对的那种"看起来被钉住的陈述" |
 
 一个共同点值得记住：前六条都是**从聚合数或桶结构推断**出来的，第七条是
 **没跑过负责判定的代码**就下了结论，第九条是**读源码只读了一条出口**——一个判断
-写在两个函数里时，只读其中一个就能得出"两幕一样"这种错结论。这 24 条里没有任何一条
+写在两个函数里时，只读其中一个就能得出"两幕一样"这种错结论。这 25 条里没有任何一条
 是靠"再想清楚一点"翻正的，全部是多测了一层。第八条特别值得留意：它是**在纠正一个
 错标签时把另一个对的标签一起撤了**，也就是说撤回本身也要证据。第十条则是另一种：
 结论没错，**窗口太小**——同一句"只有 1 例"在 3,500 个种子上是真的，在 10,000 个种子上
@@ -80,7 +81,11 @@
 于是"可核对的证据"里有一条注定是错的，而且没有任何一项检查会报它。
 第十六条和第十五条是同一族错法的两次表现——**把自己那台仪器的边界当成了事实的边界**：
 上一条把"正文抄的那个常数"当成了被验证的对象，这一条把"我调用的那个访问器的字段表"
-当成了整个观测面（真正没测的只是数值表而已）。
+当成了整个观测面（真正没测的只是数值表而已）。第二十五条还是第十五条那一族，只是这次
+错在工件内部而不是正文：`scope` 是被复制过来的句子，它描述的总体变了而没人回头改，
+所以没有任何一项检查会喊。往后这条成了一条规则加一项检查——**范围字段必须由证据自己
+推导**（`boss_reward_rule_window_self_consistency` 逐份核对工件声明的窗口等于它 slices
+实际滚的窗口）。
 
 ## 先读：目标里的"Act 1–3 全流程"在模拟器范围内**不可表示**
 
@@ -413,7 +418,7 @@ VERDICT: reproduced        (exit code 0)
 `tests/test_evidence_manifest.py`（5 项）反过来验证这份敏感性：往某个产物末尾加一个空格、
 或往目录里多塞一个未登记的产物，都会改变 `bundle_root`。
 
-**要把这套证据自己跑一遍，只有五条命令**（都要用模拟器那个 venv，见下一小节）：
+**要把这套证据自己跑一遍，只有八条命令**（都要用模拟器那个 venv，见下一小节）：
 
 1. `scripts/verify_report_claims.py` —— 正文的每条声明与盘面对账（条数以它自己那一行为准，
    正文不抄：注册表加一条就会让抄下来的数字过期）。
@@ -431,6 +436,44 @@ VERDICT: reproduced        (exit code 0)
 5. `scripts/build_chained_deadend_evidence.py --out <tmp>.json` —— 对前沿里"活着被截断"的那些局，
    重放到最后一个地图决策点、读引擎自己那份掩码，回答"是策略选错还是引擎没给节点"。
    `chained_frontier` 说深度到哪，这条说**为什么**停在那儿。
+6. `scripts/census_empty_mask_endings.py` —— 把"那 50 个 `empty_action_mask` 终局到底在哪"整份
+   重算出来，三步：
+   ①`--plan --plan-out <tmp>/plan.json`（只列工作清单，不滚一局；顺带打印哪些记录文件的窗口
+   解不出来、哪些检查点字节已经变了——在没拿到 `runs/`、`runtime/` 的机器上这里必然是大量
+   unresolved，它报的是"我查不了"而不是"通过"）；
+   ②分片重滚 `--work-index $i --work-count 7 --out <tmp>/shard$i.json`，i=0..6（37 份记录文件、
+   12,900 局，这一步才是花时间的那一步）；
+   ③合并 `--merge '<tmp>/shard*.json' --explain-seed 130010107 130010026 130010104 130000098
+   320010229 --out <tmp>/census.json`。
+   实测：用同一套七个分片工件、同样那五个种子重跑第③步，产出与
+   `empty_mask_endings_20260920.json` **除 `generated_at` 外每个键逐字相等**（50/50 定位、0 处逐文件
+   闭包不符、3 局仪器异常）。那五个种子不是随便挑的：墙处的节点类型与领奖相位 trace 只对
+   `per_seed_explanations` 里点名的种子存在，`horizon_used_here` 那一列也是这一步写进去的——
+   少了 `--explain-seed` 你会得到一份数字全对但没有墙 trace 的工件，别把它当成"复现失败"。
+   合并这一步现在会**拒绝**不是一整轮的分片集合（缺号、多出的、两套不同 `--work-count` 混在一起）：
+   重叠集合会把某个文件的局数加两遍，而每个文件自己的闭包检查照样全绿。本晚先后就有 6 片一轮与
+   7 片一轮两套工件躺在同一个 glob 里，此前只靠手工删旧文件才没合并错——这条守卫补的就是那个。
+7. `scripts/probe_boss_reward_rule.py` + `scripts/merge_reward_rule_slices.py` —— 领奖屏规则那两条
+   人口级结论。先按分片滚（每个分片两趟：argmax 与规则各一遍）：promotion 那 10,000 个种子是
+   `--checkpoint <ckpt> --start-offset <0|1250|…|8750> --limit 1250 --rule highest_legal` 八片，
+   保留分区是 `--split final --start-offset <0|2500|5000|7500> --limit 2500` 四片；再用合并器加总：
+   `merge_reward_rule_slices.py --slices '<tmp>/slice_*.json' --compare-group <组> --out <art>`。
+   `--compare-group` 决定与哪一份**先前预登记**的种子清单对账（`whole_partition_promotion` /
+   `independent_window_checkpoint_split` / `second_checkpoint_generality`），保留分区那一次必须用
+   `none`——那 10,000 个种子此前没有任何测量登记过，闭合检查照跑，对账检查报 `null`（"不适用"）
+   而不是"通过"。合并器现在还会拒绝跨分区的 slices 混合，并把工件声明的窗口改成从 slices 自己推导
+   （上一版四份工件的 `scope` 都抄成了 promotion，见开头账目第 25 行）。
+8. `scripts/run_curriculum_fanout.py` —— 目标点名的那台多臂驱动，`--dry-run` 不花训练预算就能确认
+   它还在工作：`--config config/training_v2.toml --jobs 9 --seed-base 400000000 --stride 40000000
+   --steps 2000000 --out-dir <tmp> --dry-run` → 列出 9 份臂配置、种子区间互不重叠、
+   "dry run: nothing launched"。**`--stride` 必须大于一个臂从最低到最高的训练区间总跨度**：模板把
+   五格阶段的 train 区间首尾相接铺在 [100,000,000 – 130,000,000)，所以一格臂占 **30,000,000** 个种子，
+   而不是最大的那一个 train count（act1 是 12,000,000）。这条本来是我自己踩出来的：驱动当时那句
+   报错写的是"raise --stride above the largest train count"，照它做会连着吃到两次合法拒绝
+   （实测 stride 取 4,000,000 与 20,000,000 各被拒一次，40,000,000 才通过），看上去像驱动的 bug。
+   现在报错直接把实测跨度打印出来（同一趟也确认了
+   `--jobs`/`--stride` 的入参校验与 disjointness 检查都在生效）。被拒不是 bug，是防重种子的那道门——
+   把它当报错修掉就会得到九臂共用一片种子的假并发。
 
 **可复核的边界（这条此前没有写清）。**本文多数声明要读 `runs/` 与 `runtime/` 下的评估文件，
 而这两个目录都在 gitignore 里——所以在别的机器上克隆仓库，那些声明是**重算不动**的。为了让
@@ -1595,7 +1638,7 @@ digest mismatches: 0
 **两幕到场资源是否可比**（七个资源的差与区间从逐种子行重算，并要求到达/判赢数复现已提交普查的 162/83/79/25）。
 **升级逐卡归到发生的那一步**（开局新增 + 各通道增量 − 删卡必须等于终局总数，余量必须为 0，并与营地普查的 29 逐位对齐））、
 **升级来源逐路归账**（三台仪器对同一平均数 0.326 必须相等，事件/营地两笔贡献从逐次到访行重算，营地那 1,883 次机会的合法性与 29 次取用也从行重算，余量 599 写成一个数而不是含糊过去）。
-当前 **59/59 计分声明与盘上一致**（退出码 0）；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验：`harness_self_description` 这条就是从正文里把这个数字抠出来、和注册表实际大小对账。）期望值是**照本文正文手抄**的，
+当前 **60/60 计分声明与盘上一致**（退出码 0）；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验：`harness_self_description` 这条就是从正文里把这个数字抠出来、和注册表实际大小对账。）期望值是**照本文正文手抄**的，
 不是从脚本输出复制的，所以盘上一变就会报 DRIFT 而不是悄悄把期望改成实测。
 
 **跑这个脚本要用对解释器。** 本晚踩到的是同一句话的反方向：用项目的"契约解释器"
@@ -2703,6 +2746,6 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 | **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise）。配置里的 5 级，按**当天生效的门槛**判定：floor3 晋升、floor6 晋升（boundary 0.86 对当时要求的 0.80）、floor10 起再无晋升、floor13 盘上无目录——所以 act1 的臂跨了 floor10/floor13 两级，而链条前两级是接上的。**门槛后来被抬过**：拿今天的配置复算同一批记录，floor6 不再通过（要求 0.93，且新增 Wilson 下界 0.90），因此"复现当年那条阶梯"和"按现在的配置跑一条阶梯"是两个实验。口径细节：campaign 的 500 局晋升评估共 5 次、晋升 2 次，另有 3 条属于目录名自称 `aborted-…` 的被中止运行、以及 30 局的冒烟阶梯，三类按 `run_kind` 分列不混算。逐条判定见 `ladder_promotion_ledger_20260919.json`（训练器当天写的 `promotion_decision.json` 与仓库自己的 `decide_promotion` 并列，不是手写阈值；缺字段的门槛条款现在拒绝评分而不是拿默认值比大小）。09-18 那批 19 个臂运行缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests`、`ladder_promotion_ledger`、`promotion_gate_refuses_unrecorded_inputs` |
 | 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | 落盘不靠回忆计数，且**已提交成索引**（`fanout_attestation_20260919.json`）：21 个带 plan.json 的臂运行（19 个 act1 阶段 + 2 个 floor3→floor6 阶梯臂），活动窗口从 2026-09-18T17:35Z 到 2026-09-19T01:24Z（约 7.8 小时，跨夜），190 对可能重叠里有 110 对窗口气重叠⇒并发；它们产出的 118 份指标文件**全部**出现在已提交的指标索引里。两条限定：并发是从文件 mtime 窗口推的（plan.json 不记时间戳），且 21 个 plan 里只有 2 个带 `warm_start` 块——其余早于该字段，其父级仍只有启动脚本文本可查。吞吐另测：单臂约 370-885 fps 视阶段而定、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
 | 产出**含哈希链证据**的评估报告 | **达成，并且链现在延伸到引擎** | 54 个证据文件由 bundle_root 绑定；219 个被引用的检查点摘要在本机全部对上真实文件并重算相符（这个数字从 14 涨到 219，是因为指标索引把每个指标文件引用的检查点摘要也带进了清单）；声明逐条与盘核对。282 份指标原件在 gitignore 里，故已提交一份逐文件哈希+字段的索引，使门面数字在任何机器上都能重算（`metrics_index_reviewability` 不读任何被 ignore 的文件）。**再往下一环也补上了**：本文所有引擎结论都以 `文件.cs:行号` 形式引用，而那棵源码树不是 git 仓库、没有提交可指，模拟器自带的守卫只比 mtime——所以 `emulator_source_provenance_20260920.json` 记下 37 份引擎源码的树摘要、11 份被引文件的逐文件 sha256、评测加载的原生库 sha256，以及**每一处被引行号那段文本的哈希**；它把"引擎换了"变成 DRIFT 而不是悄悄指向别的代码。清单与索引都不是可信来源——它们自己也被独立重算 | `MANIFEST_2026-09-19.json`、`emulator_source_provenance_20260920.json` | `evidence_bundle_integrity`、`engine_findings_checklist`、`emulator_source_provenance` |
-| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 5 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂、战斗卡奖永不 roll 升级），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 24 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json`、`reward_upgrade_availability_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
+| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 5 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂、战斗卡奖永不 roll 升级），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 25 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json`、`reward_upgrade_availability_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
 
 **审计结论（不美化）**：九项里七项达成或达成但带明确限定；第一项（Act 1-3 全流程胜利）**没达成，也不是「再努力一点」的问题**——模拟器没有第三幕，跨幕只有一条演示种子门控的分支，检查点穷举（09-19 的 84 枚、09-20 重跑时的 102 枚）后 0 次走完两幕。因此本目标不能标记为完成；剩下的路不在这台模拟器里，而在真机三幕那条当前被模组清单门卡住的路上。

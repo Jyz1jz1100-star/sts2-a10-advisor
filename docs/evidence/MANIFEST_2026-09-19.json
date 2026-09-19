@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "e16abff57be93fce438a6141ac0ce0e12d5796c22da0a622a31594e44a3bf510",
+  "bundle_root": "e7917ccae7086f2d73cb327be6a10bcd2c8c28d3bd9dcda2a6e2c8eed8490941",
   "evidence_file_count": 54,
-  "generated_at": "2026-09-19T21:15:25+00:00",
-  "git_head_at_generation": "9e4b211",
+  "generated_at": "2026-09-19T21:39:26+00:00",
+  "git_head_at_generation": "ae663cb",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2384,8 +2384,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "3dfb9648a9368307bf66bf11706f2203b671366b759222467dc18914b029dfe0",
-      "bytes": 22212
+      "sha256": "6743f7a8a3e2001c94952fdfbdfa7c8ab25e527f7b5fe82a7cb16dd9fd64136d",
+      "bytes": 22555
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2449,18 +2449,18 @@
     },
     {
       "file": "boss_reward_rule_generality_cp1_20260920.json",
-      "sha256": "880056f8ca749c8c4f777ad06ae5341712ff91824569db7c5d71077f77bb640b",
-      "bytes": 4035
+      "sha256": "b46e400de9162b648c2ba10f1f268e080f48885510054ae1f419c964f2eb3a86",
+      "bytes": 4350
     },
     {
       "file": "boss_reward_rule_generality_cp2_20260920.json",
-      "sha256": "5ee2c434536fb76306e063c72d1b6589d2527ea7eade20e63ff1d0a81ebe9f8c",
-      "bytes": 4029
+      "sha256": "ab7800b2d0e9842cb21944599aa25457aae621e2a1caece0723ec34d71ecc21c",
+      "bytes": 4305
     },
     {
       "file": "boss_reward_rule_holdout_final_20260920.json",
-      "sha256": "76487fa70b1f71da2a0b86f7ed134c86f0301605dd5183d1b3281fdbc12335d8",
-      "bytes": 4831
+      "sha256": "2e24564ad5ac31d6e6778fca3fa90df70fedf67b8b04abe00af8c985368e858f",
+      "bytes": 5106
     },
     {
       "file": "boss_reward_rule_on_lost_clears_20260920.json",
@@ -2474,8 +2474,8 @@
     },
     {
       "file": "boss_reward_rule_promotion_partition_20260920.json",
-      "sha256": "7d3bd5a32a45933ce7652d2bd5f5d88eb33ab0b41e6c39e2e6ee4b08a6d7374f",
-      "bytes": 5961
+      "sha256": "4269a864d64dcaa2a2489def8851f750b91133b18bd9b55ac02f6a712e30d615",
+      "bytes": 6280
     },
     {
       "file": "boss_reward_rule_second_checkpoint_20260920.json",

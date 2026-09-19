@@ -602,6 +602,44 @@ def report(payload):
           f"env-close failures {len(payload['close_failures'])}")
 
 
+def check_shard_set(shards, paths) -> None:
+    """Refuse a merged set that is not exactly one full round of one strided split.
+
+    ``--work-index $i --work-count N`` partitions the plan by stride, so a round at one ``N``
+    overlaps a round at another. Merging such a set would add one file's episodes to
+    ``episodes_rolled`` twice while every per-file closure check still closed -- each file's count
+    comes from its own single plan entry, so the mismatch machinery never sees the duplication.
+    Both rounds are sitting in the scratch directory this census writes to right now; what kept
+    them apart so far was remembering to delete the old files by hand.
+    """
+    if not shards:
+        raise SystemExit("no shard artifacts matched the --merge glob")
+    for path, shard in zip(paths, shards):
+        if not isinstance(shard.get("shard"), dict):
+            raise SystemExit(f"{path} records no `shard` block, so it cannot be placed in a split")
+    counts = {shard["shard"]["count"] for shard in shards}
+    if len(counts) != 1:
+        raise SystemExit(f"shards declare different --work-count values {sorted(counts)}; "
+                         "two rounds of different splits overlap, so the merge would double count")
+    declared = counts.pop()
+    if declared != len(shards):
+        raise SystemExit(
+            f"merged {len(shards)} shard(s) from a split of {declared}: "
+            + ("a partial round leaves recorded endings unrolled, "
+               if len(shards) < declared else "the extra shards overlap the first round, ")
+            + "which is not the whole census this artifact claims to be")
+    indices = sorted(shard["shard"]["index"] for shard in shards)
+    if indices != list(range(len(shards))):
+        raise SystemExit(f"shard indices {indices} are not one full 0..{len(shards) - 1} round")
+    owner: dict[str, str] = {}
+    for path, shard in zip(paths, shards):
+        for entry in shard["plan"]:
+            name = entry["metrics_file"]
+            if name in owner:
+                raise SystemExit(f"{name} was rolled by both {owner[name]} and {path}")
+            owner[name] = path
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=ROOT / "config/training_v2.toml")
@@ -623,8 +661,9 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.merge:
-        shards = [json.loads(Path(p).read_text(encoding="utf-8"))
-                  for p in sorted(glob.glob(args.merge))]
+        paths = sorted(glob.glob(args.merge))
+        shards = [json.loads(Path(p).read_text(encoding="utf-8")) for p in paths]
+        check_shard_set(shards, paths)
         entries: dict[str, dict] = {}
         rows: list[dict] = []
         for shard in shards:

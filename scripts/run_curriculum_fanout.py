@@ -149,9 +149,14 @@ def main() -> int:
         bases.append((path, _train_seeds(path)))
 
     ranges: list[tuple[int, int, str]] = []
+    job_spans: dict[str, int] = {}
     for path, seeds in bases:
         for stage_name, (start, count) in seeds.items():
             ranges.append((start, start + count, f"{path.name}/{stage_name}"))
+        if seeds:
+            low = min(start for start, _count in seeds.values())
+            high = max(start + count for start, count in seeds.values())
+            job_spans[path.name] = high - low
     assert_seeds_outside_frozen_lineages(
         [start for start, _end, _label in ranges],
         allow_reserved_test_corpus=args.allow_reserved_test_corpus,
@@ -163,12 +168,14 @@ def main() -> int:
             raise SystemExit(f"--exclude expects start:count, got {spec!r}")
         ranges.append((ex_start, ex_start + ex_count, f"excluded({spec})"))
     ranges.sort()
+    widest_job = max(job_spans.values(), default=0)
     for (a_start, a_end, a_label), (b_start, b_end, b_label) in zip(ranges, ranges[1:]):
         if b_start < a_end:
             raise SystemExit(
                 f"train partitions overlap: {a_label} [{a_start}, {a_end}) and "
-                f"{b_label} [{b_start}, {b_end}) -- raise --stride above the "
-                f"largest train count"
+                f"{b_label} [{b_start}, {b_end}) -- a job moves every stage it runs onto one base, "
+                f"so one job occupies {widest_job} seeds from its lowest to its highest train "
+                f"range; --stride must exceed that, not just the largest single train count"
             )
 
     print(f"{len(bases)} jobs, train ranges: "

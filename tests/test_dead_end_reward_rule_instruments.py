@@ -40,6 +40,19 @@ def _entry(metrics_file: str, recorded: int) -> dict:
             "checkpoint_sha256_matches": True, "window_status": "resolved"}
 
 
+def _rule_slice(seed_source: str, seeds: list[int]) -> dict:
+    """One `probe_boss_reward_rule.py` slice as the merger sees it: 2 wins, 1 converted."""
+    return {"aggregates": {"episodes": len(seeds), "plain_wins": 1, "ruled_wins": 2,
+                           "screen_states_matched": 1, "truncations_plain": 1,
+                           "truncations_after_rule": 0, "unclassified_dead_ends_plain": 0,
+                           "unclassified_dead_ends_after_rule": 0},
+            "before_rule": {"illegal_actions": 0},
+            "after_rule": {"illegal_actions": 0, "checkpoint": "cp"},
+            "win_seed_join": {"converted_seeds": [seeds[-1]], "lost_seeds": [],
+                              "kept_seeds": [seeds[0]]},
+            "seed_source": seed_source, "seeds": seeds, "rule": {}}
+
+
 def _row(seed: int, outcome: str, origin: str, *, short_circuit: bool = False,
          bases: list[int] | None = None, hp: int | None = 30) -> dict:
     return {"seed": seed, "outcome": outcome, "origin": origin, "phase": "map", "act": 2,
@@ -100,6 +113,61 @@ class CensusClosureTests(unittest.TestCase):
         self.assertEqual(agg["dead_ends_with_no_engine_legal_basis"], 1)
 
 
+class CensusShardSetTests(unittest.TestCase):
+    """A merged census is only a census if the shards are one full round of one split.
+
+    The committed shard set really is clean: re-merging its seven artifacts with the same five
+    ``--explain-seed`` values reproduces ``empty_mask_endings_20260920.json`` on every key except
+    ``generated_at``. These tests therefore use synthetic shards to show the refusals, the same way
+    the duplicate-seed test below does.
+    """
+
+    @staticmethod
+    def _shard(index: int, count: int, files: list[str]) -> dict:
+        return {"shard": {"index": index, "count": count, "files": len(files)},
+                "plan": [_entry(name, 1) for name in files],
+                "aggregates": {"episodes_rolled": 10, "endings_across_rolled_episodes": {}}}
+
+    def test_a_complete_round_is_accepted(self) -> None:
+        shards = [self._shard(0, 2, ["a"]), self._shard(1, 2, ["b"])]
+        CENSUS.check_shard_set(shards, ["s0.json", "s1.json"])
+
+    def test_a_partial_round_is_refused(self) -> None:
+        with self.assertRaises(SystemExit) as caught:
+            CENSUS.check_shard_set([self._shard(0, 7, ["a"])], ["s0.json"])
+        self.assertIn("partial round", str(caught.exception))
+
+    def test_two_overlapping_splits_are_refused_before_the_roll_totals(self) -> None:
+        # The failure this guard exists for: a `--work-count 6` round and a `--work-count 7` round
+        # both land in the same scratch glob, and merging them sums one file's episodes twice while
+        # every per-file closure check still closes.
+        with self.assertRaises(SystemExit) as caught:
+            CENSUS.check_shard_set(
+                [self._shard(0, 6, ["a"]), self._shard(1, 7, ["b"])], ["s0.json", "s1.json"])
+        self.assertIn("double count", str(caught.exception))
+
+    def test_a_file_rolled_twice_is_named_even_when_the_split_looks_square(self) -> None:
+        shards = [self._shard(0, 2, ["a", "shared"]), self._shard(1, 2, ["b", "shared"])]
+        with self.assertRaises(SystemExit) as caught:
+            CENSUS.check_shard_set(shards, ["s0.json", "s1.json"])
+        self.assertIn("shared", str(caught.exception))
+
+    def test_a_shard_that_declares_no_index_cannot_be_placed(self) -> None:
+        shard = self._shard(0, 1, ["a"])
+        del shard["shard"]
+        with self.assertRaises(SystemExit) as caught:
+            CENSUS.check_shard_set([shard], ["s0.json"])
+        self.assertIn("records no `shard` block", str(caught.exception))
+
+    def test_a_duplicated_index_with_a_missing_one_is_refused(self) -> None:
+        # Two files both claiming index 0 of a 2-split, and index 1 never rolled: count and the
+        # per-file arithmetic both stay consistent, so only the index round check sees it.
+        shards = [self._shard(0, 2, ["a"]), self._shard(0, 2, ["b"])]
+        with self.assertRaises(SystemExit) as caught:
+            CENSUS.check_shard_set(shards, ["s0.json", "s1.json"])
+        self.assertIn("not one full", str(caught.exception))
+
+
 class RewardRuleMergeTests(unittest.TestCase):
     def test_recorded_for_reads_each_groups_own_pre_registered_numbers(self) -> None:
         misexit = {
@@ -137,14 +205,7 @@ class RewardRuleMergeTests(unittest.TestCase):
         # a summed win count would otherwise double-count whichever seed appears twice.
         scratch = ROOT / "runtime" / "merge_guard_scratch"
         scratch.mkdir(parents=True, exist_ok=True)
-        template = {"aggregates": {"episodes": 2, "plain_wins": 1, "ruled_wins": 2,
-                                   "screen_states_matched": 1, "truncations_plain": 1,
-                                   "truncations_after_rule": 0, "unclassified_dead_ends_plain": 0,
-                                   "unclassified_dead_ends_after_rule": 0},
-                    "before_rule": {"illegal_actions": 0}, "after_rule": {"illegal_actions": 0,
-                                                                          "checkpoint": "cp"},
-                    "win_seed_join": {"converted_seeds": [2], "lost_seeds": [], "kept_seeds": [1]},
-                    "seed_source": "slice", "seeds": [1, 2], "rule": {}}
+        template = _rule_slice("slice", [1, 2])
         for index in (0, 1):
             (scratch / f"slice_{index}.json").write_text(json.dumps(template), encoding="utf-8")
         out = scratch / "should_not_be_written.json"
@@ -162,6 +223,62 @@ class RewardRuleMergeTests(unittest.TestCase):
             for path in scratch.glob("slice_*.json"):
                 path.unlink()
             scratch.rmdir()
+
+    def test_slices_from_two_partitions_cannot_be_summed_as_one(self) -> None:
+        # The promotion round and the holdout round live under one scratch parent directory, so a
+        # loose glob catches both: 20,000 seeds would be reported as a single partition, and which
+        # partition the holdout rolled is the whole reason it exists.
+        scratch = ROOT / "runtime" / "merge_guard_scratch"
+        scratch.mkdir(parents=True, exist_ok=True)
+        (scratch / "slice_0.json").write_text(
+            json.dumps(_rule_slice("act1/promotion partition slice [0:2] of 4", [1, 2])),
+            encoding="utf-8")
+        (scratch / "slice_1.json").write_text(
+            json.dumps(_rule_slice("act1/final partition slice [2:4] of 4", [3, 4])),
+            encoding="utf-8")
+        out = scratch / "should_not_be_written.json"
+        argv = sys.argv
+        sys.argv = ["merge_reward_rule_slices.py", "--compare-group", "none", "--slices",
+                    "runtime/merge_guard_scratch/slice_*.json", "--out", str(out)]
+        try:
+            with self.assertRaises(SystemExit) as caught:
+                MERGE.main()
+            self.assertIn("different partitions", str(caught.exception))
+            self.assertFalse(out.exists())
+        finally:
+            sys.argv = argv
+            out.unlink(missing_ok=True)
+            for path in scratch.glob("slice_*.json"):
+                path.unlink()
+            scratch.rmdir()
+
+    def test_the_stated_window_is_derived_from_the_slices_it_merged(self) -> None:
+        # The four committed artifacts all stated "the act1 promotion partition", including the two
+        # that rolled act1/checkpoint and the one that rolled act1/final. Deriving the sentence from
+        # seed_source means a merge can no longer describe a population it did not roll.
+        scratch = ROOT / "runtime" / "merge_guard_scratch"
+        scratch.mkdir(parents=True, exist_ok=True)
+        for index, offset in enumerate((0, 2500)):
+            (scratch / f"slice_{index}.json").write_text(
+                json.dumps(_rule_slice(
+                    f"act1/final partition slice [{offset}:{offset + 2500}] of 10000",
+                    [offset + 1, offset + 2])), encoding="utf-8")
+        out = scratch / "merged.json"
+        argv = sys.argv
+        sys.argv = ["merge_reward_rule_slices.py", "--compare-group", "none", "--slices",
+                    "runtime/merge_guard_scratch/slice_*.json", "--out", str(out)]
+        try:
+            MERGE.main()
+            payload = json.loads(out.read_text(encoding="utf-8"))
+        finally:
+            sys.argv = argv
+            out.unlink(missing_ok=True)
+            for path in scratch.glob("slice_*.json"):
+                path.unlink()
+            scratch.rmdir()
+        self.assertIn("every seed of the act1/final partition", payload["scope"])
+        self.assertEqual(payload["aggregates"]["episodes"], 4)
+        self.assertIn("merge_reward_rule_slices.py", payload["invocation"])
 
 
 class TruncationLedgerTests(unittest.TestCase):

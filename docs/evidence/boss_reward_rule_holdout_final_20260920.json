@@ -47,7 +47,8 @@
     "the rule adds 16 judged wins and removes 0 (no pre-registered seed list to compare the added set against)",
     "truncations fall 17 -> 1 while illegal actions and unclassified dead ends stay 0 in both passes"
   ],
-  "generated_at": "2026-09-19T21:09:53+00:00",
+  "generated_at": "2026-09-19T21:30:50+00:00",
+  "invocation": "scripts/merge_reward_rule_slices.py --slices runtime/census_scratch/hold/cp1_*.json --compare-group none --label act1 final (holdout) partition: never used by any training or evaluation record --out docs/evidence/boss_reward_rule_holdout_final_20260920.json",
   "kept_win_seeds": [
     130020081,
     130020344,
@@ -122,7 +123,7 @@
   "not_established": [
     "that a trained policy would find this rule: it is hand-written and applied at one screen, so the number bounds what that one decision is worth, not what training gets",
     "anything about Act 3 or the shipped game -- an Act-2 judged win is still two acts, not the three-act flow the objective names",
-    "that the +16 transfers to other checkpoints or policies: this is one checkpoint's promotion partition, and the rule only pays where a run reaches the screen"
+    "that the +16 transfers to other checkpoints or policies: this is one checkpoint's act1/final partition, and the rule only pays where a run reaches the screen"
   ],
   "recorded_losses_for_comparison": [],
   "rule": {
@@ -130,7 +131,7 @@
     "chosen": "highest_legal",
     "screen": "relic_reward at current_node_type=6"
   },
-  "scope": "every seed of the act1 promotion partition at one checkpoint, argmax everywhere except a stated action at the boss relic_reward screen, judged by training/evaluation.py",
+  "scope": "every seed of the act1/final partition at one checkpoint, argmax everywhere except a stated action at the boss relic_reward screen, judged by training/evaluation.py",
   "slice_detail": [
     {
       "converted": 3,
