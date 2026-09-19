@@ -1642,6 +1642,27 @@ def claim_objective_clause_audit():
                    for name in re.findall(r"`([^`]+\.json)`", row[3])}
     cited_claims = {name for row in rows if len(row) > 4
                     for name in re.findall(r"`([a-z0-9_]+)`", row[4])}
+
+    def numbers(cell: str) -> set[int]:
+        return {int(text.replace(",", "")) for text in re.findall(r"\d[\d,]*", cell)}
+
+    def arm_counts(cell: str) -> set[int]:
+        # A subset test alone missed one case: the fan-out row names the arm count twice, so
+        # rewriting only the first still left a 21 somewhere in the cell. Every place that row
+        # states the count has to say the same thing.
+        return {int(text) for text in re.findall(
+            r"(\d+) 个(?:带 plan\.json 的)?(?:臂运行| plan)", cell)}
+
+    fanout = json.loads((ROOT / "docs/evidence/fanout_attestation_20260919.json")
+                        .read_text(encoding="utf-8"))["aggregates"]
+    manifest = json.loads((ROOT / "docs/evidence/MANIFEST_2026-09-19.json")
+                          .read_text(encoding="utf-8"))
+    channels = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
+                          .read_text(encoding="utf-8"))["channels"]
+    vocabulary = json.loads((ROOT / "docs/evidence/dead_end_vocabulary_20260919.json")
+                            .read_text(encoding="utf-8"))
+    vocab_counts = set(vocabulary.get("vocabulary", vocabulary.get("counts", {})).values())
+    clause_numbers = {index: numbers(row[2]) for index, row in enumerate(rows) if len(row) > 2}
     return {
         "audit_section_present": True,
         "all_nine_clauses_listed": len(rows) == 9,
@@ -1658,6 +1679,23 @@ def claim_objective_clause_audit():
             (ROOT / "docs/evidence" / name).exists() or (ROOT / "docs" / name).exists()
             or (ROOT / name).exists() for name in cited_files),
         "every_cited_claim_is_registered": cited_claims <= set(CLAIMS) and bool(cited_claims),
+        # The rows' verdicts were already pinned; their numbers were not, which is how a summary
+        # table keeps quoting a superseded count while every existence check still passes.
+        "fan_out_row_numbers_match_the_attestation": (
+            {21, 118, 190, 110} <= clause_numbers.get(6, set())
+            and arm_counts(rows[6][2] if len(rows) > 6 else "") == {21}
+            and (fanout["arms_with_plans"], fanout["metrics_files_covered_by_the_index"],
+                 fanout["window_overlap_pairs_possible"], fanout["window_overlap_pairs"])
+            == (21, 118, 190, 110)),
+        "hash_chain_row_numbers_match_the_manifest": (
+            {manifest["evidence_file_count"], manifest["checkpoint_digests_cited"]}
+            <= clause_numbers.get(7, set())),
+        "zero_illegal_row_numbers_match_the_channel_census": (
+            {channels["episodes_current_schema"],
+             channels["rejection_events_total_current_schema"]} <= clause_numbers.get(2, set())),
+        "dead_end_row_numbers_match_the_vocabulary_census": (
+            vocab_counts <= clause_numbers.get(3, set())
+            and vocab_counts == {50, 861, 3}),
         "conclusion_still_refuses_completion": "不能标记为完成" in section,
     }
 

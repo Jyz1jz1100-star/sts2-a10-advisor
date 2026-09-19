@@ -369,7 +369,11 @@
     "the_other_six_are_marked_achieved_with_limits": true,
     "every_cited_file_exists": true,
     "every_cited_claim_is_registered": true,
-    "conclusion_still_refuses_completion": true
+    "conclusion_still_refuses_completion": true,
+    "fan_out_row_numbers_match_the_attestation": true,
+    "hash_chain_row_numbers_match_the_manifest": true,
+    "zero_illegal_row_numbers_match_the_channel_census": true,
+    "dead_end_row_numbers_match_the_vocabulary_census": true
   },
   "retraction_ledger_integrity": {
     "every_row_has_three_populated_cells": true,
