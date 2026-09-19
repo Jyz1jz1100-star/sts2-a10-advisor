@@ -1123,6 +1123,20 @@ single-legal-action combat state as terminal rather than a truncation, and the
 trainable objective is to kill before the deck saturates. Recorded for the decision,
 **not acted on** -- the freeze still stands and no new PPO budget was spent.
 
+A per-seed census then sharpened where that budget should go
+(`docs/evidence/act1_arrivals_by_act_20260919.json`, 3,500 ordinary promotion seeds
+of one checkpoint, run under the stage's own 1600-step cap): boss **arrival** rates
+are the same for both acts (83 Act 1 vs 79 Act 2), but conversion is not -- the same
+policy kills the Act 2 boss in 25/79 arrivals (31.6%, CI 22.5-42.6) and the Act 1
+boss in **0/83** (CI 0-4.4%). So the deficit is the first act's boss fight itself,
+not attrition before it, which is a different and much cheaper thing to aim at than
+"deepen Act 1". The nine ledgered Act 1 victories are unaffected: all nine seeds were
+re-censused as overgrowth-generating, and this checkpoint's three of them simply sit
+outside the enumerated seed window. One honest method note: the census first read as
+"15% of boss arrivals convert", and every one of those wins turned out to be an Act 2
+seed -- `simulator_act1` is a mixed-act population, so any conversion figure that
+does not split by generated act is meaningless.
+
 **What I ran against it:** two new V2 curriculum act1-stage arms
 (`runtime/act1_ab/a1filt`, `runtime/act1_ab/a1mix`), 2,000,000 timesteps × 12 envs
 each, started 2026-09-19 00:31:39 UTC, both finishing below the promotion gate.
