@@ -2233,8 +2233,12 @@ def claim_truncation_ledger():
                                          "floor6/schema3": 0, "floor6/schema6": 0}),
         "the_legacy_exclusion_has_a_measured_cause": (
             agg["legacy_files_excluded"] == 54
-            and agg["legacy_files_counting_truncations_with_no_boundary_field"] == 46
+            and agg["legacy_files_missing_the_boundary_field"] == 54
+            and agg["legacy_files_with_truncations"] == 46
+            and agg["legacy_files_with_no_truncations_at_all"] == 8
             and agg["legacy_truncations_excluded"] == 4470),
+        "the_ledger_does_not_close_because_a_field_was_blank": (
+            agg["current_schema_files_missing_any_identity_field"] == 0),
     }
 
 

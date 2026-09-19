@@ -567,6 +567,7 @@
     "the_named_endings_equal_the_per_seed_census": true,
     "closure_does_not_lean_on_the_unclassified_counter": true,
     "every_stage_and_schema_resolves_to_zero": true,
-    "the_legacy_exclusion_has_a_measured_cause": true
+    "the_legacy_exclusion_has_a_measured_cause": true,
+    "the_ledger_does_not_close_because_a_field_was_blank": true
   }
 }

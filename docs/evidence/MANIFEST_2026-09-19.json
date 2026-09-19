@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "b7c63b8f0df15ba6f72762ee741525373078e0632c5efd1177b9ced3c68397d9",
+  "bundle_root": "96da1a2c62cd7903da19decaf948844ab7d2d486e702d5e3e425d86bea5b4d74",
   "evidence_file_count": 53,
-  "generated_at": "2026-09-19T20:43:56+00:00",
-  "git_head_at_generation": "8bac158",
+  "generated_at": "2026-09-19T20:46:57+00:00",
+  "git_head_at_generation": "0a04763",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2384,8 +2384,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "47afb892d716462858c25e8474c85f424f7367beb673acff2dadfbcba013db56",
-      "bytes": 21632
+      "sha256": "9ec52fc0a861675324209ddb384ff3d51521d88d59a01c139ead2a0bca7ecde5",
+      "bytes": 21698
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2614,8 +2614,8 @@
     },
     {
       "file": "truncation_ledger_20260920.json",
-      "sha256": "a6e1ec784175b83a9d3df48547043059a21d497e2308208084d5345254269d7e",
-      "bytes": 18002
+      "sha256": "26de867dea16246897468c66948b63f18ec82b62620f6bf3a4b709fc222c66e9",
+      "bytes": 24568
     },
     {
       "file": "upgrade_step_attribution_20260919.json",
