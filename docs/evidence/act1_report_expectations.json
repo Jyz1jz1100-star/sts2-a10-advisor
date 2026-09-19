@@ -262,6 +262,8 @@
     "attested_arms_count": true,
     "configured_rungs_match_the_live_config": true,
     "committed_rungs_are_a_subset_without_floor13": true,
-    "campaign_arms_lack_attestation": true
+    "campaign_arms_lack_attestation": true,
+    "smoke_ladder_edge_is_verifiable": true,
+    "smoke_ladder_stops_at_two_rungs": true
   }
 }

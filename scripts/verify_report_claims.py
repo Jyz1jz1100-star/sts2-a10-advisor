@@ -820,6 +820,20 @@ def claim_ladder_lineage():
             and data["campaign_arms_without_attestation"]["count"]
             == len(data["campaign_arms_without_attestation"]["arms"])
             == data["campaign_arms_without_attestation"]["of_total"]),
+        # The stage->stage link is exercised, not just shipped: exactly one edge exists and it
+        # must be the launcher's own chaining (initialized_from_stage set, no CLI checkpoint).
+        "smoke_ladder_edge_is_verifiable": (
+            [e["stage"] for e in data["smoke_ladder"]["edges"]] == ["floor3", "floor6"]
+            and all(e["digest_matches"] and e["parent_exists"]
+                    for e in data["smoke_ladder"]["edges"])
+            and data["smoke_ladder"]["edges"][1]["origin_json"]["initialized_from_stage"] == "floor3"
+            and data["smoke_ladder"]["edges"][1]["origin_json"]["from_command_line_warm_start"]
+            is False
+            and f"{Path(data['smoke_ladder']['run']).name}/floor3/checkpoints"
+            in data["smoke_ladder"]["edges"][1]["parent_path"].replace("\\", "/")),
+        "smoke_ladder_stops_at_two_rungs": (
+            data["smoke_ladder"]["stage_directories"] == ["floor3", "floor6"]
+            and all(len(e["own_checkpoints"]) <= 3 for e in data["smoke_ladder"]["edges"])),
     }
 
 

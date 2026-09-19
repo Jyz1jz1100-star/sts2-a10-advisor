@@ -1103,7 +1103,11 @@ about the operator's three-act target, and found one failure class worth naming.
    recorded a parent -- so "warm-start lineage is narrative" is true for the 09-18
    campaign and false for these two. Note what the attestation does *not* fix: the
    parent is another arm's act1 checkpoint, so floor13 still never ran and the
-   floor6 -> act1 jump is still a jump.
+   floor6 -> act1 jump is still a jump. The one attested *stage->stage* edge in the
+   repository is a two-rung smoke run (`runs/curriculum_v2_smoke/...233201Z`,
+   floor6 <- floor3 with `initialized_from_stage` set and launcher-chained), which proves
+   the mechanism works without showing any real ladder was walked -- its floor3 stage was
+   itself seeded from a deeper promoted checkpoint.
 
 Live side unchanged: `127.0.0.1:15526/health` refused at 23:42 with no game
 process, so the three-act real-game batch remains an operator action

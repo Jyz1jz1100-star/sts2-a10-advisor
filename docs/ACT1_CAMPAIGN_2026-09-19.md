@@ -1095,7 +1095,8 @@ digest mismatches: 0
 两区合并数等于两部分之和、**门槛算式直接读 `config/training_v2.toml` 现算**）、
 **34 个被吃掉的局逐种子核过签名，且两条评估路径步数一致**、
 **跨幕路径自己的门槛核验**（0 非法 / 0 未分类，两局截断的地图后继位为 0，深度与穷举前沿一致）、
-**阶梯血统的逐 run 自证状况**（两级机制互证 + 父 checkpoint 重算摘要）。
+**阶梯血统的逐 run 自证状况**（两级机制互证 + 父 checkpoint 重算摘要 +
+唯一一条启动器自接的 stage→stage 边）。
 当前 **27/27 与盘上一致**；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验。）期望值是**照本文正文手抄**的，
 不是从脚本输出复制的，所以盘上一变就会报 DRIFT 而不是悄悄把期望改成实测。
 
@@ -1166,7 +1167,13 @@ digest mismatches: 0
 
 结论要怎么说才不越界：**"每个晋升检查点自身可摘要校验" ≠ "阶梯血统可校验"**。
 前者已验证；后者对 09-18 之前的运行是叙述，只有启动脚本为它背书。
-今后任何解冻后的阶梯运行都会有 `origin.json`，这条缺口对新数据不再成立。
+今后任何解冻后的阶梯运行都会有 `origin.json`，这条缺口对新数据不再成立——
+**而且机制已经被用过一次**：`runs/curriculum_v2_smoke/…233201Z/` 里 `floor6` 的
+`origin.json` 记的是 `initialized_from_stage="floor3"`、`from_command_line_warm_start=false`，
+也就是**启动器自己接上去的 rung→rung 边**，其父 checkpoint 在盘上且摘要可重算。
+但别把它读成"五级阶梯走通过"：那是一次**冒烟**运行（自身 checkpoint 只有 1,024 / 2,048 步），
+只有 floor3、floor6 两级，而且它的 floor3 是**从更深的 promoted floor6 权重起步**的取巧配置。
+可验证的是一条边的机制，不是一条走通的阶梯。
 
 **这条缺口现在有了逐 run 的数字，也有了一半好消息**
 （`docs/evidence/ladder_lineage_20260919.json`，可核对声明 `ladder_lineage`）：
@@ -1177,6 +1184,7 @@ digest mismatches: 0
 | 盘上有 checkpoint 目录的**已提交** rung | floor3（091856Z）、floor6（115142Z）、floor10（122903Z）；**floor13 一个都没有**，act1 只存在于 gitignored 的 `runtime/` |
 | 09-18 fanout 臂（13 个） | `plan.json` 里**有 `warm_start` 的 0 个**、目录里**有 `origin.json` 的 0 个**——两种自证都缺 |
 | 09-19 两个 A/B 臂 | 两种都有，而且互相印证：`plan.json` 与 `act1/origin.json` 记的父级路径/摘要一致，父 checkpoint 存在，摘要**从文件重算**两边都相等（`f514ffa3…`） |
+| 冒烟阶梯（`runs/curriculum_v2_smoke/…233201Z`） | 两条边的摘要都可重算；**其中 `floor6 ← floor3` 是仓库里唯一一条 `initialized_from_stage` 的 stage→stage 边**（启动器自接，非手传 `--initial-checkpoint`）；该运行只有这两级，且是 1k 步级冒烟 |
 
 所以"父级不可自证"这句要按窗口收窄：**它适用于 09-18 那 13 臂，不适用于解冻前最后一晚跑的
 两个 A/B 臂**。也要如实说清这两个臂自证的仍然只是**同阶段跨臂**的一条边（父级是另一臂的
