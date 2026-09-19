@@ -9,7 +9,8 @@
     "step-for-step against census rows produced by training.evaluation.evaluate_policy. The two paths",
     "agree on every seed, which is a second, independent reproduction of each of these 34 runs.",
     "The 130012038 census row comes from the same seeds re-measured today, not from the older pooled file.",
-    "Checkpoint B shows two act-2 boss encounters (79 and 84), so the class is not tied to one encounter."
+    "Checkpoint B shows two act-2 boss encounters (79 and 84), so the class is not tied to one encounter.",
+    "Each verification block carries the SHA-256 of the exact checkpoint zip it was rolled through, so these runs are hash-linked to a binary rather than to an arm name."
   ],
   "generated_at": "2026-09-19T07:33:11+00:00",
   "established": [
@@ -491,7 +492,9 @@
           "illegal_actions": 0,
           "signature_conforms": true
         }
-      ]
+      ],
+      "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip"
     },
     "checkpoint_b": {
       "checkpoint": "b_terminal-0 step_000004000032",
@@ -622,8 +625,22 @@
           "illegal_actions": 0,
           "signature_conforms": true
         }
-      ]
+      ],
+      "checkpoint_sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
+      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip"
     }
   },
-  "verification_all_passed": true
+  "verification_all_passed": true,
+  "checkpoints": {
+    "checkpoint_a": {
+      "path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip",
+      "sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "size_bytes": 3109180
+    },
+    "checkpoint_b": {
+      "path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip",
+      "sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
+      "size_bytes": 3109193
+    }
+  }
 }

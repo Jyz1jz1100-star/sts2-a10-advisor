@@ -241,6 +241,7 @@
     "counts_match_the_rate_artifact": true,
     "none_was_judged_a_win": true,
     "zero_illegal_across_sampled_runs": true,
-    "second_boss_encounter_also_affected": true
+    "second_boss_encounter_also_affected": true,
+    "checkpoint_digests_match_the_files": true
   }
 }

@@ -735,6 +735,12 @@ def claim_boss_misexit_signature():
         "second_boss_encounter_also_affected": (
             set(blocks["checkpoint_a"]["encounters_seen"])
             < set(blocks["checkpoint_b"]["encounters_seen"])),
+        # The runs are hash-linked to binaries, not to arm names: re-read the zips.
+        "checkpoint_digests_match_the_files": all(
+            (ROOT / meta["path"]).is_file()
+            and hashlib.sha256((ROOT / meta["path"]).read_bytes()).hexdigest()
+            == meta["sha256"] == blocks[name]["checkpoint_sha256"]
+            for name, meta in ver["checkpoints"].items()),
     }
 
 
