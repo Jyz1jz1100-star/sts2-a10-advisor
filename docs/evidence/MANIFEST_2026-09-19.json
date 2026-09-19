@@ -10,8 +10,8 @@
   ],
   "bundle_root": "1b3b0f2a7d07638d82e7f8c59b45a4231d31cd6eea2c50545a54b4c48950f09d",
   "evidence_file_count": 54,
-  "generated_at": "2026-09-19T21:11:34+00:00",
-  "git_head_at_generation": "372c0cc",
+  "generated_at": "2026-09-19T21:12:46+00:00",
+  "git_head_at_generation": "0025bbd",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",

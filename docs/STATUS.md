@@ -2026,8 +2026,8 @@ it to return. Current state: 512 + 120 tests OK, 58/58 claims match disk.
 Every earlier instance of this result sat in the promotion partition, which the arms trained beside, so
 the +21 could have been that window's property. The `act1.final` partition (130020000 up, 10,000
 seeds) is the holdout the campaign records as never evaluated on; rolling all of it twice gives plain
-**67 wins -> 83 with the rule**, 16 converted, **0 lost**, truncations 17 -> 1 (and 17 - 1 = 16 + 1
-checks out, which is what the arithmetic check in the claim pins), illegal and unclassified 0 in both
+**67 wins -> 83 with the rule**, 16 converted, **0 lost**, truncations 17 -> 1, the 16-fall being exactly the 16 conversions with the one
+unsavable truncation left over -- first written as "16 + 1", which the claim harness caught as a false check, illegal and unclassified 0 in both
 passes. The holdout's plain rate (67/10,000) sits beside the tuned window's 68/10,000, so the rule's
 effect is not an artifact of seeds that had been looked at before.
 

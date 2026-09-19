@@ -2265,9 +2265,13 @@ def claim_boss_reward_rule_holdout():
             and agg["rule_win_count"] == agg["plain_win_count"] + agg["converted_seed_count"]
             and agg["converted_seed_count"] == 16 and agg["lost_win_count"] == 0
             and agg["kept_win_count"] == agg["plain_win_count"] == 67),
+        # Every converted run stops being a truncation, so the fall in truncations should equal the
+        # conversions exactly -- and the one truncation still left is the run the rule could not
+        # rescue, which is why nothing is added here.
         "the_conversion_arithmetic_matches_the_truncation_drop": (
             agg["truncations_plain"] - agg["truncations_after_rule"]
-            == agg["converted_seed_count"] + 1),
+            == agg["converted_seed_count"]
+            and agg["truncations_after_rule"] == 1),
         "the_holdout_declares_the_same_clean_contracts": (
             agg["illegal_actions_plain"] == agg["illegal_actions_after_rule"] == 0
             and agg["unclassified_dead_ends_plain"] == 0
