@@ -2156,3 +2156,18 @@ this journal through the platform codec (`gbk` cannot encode a minus sign) becau
 **before** the failure, and the whole journal went to zero bytes on disk. Recovered with
 `git checkout HEAD -- docs/STATUS.md`, which is why an append-only journal is committed before it is
 scripted on, and why a scripted text edit needs an explicit encoding every time.
+
+## 2026-09-20 -- the replay guards got extracted and tested, and the command list is now nine
+
+The two refusals that make a named-seed replay mean something were inline in `main()`, so nothing could
+exercise them. They are module functions now: `parse_seed_list` rejects a repeated seed (naming it) and
+rejects an empty list rather than producing a zero-row artifact that could read as "nothing to check", and
+`check_checkpoint_digest` returns the digest, refuses on mismatch, and treats `None` as "no guard". Four
+tests in `NamedWinReplayGuardTests` cover them, the same treatment the dead-end census merge got. The
+report's reproducible-command list gained item 9 for the two named-win replays and its header was corrected
+from eight to nine commands.
+
+The digest guard had already fired once for real: a shell variable assembled from two command
+substitutions carried a stray newline, so the guard rejected an *empty-ish* expectation instead of rolling
+25 episodes against weights nobody had verified. Refusing on a malformed expectation is the direction I
+wanted, and the error prints both digests so the fix is obvious. 61/61 claims, 512 + 132 tests.

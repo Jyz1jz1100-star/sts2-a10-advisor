@@ -421,7 +421,7 @@ VERDICT: reproduced        (exit code 0)
 `tests/test_evidence_manifest.py`（5 项）反过来验证这份敏感性：往某个产物末尾加一个空格、
 或往目录里多塞一个未登记的产物，都会改变 `bundle_root`。
 
-**要把这套证据自己跑一遍，只有八条命令**（都要用模拟器那个 venv，见下一小节）：
+**要把这套证据自己跑一遍，只有九条命令**（都要用模拟器那个 venv，见下一小节）：
 
 1. `scripts/verify_report_claims.py` —— 正文的每条声明与盘面对账（条数以它自己那一行为准，
    正文不抄：注册表加一条就会让抄下来的数字过期）。
@@ -486,6 +486,16 @@ VERDICT: reproduced        (exit code 0)
    现在报错直接把实测跨度打印出来（同一趟也确认了
    `--jobs`/`--stride` 的入参校验与 disjointness 检查都在生效）。被拒不是 bug，是防重种子的那道门——
    把它当报错修掉就会得到九臂共用一片种子的假并发。
+9. `scripts/enumerate_act1_terminals.py --seeds <名单> --expect-checkpoint-sha256 <名单来源登记的摘要>`
+   —— 把"具名胜局"从普查总数变成逐种子复现。本晚跑了两条：
+   `act1_arrivals_by_act_20260919.json` 里那 25 个第二幕胜局 →
+   `act2_named_wins_individual_replay_20260920.json`（25/25 `boss_win`、floor 17、契约列全 0），
+   以及 `boss_reward_rule_promotion_partition_20260920.json` 的 68 个 plain 胜局 →
+   `promotion_partition_named_wins_replay_20260920.json`（68/68，且**按幕的拆分 3 / 65 与另一台仪器
+   逐幕相同**，不只是总数相等）。驱动自己拒两件事，两者都在防"看着像复现"：名单里有重复种子
+   （会把一局限数加两遍），以及权重文件的 sha256 不是名单登记时那一份。后面这条本晚真的触发过一次，
+   原因是我在 shell 里拼变量时混进了空白——**被拒是正确的方向**，报错会把两个摘要都打出来，
+   所以修法是把摘要单独算一次再传进去。
 
 **可复核的边界（这条此前没有写清）。**本文多数声明要读 `runs/` 与 `runtime/` 下的评估文件，
 而这两个目录都在 gitignore 里——所以在别的机器上克隆仓库，那些声明是**重算不动**的。为了让

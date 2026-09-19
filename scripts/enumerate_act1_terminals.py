@@ -37,6 +37,33 @@ sys.path.insert(0, str(ROOT))
 BOSS_FLOOR = 17
 
 
+def parse_seed_list(spec: str) -> list[int]:
+    """Turn a comma list into a seed list that cannot double count a win.
+
+    Named-win replay hands this script a list some other instrument enumerated, so a repeated seed
+    would be counted twice in a headline total -- the exact way a per-seed reproduction can look
+    better than it is.
+    """
+    seeds = [int(token) for token in spec.split(",") if token.strip()]
+    if not seeds:
+        raise SystemExit("--seeds parsed to an empty list")
+    if len(seeds) != len(set(seeds)):
+        repeated = sorted({seed for seed in seeds if seeds.count(seed) > 1})
+        raise SystemExit(f"the --seeds list repeats {repeated[:5]}; a win would be counted twice")
+    return seeds
+
+
+def check_checkpoint_digest(checkpoint: Path, expected: str | None) -> str:
+    """Hash the weights, and refuse to roll them if they are not the ones the seed list came from."""
+    digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    if expected and digest != expected:
+        raise SystemExit(
+            f"refusing to roll: {checkpoint} hashes to {digest[:16]}..., not the "
+            f"{expected[:16]}... the named-seed list was enumerated from"
+        )
+    return digest
+
+
 def classify(metrics: dict) -> str:
     if int(metrics.get("unclassified_dead_ends") or 0) > 0:
         return "unclassified_dead_end"
@@ -95,9 +122,7 @@ def main() -> int:
     if not seeds:
         raise SystemExit(f"stage {stage.name} has no '{args.split}' seeds")
     if args.seeds:
-        window = [int(token) for token in args.seeds.split(",") if token.strip()]
-        if len(window) != len(set(window)):
-            raise SystemExit("the --seeds list repeats a seed; a win could be counted twice")
+        window = parse_seed_list(args.seeds)
         seed_source = f"explicit --seeds list ({len(window)} seeds)"
         outside = [seed for seed in window if seed not in set(seeds)]
     else:
@@ -112,12 +137,7 @@ def main() -> int:
         )
 
     checkpoint = args.checkpoint.resolve()
-    checkpoint_digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
-    if args.expect_checkpoint_sha256 and checkpoint_digest != args.expect_checkpoint_sha256:
-        raise SystemExit(
-            f"refusing to roll: {checkpoint} hashes to {checkpoint_digest[:16]}..., not the "
-            f"{args.expect_checkpoint_sha256[:16]}... the named-seed list was enumerated from"
-        )
+    checkpoint_digest = check_checkpoint_digest(checkpoint, args.expect_checkpoint_sha256)
     max_steps = args.max_steps or stage.max_episode_steps
     factory = _environment_factory(config, stage, sts2_gym)
     probe = DummyVecEnv([lambda: factory(window[0])])

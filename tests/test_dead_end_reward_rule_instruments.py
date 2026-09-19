@@ -30,6 +30,7 @@ def _load(name: str, path: str):
 
 
 CENSUS = _load("census_empty_mask_endings", "scripts/census_empty_mask_endings.py")
+ENUMERATE = _load("enumerate_act1_terminals", "scripts/enumerate_act1_terminals.py")
 MERGE = _load("merge_reward_rule_slices", "scripts/merge_reward_rule_slices.py")
 RULE = _load("probe_boss_reward_rule", "scripts/probe_boss_reward_rule.py")
 
@@ -59,6 +60,46 @@ def _row(seed: int, outcome: str, origin: str, *, short_circuit: bool = False,
             "floor": 17, "hp": hp, "max_hp": 80, "alive": bool(hp),
             "engine_legal_bases": bases if bases is not None else [],
             "short_circuit": short_circuit, "rejections": 0, "steps": 5, "detail": None}
+
+
+class NamedWinReplayGuardTests(unittest.TestCase):
+    """The two refusals that make a named-seed replay mean what it says.
+
+    `--seeds` lets the census driver roll a list another instrument enumerated, which is how the
+    report's 25 and 68 win populations became individually reproduced. Both guards are on the path
+    that turns a count into a claim, so they have to be able to fail.
+    """
+
+    def test_a_clean_list_survives_and_keeps_order(self) -> None:
+        self.assertEqual(ENUMERATE.parse_seed_list("7, 3, 9"), [7, 3, 9])
+
+    def test_a_repeated_seed_is_refused_by_name(self) -> None:
+        with self.assertRaises(SystemExit) as caught:
+            ENUMERATE.parse_seed_list("7,3,7")
+        self.assertIn("counted twice", str(caught.exception))
+        self.assertIn("7", str(caught.exception))
+
+    def test_an_empty_list_is_refused_rather_than_rolling_nothing(self) -> None:
+        # An empty window would produce a zero-row artifact that reads like "nothing reproduced"
+        # in one direction and "nothing to check" in the other; neither is what happened.
+        with self.assertRaises(SystemExit) as caught:
+            ENUMERATE.parse_seed_list(" , ")
+        self.assertIn("empty", str(caught.exception))
+
+    def test_the_digest_guard_passes_the_real_weights_and_refuses_others(self) -> None:
+        scratch = ROOT / "runtime" / "named_win_guard_scratch"
+        scratch.mkdir(parents=True, exist_ok=True)
+        weights = scratch / "weights.zip"
+        try:
+            weights.write_bytes(b"checkpoint-bytes")
+            digest = ENUMERATE.check_checkpoint_digest(weights, None)
+            self.assertEqual(ENUMERATE.check_checkpoint_digest(weights, digest), digest)
+            with self.assertRaises(SystemExit) as caught:
+                ENUMERATE.check_checkpoint_digest(weights, "0" * 64)
+            self.assertIn("refusing to roll", str(caught.exception))
+        finally:
+            weights.unlink(missing_ok=True)
+            scratch.rmdir()
 
 
 class CensusClosureTests(unittest.TestCase):
