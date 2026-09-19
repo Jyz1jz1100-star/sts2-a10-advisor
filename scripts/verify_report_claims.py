@@ -261,6 +261,44 @@ def claim_boss_generality():
     }
 
 
+def claim_terminal_census():
+    """Recompute the census' published rates and intervals from its own counts.
+
+    The report quotes percentages and Wilson bounds next to raw counts. Recomputing
+    the intervals from those counts catches the failure mode that actually happens
+    here -- a correct numerator paired with a copied-in stale denominator.
+    """
+    from training.wilson import wilson_interval
+
+    data = json.loads((ROOT / "docs/evidence/act1_terminal_census_3500_20260919.json")
+                      .read_text(encoding="utf-8"))
+    total = data["enumerated"]
+    arrivals = data["reached_floor_17"]
+    wins = data["boss_win"]
+    truncations = len(data["boss_truncation_seeds"])
+
+    def bound(key, num, den):
+        low, high = wilson_interval(num, den)
+        stored = data["wilson_95"][key]
+        ok = abs(low - stored[0]) < 0.0002 and abs(high - stored[1]) < 0.0002
+        return "ok" if ok else f"DRIFT stored={stored} recomputed={[round(low, 4), round(high, 4)]}"
+
+    return {
+        "enumerated": total,
+        "arrivals_plus_below": arrivals + (total - arrivals) == total,
+        "arrival_outcomes_sum": wins + truncations + data["died_at_floor_17"] == arrivals,
+        "illegal_actions": data["illegal_actions"],
+        "unclassified_dead_ends": data["unclassified_dead_ends"],
+        "distinct_winning_seeds": len(set(data["winning_seeds"])),
+        "boss_truncation_seeds": data["boss_truncation_seeds"],
+        "wilson_recomputed": {
+            "arrival": bound("reached_floor_17_of_all", arrivals, total),
+            "win_of_arrival": bound("boss_win_of_arrivals", wins, arrivals),
+            "lock_of_arrival": bound("boss_truncation_of_arrivals", truncations, arrivals),
+        },
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -287,6 +325,8 @@ CLAIMS = {
                        "the boss stalemate is a lockout (unplayable Wound hand), not turtling"),
     "boss_generality": (claim_boss_generality,
                         "the same measurement on non-scripted seeds: won, unlocked, rarely passive"),
+    "terminal_census": (claim_terminal_census,
+                        "per-seed Act-1 terminal categories and the rates the report quotes"),
 }
 
 

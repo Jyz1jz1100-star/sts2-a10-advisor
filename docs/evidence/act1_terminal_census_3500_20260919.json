@@ -1,0 +1,79 @@
+{
+  "_comment": [
+    "Per-seed terminal census over one checkpoint, using the stage s own 1600-step",
+    "episode cap so that truncation means what it means in campaign metrics. Seeds are the",
+    "DECLARED-ORDER HEAD of the act1 promotion partition; campaign evaluation draws a deterministic",
+    "permutation of the same partition, so this sample and the campaign 500-episode gate sample",
+    "overlap but are not the same subset. The 25 winning seeds here are therefore additional",
+    "named victories, not a revision of the ledger counts."
+  ],
+  "boss_truncation_seeds": [
+    130012038
+  ],
+  "boss_win": 25,
+  "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+  "died_at_floor_17": 136,
+  "enumerated": 3500,
+  "generated_at": "2026-09-19T04:14:00Z",
+  "illegal_actions": 0,
+  "max_steps_per_episode": 1600,
+  "mean_final_floor": 8.328,
+  "promotion_gate": {
+    "eval_episodes": 500,
+    "max_illegal_actions": 0,
+    "max_truncation_rate": 0.03,
+    "min_wilson_lower": 0.31,
+    "min_win_rate": 0.35,
+    "note": "the gate is per-episode unconditional, so the conditional arrival rate is diagnostic, not a gate pass"
+  },
+  "reached_floor_17": 162,
+  "scope": "simulator_act1",
+  "split": "promotion",
+  "stage": "act1",
+  "unclassified_dead_ends": 0,
+  "wilson_95": {
+    "boss_truncation_of_arrivals": [
+      0.0011,
+      0.0341
+    ],
+    "boss_win_of_all": [
+      0.0048,
+      0.0105
+    ],
+    "boss_win_of_arrivals": [
+      0.1068,
+      0.2179
+    ],
+    "reached_floor_17_of_all": [
+      0.0398,
+      0.0538
+    ]
+  },
+  "winning_seeds": [
+    130010053,
+    130010125,
+    130010155,
+    130010199,
+    130010318,
+    130010420,
+    130010613,
+    130011014,
+    130011191,
+    130011328,
+    130011390,
+    130011443,
+    130011512,
+    130011629,
+    130011631,
+    130011801,
+    130012263,
+    130012414,
+    130012525,
+    130012938,
+    130012981,
+    130013292,
+    130013350,
+    130013410,
+    130013451
+  ]
+}

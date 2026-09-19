@@ -329,7 +329,15 @@ def main() -> int:
                 "final_player_max_hp": info.get("player_max_hp"),
                 "run_terminated": info.get("run_terminated"),
                 "run_truncated": info.get("run_truncated"),
-                "reached_act_two": any(t["act"] and int(t["act"]) >= 2 for t in trace),
+                # Ambiguity that bit once already: a seed that *generates* Act 2
+                # reaches act 2 without chaining, so "saw act 2" is not evidence of
+                # the cross-act branch. Record the act the run started in and call
+                # chaining only what it is -- act 1 followed by act 2.
+                "started_in_act": next((int(t["act"]) for t in trace if t["act"]), 0),
+                "chained_into_act_two": any(
+                    t["act"] and int(t["act"]) >= 2
+                    and trace[0]["act"] and int(trace[0]["act"]) == 1
+                    for t in trace),
                 "max_act": max((int(t["act"]) for t in trace if t["act"]), default=0),
                 "max_floor": max((int(t["floor"]) for t in trace if t["floor"]), default=0),
                 "trace": trace,
@@ -341,7 +349,8 @@ def main() -> int:
                 f"floor={final['final_floor']} phase={final['final_phase']} "
                 f"hp={final['final_player_hp']}/{final['final_player_max_hp']} won={won} "
                 f"illegal={illegal_actions} dead_end={dead_end} steps={steps} "
-                f"reached_act2={final['reached_act_two']}"
+                f"started_in_act={final['started_in_act']} "
+                f"chained={final['chained_into_act_two']}"
             )
 
     payload = {
