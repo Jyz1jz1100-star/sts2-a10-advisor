@@ -741,6 +741,19 @@ def claim_boss_misexit_signature():
             and hashlib.sha256((ROOT / meta["path"]).read_bytes()).hexdigest()
             == meta["sha256"] == blocks[name]["checkpoint_sha256"]
             for name, meta in ver["checkpoints"].items()),
+        # "cleared the boss" was inferred from the phase for most of these runs; the re-roll
+        # with a long watch window recorded the fight's end, so check the observation instead.
+        "boss_emptied_is_directly_observed": all(
+            row["no_enemies_in_final_rows"]
+            and row["lowest_boss_hp_in_recorded_rows"] is not None
+            and 0 < row["lowest_boss_hp_in_recorded_rows"] <= (row["boss_max_hp"] or 0)
+            for block in ver["boss_emptied_direct_evidence"].values() for row in block),
+        "boss_emptied_covers_every_counted_run": (
+            sum(len(block) for block in ver["boss_emptied_direct_evidence"].values())
+            == len(runs_a) + len(runs_b)),
+        "more_than_one_act2_boss_tier_affected": (
+            len({row["boss_max_hp"] for block in ver["boss_emptied_direct_evidence"].values()
+                  for row in block}) > 1),
     }
 
 

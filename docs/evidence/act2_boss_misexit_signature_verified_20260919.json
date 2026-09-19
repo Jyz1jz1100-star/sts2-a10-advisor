@@ -10,16 +10,22 @@
     "agree on every seed, which is a second, independent reproduction of each of these 34 runs.",
     "The 130012038 census row comes from the same seeds re-measured today, not from the older pooled file.",
     "Checkpoint B shows two act-2 boss encounters (79 and 84), so the class is not tied to one encounter.",
-    "Each verification block carries the SHA-256 of the exact checkpoint zip it was rolled through, so these runs are hash-linked to a binary rather than to an arm name."
+    "Each verification block carries the SHA-256 of the exact checkpoint zip it was rolled through, so these runs are hash-linked to a binary rather than to an arm name.",
+    "boss_emptied_direct_evidence comes from re-rolling the same seeds with --watch-floor 17 --watch-steps 120 so the",
+    "whole boss fight plus the phases after it are recorded; no_enemies_in_final_rows is the last two recorded rows",
+    "having an empty enemy list at floor 17 (the reward/proceed/sentinel states)."
   ],
   "generated_at": "2026-09-19T07:33:11+00:00",
   "established": [
     "every seed counted in the mis-exit rate carries the boss-node signature; none of them is a mid-run map dead end",
     "the census path and the probe path reproduce the same step counts for all 34 truncating seeds",
-    "the class appears behind both recorded act-2 boss encounters, not only encounter 84"
+    "the class appears behind both recorded act-2 boss encounters, not only encounter 84",
+    "for all 34 lost runs the boss node resolves with no surviving enemy: the recorded rows go from a low boss HP total to an empty enemy list while still at floor 17, so 'cleared' is now observed rather than inferred",
+    "two act-2 boss tiers are affected, not one: max HP 250 (encounter 84) and 221 (seed 130001533)"
   ],
   "not_established": [
-    "that the boss was emptied in each run by direct HP evidence: the terminal state standing on the Map phase at a NodeBoss node is what carries that, and per-run boss HP was recorded only for the seven forked runs"
+    "that the boss was emptied in each run by direct HP evidence: the terminal state standing on the Map phase at a NodeBoss node is what carries that, and per-run boss HP was recorded only for the seven forked runs",
+    "that the killing blow is itself inside a recorded row: rows are captured before the step executes, so the last combat row shows the boss on low-but-nonzero HP and the empty-enemy evidence is the rows that follow"
   ],
   "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/probe_chained_act_flow.py --checkpoint <zip> --seed <comma list> --allow-non-chained --watch-floor 17 --watch-steps 2 --out <file.json>",
   "scope": "simulator_act1 label, generated act 2, argmax, two checkpoints",
@@ -642,5 +648,283 @@
       "sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
       "size_bytes": 3109193
     }
+  },
+  "boss_emptied_direct_evidence": {
+    "checkpoint_a": [
+      {
+        "seed": 130000397,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 8,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130000866,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 6,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001066,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 7,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001338,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 12,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001859,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 6,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001916,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130012038,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 3,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130013858,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130014330,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 1,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130014336,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 10,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130014661,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130014860,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 2,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130015037,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 7,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130015223,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130015814,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 7,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130016448,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 10,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130016769,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 1,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130016820,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 3,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130017440,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 2,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130018316,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 1,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130018405,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130018585,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 6,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130019474,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 13,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130019593,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 9,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130019879,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 2,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130019886,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130019935,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 6,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      }
+    ],
+    "checkpoint_b": [
+      {
+        "seed": 130001110,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 1,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001157,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 2,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001220,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 20,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130001533,
+        "boss_max_hp": 221,
+        "lowest_boss_hp_in_recorded_rows": 4,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 79,
+        "floor": 17
+      },
+      {
+        "seed": 130001859,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 12,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130003061,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 17,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      },
+      {
+        "seed": 130003427,
+        "boss_max_hp": 250,
+        "lowest_boss_hp_in_recorded_rows": 17,
+        "no_enemies_in_final_rows": true,
+        "encounter_id": 84,
+        "floor": 17
+      }
+    ]
   }
 }

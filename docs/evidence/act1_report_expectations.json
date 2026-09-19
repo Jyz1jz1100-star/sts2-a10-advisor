@@ -247,7 +247,10 @@
     "none_was_judged_a_win": true,
     "zero_illegal_across_sampled_runs": true,
     "second_boss_encounter_also_affected": true,
-    "checkpoint_digests_match_the_files": true
+    "checkpoint_digests_match_the_files": true,
+    "boss_emptied_is_directly_observed": true,
+    "boss_emptied_covers_every_counted_run": true,
+    "more_than_one_act2_boss_tier_affected": true
   },
   "chained_terminal_gates": {
     "gates_clean_on_multi_act_path": true,
