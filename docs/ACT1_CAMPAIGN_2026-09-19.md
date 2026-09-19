@@ -439,6 +439,9 @@ VERDICT: reproduced        (exit code 0)
 5. `scripts/build_chained_deadend_evidence.py --out <tmp>.json` —— 对前沿里"活着被截断"的那些局，
    重放到最后一个地图决策点、读引擎自己那份掩码，回答"是策略选错还是引擎没给节点"。
    `chained_frontier` 说深度到哪，这条说**为什么**停在那儿。
+   （第 3、5 两条在写完这段之后各自重跑过一遍：产出与提交的那两份工件**除 `generated_at` 外逐键相同**
+   ——引擎证明 9 个顶层键、地图死路分叉 10 个顶层键，各只差一个时间戳——所以这段的"自己跑一遍会怎样"
+   不是推测。第 6 条第三步同样逐键相同，见下。）
 6. `scripts/census_empty_mask_endings.py` —— 把"那 50 个 `empty_action_mask` 终局到底在哪"整份
    重算出来，三步：
    ①`--plan --plan-out <tmp>/plan.json`（只列工作清单，不滚一局；顺带打印哪些记录文件的窗口
@@ -450,7 +453,8 @@ VERDICT: reproduced        (exit code 0)
    320010229 --out <tmp>/census.json`。
    实测：用同一套七个分片工件、同样那五个种子重跑第③步，产出与
    `empty_mask_endings_20260920.json` **除 `generated_at` 外每个键逐字相等**（50/50 定位、0 处逐文件
-   闭包不符、3 局仪器异常）。那五个种子不是随便挑的：墙处的节点类型与领奖相位 trace 只对
+   闭包不符；另外保留的 3 局是 `step_cap`——战斗里耗尽步数预算且仍活着，它们本来就在这台仪器的目标
+   标签里，不是仪器故障；真·仪器故障是另一列 `close_failures`，本批为 0）。那五个种子不是随便挑的：墙处的节点类型与领奖相位 trace 只对
    `per_seed_explanations` 里点名的种子存在，`horizon_used_here` 那一列也是这一步写进去的——
    少了 `--explain-seed` 你会得到一份数字全对但没有墙 trace 的工件，别把它当成"复现失败"。
    合并这一步现在会**拒绝**不是一整轮的分片集合（缺号、多出的、两套不同 `--work-count` 混在一起）：

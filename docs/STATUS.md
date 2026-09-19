@@ -2105,6 +2105,16 @@ aggregate win counts describe the same wins, so that identity is pinned alongsid
 artifact records `truncations_plain/after_rule` at window level only, with no per-seed list, so the 17 -> 1
 statement stays a claim about all 10,000 seeds.
 
+**Re-running the re-audit list proved the list, and one word in it was wrong.** Items 3 and 5 were executed
+into temp paths and diffed against their committed artifacts: identical on every top-level key except
+`generated_at` (9 keys and 10 keys respectively), joining item 6's merge step, which does the same. The wrong
+word: item 6's run summary line was transcribed into the prose as "3 局仪器异常" (instrument faults), but the
+census's anomaly bucket keeps *any* non-ordinary ending, and those three are the `step_cap` endings --
+combat, Act 1, floors 6/6/8, all alive at 1,600 steps, all inside the instrument's own target labels. Real
+instrument health is the separate `close_failures` column, which is empty for this batch. The prose now says
+that, because a retained row and a broken instrument are different findings and the report had merged them.
+
+
 
 
 
