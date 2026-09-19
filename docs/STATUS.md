@@ -2089,4 +2089,12 @@ evidence files.
 produced it, and `**/metrics/*.json` is a convention about where evaluation records usually live, not a
 fact about where this campaign wrote them.
 
+The same question was then put to the dead-end vocabulary census, which walks that same glob. Widening it
+finds plenty of `dead_end_reasons` outside `metrics/` -- but they are this session's own census and replay
+artifacts re-emitting the labels they reproduced, plus `curriculum_truncated`, a label the current
+`evaluate_policy` never assigns, appearing only in two V1-era `runs/teacher_v3/` files. So the claim that
+matters is not "no label lives outside the glob" (false) but "**no label outside the glob is unexplained**"
+(two new checks on `dead_end_vocabulary`, 10 total).
+
+
 

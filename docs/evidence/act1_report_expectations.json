@@ -361,7 +361,9 @@
     "nothing_is_unclassified": true,
     "step_cap_is_act1_stage_only": true,
     "legacy_and_current_native_rejection_still_split": true,
-    "artifact_and_disk_agree_on_step_cap_files": true
+    "artifact_and_disk_agree_on_step_cap_files": true,
+    "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": true,
+    "the_one_label_outside_the_vocabulary_is_named": true
   },
   "report_exec_table_citations": {
     "every_row_has_a_verifiable_citation": true,

@@ -1335,10 +1335,53 @@ def claim_dead_end_vocabulary():
             current_native += native
         else:
             legacy_native += native
+    extra_labels: Counter = Counter()
+    unaccounted: list[str] = []
+
+    def reasons_in(obj, depth=0):
+        if depth > 5:
+            return
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key == "dead_end_reasons" and isinstance(value, dict):
+                    yield {k: int(v) for k, v in value.items()}
+                else:
+                    yield from reasons_in(value, depth + 1)
+        elif isinstance(obj, list):
+            for item in obj:
+                yield from reasons_in(item, depth + 1)
+
+    # The day the holdout census exposed a glob-limited zero, this vocabulary count got the same
+    # question: does any JSON outside `**/metrics/*.json` carry a dead-end label the census never
+    # saw? Files outside that glob do carry labels -- 45 hits from this session's own instruments
+    # (the census and replay artifacts re-emit what they reproduced) plus 6 of `curriculum_truncated`
+    # from two V1-era teacher files. So the check that matters is not "no file outside the glob has
+    # a label" but "no label outside the glob is one nobody has explained".
+    for pattern in ("runs/**/*.json", "runtime/**/*.json"):
+        for path in sorted(ROOT.glob(pattern)):
+            if "metrics" in path.parts:
+                continue
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(payload, dict):
+                continue
+            hit: Counter = Counter()
+            for reasons in reasons_in(payload):
+                hit.update(reasons)
+            for label, count in hit.items():
+                extra_labels[label] += count
+                if label not in vocabulary and label != "curriculum_truncated":
+                    unaccounted.append(f"{path.name}:{label}")
     return {
         "vocabulary_matches_the_artifact": dict(vocabulary) == data["vocabulary"],
         "vocabulary_is_exactly_three_labels": dict(vocabulary) == {
             "empty_action_mask": 50, "native_rejection": 861, "step_cap": 3},
+        "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": not unaccounted,
+        "the_one_label_outside_the_vocabulary_is_named": (
+            extra_labels["curriculum_truncated"] == 6
+            and set(extra_labels) - set(vocabulary) == {"curriculum_truncated"}),
         "acts_too_slowly_is_labelled": vocabulary["step_cap"] > 0,
         "cannot_act_is_labelled": vocabulary["empty_action_mask"] > 0,
         "nothing_is_unclassified": unclassified == 0,

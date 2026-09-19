@@ -1370,6 +1370,14 @@ scanned 605 json artifacts under runs, runtime
 "转化集合与被读过的 200 个不相交"钉在一起，以后这段的数字从它这里拿而不是从正文抄。
 `train_seeds_file` 只作用于训练种子、不碰评估分区——这一句仍然成立。
 
+**同一个问题也问了一遍死因词表普查。** 词表（`empty_action_mask` 50 / `step_cap` 3 /
+`native_rejection` 861）走的也是 `**/metrics/*.json`。把 glob 放开到 `runs/` 与 `runtime/` 下的全部
+JSON，外面确实还有带 `dead_end_reasons` 的文件——本晚那些普查与重放工件会把它们复现出来的标签原样
+写回去，所以"外面有标签"本身不算发现；算发现的是**没有任何一个标签在词表之外又没人解释过**。
+唯一在词表之外的标签是 `curriculum_truncated`，只出现在 `runs/teacher_v3/` 那两份 V1 时期的文件里
+（共 6 次），而 `evaluate_policy` 现在根本不产生它。这两条是 `dead_end_vocabulary` 里新增的两项检查，
+不是断言——因为这一节刚好证明了：一个"从来没有"的句子的强度，等于枚举它时用的那个 glob。
+
 ### 证据束里"正文没点名"的产物，以及谁来读它们
 
 枚举规则先写出来（否则这句又变成一次不可重数的"我都看过了"），而且要能自己跑：**取
