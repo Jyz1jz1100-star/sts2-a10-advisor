@@ -1763,3 +1763,26 @@ re-reading the three cited engine ranges from the hashed source; retraction ledg
 label that had to be forked. Not established: whether an earlier node choice avoids the dead end (the
 third checkpoint does get past floor 19, so successors exist elsewhere), and whether the state can be
 reached off the retained-trace seed (only that seed enters Act 2).
+## 2026-09-20 -- the Act-2 choice tree was searched: floor 19 is not avoidable by choosing better
+
+The dead-end finding left one honest caveat -- "not established whether an earlier node avoids it".
+`scripts/probe_chained_act2_reachability.py` (merged over the whole chained population by
+`scripts/build_chained_act2_reachability.py` -> `chained_act2_reachability_20260920.json`, claim
+`chained_act2_reachability`) answers it by exploring the Act-2 map-choice tree instead of sampling
+one path: the trained policy still fights every battle, only "which node to click" varies freely.
+
+Across the 3 chains: **12 map decisions expanded -> 15 terminal routes**, of which
+**6 are engine map dead ends and every one of them sits at floor 19**, 9 are deaths (floors 18, 19,
+22), and **none reaches a boss node or a win**. For the two checkpoints that hit the wall, the floor-19
+state offers three options and **all three have no successors**, while their sibling map choices die at
+floor 18/19 -- so "pick a different node" does not open a route. Two guards matter for how far this
+can be read: `search_was_not_cut_by_its_budget` (no `search_budget` leaves, so the absence of deeper
+routes is not an artifact of stopping early) and `replay_was_faithful` (every fork is entered by
+replaying the action prefix and comparing the resulting state to what its parent observed; zero
+mismatches, and the probe exits non-zero if there were any).
+
+What this does **not** settle: whether some other policy could survive from floor 22 onward -- the
+search varies map choice, not combat strength, so reachable is not survivable. Net effect on the
+objective: the maximum expressible flow is now characterised as "Act 2 is walkable to floor 22 with
+the map choice free, and the Act-2 boss node is never reached by any route in this tree", replacing
+"expressible in principle, never exercised" with a bounded, re-runnable statement.

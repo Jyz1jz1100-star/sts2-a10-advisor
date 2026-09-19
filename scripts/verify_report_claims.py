@@ -1803,6 +1803,42 @@ def claim_chained_map_deadend():
     }
 
 
+def claim_chained_act2_reachability():
+    """Whether a different Act-2 map choice escapes the floor-19 dead end -- searched, not assumed.
+
+    The dead-end finding said the engine offers no option at Act 2 floor 19, and explicitly did not
+    establish whether an earlier node avoids that state. This pins the search that answers it: every
+    checkpoint that chains into Act 2, with the map choice varied freely at each Act-2 decision,
+    the policy still playing every combat. The interesting part is what the tree is bounded by --
+    `search_was_not_cut_by_its_budget` distinguishes "no route goes deeper" from "we stopped
+    looking" -- and `replay_was_faithful` is the guard that the forks are really the same
+    environment rather than a lookalike.
+    """
+    data = json.loads((ROOT / "docs/evidence/chained_act2_reachability_20260920.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    frontier = json.loads((ROOT / data["frontier_artifact"]).read_text(encoding="utf-8"))
+    chains_in_frontier = sum(1 for row in frontier["chained_runs"] if row.get("chained_into_act_two"))
+    dead_end_floors = {leaf["floor"] for search in data["searches"] for leaf in search["leaves"]
+                       if leaf["stop_state"] == "engine_map_dead_end"}
+    return {
+        "every_chain_in_the_frontier_was_searched": (
+            agg["chains_searched"] == chains_in_frontier == 3
+            and len(data["searches"]) == chains_in_frontier),
+        "the_floor19_dead_end_is_not_a_matter_of_choice": (
+            agg["engine_map_dead_ends"] == 6 and dead_end_floors == {19}),
+        "no_route_reached_the_act2_boss_or_a_win": (
+            agg["boss_node_states_observed"] == 0 and agg["wins"] == 0
+            and agg["deepest_act_floor_over_all_routes"] == [2, 22]
+            and agg["act2_floors_reached_by_any_route"] == [18, 19, 22]),
+        "search_was_not_cut_by_its_budget": "search_budget" not in agg["routes_by_stop_state"],
+        "replay_was_faithful": agg["replay_mismatches"] == 0,
+        "every_route_ended_in_a_real_terminal_state": set(agg["routes_by_stop_state"]) <= {
+            "engine_map_dead_end", "death", "win", "search_budget", "truncated",
+            "no_legal_action", "step_cap", "episode_over"},
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2194,6 +2230,9 @@ CLAIMS = {
                                      "the run-start relic pick, offered rarely and positionally"),
     "ladder_promotion_ledger": (claim_ladder_promotion_ledger,
                                 "each rung's real gate decision, re-derived"),
+    "chained_act2_reachability": (
+        claim_chained_act2_reachability,
+        "whether a different Act-2 map choice escapes the floor-19 dead end (it does not)"),
     "chained_map_deadend": (
         claim_chained_map_deadend,
         "why the two-act flow ends alive at floor 19: the engine offers no map option there"),

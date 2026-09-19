@@ -1,0 +1,340 @@
+{
+  "aggregates": {
+    "act2_floors_reached_by_any_route": [
+      18,
+      19,
+      22
+    ],
+    "boss_node_states_observed": 0,
+    "chains_searched": 3,
+    "deepest_act_floor_over_all_routes": [
+      2,
+      22
+    ],
+    "engine_map_dead_ends": 6,
+    "map_decisions_expanded": 12,
+    "replay_mismatches": 0,
+    "routes_by_stop_state": {
+      "death": 9,
+      "engine_map_dead_end": 6
+    },
+    "wins": 0
+  },
+  "frontier_artifact": "docs/evidence/chained_frontier_full_20260920.json",
+  "generated_at": "2026-09-19T17:38:28+00:00",
+  "limits": {
+    "max_depth": 8,
+    "max_forks": 120
+  },
+  "not_established": [
+    "that a two-act win exists: the trained policy plays every combat, so a reachable floor is not a survivable floor",
+    "routes beyond the depth/fork bounds -- 'search_budget' leaves mark where the search was cut, not where the map ends",
+    "anything about Act 3 (the emulator defines two acts, RunConstants.cs:35-36)"
+  ],
+  "question": "can a different Act-2 map choice avoid the floor-19 dead end, and is the Act-2 boss node reachable at all?",
+  "scope": "every checkpoint the frontier sweep chained into Act 2, map choices explored breadth-first",
+  "searches": [
+    {
+      "aggregates": {
+        "act2_floors_reached": [
+          18,
+          19
+        ],
+        "boss_node_states_observed_in_act2": 0,
+        "deepest_act_floor": [
+          2,
+          19
+        ],
+        "engine_map_dead_ends_found": 3,
+        "floor_reached_at_each_dead_end": {
+          "19": 3
+        },
+        "leaves": 5,
+        "map_decisions_expanded": 5,
+        "replay_mismatches": 0,
+        "stop_states": {
+          "death": 2,
+          "engine_map_dead_end": 3
+        },
+        "wins": 0
+      },
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
+      "frontier_row": {
+        "final_player_hp": 37,
+        "max_floor": 19,
+        "run_outcome": "truncated",
+        "steps": 221
+      },
+      "generated_at": "2026-09-19T17:38:14+00:00",
+      "leaves": [
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 37,
+          "map_choices": [
+            0,
+            0
+          ],
+          "steps_in_episode": 220,
+          "stop_state": "engine_map_dead_end"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 37,
+          "map_choices": [
+            0,
+            1
+          ],
+          "steps_in_episode": 220,
+          "stop_state": "engine_map_dead_end"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 37,
+          "map_choices": [
+            0,
+            2
+          ],
+          "steps_in_episode": 220,
+          "stop_state": "engine_map_dead_end"
+        },
+        {
+          "act": 2,
+          "floor": 18,
+          "hp": 0,
+          "map_choices": [
+            1
+          ],
+          "steps_in_episode": 210,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 18,
+          "hp": 0,
+          "map_choices": [
+            2
+          ],
+          "steps_in_episode": 210,
+          "stop_state": "death"
+        }
+      ],
+      "limits": {
+        "max_depth": 8,
+        "max_forks": 120,
+        "max_steps_per_episode": 4000
+      },
+      "not_established": [
+        "that a two-act win exists: the trained policy plays every combat, so a reachable floor is not a survivable floor",
+        "completeness beyond max_depth / max_forks: the tree is bounded, and 'search_budget' leaves are where it was cut, not where the map ends",
+        "anything about Act 3 (the emulator defines two acts, RunConstants.cs:35-36)"
+      ],
+      "replay_mismatches": [],
+      "scope": "Act-2 map choices explored breadth-first to a bounded depth, one checkpoint",
+      "seed": "7MS1YN8NWB"
+    },
+    {
+      "aggregates": {
+        "act2_floors_reached": [
+          19,
+          22
+        ],
+        "boss_node_states_observed_in_act2": 0,
+        "deepest_act_floor": [
+          2,
+          22
+        ],
+        "engine_map_dead_ends_found": 0,
+        "floor_reached_at_each_dead_end": {},
+        "leaves": 5,
+        "map_decisions_expanded": 2,
+        "replay_mismatches": 0,
+        "stop_states": {
+          "death": 5
+        },
+        "wins": 0
+      },
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\c_explore-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000002000016.zip",
+      "checkpoint_sha256": "7867df360a4fdf38f84643d6ab6db0b8b13debd022d0e13a834b6ebc0384e1cc",
+      "frontier_row": {
+        "final_player_hp": 0,
+        "max_floor": 22,
+        "run_outcome": "loss",
+        "steps": 283
+      },
+      "generated_at": "2026-09-19T17:38:20+00:00",
+      "leaves": [
+        {
+          "act": 2,
+          "floor": 22,
+          "hp": 0,
+          "map_choices": [
+            0,
+            0
+          ],
+          "steps_in_episode": 283,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 22,
+          "hp": 0,
+          "map_choices": [
+            0,
+            1
+          ],
+          "steps_in_episode": 283,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 22,
+          "hp": 0,
+          "map_choices": [
+            0,
+            2
+          ],
+          "steps_in_episode": 283,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 0,
+          "map_choices": [
+            1
+          ],
+          "steps_in_episode": 257,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 0,
+          "map_choices": [
+            2
+          ],
+          "steps_in_episode": 257,
+          "stop_state": "death"
+        }
+      ],
+      "limits": {
+        "max_depth": 8,
+        "max_forks": 120,
+        "max_steps_per_episode": 4000
+      },
+      "not_established": [
+        "that a two-act win exists: the trained policy plays every combat, so a reachable floor is not a survivable floor",
+        "completeness beyond max_depth / max_forks: the tree is bounded, and 'search_budget' leaves are where it was cut, not where the map ends",
+        "anything about Act 3 (the emulator defines two acts, RunConstants.cs:35-36)"
+      ],
+      "replay_mismatches": [],
+      "scope": "Act-2 map choices explored breadth-first to a bounded depth, one checkpoint",
+      "seed": "7MS1YN8NWB"
+    },
+    {
+      "aggregates": {
+        "act2_floors_reached": [
+          19
+        ],
+        "boss_node_states_observed_in_act2": 0,
+        "deepest_act_floor": [
+          2,
+          19
+        ],
+        "engine_map_dead_ends_found": 3,
+        "floor_reached_at_each_dead_end": {
+          "19": 3
+        },
+        "leaves": 5,
+        "map_decisions_expanded": 5,
+        "replay_mismatches": 0,
+        "stop_states": {
+          "death": 2,
+          "engine_map_dead_end": 3
+        },
+        "wins": 0
+      },
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
+      "frontier_row": {
+        "final_player_hp": 37,
+        "max_floor": 19,
+        "run_outcome": "truncated",
+        "steps": 244
+      },
+      "generated_at": "2026-09-19T17:38:27+00:00",
+      "leaves": [
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 0,
+          "map_choices": [
+            1
+          ],
+          "steps_in_episode": 243,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 0,
+          "map_choices": [
+            2
+          ],
+          "steps_in_episode": 243,
+          "stop_state": "death"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 37,
+          "map_choices": [
+            0,
+            0
+          ],
+          "steps_in_episode": 243,
+          "stop_state": "engine_map_dead_end"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 37,
+          "map_choices": [
+            0,
+            1
+          ],
+          "steps_in_episode": 243,
+          "stop_state": "engine_map_dead_end"
+        },
+        {
+          "act": 2,
+          "floor": 19,
+          "hp": 37,
+          "map_choices": [
+            0,
+            2
+          ],
+          "steps_in_episode": 243,
+          "stop_state": "engine_map_dead_end"
+        }
+      ],
+      "limits": {
+        "max_depth": 8,
+        "max_forks": 120,
+        "max_steps_per_episode": 4000
+      },
+      "not_established": [
+        "that a two-act win exists: the trained policy plays every combat, so a reachable floor is not a survivable floor",
+        "completeness beyond max_depth / max_forks: the tree is bounded, and 'search_budget' leaves are where it was cut, not where the map ends",
+        "anything about Act 3 (the emulator defines two acts, RunConstants.cs:35-36)"
+      ],
+      "replay_mismatches": [],
+      "scope": "Act-2 map choices explored breadth-first to a bounded depth, one checkpoint",
+      "seed": "7MS1YN8NWB"
+    }
+  ]
+}
