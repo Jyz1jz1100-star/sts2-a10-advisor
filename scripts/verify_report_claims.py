@@ -1373,7 +1373,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_seventeen_rows": len(rows) == 17,
+        "ledger_has_eighteen_rows": len(rows) == 18,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1570,6 +1570,51 @@ def claim_upgrade_step_attribution():
             event == 686 and rows["event"] == 599),
         "removals_are_not_zero_so_tracking_them_mattered": drops == 40,
         "fourth_instrument_on_the_same_mean": agg["mean_upgraded_in_final_deck"] == 0.326,
+    }
+
+
+def claim_opening_choice_position_pref():
+    """The opening three-way pick is a relic pick, and which slot it sits in changes the take rate.
+
+    463 of the population's 1,140 upgraded cards arrive through this screen, so the choice is
+    worth characterising: how often an upgrade relic is offered at all, how often it is taken, and
+    whether the taken rate depends on the position rather than on the relic -- which it may,
+    because ``neow_options`` is one of the lists copied verbatim into the V2 observation, so the
+    policy is not blind to identity.
+    """
+    openings = [row for row in json.loads(
+        (ROOT / "docs/evidence/opening_choice_20260919.json").read_text(encoding="utf-8"))["openings"]
+        if row.get("resolved")]
+    upgrade_relics = (201, 162)
+    offered = [row for row in openings if any(relic in upgrade_relics for relic in row["offered"])]
+    def take_rate(position):
+        candidates = [row for row in offered
+                      if row["offered"][position] in upgrade_relics] if len(
+                          [row for row in offered if len(row["offered"]) > position]) else []
+        if not candidates:
+            return 0, 0
+        return sum(1 for row in candidates if row["chosen"] == position), len(candidates)
+    took0, offers0 = take_rate(0)
+    took1, offers1 = take_rate(1)
+    _, offers2 = take_rate(2)
+    steps = json.loads((ROOT / "docs/evidence/upgrade_step_attribution_20260919.json")
+                       .read_text(encoding="utf-8"))["increments"]
+    ancient_cards = sum(row["added"] for row in steps if row["phase"] == "ancient")
+    observation_spec = (ROOT / "training" / "v2_observation.py").read_text(encoding="utf-8")
+    return {
+        "every_run_reaches_the_opening_screen": len(openings) == 3500,
+        "the_upgrade_relic_is_rarely_offered_at_all": (
+            len(offered) == 436 and round(len(offered) / len(openings), 3) == 0.125),
+        "but_it_is_usually_taken_when_offered": (
+            sum(1 for row in offered if (row.get("upgrade_delta") or 0) > 0) == 304
+            and round(304 / len(offered), 3) == 0.697),
+        "the_take_rate_depends_on_the_position": (
+            offers2 == 0 and took0 == 202 and offers0 == 220
+            and took1 == 102 and offers1 == 216),
+        "cards_agree_with_the_step_attribution_census": (
+            sum(row.get("upgrade_delta") or 0 for row in offered) == ancient_cards == 463),
+        "the_offering_is_observable_not_hidden": '("neow_options", 3)' in observation_spec
+            and '_copy("neow_options", neow_options, 3)' in observation_spec,
     }
 
 
@@ -1821,6 +1866,8 @@ CLAIMS = {
                                  "the report's own numbers about this harness, re-derived"),
     "arrival_state_equivalence": (claim_arrival_state_equivalence,
                                   "the two acts' boss arrivals are comparable runs"),
+    "opening_choice_position_pref": (claim_opening_choice_position_pref,
+                                     "the run-start relic pick, offered rarely and positionally"),
     "upgrade_step_attribution": (claim_upgrade_step_attribution,
                                  "every upgraded card, attributed to the step that made it"),
     "upgrade_source_accounting": (claim_upgrade_source_accounting,

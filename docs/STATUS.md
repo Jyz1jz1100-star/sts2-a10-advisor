@@ -1568,3 +1568,21 @@ covered only the 17 events my source classifier recognised, and that list is inc
 `RunEngine.cs:2210` and `:3307` add a card with an `upgraded` variable through neither
 `AddEventRewardCard` nor `UpgradeFirstCard`, which is why the step census counts 599 event-phase
 steps. Registry 44 claims, all matching the disk.
+
+**And the opening screen turned out to be a relic pick, used better than expected but positionally.**
+`scripts/measure_opening_choice.py` (`opening_choice_20260919.json`, 3,500/3,500 resolved) shows
+`ApplyAncientChoice(relicId)` is `ApplyRelicPickup` for one of three offered relics, so the run-start
+choice is a strength choice. Upgrade relics (`201`, `162`) are offered in only **436 openings
+(12.5%)** -- so 87.5% of runs are never given the option -- but when offered the policy takes one
+**304 times (69.7%)**, granting exactly the **463** cards the step-attribution census assigns to
+`ancient`. The gap is positional, not informational: offered at slot 0 the take rate is
+**202/220 = 91.8%**, at slot 1 only **102/216 = 47.2%**, and slot 2 never carried one, so 132
+upgrades are left on the table. `neow_options` is copied verbatim into the V2 observation
+(`training/v2_observation.py:66`, `:173`), which rules out "the policy cannot see which relic is
+which" as the explanation -- this is a learned slot prior.
+
+One scope correction travels with it: the previous section's "the relic route contributes zero" holds
+only for `relic_reward` screens, because these same relics are handed out at the opening instead
+(retraction ledger row 18). Overall the strength picture is now: combat rewards structurally zero,
+events 686 cards, opening choice 463 with a 12.5% availability ceiling and a 47%/92% slot bias,
+campfire 29 of 1,883 legal chances. Registry 45 claims, all matching the disk.

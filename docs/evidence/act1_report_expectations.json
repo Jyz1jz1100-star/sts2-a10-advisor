@@ -377,7 +377,7 @@
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_seventeen_rows": true
+    "ledger_has_eighteen_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -431,5 +431,13 @@
     "removals_are_not_zero_so_tracking_them_mattered": true,
     "fourth_instrument_on_the_same_mean": true,
     "the_event_channel_is_bigger_than_the_source_classified_list": true
+  },
+  "opening_choice_position_pref": {
+    "every_run_reaches_the_opening_screen": true,
+    "the_upgrade_relic_is_rarely_offered_at_all": true,
+    "but_it_is_usually_taken_when_offered": true,
+    "the_take_rate_depends_on_the_position": true,
+    "cards_agree_with_the_step_attribution_census": true,
+    "the_offering_is_observable_not_hidden": true
   }
 }
