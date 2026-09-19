@@ -1350,7 +1350,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_fifteen_rows": len(rows) == 15,
+        "ledger_has_sixteen_rows": len(rows) == 16,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1408,7 +1408,7 @@ def claim_arrival_state_equivalence():
     """The cross-act comparison in the report assumes the two acts' arrivals are comparable runs.
 
     That was measured, not assumed: recomputed here from the committed per-seed rows are the
-    reproduction counts (the same 83/79 arrivals and 25 clears as the earlier census), the seven
+    reproduction counts (the same 83/79 arrivals and 25 clears as the earlier census), the nine
     cross-act resource differences with their intervals, and the within-Act-2 winner/loser
     comparison that has the statistical power Act 1 cannot have.
 
@@ -1417,8 +1417,8 @@ def claim_arrival_state_equivalence():
                          .read_text(encoding="utf-8"))
     rows = payload["rows"]
     arrivals = [row for row in rows if row["arrived"]]
-    resources = ("deck_size", "relic_count", "gold", "player_hp", "player_max_hp",
-                 "potions_at_boss", "shops_visited")
+    resources = ("deck_size", "upgraded_in_deck", "distinct_card_defs", "relic_count", "gold",
+                 "player_hp", "player_max_hp", "potions_at_boss", "shops_visited")
     cross = payload["cross_act_arrival_state"]
     win_loss = payload["act2_win_vs_loss"]
     groups = payload["groups"]
@@ -1431,6 +1431,8 @@ def claim_arrival_state_equivalence():
         abs(cross[key]["diff"] - (mean(key, [r for r in arrivals if r["act"] == 1])
                                   - mean(key, [r for r in arrivals if r["act"] == 2]))) < 0.002
         for key in resources)
+    covering = {key: block["bootstrap_ci_95"] for key, block in cross.items()}
+    excludes_zero = sorted(key for key, ci in covering.items() if ci[0] > 0 or ci[1] < 0)
     return {
         "reproduction_of_the_committed_census_holds": (
             payload["reproduction_check"]["matches"] is True
@@ -1439,10 +1441,14 @@ def claim_arrival_state_equivalence():
             and payload["aggregates"]["cleared_by_generated_act"] == {"act2_underdocks": 25}),
         "every_arrival_row_carries_every_resource": all(
             all(key in row and row[key] is not None for key in resources) for row in arrivals),
-        "the_seven_cross_act_differences_recompute": recomputed_ok,
+        "the_nine_cross_act_differences_recompute": recomputed_ok,
+        # Direction, not just "covers zero": Act 2 being favoured would mean a difference whose
+        # whole interval sits below zero (the diffs are Act-1 minus Act-2).
         "no_resource_favours_act_two": all(
-            block["bootstrap_ci_95"][0] <= 0 <= block["bootstrap_ci_95"][1]
-            for block in cross.values()),
+            block["bootstrap_ci_95"][1] > 0 for block in cross.values()),
+        "exactly_one_difference_favours_act_one": (
+            excludes_zero == ["distinct_card_defs"]
+            and cross["distinct_card_defs"]["diff"] > 0),
         "act_two_has_the_power_act_one_lacks": (
             groups["act2_underdocks|win"]["n"] == 25 and groups["act1_overgrowth|win"]["n"] == 0
             and payload["readable"]["threshold_met_20_arrivals_per_act_and_10_act2_wins"]),

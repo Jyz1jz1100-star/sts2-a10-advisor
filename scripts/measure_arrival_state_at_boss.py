@@ -27,8 +27,10 @@ Pre-registered before any shard ran:
   losers on the same resources, same interval machinery, pooled across the 7 shards. Zero
   here means arrival resources do not predict boss victory, so Act 1's deficit is not
   "arrived weaker" and the transferable lever is in-fight survival;
-* not addressed, and recorded as such: card *quality* (upgrades, per-card ids) is not in
-  ``state_info()`` -- deck_size and relic_count are quantities, not strengths;
+* partial coverage only, and recorded as such: deck *quality* is measured as upgrade count and
+  distinct card definitions, which come from the signed deck list (``CombatFactory.cs:243`` --
+  a negative id is that card upgraded). It is not measured as per-card power: no card table is
+  joined here, so "two more upgrades" is a strength signal, not a damage calculation;
 * unreadable outcome: fewer than 20 arrivals in an act, or fewer than 10 Act-2 wins, is
   reported as descriptive only with no directional claim.
 """
@@ -57,8 +59,11 @@ BOSS_FLOOR = 17
 # The engine advertises three potion slots but fills only two (RunRewardGenerator.cs:1015), so
 # "usable potions" is slots[:2]; slot 3 is read from the same run block, offset +25..+27.
 POTION_SLOT_0 = 25
-RESOURCES = ("deck_size", "relic_count", "gold", "player_hp", "player_max_hp",
-             "potions_at_boss", "shops_visited")
+# Deck ids come back signed, not bare: CombatFactory.cs:243 builds `new CardInstance(Math.Abs(id),
+# id < 0)`, so a negative entry is that card *upgraded*. That is what makes deck quality
+# measurable at all -- deck_size alone is a count, and an 18-card deck can be 0 or 18 upgrades.
+RESOURCES = ("deck_size", "upgraded_in_deck", "distinct_card_defs", "relic_count", "gold",
+             "player_hp", "player_max_hp", "potions_at_boss", "shops_visited")
 
 
 def fmean_or_none(values):
@@ -144,9 +149,12 @@ def main() -> int:
                 shops += 1
             if not arrival and floor == BOSS_FLOOR and node == NODE_BOSS:
                 run_block = env.unwrapped.raw_observation()[COMBAT_OBS_SIZE:]
+                deck = [int(card) for card in env.unwrapped._core.state_lists()["deck"]]
                 arrival = {"act": int(state["act"]), "floor": floor,
                            "encounter_id": int(state["encounter_id"]),
                            "deck_size": int(state["deck_size"]),
+                           "upgraded_in_deck": sum(1 for card in deck if card < 0),
+                           "distinct_card_defs": len({abs(card) for card in deck}),
                            "relic_count": int(state["relic_count"]),
                            "gold": int(state["gold"]),
                            "player_hp": int(state["player_hp"]),
@@ -237,7 +245,8 @@ def main() -> int:
                       "--start-offset <0..3000 step 500> --out <file.json>"),
         "rows": rows,
         "scope": ("simulator_act1 label, mixed generated acts, argmax, one checkpoint, "
-                  "3,500 seeds; arrival quantities only -- card quality is not observable"),
+                  "3,500 seeds; arrival quantities plus deck upgrade count and distinctness, "
+                  "no per-card power"),
         "seed_window": {"offset": args.start_offset, "limit": args.limit,
                         "stage": args.stage, "split": args.split},
     }

@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "1f343975d1b51d4c1c2ec2378b2308cc6f88a30df589eeab57f96b662fbf7fab",
+  "bundle_root": "a3ff3ceab5893d31843f222e15e8eeaa385e196758fca279ec368e69a4b568e0",
   "evidence_file_count": 31,
-  "generated_at": "2026-09-19T12:44:21+00:00",
-  "git_head_at_generation": "b90b474",
+  "generated_at": "2026-09-19T13:02:49+00:00",
+  "git_head_at_generation": "ce4b16f",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2259,8 +2259,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "faeeb4348a22fc0a1816578e915de2659e19b68ea7f799c135900afa08bca4e1",
-      "bytes": 13714
+      "sha256": "6cfee3a8da548791ff7efb3a5b08bd004b1637b1f9049140138a7f1df117a37c",
+      "bytes": 13766
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2299,8 +2299,8 @@
     },
     {
       "file": "arrival_state_at_boss_20260919.json",
-      "sha256": "685d6652f4aaa29e08c4d63913eef595d5539c26f6d437a5c33aa9891c8cc28c",
-      "bytes": 857713
+      "sha256": "d508e8cce8e07a5ec731fdf05b186186afdfde9511cab26e299ed191c4c33c1b",
+      "bytes": 868989
     },
     {
       "file": "boss_generality_20260919.json",

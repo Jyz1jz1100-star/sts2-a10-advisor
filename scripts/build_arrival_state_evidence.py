@@ -123,8 +123,9 @@ def main() -> int:
                 [row for row in by_act[act] if row["cleared"] == won])
             for act in (1, 2) for won in (True, False)},
         "not_established": [
-            "card quality (upgrades, which cards): state_info() reports counts, not strengths, "
-            "so equal deck_size and relic_count is equal quantity, not equal power",
+            "per-card power: the deck list is read signed, so upgrade count and the number of "
+            "distinct card definitions are measured, but no card table is joined -- more "
+            "upgrades is a strength signal, not a damage calculation",
             "anything about Act 1 wins specifically: this window contains "
             f"{sum(1 for row in by_act[1] if row['cleared'])} of them, so the Act-1 side of "
             "every comparison here is a loss-vs-loss comparison",
@@ -139,7 +140,8 @@ def main() -> int:
         "reproduction_check": reproduction,
         "rows": rows,
         "scope": ("simulator_act1 label, mixed generated acts, argmax, one checkpoint, "
-                  f"{len(rows)} seeds, arrival quantities only"),
+                  f"{len(rows)} seeds; arrival quantities plus deck upgrade count and "
+                  "distinctness, no per-card power"),
         "seed_windows": [part["seed_window"] for part in parts],
         "shard_files": [path.name for path in args.shards],
     }

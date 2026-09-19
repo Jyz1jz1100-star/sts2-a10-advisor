@@ -369,7 +369,7 @@
     "conclusion_still_refuses_completion": true
   },
   "retraction_ledger_integrity": {
-    "ledger_has_fifteen_rows": true,
+    "ledger_has_sixteen_rows": true,
     "every_row_has_three_populated_cells": true,
     "no_row_is_a_bare_restatement": true,
     "prose_count_matches_the_ledger": true,
@@ -405,9 +405,10 @@
   "arrival_state_equivalence": {
     "reproduction_of_the_committed_census_holds": true,
     "every_arrival_row_carries_every_resource": true,
-    "the_seven_cross_act_differences_recompute": true,
+    "the_nine_cross_act_differences_recompute": true,
     "no_resource_favours_act_two": true,
     "act_two_has_the_power_act_one_lacks": true,
-    "arrival_resources_predict_nothing_within_act_two": true
+    "arrival_resources_predict_nothing_within_act_two": true,
+    "exactly_one_difference_favours_act_one": true
   }
 }

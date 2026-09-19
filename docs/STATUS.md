@@ -1449,6 +1449,17 @@ Act-2, 25 clears all Act-2 -- they do).
   counts, not strengths, so "equal deck size" is not "equal deck". Act-1-specific prediction is
   also untestable in this window (zero Act-1 clears among the 83 arrivals).
 
+**Correction to that third bullet, same hour.** It rested on one accessor's field list; the deck
+list itself is signed (`CombatFactory.cs:243`, `new CardInstance(Math.Abs(id), id < 0)`), so
+upgrade count and distinct-definition count are reachable and were added on a second pass -- which
+re-ran every shard from scratch and reproduced the first pass's seven differences exactly, a
+determinism check that came free. With quality in: upgrades at arrival are 0.63 (Act 1) vs 0.70
+(Act 2), p=0.68, and **48 of 83 Act-1 arrivals carry no upgraded card at all in an 18-card deck**;
+the only interval that excludes zero among the nine is distinct card definitions (+0.54, p=0.052)
+and it points *toward* Act 1. The claim `no_resource_favours_act_two` was rewritten at the same
+time to test direction (an interval entirely below zero) instead of "every CI covers zero", which
+had quietly encoded "no difference measured" as "nothing favours Act 2".
+
 Consequence for the goal: the Act-1 wall is not an arrival-resource problem, which is the
 cheapest thing a reader would have blamed, so the remaining candidates stay where the earlier
 sections put them -- longevity in the boss fight itself. Registry is now 42 claims, all matching
