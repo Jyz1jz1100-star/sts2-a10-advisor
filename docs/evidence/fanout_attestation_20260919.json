@@ -1,0 +1,1575 @@
+{
+  "_comment": [
+    "Committed attestation of the overnight fan-out the objective asks for: one row per arm run,",
+    "its plan.json digest and run shape, the metrics files it produced (all hashed in",
+    "metrics_index_20260919.json), and an activity window taken from file mtimes because the",
+    "plans record no timestamps."
+  ],
+  "aggregates": {
+    "arms_with_plans": 21,
+    "arms_without_plans": [
+      "runtime/act1_overnight/fan_expl",
+      "runtime/act1_overnight/fan_smoke",
+      "runtime/act1_overnight/fan_term",
+      "runtime/act1_ab/logs"
+    ],
+    "campaign_span_first_activity": "2026-09-18T17:35:46+00:00",
+    "campaign_span_last_activity": "2026-09-19T01:24:43+00:00",
+    "metrics_files_covered_by_the_index": 118,
+    "metrics_files_listed": 118,
+    "plans_recording_warm_start": 2,
+    "timed_runs": 20,
+    "window_overlap_pairs": 110,
+    "window_overlap_pairs_possible": 190
+  },
+  "established": [
+    "every arm run's plan.json is present and hashed, and every metrics file it lists is a",
+    "row in the committed metrics index, so the fan-out's outputs are checkable without the gitignored directories"
+  ],
+  "generated_at": "2026-09-19T12:04:44+00:00",
+  "not_established": [
+    "true wall-clock concurrency: overlap is inferred from mtime windows, and per-run parallel_envs=12 is a configuration fact, not a measurement of realised parallelism (measured elsewhere at roughly 10% effective within one run)",
+    "rung-to-rung warm-start lineage for runs whose plans predate the warm_start field -- those parent links rest on the launcher text, which lives under gitignored runtime/"
+  ],
+  "reproduce": "python scripts/build_fanout_attestation.py",
+  "rows": [
+    {
+      "activity_paths_measured": 4,
+      "arm": "runtime/act1_ab/a1filt",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 3,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 4,
+      "first_activity": "2026-09-19T00:51:27+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-19T01:22:28+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/metrics/promotion.json",
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/metrics/step_000002000016.json"
+      ],
+      "metrics_files_in_index": 4,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/plan.json",
+      "plan_sha256": "9e66b5e6d202edebeed8f99ce12402d956295ac9be3cf3c6dc758f882f1e4427",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260919T003139Z",
+      "run_dir": "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z",
+      "seed_partitions": [
+        {
+          "count": 80000,
+          "name": "act1.train",
+          "start": 258000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 1862,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": true
+    },
+    {
+      "activity_paths_measured": 4,
+      "arm": "runtime/act1_ab/a1mix",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 3,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 4,
+      "first_activity": "2026-09-19T00:51:43+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-19T01:24:43+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/metrics/promotion.json",
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/metrics/step_000002000016.json"
+      ],
+      "metrics_files_in_index": 4,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/plan.json",
+      "plan_sha256": "9f65ee96c63634bba427d263f9b0e7b99027e241be668618f3caf4785a0cdc3d",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260919T003139Z",
+      "run_dir": "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z",
+      "seed_partitions": [
+        {
+          "count": 80000,
+          "name": "act1.train",
+          "start": 258000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 1980,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": true
+    },
+    {
+      "arm": "runtime/act1_ab/logs",
+      "plan_found": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/act1_overnight/a_base",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T18:17:14+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T20:41:44+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/promotion.json",
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/step_000002000016.json",
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/step_000003000024.json",
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/plan.json",
+      "plan_sha256": "7de97ff33199c6bec3fe76209d062f88903107608545cb947b71999fa4b2fb62",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T175708Z",
+      "run_dir": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 118000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 8670,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/act1_overnight/b_terminal",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T18:17:07+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T20:42:06+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/promotion.json",
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/step_000002000016.json",
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/step_000003000024.json",
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/plan.json",
+      "plan_sha256": "d56c51e44cc0fad9d5c806aaf0a6d78f84617a0a4582230824c197793dd81e9f",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T175708Z",
+      "run_dir": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 138000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 8699,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/act1_overnight/c_explore",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T18:17:19+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T20:41:55+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/promotion.json",
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/step_000002000016.json",
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/step_000003000024.json",
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/plan.json",
+      "plan_sha256": "5da414be9e75af624b2207c3d775bc35f7e18f9683ba9a47a72569b83e9b060c",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T175708Z",
+      "run_dir": "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 158000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 8676,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/act1_overnight/fan_cont",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:46:22+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:56:26+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/promotion.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/plan.json",
+      "plan_sha256": "746503591c1cf57b19f5434fc2c8834802ac3c890d414fe0d056f377cc0720ea",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T190009Z",
+      "run_dir": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 438000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 7804,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/act1_overnight/fan_cont",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:46:36+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:56:29+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/promotion.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/plan.json",
+      "plan_sha256": "38d922ba2e8b1b8fd7faf93603fe513519f84a6435a310dab947094691b6d4c1",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T190009Z",
+      "run_dir": "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 444000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 7793,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/act1_overnight/fan_cont",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:46:42+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:56:39+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/promotion.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/step_000001000008.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/plan.json",
+      "plan_sha256": "933a86a0ab0f97dc607ab988fbdb1de91630191b9b0185c32d5d219871a5f761",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T190009Z",
+      "run_dir": "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 450000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 7797,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "arm": "runtime/act1_overnight/fan_expl",
+      "plan_found": false
+    },
+    {
+      "arm": "runtime/act1_overnight/fan_smoke",
+      "plan_found": false
+    },
+    {
+      "arm": "runtime/act1_overnight/fan_term",
+      "plan_found": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/b_terminal-0",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T18:53:46+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:30:15+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/promotion.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/plan.json",
+      "plan_sha256": "c05e7f4dc9b68e5c35678e112745a5f3b92fb4da93073e41a7dd8cda11a72f0a",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182051Z",
+      "run_dir": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 238000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9389,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/b_terminal-0",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:06:00+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:40:05+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/plan.json",
+      "plan_sha256": "c05e7f4dc9b68e5c35678e112745a5f3b92fb4da93073e41a7dd8cda11a72f0a",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182830Z",
+      "run_dir": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 238000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9245,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 0,
+      "arm": "runtime/fanout/b_terminal-0",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 0,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 0,
+      "initialize_from_previous": true,
+      "max_episode_steps": null,
+      "metrics_files": [],
+      "metrics_files_in_index": 0,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183150Z/plan.json",
+      "plan_sha256": "3398ab4eca57e03401c655e719326cd7f6bb7a87680e48915e658c5554bb1e85",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T183150Z",
+      "run_dir": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183150Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 438000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 1,
+      "arm": "runtime/fanout/b_terminal-0",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 1,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 1,
+      "first_activity": "2026-09-18T18:39:34+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T18:39:34+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/metrics/promotion.json"
+      ],
+      "metrics_files_in_index": 1,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/plan.json",
+      "plan_sha256": "3398ab4eca57e03401c655e719326cd7f6bb7a87680e48915e658c5554bb1e85",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T183227Z",
+      "run_dir": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 438000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 0,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/b_terminal-1",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T18:54:20+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:29:06+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/promotion.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/plan.json",
+      "plan_sha256": "3cec91a59afa94cb952d72ab0735462b0d9247787577c6568b9590889bd4eaeb",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182051Z",
+      "run_dir": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 244000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9286,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/b_terminal-1",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:06:08+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:39:20+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/plan.json",
+      "plan_sha256": "3cec91a59afa94cb952d72ab0735462b0d9247787577c6568b9590889bd4eaeb",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182830Z",
+      "run_dir": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 244000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9192,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/b_terminal-2",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T18:54:28+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:30:13+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/promotion.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/plan.json",
+      "plan_sha256": "81ae5a3e8f2f0b562610b32b25fbb7302b10cc1fe367a30a37d69cfdff2c886d",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182051Z",
+      "run_dir": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 250000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9345,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/b_terminal-2",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:06:50+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:40:07+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/plan.json",
+      "plan_sha256": "81ae5a3e8f2f0b562610b32b25fbb7302b10cc1fe367a30a37d69cfdff2c886d",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182830Z",
+      "run_dir": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 250000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9197,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/c_explore-0",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:05:31+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:39:15+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/plan.json",
+      "plan_sha256": "899709b099de7898a1c450d3586208ef10ad46cef9b3309a0e0a3b9d2a7e19ae",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182830Z",
+      "run_dir": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 358000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9224,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/c_explore-1",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:06:11+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:39:44+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/plan.json",
+      "plan_sha256": "28a66a386d3d6bf7ba577e63487196c7720d27485507107543a03b8c92377e44",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182830Z",
+      "run_dir": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 364000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9213,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 7,
+      "arm": "runtime/fanout/c_explore-2",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 1000000,
+      "checkpoint_zips": 5,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 7,
+      "first_activity": "2026-09-18T19:05:47+00:00",
+      "initialize_from_previous": true,
+      "last_activity": "2026-09-18T21:39:34+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/step_000001000008.json",
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/step_000002000016.json",
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json"
+      ],
+      "metrics_files_in_index": 7,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/plan.json",
+      "plan_sha256": "1253b660056561e101f14e4806e28304e023de607ca83aff4b7d7e192ce29c2b",
+      "promotion_episodes": 500,
+      "run": "v2curriculum-20260918T182830Z",
+      "run_dir": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z",
+      "seed_partitions": [
+        {
+          "count": 4000000,
+          "name": "act1.train",
+          "start": 370000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.checkpoint",
+          "start": 130000000
+        },
+        {
+          "count": 10000,
+          "name": "act1.promotion",
+          "start": 130010000
+        },
+        {
+          "count": 10000,
+          "name": "act1.final",
+          "start": 130020000
+        }
+      ],
+      "span_seconds": 9227,
+      "stages": [
+        "act1"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 2,
+      "arm": "runtime/fanout/e12-0",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 99999999,
+      "checkpoint_zips": 0,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 2,
+      "first_activity": "2026-09-18T17:35:46+00:00",
+      "initialize_from_previous": false,
+      "last_activity": "2026-09-18T17:35:55+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/e12-0/v2curriculum-20260918T173528Z/floor3/metrics/promotion.json",
+        "runtime/fanout/e12-0/v2curriculum-20260918T173528Z/floor6/metrics/promotion.json"
+      ],
+      "metrics_files_in_index": 2,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/e12-0/v2curriculum-20260918T173528Z/plan.json",
+      "plan_sha256": "41bb4fa5793e8d494d5297525480f312acd139342cd4c996b11d57cbcfa4a6d9",
+      "promotion_episodes": 1,
+      "run": "v2curriculum-20260918T173528Z",
+      "run_dir": "runtime/fanout/e12-0/v2curriculum-20260918T173528Z",
+      "seed_partitions": [
+        {
+          "count": 4096,
+          "name": "floor3.train",
+          "start": 1200000000
+        },
+        {
+          "count": 100,
+          "name": "floor3.checkpoint",
+          "start": 1900010000
+        },
+        {
+          "count": 100,
+          "name": "floor3.promotion",
+          "start": 1900020000
+        },
+        {
+          "count": 100,
+          "name": "floor3.final",
+          "start": 1900030000
+        },
+        {
+          "count": 4096,
+          "name": "floor6.train",
+          "start": 1200040000
+        },
+        {
+          "count": 100,
+          "name": "floor6.checkpoint",
+          "start": 1900050000
+        },
+        {
+          "count": 100,
+          "name": "floor6.promotion",
+          "start": 1900060000
+        },
+        {
+          "count": 100,
+          "name": "floor6.final",
+          "start": 1900070000
+        }
+      ],
+      "span_seconds": 9,
+      "stages": [
+        "floor3",
+        "floor6"
+      ],
+      "warm_start_recorded": false
+    },
+    {
+      "activity_paths_measured": 2,
+      "arm": "runtime/fanout/e12-1",
+      "ascension": 10,
+      "character": "IRONCLAD",
+      "checkpoint_every_steps": 99999999,
+      "checkpoint_zips": 0,
+      "emulator": {
+        "git_revision": null,
+        "native_sha256": "bcd623ce3ca02c5fc310a0e1249ee3f3a95694b757f18d00e321d414a9b34bc4",
+        "root": "G:\\ds harness\\third_party\\slay-the-spire-2-emulator-main",
+        "run_native_api_version": 8
+      },
+      "files": 2,
+      "first_activity": "2026-09-18T17:35:47+00:00",
+      "initialize_from_previous": false,
+      "last_activity": "2026-09-18T17:35:57+00:00",
+      "max_episode_steps": null,
+      "metrics_files": [
+        "runtime/fanout/e12-1/v2curriculum-20260918T173528Z/floor3/metrics/promotion.json",
+        "runtime/fanout/e12-1/v2curriculum-20260918T173528Z/floor6/metrics/promotion.json"
+      ],
+      "metrics_files_in_index": 2,
+      "observation_contract_keys": [
+        "blocks",
+        "card_vocab_size",
+        "known_gaps",
+        "potion_vocab_size",
+        "relic_vocab_size",
+        "size",
+        "v2_observation_schema"
+      ],
+      "parallel_envs": 12,
+      "plan_found": true,
+      "plan_path": "runtime/fanout/e12-1/v2curriculum-20260918T173528Z/plan.json",
+      "plan_sha256": "6f1ec00d528b7073a5800ae7b386da46c33886ebbe5858edbbeb30730583e7d4",
+      "promotion_episodes": 1,
+      "run": "v2curriculum-20260918T173528Z",
+      "run_dir": "runtime/fanout/e12-1/v2curriculum-20260918T173528Z",
+      "seed_partitions": [
+        {
+          "count": 4096,
+          "name": "floor3.train",
+          "start": 1200100000
+        },
+        {
+          "count": 100,
+          "name": "floor3.checkpoint",
+          "start": 1900010000
+        },
+        {
+          "count": 100,
+          "name": "floor3.promotion",
+          "start": 1900020000
+        },
+        {
+          "count": 100,
+          "name": "floor3.final",
+          "start": 1900030000
+        },
+        {
+          "count": 4096,
+          "name": "floor6.train",
+          "start": 1200140000
+        },
+        {
+          "count": 100,
+          "name": "floor6.checkpoint",
+          "start": 1900050000
+        },
+        {
+          "count": 100,
+          "name": "floor6.promotion",
+          "start": 1900060000
+        },
+        {
+          "count": 100,
+          "name": "floor6.final",
+          "start": 1900070000
+        }
+      ],
+      "span_seconds": 10,
+      "stages": [
+        "floor3",
+        "floor6"
+      ],
+      "warm_start_recorded": false
+    }
+  ],
+  "scope": "this machine's runtime directories, summarised for review elsewhere"
+}

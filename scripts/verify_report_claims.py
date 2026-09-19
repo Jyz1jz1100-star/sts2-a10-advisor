@@ -28,6 +28,7 @@ import hashlib
 import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1469,6 +1470,51 @@ def claim_metrics_index_reviewability():
     }
 
 
+def claim_fanout_overnight_attestation():
+    """Check the objective's "multi-arm concurrent overnight run" from committed files only.
+
+    Deliberately touches nothing under ``runtime/``: it reads the attestation and the metrics
+    index, both committed, so it answers on a fresh clone too. The two numbers here that look
+    like flaws are the point of recording them -- only 2 of 21 plans carry a ``warm_start`` block
+    (the rest predate it, so their parent links rest on launcher text), and the concurrency
+    evidence is overlapping mtime windows rather than a measured wall-clock fact.
+    """
+    attestation = json.loads((ROOT / "docs/evidence/fanout_attestation_20260919.json")
+                             .read_text(encoding="utf-8"))
+    index = json.loads((ROOT / "docs/evidence/metrics_index_20260919.json")
+                       .read_text(encoding="utf-8"))
+    indexed = {row["path"] for row in index["rows"]}
+    aggregates = attestation["aggregates"]
+    planned = [row for row in attestation["rows"] if row.get("plan_found")]
+    every_path_listed = {path for row in planned for path in row.get("metrics_files", [])}
+    first, last = aggregates["campaign_span_first_activity"], aggregates["campaign_span_last_activity"]
+    hours = (datetime.fromisoformat(last) - datetime.fromisoformat(first)).total_seconds() / 3600
+    return {
+        "planned_arm_runs_are_twenty_one": len(planned) == 21,
+        "every_plan_row_carries_a_digest": all(
+            re.fullmatch(r"[0-9a-f]{64}", row.get("plan_sha256") or "") for row in planned),
+        "every_metrics_path_is_in_the_committed_index": (
+            every_path_listed <= indexed
+            and aggregates["metrics_files_listed"]
+            == aggregates["metrics_files_covered_by_the_index"] == len(every_path_listed) > 0),
+        "the_window_crosses_the_night": first.startswith("2026-09-18T1") and hours >= 6.0
+        and last.startswith("2026-09-19T0"),
+        "windows_overlap_so_arms_ran_together": (
+            0 < aggregates["window_overlap_pairs"] < aggregates["window_overlap_pairs_possible"]),
+        "fanout_shape_is_per_run_parallel_envs_12": all(
+            row.get("parallel_envs") == 12 for row in planned),
+        # 19 arms ran the act1 stage; the other 2 are the floor3 -> floor6 ladder, which is
+        # the same evidence the ladder clause cites, so state the split rather than assuming
+        # every arm targeted act1.
+        "stage_shapes_are_19_act1_plus_the_two_rung_ladder": (
+            sum(1 for row in planned if row.get("stages") == ["act1"]) == 19
+            and sum(1 for row in planned
+                    if row.get("stages") == ["floor3", "floor6"]) == 2),
+        "the_warm_start_attestation_gap_is_still_two_of_twenty_one": (
+            aggregates["plans_recording_warm_start"] == 2),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1549,6 +1595,8 @@ CLAIMS = {
                                  "the self-retraction ledger, counted and consistent with the prose"),
     "metrics_index_reviewability": (claim_metrics_index_reviewability,
                                  "headline counts recomputed from committed content alone"),
+    "fanout_overnight_attestation": (claim_fanout_overnight_attestation,
+                                  "the multi-arm overnight run, from committed files only"),
 }
 
 

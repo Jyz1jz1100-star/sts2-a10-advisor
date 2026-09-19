@@ -381,5 +381,15 @@
     "index_backs_the_dead_end_vocabulary": true,
     "every_row_names_a_committed_relative_path": true,
     "files_rehashed_here": 282
+  },
+  "fanout_overnight_attestation": {
+    "planned_arm_runs_are_twenty_one": true,
+    "every_plan_row_carries_a_digest": true,
+    "every_metrics_path_is_in_the_committed_index": true,
+    "the_window_crosses_the_night": true,
+    "windows_overlap_so_arms_ran_together": true,
+    "fanout_shape_is_per_run_parallel_envs_12": true,
+    "stage_shapes_are_19_act1_plus_the_two_rung_ladder": true,
+    "the_warm_start_attestation_gap_is_still_two_of_twenty_one": true
   }
 }
