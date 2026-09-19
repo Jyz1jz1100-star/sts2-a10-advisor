@@ -505,19 +505,29 @@ def claim_terminal_floor_qualification():
     """
     wins = json.loads((ROOT / "docs/evidence/act1_boss_win_anatomy_20260919.json")
                       .read_text(encoding="utf-8"))["rows"]
+    # The ledger carries each win's terminal floor; the anatomy rows do not.
+    ledger = json.loads((ROOT / "docs/evidence/act1_win_ledger_20260919.json")
+                        .read_text(encoding="utf-8"))["rows"]
+    recorded = [seed for row in ledger for seed in row["per_seed"]]
     arrivals = json.loads((ROOT / "docs/evidence/act1_arrivals_by_act_20260919.json")
                           .read_text(encoding="utf-8"))["arrivals_by_generated_act"]
     terminal = {"overgrowth": 17, "underdocks": 33}
     return {
-        "act1_wins_meet_terminal_floor": sum(
-            1 for row in wins if row["won"]
-            and row["boss_hp_first"] >= 0) == len(wins)
-            and all(row['won'] for row in wins),
+        # Every recorded act-1 win both won and finished at floor 17, which is
+        # overgrowth's own terminalFloor -- the distinction this claim exists for.
+        "act1_wins_meet_terminal_floor": bool(recorded) and all(
+            seed["won"] and seed["final_floor"] == terminal["overgrowth"]
+            for seed in recorded) and all(
+            row["won"] and row["started_in_act"] == 1 for row in wins),
+        "all_ledger_rows_reproduced": all(row["all_reproduced"] for row in ledger),
         "act1_win_count": len(wins),
         "overgrowth_terminal_is_act1_final_floor": terminal["overgrowth"] == 17,
-        "act2_wins_short_of_their_terminal": (
+        # A list, not a tuple: the expectation is read back out of JSON, where
+        # this becomes a list, and (25, 16) != [25, 16] would report a drift
+        # between two values that are visibly identical.
+        "act2_wins_short_of_their_terminal": [
             arrivals["act2_underdocks"]["wins"],
-            terminal["underdocks"] - 17),
+            terminal["underdocks"] - 17],
     }
 
 

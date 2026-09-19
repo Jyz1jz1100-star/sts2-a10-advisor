@@ -155,7 +155,8 @@
     "act2_wins_short_of_their_terminal": [
       25,
       16
-    ]
+    ],
+    "all_ledger_rows_reproduced": true
   },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
