@@ -1254,7 +1254,7 @@ digest mismatches: 0
 **每条拒绝的根因逐行重放**（原生掩码 vs 我们的展开、药水容量、事件 default 臂，753 行全重分类）、
 **幽灵药水格的代价**（结论是这项设计不具判定力，并要求四个格子都有样本）、
 **引擎问题清单里的每个数字回到它的产物**（清单点名的证据文件必须仍然存在、必须声明没改引擎）。
-当前 **36/36 与盘上一致**；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验。）期望值是**照本文正文手抄**的，
+当前 **37/37 与盘上一致**；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验。）期望值是**照本文正文手抄**的，
 不是从脚本输出复制的，所以盘上一变就会报 DRIFT 而不是悄悄把期望改成实测。
 
 **这一版还堵掉一个自我欺骗的口子。** 期望值是"等值快照"，所以一条**算出 false、又被照抄进期望**
@@ -2065,3 +2065,24 @@ Wound 锁死只是其中一档的一个已解剖样本。
 第 1–4 条都在第三方模拟器里，修与不修是作者/操作者的决定；本次全部只读测量，没有改引擎、
 没有换 DLL、没有动 Steam/Workshop 状态，也没有关掉局内自动求解器。若第 1 或第 2 条被上游修改，
 本文所有终局层数与胜率都需要重算——这一点在结论处已按"改动会使本文失效"标注。
+
+## 目标条款逐条对账（把完成度审计变成可查的东西，而不是我的一句话）
+
+下面每一行左边是目标里的原话片段，中间是现在的判定，右边是**现在就重算得动**的证据文件与声明名。
+生成这张表的脚本会先检查：点名的文件必须存在、点名的声明必须注册在 CLAIMS 里——所以它不是一张
+引用了不存在产物的表。声明 `objective_clause_audit` 再把这张表本身钉住（9 行，且第 1 行必须仍然
+写着「未达成」、第 6 行必须仍然写着「部分达成」——防止将来被悄悄改绿）。
+
+| 目标条款 | 判定 | 依据与规模 | 证据文件 | 声明 |
+|---|---|---|---|---|
+| 模拟器范围内取得一次可复核的 **Act 1-3 全流程胜利** | **未达成，且不可表示** | 模拟器只有两幕；唯一跨幕分支（演示种子 7MS1YN8NWB）穷举 84 个检查点后只有 3 个走进第二幕、0 个走完两幕，最深到第二幕第 22 层。按已达到的速率外推，期望一次双幕通关需要约 2000 个检查点，而盘上只有 84 个 | `chained_frontier_full_20260919.json` | `chained_frontier`、`emulator_act_ceiling`、`chained_terminal_gates` |
+| **16 层到终局** | **第一幕达成；第二幕按引擎判据不是 17 层** | 9 个具名第一幕胜利逐种子复现（won + floor 17）；第二幕 boss 在第 17 层，但另一条出口要求 floor 33，所以 terminalFloor 与 boss 层不是一回事。普查：Act 1 到达 83 局胜 0；Act 2 到达 79 局胜 25 | `act1_evidence_20260919.json`、`act1_win_ledger_20260919.json`、`act1_terminal_census_3500_20260919.json`、`act2_boss_misexit_rate_20260919.json` | `evidence_matrix_totals`、`win_ledger`、`terminal_census`、`boss_misexit_rate`、`terminal_floor_qualification` |
+| **0 非法动作** | **达成，但一半是结构性的** | 策略侧越界在 39,891 局里为 0；同一批局里 rejection_events 18,160。默认 filter 模式使 illegal_actions 不可能非零。753 次拒绝的根因已逐行重放到引擎判据（药水容量 641、事件 112），跨 4 个检查点 2 个阶段复现，且 0 次牵涉本仓库的掩码展开 | `contract_channels_20260919.json`、`rejection_phase_attribution_20260919.json`、`refusal_root_cause_20260919.json`、`refusal_class_generality_20260919.json` | `contract_channels`、`rejection_phase_attribution`、`refusal_root_cause`、`refusal_class_generality` |
+| **无未分类死局** | **达成** | unclassified_dead_ends 在 8,853 个截断上恒为 0；死因词表普查为三项（empty_action_mask 50、step_cap 3、native_rejection 861），跨幕路径上也是 0 | `dead_end_vocabulary_20260919.json`、`chained_terminal_gates_20260919.json` | `dead_end_vocabulary`、`dead_end_reason_census`、`chained_terminal_gates` |
+| 用 **V2 契约栈** | **达成** | OBS_SIZE 1739 / FLAT_SIZE 225 / TARGET_SLOTS 7，全部按代码重算而非引用 | —（由声明直接对代码重算） | `v2_contract_sizes` |
+| **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise），但配置里的 5 级实际是 floor3→floor6 两级 + 一次跳到 act1：floor13 盘上无目录、floor10 无晋升判定。09-18 那 13 个臂缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests` |
+| 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | 夜间 9 臂 fan-out 全部落盘（含被采纳与被拒的晋升判定）；吞吐另测：单臂约 370-885 fps 视阶段、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
+| 产出**含哈希链证据**的评估报告 | **达成** | 28 个证据文件由 bundle_root 绑定；产物里 14 个检查点摘要在本机全部对上真实文件并重算相符；37 条声明逐条与盘核对。清单不是可信来源——它自己也被独立重算 | `MANIFEST_2026-09-19.json` | `evidence_bundle_integrity`、`engine_findings_checklist` |
+| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 4 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂），门槛全绿只等于「这台模拟器判据下全绿」。另有 13 行自我推翻账目在最前面 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
+
+**审计结论（不美化）**：九项里七项达成或达成但带明确限定；第一项（Act 1-3 全流程胜利）**没达成，也不是「再努力一点」的问题**——模拟器没有第三幕，跨幕只有一条演示种子门控的分支，84 个检查点穷举后 0 次走完两幕。因此本目标不能标记为完成；剩下的路不在这台模拟器里，而在真机三幕那条当前被模组清单门卡住的路上。

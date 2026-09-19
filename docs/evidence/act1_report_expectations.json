@@ -357,5 +357,15 @@
     "table_precedes_the_body": true,
     "the_two_rows_that_drifted_once_now_cite_files": true,
     "no_row_still_claims_the_refuted_labelling_gap": true
+  },
+  "objective_clause_audit": {
+    "audit_section_present": true,
+    "all_nine_clauses_listed": true,
+    "act_1_to_3_clause_still_says_not_achieved": true,
+    "warm_start_ladder_still_says_partly": true,
+    "the_other_six_are_marked_achieved_with_limits": true,
+    "every_cited_file_exists": true,
+    "every_cited_claim_is_registered": true,
+    "conclusion_still_refuses_completion": true
   }
 }

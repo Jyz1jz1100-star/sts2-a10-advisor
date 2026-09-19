@@ -1328,6 +1328,50 @@ def claim_report_exec_table_citations():
     }
 
 
+def claim_objective_clause_audit():
+    """Keep the clause-by-clause audit honest: nine clauses, and the failing one stays failing.
+
+    A summary table is the easiest place for a claim of completion to creep in, so this checks
+    the audit against the things it cites (files on disk, claims registered in CLAIMS) and
+    against itself: the Act 1-3 row must still read as not achieved, the warm-start ladder row as
+    partly achieved, and the closing sentence must still say the goal cannot be marked complete.
+    Those three are the load-bearing parts of the report's scope statement; if any flips while
+    the underlying artifacts are unchanged, the flip is the finding.
+    """
+    report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
+    header = "## 目标条款逐条对账"
+    if header not in report:
+        return {"audit_section_present": False}
+    section = report[report.index(header):]
+    rows = []
+    for line in section.splitlines():
+        if line.startswith("|") and "---" not in line and "目标条款" not in line:
+            rows.append([cell.strip() for cell in line.strip("|").split("|")])
+    verdicts = [row[1] for row in rows if len(row) > 1]
+    cited_files = {name for row in rows if len(row) > 3
+                   for name in re.findall(r"`([^`]+\.json)`", row[3])}
+    cited_claims = {name for row in rows if len(row) > 4
+                    for name in re.findall(r"`([a-z0-9_]+)`", row[4])}
+    return {
+        "audit_section_present": True,
+        "all_nine_clauses_listed": len(rows) == 9,
+        "act_1_to_3_clause_still_says_not_achieved": bool(verdicts) and verdicts[0].startswith(
+            "**未达成"),
+        "warm_start_ladder_still_says_partly": len(verdicts) > 5
+        and verdicts[5].startswith("**部分达成"),
+        "the_other_six_are_marked_achieved_with_limits": sum(
+            1 for verdict in verdicts if "**达成" in verdict) == 6
+        and len(verdicts) == 9
+        and "第一幕达成" in verdicts[1] and "未达成" in verdicts[0]
+        and "部分达成" in verdicts[5],
+        "every_cited_file_exists": bool(cited_files) and all(
+            (ROOT / "docs/evidence" / name).exists() or (ROOT / "docs" / name).exists()
+            or (ROOT / name).exists() for name in cited_files),
+        "every_cited_claim_is_registered": cited_claims <= set(CLAIMS) and bool(cited_claims),
+        "conclusion_still_refuses_completion": "不能标记为完成" in section,
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1402,6 +1446,8 @@ CLAIMS = {
                              "every dead-end label the metrics have ever produced"),
     "report_exec_table_citations": (claim_report_exec_table_citations,
                                    "each decision-table row cites something that exists"),
+    "objective_clause_audit": (claim_objective_clause_audit,
+                              "the goal clause by clause, with the failing clause still failing"),
 }
 
 
