@@ -1,17 +1,17 @@
 {
   "aggregates": {
-    "alive_at_the_dead_end": 49,
-    "dead_ends_with_no_engine_legal_basis": 49,
+    "alive_at_the_dead_end": 50,
+    "dead_ends_with_no_engine_legal_basis": 50,
     "empty_action_mask_by_act": {
       "1": 1,
-      "2": 48
+      "2": 49
     },
     "empty_action_mask_by_floor": {
-      "17": 48,
+      "17": 49,
       "3": 1
     },
     "empty_action_mask_by_phase": {
-      "map": 49
+      "map": 50
     },
     "empty_action_mask_seeds": [
       130000015,
@@ -36,23 +36,24 @@
       130010352,
       130010420,
       130010449,
-      130010457
+      130010457,
+      320010229
     ],
-    "empty_action_mask_total": 49,
+    "empty_action_mask_total": 50,
     "endings_across_rolled_episodes": {
-      "death": 11717,
-      "empty_action_mask": 49,
+      "death": 12215,
+      "empty_action_mask": 50,
       "step_cap": 1,
-      "win": 33
+      "win": 34
     },
-    "episodes_rolled": 11800,
-    "files_rolled": 34,
+    "episodes_rolled": 12300,
+    "files_rolled": 35,
     "labelling_layers_observed": {
-      "v2_flat_env_sentinel_step": 49
+      "v2_flat_env_sentinel_step": 50
     },
     "per_file_closure_mismatches": [],
     "per_file_mismatch_count": 0,
-    "recorded_total_in_rolled_files": 49,
+    "recorded_total_in_rolled_files": 50,
     "roll_anomaly_seeds": [
       130000026
     ],
@@ -76,13 +77,7 @@
     }
   ],
   "close_failures": [],
-  "coverage_exclusions": [
-    {
-      "metrics_file": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json",
-      "reason": "seed window predates this config, so its window cannot be resolved from its digest",
-      "recorded_empty_action_mask": 1
-    }
-  ],
+  "coverage_exclusions": [],
   "dead_ends": [
     {
       "act": 2,
@@ -202,15 +197,47 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 45,
+      "hp": 61,
       "max_hp": 82,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 5,
+      "seed": 130000098,
+      "short_circuit": false,
+      "steps": 226
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 24,
+      "max_hp": 92,
+      "origin": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 0,
+      "seed": 130000098,
+      "short_circuit": false,
+      "steps": 248
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 37,
+      "max_hp": 105,
+      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
       "outcome": "empty_action_mask",
       "phase": "map",
       "rejections": 3,
-      "seed": 130000098,
+      "seed": 130010000,
       "short_circuit": false,
-      "steps": 223
+      "steps": 255
     },
     {
       "act": 2,
@@ -218,47 +245,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 45,
-      "max_hp": 80,
-      "origin": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+      "hp": 51,
+      "max_hp": 86,
+      "origin": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 1,
-      "seed": 130010125,
+      "rejections": 3,
+      "seed": 130010053,
       "short_circuit": false,
-      "steps": 228
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 60,
-      "max_hp": 82,
-      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 1,
-      "seed": 130000098,
-      "short_circuit": false,
-      "steps": 222
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 46,
-      "max_hp": 82,
-      "origin": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 1,
-      "seed": 130000098,
-      "short_circuit": false,
-      "steps": 232
+      "steps": 191
     },
     {
       "act": 2,
@@ -323,6 +318,134 @@
       "seed": 130010420,
       "short_circuit": false,
       "steps": 248
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 54,
+      "max_hp": 80,
+      "origin": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 3,
+      "seed": 320010229,
+      "short_circuit": false,
+      "steps": 235
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 45,
+      "max_hp": 82,
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 3,
+      "seed": 130000098,
+      "short_circuit": false,
+      "steps": 223
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 45,
+      "max_hp": 80,
+      "origin": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 1,
+      "seed": 130010125,
+      "short_circuit": false,
+      "steps": 228
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 60,
+      "max_hp": 82,
+      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 1,
+      "seed": 130000098,
+      "short_circuit": false,
+      "steps": 222
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 46,
+      "max_hp": 82,
+      "origin": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 1,
+      "seed": 130000098,
+      "short_circuit": false,
+      "steps": 232
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 75,
+      "max_hp": 80,
+      "origin": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 0,
+      "seed": 130010024,
+      "short_circuit": false,
+      "steps": 306
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 13,
+      "max_hp": 80,
+      "origin": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 0,
+      "seed": 130010054,
+      "short_circuit": false,
+      "steps": 302
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 85,
+      "max_hp": 85,
+      "origin": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 1,
+      "seed": 130010228,
+      "short_circuit": false,
+      "steps": 227
     },
     {
       "act": 2,
@@ -410,15 +533,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 75,
+      "hp": 74,
       "max_hp": 80,
-      "origin": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 0,
-      "seed": 130010024,
+      "rejections": 8,
+      "seed": 130010155,
       "short_circuit": false,
-      "steps": 306
+      "steps": 259
     },
     {
       "act": 2,
@@ -426,31 +549,31 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 13,
-      "max_hp": 80,
-      "origin": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "hp": 62,
+      "max_hp": 84,
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 0,
-      "seed": 130010054,
-      "short_circuit": false,
-      "steps": 302
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 85,
-      "max_hp": 85,
-      "origin": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 1,
+      "rejections": 3,
       "seed": 130010228,
       "short_circuit": false,
-      "steps": 227
+      "steps": 241
+    },
+    {
+      "act": 2,
+      "alive": true,
+      "detail": null,
+      "engine_legal_bases": [],
+      "floor": 17,
+      "hp": 8,
+      "max_hp": 80,
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+      "outcome": "empty_action_mask",
+      "phase": "map",
+      "rejections": 6,
+      "seed": 130010457,
+      "short_circuit": false,
+      "steps": 167
     },
     {
       "act": 2,
@@ -538,15 +661,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 74,
-      "max_hp": 80,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+      "hp": 65,
+      "max_hp": 86,
+      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 8,
-      "seed": 130010155,
+      "rejections": 2,
+      "seed": 130010053,
       "short_circuit": false,
-      "steps": 259
+      "steps": 192
     },
     {
       "act": 2,
@@ -554,15 +677,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 62,
-      "max_hp": 84,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+      "hp": 67,
+      "max_hp": 80,
+      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 3,
-      "seed": 130010228,
+      "rejections": 0,
+      "seed": 130010054,
       "short_circuit": false,
-      "steps": 241
+      "steps": 263
     },
     {
       "act": 2,
@@ -570,15 +693,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 8,
-      "max_hp": 80,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+      "hp": 14,
+      "max_hp": 91,
+      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 6,
-      "seed": 130010457,
+      "rejections": 0,
+      "seed": 130010449,
       "short_circuit": false,
-      "steps": 167
+      "steps": 232
     },
     {
       "act": 2,
@@ -666,31 +789,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 65,
-      "max_hp": 86,
-      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 2,
-      "seed": 130010053,
-      "short_circuit": false,
-      "steps": 192
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 67,
+      "hp": 41,
       "max_hp": 80,
-      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 0,
-      "seed": 130010054,
+      "rejections": 1,
+      "seed": 130010080,
       "short_circuit": false,
-      "steps": 263
+      "steps": 288
     },
     {
       "act": 2,
@@ -698,15 +805,15 @@
       "detail": null,
       "engine_legal_bases": [],
       "floor": 17,
-      "hp": 14,
-      "max_hp": 91,
-      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
+      "hp": 58,
+      "max_hp": 80,
+      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
       "outcome": "empty_action_mask",
       "phase": "map",
-      "rejections": 0,
-      "seed": 130010449,
+      "rejections": 3,
+      "seed": 130010155,
       "short_circuit": false,
-      "steps": 232
+      "steps": 235
     },
     {
       "act": 2,
@@ -771,120 +878,25 @@
       "seed": 130010054,
       "short_circuit": false,
       "steps": 235
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 41,
-      "max_hp": 80,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 1,
-      "seed": 130010080,
-      "short_circuit": false,
-      "steps": 288
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 58,
-      "max_hp": 80,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 3,
-      "seed": 130010155,
-      "short_circuit": false,
-      "steps": 235
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 61,
-      "max_hp": 82,
-      "origin": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 5,
-      "seed": 130000098,
-      "short_circuit": false,
-      "steps": 226
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 24,
-      "max_hp": 92,
-      "origin": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 0,
-      "seed": 130000098,
-      "short_circuit": false,
-      "steps": 248
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 37,
-      "max_hp": 105,
-      "origin": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 3,
-      "seed": 130010000,
-      "short_circuit": false,
-      "steps": 255
-    },
-    {
-      "act": 2,
-      "alive": true,
-      "detail": null,
-      "engine_legal_bases": [],
-      "floor": 17,
-      "hp": 51,
-      "max_hp": 86,
-      "origin": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
-      "outcome": "empty_action_mask",
-      "phase": "map",
-      "rejections": 3,
-      "seed": 130010053,
-      "short_circuit": false,
-      "steps": 191
     }
   ],
   "explained_walls": {
     "engine_offered_nothing_at_every_explained_wall": true,
     "node_types_at_the_explained_walls": {
       "4": 1,
-      "6": 3
+      "6": 4
     },
     "seeds": [
       130010107,
       130010026,
       130010104,
-      130000098
+      130000098,
+      320010229
     ],
-    "traces": 4,
-    "won_the_last_combat_and_still_not_a_terminal": 4
+    "traces": 5,
+    "won_the_last_combat_and_still_not_a_terminal": 5
   },
-  "generated_at": "2026-09-19T18:35:43+00:00",
+  "generated_at": "2026-09-19T20:08:43+00:00",
   "merged_from_shards": true,
   "not_established": [
     "that these endings are engine defects in the general case -- the phase and floor distribution is what lets a reader judge that; each row is re-derivable from the (checkpoint, seed) pair recorded beside it",
@@ -907,6 +919,48 @@
       "metrics_file": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
       "recorded_empty_action_mask": 2,
       "reproduced_empty_action_mask": 2,
+      "reproduced_equals_recorded": true
+    },
+    {
+      "episodes": 100,
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
+      "recorded_empty_action_mask": 1,
+      "reproduced_empty_action_mask": 1,
+      "reproduced_equals_recorded": true
+    },
+    {
+      "episodes": 100,
+      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+      "recorded_empty_action_mask": 1,
+      "reproduced_empty_action_mask": 1,
+      "reproduced_equals_recorded": true
+    },
+    {
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+      "recorded_empty_action_mask": 1,
+      "reproduced_empty_action_mask": 1,
+      "reproduced_equals_recorded": true
+    },
+    {
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+      "recorded_empty_action_mask": 1,
+      "reproduced_empty_action_mask": 1,
+      "reproduced_equals_recorded": true
+    },
+    {
+      "episodes": 500,
+      "metrics_file": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000002000016.json",
+      "recorded_empty_action_mask": 4,
+      "reproduced_empty_action_mask": 4,
+      "reproduced_equals_recorded": true
+    },
+    {
+      "episodes": 500,
+      "metrics_file": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json",
+      "recorded_empty_action_mask": 1,
+      "reproduced_empty_action_mask": 1,
       "reproduced_equals_recorded": true
     },
     {
@@ -939,9 +993,9 @@
     },
     {
       "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000002000016.json",
-      "recorded_empty_action_mask": 4,
-      "reproduced_empty_action_mask": 4,
+      "metrics_file": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "recorded_empty_action_mask": 3,
+      "reproduced_empty_action_mask": 3,
       "reproduced_equals_recorded": true
     },
     {
@@ -981,7 +1035,7 @@
     },
     {
       "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/metrics/early-promotion-step_000004000032.json",
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
       "recorded_empty_action_mask": 3,
       "reproduced_empty_action_mask": 3,
       "reproduced_equals_recorded": true
@@ -1023,7 +1077,7 @@
     },
     {
       "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
       "recorded_empty_action_mask": 3,
       "reproduced_empty_action_mask": 3,
       "reproduced_equals_recorded": true
@@ -1065,9 +1119,9 @@
     },
     {
       "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
-      "recorded_empty_action_mask": 3,
-      "reproduced_empty_action_mask": 3,
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
+      "recorded_empty_action_mask": 2,
+      "reproduced_empty_action_mask": 2,
       "reproduced_equals_recorded": true
     },
     {
@@ -1094,41 +1148,6 @@
     {
       "episodes": 500,
       "metrics_file": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
-      "recorded_empty_action_mask": 1,
-      "reproduced_empty_action_mask": 1,
-      "reproduced_equals_recorded": true
-    },
-    {
-      "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000002000016.json",
-      "recorded_empty_action_mask": 2,
-      "reproduced_empty_action_mask": 2,
-      "reproduced_equals_recorded": true
-    },
-    {
-      "episodes": 100,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
-      "recorded_empty_action_mask": 1,
-      "reproduced_empty_action_mask": 1,
-      "reproduced_equals_recorded": true
-    },
-    {
-      "episodes": 100,
-      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
-      "recorded_empty_action_mask": 1,
-      "reproduced_empty_action_mask": 1,
-      "reproduced_equals_recorded": true
-    },
-    {
-      "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
-      "recorded_empty_action_mask": 1,
-      "reproduced_empty_action_mask": 1,
-      "reproduced_equals_recorded": true
-    },
-    {
-      "episodes": 500,
-      "metrics_file": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
       "recorded_empty_action_mask": 1,
       "reproduced_empty_action_mask": 1,
       "reproduced_equals_recorded": true
@@ -1900,7 +1919,7 @@
       "transitions_replayed": 288
     },
     {
-      "checkpoint": "G:/qoder/sts2-a10-advisor/runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000003000024.zip",
+      "checkpoint": "G:/qoder/sts2-a10-advisor/runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000002000016.zip",
       "deciding_state": {
         "act": 2,
         "advertised_flat_bases": [],
@@ -1910,13 +1929,13 @@
         "ended_instead": "empty_action_mask",
         "engine_legal_bases": [],
         "floor": 17,
-        "hp": 45,
+        "hp": 61,
         "phase": "map",
         "player_won": false,
         "simulator_player_won": true,
-        "step": 222
+        "step": 225
       },
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
       "observation_at_the_wall": {
         "current_node_type_onehot_index": 6,
         "map_option_coords": [
@@ -1931,7 +1950,7 @@
         ],
         "phase_onehot_name": "map"
       },
-      "recorded_by": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "recorded_by": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
       "recorded_empty_action_mask": 1,
       "seed": 130000098,
       "seed_in_recorded_window": true,
@@ -1955,72 +1974,7 @@
             4
           ],
           "floor": 17,
-          "hp": 27,
-          "phase": "combat",
-          "player_won": false,
-          "simulator_player_won": false,
-          "step": 213
-        },
-        {
-          "act": 2,
-          "advertised_flat_bases": [
-            0,
-            2,
-            3
-          ],
-          "current_node_type": 6,
-          "encounter_id": 84,
-          "engine_legal_bases": [
-            0,
-            2,
-            3
-          ],
-          "floor": 17,
-          "hp": 27,
-          "phase": "combat",
-          "player_won": false,
-          "simulator_player_won": false,
-          "step": 214
-        },
-        {
-          "act": 2,
-          "advertised_flat_bases": [
-            2
-          ],
-          "current_node_type": 6,
-          "encounter_id": 84,
-          "engine_legal_bases": [
-            2
-          ],
-          "floor": 17,
-          "hp": 27,
-          "phase": "combat",
-          "player_won": false,
-          "simulator_player_won": false,
-          "step": 215
-        },
-        {
-          "act": 2,
-          "advertised_flat_bases": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5
-          ],
-          "current_node_type": 6,
-          "encounter_id": 84,
-          "engine_legal_bases": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5
-          ],
-          "floor": 17,
-          "hp": 27,
+          "hp": 43,
           "phase": "combat",
           "player_won": false,
           "simulator_player_won": false,
@@ -2029,24 +1983,18 @@
         {
           "act": 2,
           "advertised_flat_bases": [
-            0,
-            1,
-            2,
             3
           ],
           "current_node_type": 6,
           "encounter_id": 84,
           "engine_legal_bases": [
-            0,
-            1,
-            2,
             3
           ],
           "floor": 17,
-          "hp": 45,
-          "phase": "relic_reward",
+          "hp": 43,
+          "phase": "combat",
           "player_won": false,
-          "simulator_player_won": true,
+          "simulator_player_won": false,
           "step": 217
         },
         {
@@ -2055,6 +2003,58 @@
             0,
             1,
             2,
+            3,
+            4,
+            5
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "floor": 17,
+          "hp": 43,
+          "phase": "combat",
+          "player_won": false,
+          "simulator_player_won": false,
+          "step": 218
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "floor": 17,
+          "hp": 43,
+          "phase": "combat",
+          "player_won": false,
+          "simulator_player_won": false,
+          "step": 219
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
             3
           ],
           "current_node_type": 6,
@@ -2066,47 +2066,7 @@
             3
           ],
           "floor": 17,
-          "hp": 45,
-          "phase": "relic_reward",
-          "player_won": false,
-          "simulator_player_won": true,
-          "step": 218
-        },
-        {
-          "act": 2,
-          "advertised_flat_bases": [
-            0,
-            1,
-            3
-          ],
-          "current_node_type": 6,
-          "encounter_id": 84,
-          "engine_legal_bases": [
-            0,
-            1,
-            3
-          ],
-          "floor": 17,
-          "hp": 45,
-          "phase": "relic_reward",
-          "player_won": false,
-          "simulator_player_won": true,
-          "step": 219
-        },
-        {
-          "act": 2,
-          "advertised_flat_bases": [
-            0,
-            3
-          ],
-          "current_node_type": 6,
-          "encounter_id": 84,
-          "engine_legal_bases": [
-            0,
-            3
-          ],
-          "floor": 17,
-          "hp": 45,
+          "hp": 61,
           "phase": "relic_reward",
           "player_won": false,
           "simulator_player_won": true,
@@ -2129,11 +2089,74 @@
             3
           ],
           "floor": 17,
-          "hp": 45,
-          "phase": "card_reward",
+          "hp": 61,
+          "phase": "relic_reward",
           "player_won": false,
           "simulator_player_won": true,
           "step": 221
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            3
+          ],
+          "floor": 17,
+          "hp": 61,
+          "phase": "relic_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 222
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            3
+          ],
+          "floor": 17,
+          "hp": 61,
+          "phase": "relic_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 223
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "floor": 17,
+          "hp": 61,
+          "phase": "card_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 224
         },
         {
           "act": 2,
@@ -2142,14 +2165,266 @@
           "encounter_id": 84,
           "engine_legal_bases": [],
           "floor": 17,
-          "hp": 45,
+          "hp": 61,
           "phase": "map",
           "player_won": false,
           "simulator_player_won": true,
-          "step": 222
+          "step": 225
         }
       ],
-      "transitions_replayed": 223
+      "transitions_replayed": 226
+    },
+    {
+      "checkpoint": "G:/ds harness/sts2-a10-advisor/runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/final.zip",
+      "deciding_state": {
+        "act": 2,
+        "advertised_flat_bases": [],
+        "at_the_wall": false,
+        "current_node_type": 6,
+        "encounter_id": 84,
+        "ended_instead": "empty_action_mask",
+        "engine_legal_bases": [],
+        "floor": 17,
+        "hp": 54,
+        "phase": "map",
+        "player_won": false,
+        "simulator_player_won": true,
+        "step": 234
+      },
+      "metrics_file": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json",
+      "observation_at_the_wall": {
+        "current_node_type_onehot_index": 6,
+        "map_option_coords": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "phase_onehot_name": "map"
+      },
+      "recorded_by": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json",
+      "recorded_empty_action_mask": 1,
+      "seed": 320010229,
+      "seed_in_recorded_window": true,
+      "tail": [
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2
+          ],
+          "floor": 17,
+          "hp": 48,
+          "phase": "combat",
+          "player_won": false,
+          "simulator_player_won": false,
+          "step": 225
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            1
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            1
+          ],
+          "floor": 17,
+          "hp": 48,
+          "phase": "combat",
+          "player_won": false,
+          "simulator_player_won": false,
+          "step": 226
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "floor": 17,
+          "hp": 48,
+          "phase": "combat",
+          "player_won": false,
+          "simulator_player_won": false,
+          "step": 227
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "floor": 17,
+          "hp": 48,
+          "phase": "combat",
+          "player_won": false,
+          "simulator_player_won": false,
+          "step": 228
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "floor": 17,
+          "hp": 54,
+          "phase": "relic_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 229
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "floor": 17,
+          "hp": 54,
+          "phase": "relic_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 230
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            3
+          ],
+          "floor": 17,
+          "hp": 54,
+          "phase": "relic_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 231
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            3
+          ],
+          "floor": 17,
+          "hp": 54,
+          "phase": "relic_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 232
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "floor": 17,
+          "hp": 54,
+          "phase": "card_reward",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 233
+        },
+        {
+          "act": 2,
+          "advertised_flat_bases": [],
+          "current_node_type": 6,
+          "encounter_id": 84,
+          "engine_legal_bases": [],
+          "floor": 17,
+          "hp": 54,
+          "phase": "map",
+          "player_won": false,
+          "simulator_player_won": true,
+          "step": 234
+        }
+      ],
+      "transitions_replayed": 235
     }
   ],
   "plan": [
@@ -2167,7 +2442,9 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
@@ -2184,15 +2461,17 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000003000024.zip",
+      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000002000016.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 100,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2201,15 +2480,36 @@
       "split": "checkpoint",
       "stage": "act1",
       "window_limit": 100,
+      "window_source": "the current config's partitions",
       "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip",
+      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2218,41 +2518,28 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_path": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip",
       "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json",
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
       },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
+      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
+      "split": "promotion",
       "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
@@ -2269,49 +2556,55 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/checkpoints/step_000001000008.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/metrics/step_000001000008.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000004000032.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/checkpoints/final.zip",
+      "checkpoint_path": "G:/ds harness/sts2-a10-advisor/runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/final.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/metrics/promotion.json",
+      "metrics_file": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/experiment-final.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "f38f7171b78c552e6d6bcf798ae30dcec7e422c8d90b74a7de233b8c70496785",
+      "split": "experiment-final",
+      "stage": "act1",
+      "window_limit": 500,
+      "window_source": "the run's own plan.json seed_partitions",
+      "window_split": "act1.promotion",
+      "window_split_resolved": "act1.promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000003000024.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2320,15 +2613,17 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip",
+      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 100,
-      "metrics_file": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2337,24 +2632,28 @@
       "split": "checkpoint",
       "stage": "act1",
       "window_limit": 100,
+      "window_source": "the current config's partitions",
       "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip",
+      "checkpoint_path": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip",
       "checkpoint_sha256_matches": true,
-      "episodes": 500,
-      "metrics_file": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+      "episodes": 100,
+      "metrics_file": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/step_000003000024.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
       },
-      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
-      "split": "promotion",
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
       "stage": "act1",
-      "window_limit": 500,
-      "window_split": "promotion",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
       "window_status": "resolved"
     },
     {
@@ -2371,7 +2670,123 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/checkpoints/step_000001000008.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/metrics/step_000001000008.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000004000032.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/checkpoints/final.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/metrics/promotion.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
+      "split": "promotion",
+      "stage": "act1",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
+      "split": "promotion",
+      "stage": "act1",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
+      "recorded_empty_action_mask": 3,
+      "recorded_ends": {
+        "empty_action_mask": 3
+      },
+      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
+      "split": "promotion",
+      "stage": "act1",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
@@ -2388,7 +2803,9 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
@@ -2406,7 +2823,9 @@
       "split": "checkpoint",
       "stage": "act1",
       "window_limit": 100,
+      "window_source": "the current config's partitions",
       "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
       "window_status": "resolved"
     },
     {
@@ -2423,7 +2842,9 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
@@ -2440,7 +2861,9 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
@@ -2457,109 +2880,9 @@
       "split": "checkpoint",
       "stage": "act1",
       "window_limit": 100,
+      "window_source": "the current config's partitions",
       "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
-      "recorded_empty_action_mask": 3,
-      "recorded_ends": {
-        "empty_action_mask": 3
-      },
-      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
-      "split": "promotion",
-      "stage": "act1",
-      "window_limit": 500,
-      "window_split": "promotion",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000003000024.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/step_000003000024.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
-      "split": "promotion",
-      "stage": "act1",
-      "window_limit": 500,
-      "window_split": "promotion",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000003000024.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/step_000003000024.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 500,
-      "metrics_file": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
-      "split": "promotion",
-      "stage": "act1",
-      "window_limit": 500,
-      "window_split": "promotion",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
       "window_status": "resolved"
     },
     {
@@ -2576,15 +2899,36 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/final.zip",
+      "checkpoint_path": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000003000024.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/metrics/step_000003000024.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 500,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/promotion.json",
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/metrics/early-promotion-step_000004000032.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2593,15 +2937,36 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000003000024.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 100,
+      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/metrics/step_000003000024.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
+      "stage": "act1",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
+      "metrics_file": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000002000016.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2610,41 +2975,28 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_path": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
       "checkpoint_sha256_matches": true,
-      "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+      "episodes": 100,
+      "metrics_file": "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/metrics/step_000004000032.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
       },
-      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
-      "split": "promotion",
+      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
+      "split": "checkpoint",
       "stage": "act1",
-      "window_limit": 500,
-      "window_split": "promotion",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 500,
-      "metrics_file": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
-      "split": "promotion",
-      "stage": "act1",
-      "window_limit": 500,
-      "window_split": "promotion",
+      "window_limit": 100,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
       "window_status": "resolved"
     },
     {
@@ -2661,49 +3013,17 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000002000016.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/step_000002000016.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip",
-      "checkpoint_sha256_matches": true,
-      "episodes": 100,
-      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/step_000001000008.json",
-      "recorded_empty_action_mask": 1,
-      "recorded_ends": {
-        "empty_action_mask": 1
-      },
-      "seed_digest": "7a4b182297190b5a47a542942aeb3ab8cd3ab2283f3a69423f2c66190056029f",
-      "split": "checkpoint",
-      "stage": "act1",
-      "window_limit": 100,
-      "window_split": "checkpoint",
-      "window_status": "resolved"
-    },
-    {
-      "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip",
+      "checkpoint_path": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/final.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 500,
-      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+      "metrics_file": "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/metrics/promotion.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2712,15 +3032,17 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     },
     {
       "checkpoint_exists": true,
-      "checkpoint_path": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip",
+      "checkpoint_path": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip",
       "checkpoint_sha256_matches": true,
       "episodes": 500,
-      "metrics_file": "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/metrics/promotion.json",
+      "metrics_file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/early-promotion-step_000004000032.json",
       "recorded_empty_action_mask": 1,
       "recorded_ends": {
         "empty_action_mask": 1
@@ -2729,7 +3051,47 @@
       "split": "promotion",
       "stage": "act1",
       "window_limit": 500,
+      "window_source": "the current config's partitions",
       "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
+      "split": "promotion",
+      "stage": "act1",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/metrics/early-promotion-step_000004000032.json",
+      "recorded_empty_action_mask": 1,
+      "recorded_ends": {
+        "empty_action_mask": 1
+      },
+      "seed_digest": "b5d09b6df21d141a27cf640c02b5e1e7be2cde9c3c6e90b505572fb92f0036e8",
+      "split": "promotion",
+      "stage": "act1",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
       "window_status": "resolved"
     }
   ],

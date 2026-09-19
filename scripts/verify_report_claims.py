@@ -1926,36 +1926,41 @@ def claim_empty_mask_endings():
     walls = data["explained_walls"]
     endings = agg["endings_across_rolled_episodes"]
     return {
-        "every_ending_in_a_reproducible_recording_was_located": (
-            agg["empty_action_mask_total"] == agg["recorded_total_in_rolled_files"] == 49
-            and agg["per_file_mismatch_count"] == 0 and agg["files_rolled"] == 34
-            and len(dead) == 49),
-        "the_coverage_gap_is_named_not_smoothed": (
-            len(data["coverage_exclusions"]) == 1
-            and data["coverage_exclusions"][0]["recorded_empty_action_mask"] == 1
+        "every_ending_the_campaign_ever_recorded_was_located": (
+            agg["empty_action_mask_total"] == agg["recorded_total_in_rolled_files"]
+            == vocab["vocabulary"]["empty_action_mask"] == 50
+            and agg["per_file_mismatch_count"] == 0 and agg["files_rolled"] == 35
+            and len(dead) == 50),
+        # This file first reported 49 of 50 with one window "unresolvable"; that gap was the
+        # census reading digests only against the current config. Resolving each run against its own
+        # declared plan.json partitions closed it, so the check now pins both the zero exclusions and
+        # the route that produced the last one.
+        "the_former_coverage_gap_was_an_instrument_limit": (
+            data["coverage_exclusions"] == []
+            and sum(1 for entry in data["plan"]
+                    if entry["window_source"] == "the run's own plan.json seed_partitions") == 1
             and sum(e["recorded_empty_action_mask"] for e in data["plan"])
-            + sum(e["recorded_empty_action_mask"] for e in data["coverage_exclusions"])
             == vocab["vocabulary"]["empty_action_mask"]),
         "every_episode_is_counted_once": (
-            sum(endings.values()) == agg["episodes_rolled"] == 11800),
+            sum(endings.values()) == agg["episodes_rolled"] == 12300),
         "the_engine_offered_no_action_at_any_located_ending": (
-            agg["dead_ends_with_no_engine_legal_basis"] == 49
+            agg["dead_ends_with_no_engine_legal_basis"] == 50
             and all(row["engine_legal_bases"] == [] for row in dead)),
-        "the_player_was_alive_at_every_one": agg["alive_at_the_dead_end"] == 49,
+        "the_player_was_alive_at_every_one": agg["alive_at_the_dead_end"] == 50,
         "the_class_is_one_wall_not_a_scatter": (
-            agg["empty_action_mask_by_phase"] == {"map": 49}
-            and agg["empty_action_mask_by_act"] == {"1": 1, "2": 48}
-            and agg["empty_action_mask_by_floor"] == {"17": 48, "3": 1}),
+            agg["empty_action_mask_by_phase"] == {"map": 50}
+            and agg["empty_action_mask_by_act"] == {"1": 1, "2": 49}
+            and agg["empty_action_mask_by_floor"] == {"17": 49, "3": 1}),
         # Only V2RunEnvWrapper.step() writes the sentinel-action key, so its absence across every
         # row says the flat env's interception is the path the campaign's records actually took --
         # which is the opposite of what this report said before the rows existed.
         "the_labelling_layer_is_measured_not_assumed": (
-            agg["labelling_layers_observed"] == {"v2_flat_env_sentinel_step": 49}
+            agg["labelling_layers_observed"] == {"v2_flat_env_sentinel_step": 50}
             and all(row["short_circuit"] is False for row in dead)),
         "the_explained_walls_are_a_boss_cleared_into_an_empty_map": (
-            walls["traces"] == 4 and walls["engine_offered_nothing_at_every_explained_wall"]
-            and walls["node_types_at_the_explained_walls"] == {"4": 1, "6": 3}
-            and walls["won_the_last_combat_and_still_not_a_terminal"] == 4
+            walls["traces"] == 5 and walls["engine_offered_nothing_at_every_explained_wall"]
+            and walls["node_types_at_the_explained_walls"] == {"4": 1, "6": 4}
+            and walls["won_the_last_combat_and_still_not_a_terminal"] == 5
             and all(trace["observation_at_the_wall"]["map_option_coords"] == [-1] * 8
                     for trace in traces)
             and all(trace["observation_at_the_wall"]["phase_onehot_name"] == "map"

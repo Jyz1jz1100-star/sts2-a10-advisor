@@ -1952,3 +1952,19 @@ counted as a bare empty mask; `recorded_for` reads each group's own list and bas
 committed groups really do differ (21 / 6 / 7) so a seed-for-seed agreement cannot be an instrument
 comparing itself; the duplicate-seed guard fires on slices that overlap; and the rule overrides only at
 a boss `relic_reward` state and never in argmax mode. Suite: 512 + 116 OK, 57/57 claims match disk.
+
+## 2026-09-20 -- the census's last "unresolvable" ending resolved: 50 of 50, no exclusions
+
+The dead-end census reported 49 of 50 with one window it called unresolvable because it only matched
+recorded seed digests against the *current* config's partitions. That framing survived one review
+cycle before I tested it: the 2026-09-03 experiment wrote its own `plan.json` declaring
+`act1.promotion` starting at 320010000, and the file's digest is exactly that window's first 500 seeds
+under the canonical encoding. So `canonical_windows()` now also reads each run's declared partitions,
+and every entry carries `window_source` saying where its window came from (34 config, 1 plan).
+
+Re-rolling with that fix: **50 of 50 located across 35 files and 12,300 episodes, zero exclusions,
+zero per-file disagreements**, and the late arrival is the same shape as the other 49 -- Act 2, floor
+17, map phase, alive, engine mask with no legal bases, labelled by the flat env. Five seeds are now
+traced state by state: four on a boss node and one on a shop node, all five with the last combat won
+and no terminal. The lesson is the reusable part -- before writing "cannot be determined", check
+whether the instrument was only looking in one of two places the answer could be.

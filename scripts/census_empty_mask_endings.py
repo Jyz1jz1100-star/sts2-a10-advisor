@@ -54,12 +54,47 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def plan_windows() -> dict[str, tuple[str, int, list[int]]]:
+    """Windows declared by the runs themselves, which is how a legacy recording is traceable.
+
+    A metrics file only stores a digest of the seeds it rolled, and reading that digest against the
+    *current* config cannot resolve a run whose partitions were different when it ran -- that is how
+    one file ended up labelled "window predates this config". Each run directory writes a plan.json
+    naming the partitions it actually used, so the digest resolves against the recording's own
+    provenance instead, and the exclusion turns out to have been an instrument limit rather than a
+    fact about the file.
+    """
+
+    windows = {}
+    for path in sorted(list(ROOT.glob("runs/**/plan.json")) + list(ROOT.glob("runtime/**/plan.json"))):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        from training.metrics import seed_digest
+
+        for part in payload.get("seed_partitions") or []:
+            try:
+                start, count = int(part["start"]), int(part["count"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            # Only the longest window any partition could supply is materialised; a train
+            # partition declares up to twenty million seeds.
+            prefix = list(range(start, start + min(count, max(WINDOW_LIMITS))))
+            for limit in WINDOW_LIMITS:
+                if limit > count:
+                    continue
+                windows.setdefault(seed_digest(prefix[:limit]),
+                                   (str(part.get("name", "")), limit, prefix[:limit]))
+    return windows
+
+
 def canonical_windows(config) -> dict[str, tuple[str, int, list[int]]]:
     """Digest -> (split, limit, seeds) for every contiguous window the trainer can ask for.
 
     The metrics files store only a digest of the seed list they rolled, so this is how a recording
-    is traced back to a window. A digest missing here is reported as unresolved and dropped from
-    coverage rather than guessed at -- the 2026-09-03 bulk run predates this config.
+    is traced back to a window. A digest missing here and missing from the run's own plan is
+    reported as unresolved and dropped from coverage rather than guessed at.
     """
 
     from training.metrics import seed_digest
@@ -75,6 +110,8 @@ def canonical_windows(config) -> dict[str, tuple[str, int, list[int]]]:
                 if limit > len(seeds):
                     continue
                 windows[seed_digest(seeds[:limit])] = (split, limit, seeds[:limit])
+    for digest, window in plan_windows().items():
+        windows.setdefault(digest, window)
     return windows
 
 
@@ -122,6 +159,11 @@ def build_plan(args, windows) -> list[dict]:
                 "stage": stage,
             }
             if window is not None:
+                # A config partition yields a bare split name; a plan.json declares "act1.promotion",
+                # so the label carries where the window was resolved from.
+                entry["window_source"] = ("the run's own plan.json seed_partitions"
+                                          if "." in window[0] else "the current config's partitions")
+                entry["window_split_resolved"] = window[0]
                 entry["window_limit"] = window[1]
                 entry["window_seeds"] = list(window[2])
                 entry["window_split"] = window[0]
@@ -464,12 +506,21 @@ def attach_explanations(args, payload, rows) -> None:
         trace["seed_in_recorded_window"] = seed in entry["window_seeds"]
         traces.append(trace)
     payload["per_seed_explanations"] = traces
+    # The shards wrote their plan before window provenance existed; re-resolve it here from the
+    # recording's own digests rather than pretending the field cannot be filled.
+    for entry in payload["plan"]:
+        fresh = entries.get(entry["metrics_file"])
+        if fresh:
+            entry.update({key: fresh[key] for key in
+                          ("window_source", "window_split_resolved", "window_limit")
+                          if key in fresh})
     rolled_files = {row["origin"] for row in rows}
     payload["coverage_exclusions"] = [
         {
             "metrics_file": entry["metrics_file"],
-            "reason": ("seed window predates this config, so its window cannot be resolved from "
-                       "its digest" if entry["window_status"] != "resolved"
+            "reason": ("no window digest matched either the current config's partitions or any "
+                       "run's own declared plan.json partitions"
+                       if entry["window_status"] != "resolved"
                        else "the on-disk checkpoint no longer hashes to what the file recorded"),
             "recorded_empty_action_mask": entry["recorded_empty_action_mask"],
         }

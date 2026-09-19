@@ -509,8 +509,6 @@
     "shop_and_event_remain_the_only_ordinary_classes": true
   },
   "empty_mask_endings": {
-    "every_ending_in_a_reproducible_recording_was_located": true,
-    "the_coverage_gap_is_named_not_smoothed": true,
     "every_episode_is_counted_once": true,
     "the_engine_offered_no_action_at_any_located_ending": true,
     "the_player_was_alive_at_every_one": true,
@@ -518,7 +516,9 @@
     "the_labelling_layer_is_measured_not_assumed": true,
     "the_explained_walls_are_a_boss_cleared_into_an_empty_map": true,
     "no_ending_was_dropped_to_make_the_finding_clean": true,
-    "the_instrument_reports_its_own_health": true
+    "the_instrument_reports_its_own_health": true,
+    "every_ending_the_campaign_ever_recorded_was_located": true,
+    "the_former_coverage_gap_was_an_instrument_limit": true
   },
   "reward_fork_on_census_seeds": {
     "the_forked_seeds_are_ones_the_census_located": true,
