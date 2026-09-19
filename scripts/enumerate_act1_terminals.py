@@ -99,6 +99,16 @@ def main() -> int:
     probe = DummyVecEnv([lambda: factory(window[0])])
     model = MaskablePPO.load(str(checkpoint), env=probe, device="cpu")
 
+    # Which act a seed generates is a reset-only question, and mixing the two acts
+    # is the single easiest way to read a wrong conclusion off this census: the
+    # emulator picks the act per seed, and the Act 2 boss converts very differently.
+    act_env = factory(window[0])
+    acts: dict[int, int] = {}
+    for seed in window:
+        _obs, _info = act_env.reset(seed=int(seed))
+        acts[int(seed)] = int(act_env.unwrapped.state_info().get("act") or 0)
+    act_env.close()
+
     rows = []
     counts: dict[str, int] = {}
     for index, seed in enumerate(window, start=1):
@@ -123,6 +133,11 @@ def main() -> int:
             "illegal_actions": int(metrics.get("illegal_actions") or 0),
             "unclassified_dead_ends": int(metrics.get("unclassified_dead_ends") or 0),
             "steps": metrics.get("mean_steps"),
+            # HP at termination is what separates "arrived at the boss already dying"
+            # from "lost the boss fight on its own terms".
+            "generated_act": acts[int(seed)],
+            "final_hp_fraction": metrics.get("mean_final_hp_fraction"),
+            "final_floor_histogram": metrics.get("final_floor_histogram"),
         })
         if index % 50 == 0 or index == len(window):
             print(f"{index}/{len(window)} {counts}", flush=True)
@@ -139,6 +154,19 @@ def main() -> int:
         "enumerated": len(window),
         "start_offset": args.start_offset,
         "counts": counts,
+        "counts_by_generated_act": {
+            str(act): {
+                category: sum(1 for row in rows if row["generated_act"] == act
+                              and row["category"] == category)
+                for category in sorted({row["category"] for row in rows
+                                        if row["generated_act"] == act})
+            } for act in sorted({row["generated_act"] for row in rows})
+        },
+        "boss_arrival_seeds_by_act": {
+            str(act): [row["seed"] for row in rows
+                       if row["generated_act"] == act and row["final_floor"] == BOSS_FLOOR]
+            for act in sorted({row["generated_act"] for row in rows})
+        },
         # Named so the next step is a command, not an archaeology exercise.
         "boss_truncation_seeds": [row["seed"] for row in rows
                                   if row["category"] == "boss_truncation"],
