@@ -1894,3 +1894,21 @@ final phase map, not won at floor 17); all three groups passed, so the inherited
 backed by replay rather than by the phrase "same script". Claim `boss_clear_recoverability` (6
 checks); the counterfactual's own limit -- one substituted action at one state, not an end-to-end
 policy evaluation -- is the third entry in its `not_established`. 54/54 claims match the disk.
+
+## 2026-09-20 -- a hand-written rule at one screen makes 34 lost Act-2 clears judged wins, and costs nothing
+
+`scripts/probe_boss_reward_rule.py` replays whole episodes: argmax everywhere except a state whose
+phase is `relic_reward` and whose current node is the boss, where it takes the highest-numbered legal
+action. `training/evaluation.py` does the judging, so wins, illegal actions and unclassified dead ends
+are the campaign's own verdicts, not the probe's. Result: the 27 recorded losses at their checkpoint
+go 0 -> 27 judged wins, the 7 at a second arm's checkpoint go 0 -> 7, and in both groups illegal
+stays 0 and unclassified stays 0. The side the first two numbers don't show is the third run: over an
+ordinary 1,000-seed slice of the promotion partition the rule fires 7 times and those 7 episodes were
+*already* judged wins -- `cost_a_win = 0`, `converted_to_win = 0`. The zero delta is then explainable
+rather than suspicious: no seed in that slice reached the losing exit at all, so there was nothing to
+convert, which is consistent with the recorded losses sitting at partition offsets beyond it.
+
+This is an upper bound, not a trained result: the rule is hand-written, and a win at Act 2 is still not
+the objective's Act 1-3 flow. What it does establish is that the ceiling in front of those runs is a
+decision the contract lets the policy make, not a state the engine refuses. Claim
+`boss_reward_rule_end_to_end`; 55/55 claims match the disk, 49 evidence files in the bundle.

@@ -535,5 +535,13 @@
     "the_policy_took_no_available_win": true,
     "every_winning_action_was_one_the_state_offered": true,
     "the_verdict_declares_its_own_limit": true
+  },
+  "boss_reward_rule_end_to_end": {
+    "the_rule_converts_every_lost_clear_in_both_checkpoint_groups": true,
+    "the_rule_costs_nothing_on_an_ordinary_window": true,
+    "every_screen_the_rule_fired_on_had_already_won": true,
+    "the_window_had_nothing_to_convert_which_explains_the_zero_delta": true,
+    "no_pass_bought_a_win_with_a_contract_violation": true,
+    "the_rule_is_declared_as_a_hand_written_bound": true
   }
 }

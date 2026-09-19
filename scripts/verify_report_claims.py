@@ -2052,6 +2052,50 @@ def claim_boss_clear_recoverability():
     }
 
 
+def claim_boss_reward_rule_end_to_end():
+    """A stated rule at one screen turns every recorded lost Act-2 boss clear into a judged win.
+
+    The recoverability census is a one-state counterfactual; this is the same substitution applied
+    inside a full episode, classified by `training/evaluation.py` rather than by the probe, on three
+    populations: the 27 lost seeds at the checkpoint that recorded them, the 7 at a second arm's
+    checkpoint, and an ordinary 1,000-seed slice of the promotion partition to ask what the rule
+    *costs*. The population slice is the informative one even though it changes nothing: it fires on
+    seven boss relic screens, all of which were already judged wins, so the rule neither manufactures
+    a win where none is needed nor breaks one that is.
+    """
+    here = ROOT / "docs/evidence"
+    lost = json.loads((here / "boss_reward_rule_on_lost_clears_20260920.json")
+                      .read_text(encoding="utf-8"))
+    second = json.loads((here / "boss_reward_rule_second_checkpoint_20260920.json")
+                        .read_text(encoding="utf-8"))
+    pop = json.loads((here / "boss_reward_rule_population_window_20260920.json")
+                     .read_text(encoding="utf-8"))
+    tally = pop["per_seed_tally"]
+    rows = pop["per_seed"]
+    matched = [row for row in rows if row["matched_screen"]]
+    return {
+        "the_rule_converts_every_lost_clear_in_both_checkpoint_groups": (
+            lost["aggregates"]["plain_wins"] == 0 and second["aggregates"]["plain_wins"] == 0
+            and lost["aggregates"]["ruled_wins"] == lost["aggregates"]["episodes"]
+            and second["aggregates"]["ruled_wins"] == second["aggregates"]["episodes"]),
+        "the_rule_costs_nothing_on_an_ordinary_window": (
+            tally["cost_a_win"] == 0 and tally["converted_to_win"] == 0
+            and pop["aggregates"]["plain_wins"] == pop["aggregates"]["ruled_wins"]),
+        "every_screen_the_rule_fired_on_had_already_won": (
+            len(matched) == 7 and all(row["plain_won"] and row["ruled_won"] for row in matched)),
+        "the_window_had_nothing_to_convert_which_explains_the_zero_delta": (
+            sum(1 for row in matched if not row["plain_won"]) == 0
+            and len(rows) == pop["aggregates"]["episodes"] == 1000),
+        "no_pass_bought_a_win_with_a_contract_violation": all(
+            data["before_rule"]["illegal_actions"] == data["after_rule"]["illegal_actions"] == 0
+            and data["before_rule"]["unclassified_dead_ends"] == 0
+            and data["after_rule"]["unclassified_dead_ends"] == 0
+            for data in (lost, second, pop)),
+        "the_rule_is_declared_as_a_hand_written_bound": any(
+            "hand-written" in line for line in pop["not_established"]),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2446,6 +2490,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "boss_reward_rule_end_to_end": (
+        claim_boss_reward_rule_end_to_end,
+        "a hand-written reward-screen rule, judged by the campaign evaluator"),
     "boss_clear_recoverability": (
         claim_boss_clear_recoverability,
         "were the lost Act-2 boss clears winnable at the screen before the wall"),

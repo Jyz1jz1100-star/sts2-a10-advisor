@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "ed90554bc4cefd9dbb706b1b8d218a1f7e1a5f152637688f8451425df827eeae",
-  "evidence_file_count": 46,
-  "generated_at": "2026-09-19T18:58:38+00:00",
-  "git_head_at_generation": "6e6b7dc",
+  "bundle_root": "d1828bfc93b892f8a034ccf41292e66b99759802e73f8044f9f7e157ed17f0b7",
+  "evidence_file_count": 49,
+  "generated_at": "2026-09-19T19:16:25+00:00",
+  "git_head_at_generation": "80d93d6",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1011
+    "total_64_hex_strings_seen": 1023
   },
   "resolved_checkpoints": [
     {
@@ -1513,6 +1513,8 @@
         "act2_boss_node_comparison_20260919.json",
         "act2_terminal_check_20260919.json",
         "arrival_state_at_boss_20260919.json",
+        "boss_reward_rule_on_lost_clears_20260920.json",
+        "boss_reward_rule_population_window_20260920.json",
         "chained_frontier_full_20260920.json",
         "event_upgrade_opportunities_20260919.json",
         "metrics_index_20260919.json",
@@ -1628,6 +1630,7 @@
       "sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
       "cited_by": [
         "act2_boss_misexit_signature_verified_20260919.json",
+        "boss_reward_rule_second_checkpoint_20260920.json",
         "chained_frontier_full_20260920.json",
         "metrics_index_20260919.json"
       ],
@@ -2381,8 +2384,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "79fbfae5c3f522a8d243f191d877b000f181f310d93a14cb0edce89ee98a73e3",
-      "bytes": 19990
+      "sha256": "15f33be9dd112a955ac93fa1e47f0edd3d52492f5232d5e6a8e72cd90286fcc7",
+      "bytes": 20424
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2443,6 +2446,21 @@
       "file": "boss_generality_20260919.json",
       "sha256": "ebe134358875f69a452867deeebc263b18fdea89c661dc11815919b0cb3ca62a",
       "bytes": 6278
+    },
+    {
+      "file": "boss_reward_rule_on_lost_clears_20260920.json",
+      "sha256": "5a59aec926f108f2ee7aab1dd5721bffd735024e665d375f8c393e83f0002e44",
+      "bytes": 5888
+    },
+    {
+      "file": "boss_reward_rule_population_window_20260920.json",
+      "sha256": "fd13e8fb179510065e229b712446afc28b9dbd2304e2e32883bcfae2e3303e13",
+      "bytes": 139977
+    },
+    {
+      "file": "boss_reward_rule_second_checkpoint_20260920.json",
+      "sha256": "c611c614c57418c742a78886a79c0f9b638cb0eab93ff615f359766d2ffb8eff",
+      "bytes": 4756
     },
     {
       "file": "chained_act2_reachability_20260920.json",

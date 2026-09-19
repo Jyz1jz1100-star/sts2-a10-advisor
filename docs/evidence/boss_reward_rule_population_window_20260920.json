@@ -1,0 +1,7207 @@
+{
+  "after_rule": {
+    "boundary_hits": 7,
+    "boundary_rate": 0.007,
+    "boundary_wilson_95_high": 0.014378315465766588,
+    "boundary_wilson_95_low": 0.0033948684009907646,
+    "by_act": {
+      "1": {
+        "episodes": 504,
+        "max_final_floor": 17,
+        "mean_final_floor": 8.273809523809524,
+        "win_rate": 0.0,
+        "winning_seeds": [],
+        "wins": 0
+      },
+      "2": {
+        "episodes": 496,
+        "max_final_floor": 17,
+        "mean_final_floor": 8.254032258064516,
+        "win_rate": 0.014112903225806451,
+        "winning_seeds": [
+          130010053,
+          130010125,
+          130010155,
+          130010199,
+          130010318,
+          130010420,
+          130010613
+        ],
+        "wins": 7
+      }
+    },
+    "by_encounter": {},
+    "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000002000016.zip",
+    "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+    "dead_end_reasons": {},
+    "defect_truncation_rate": 0.0,
+    "deterministic": true,
+    "episodes": 1000,
+    "experimental": false,
+    "final_floor_histogram": {
+      "3": 1,
+      "4": 11,
+      "5": 125,
+      "6": 211,
+      "7": 218,
+      "8": 126,
+      "9": 86,
+      "11": 59,
+      "12": 31,
+      "13": 26,
+      "14": 29,
+      "15": 28,
+      "17": 49
+    },
+    "generated_at": "2026-09-19T19:11:12.348782+00:00",
+    "illegal_actions": 0,
+    "max_final_floor": 17,
+    "mean_final_floor": 8.264,
+    "mean_final_hp_fraction": 0.005247674418604652,
+    "mean_return": -29.251069092221545,
+    "mean_steps": 116.923,
+    "rejection_events": 485,
+    "schema_version": 6,
+    "scope": "simulator_act1",
+    "seed_count": 1000,
+    "seed_sha256": "38b88f118f52c3e54ee99c43053ae049d9bea84972430e16277d74827b5356dd",
+    "split": "rule-highest_legal",
+    "stage": "act1",
+    "truncation_rate": 0.0,
+    "truncations": 0,
+    "unclassified_dead_ends": 0,
+    "wilson_95_high": 0.014378315465766588,
+    "wilson_95_low": 0.0033948684009907646,
+    "win_rate": 0.007,
+    "winning_seeds": [
+      130010053,
+      130010125,
+      130010155,
+      130010199,
+      130010318,
+      130010420,
+      130010613
+    ],
+    "wins": 7
+  },
+  "aggregates": {
+    "delta_judged_wins": 0,
+    "episodes": 1000,
+    "plain_wins": 7,
+    "rule_state_overrides": 14,
+    "ruled_wins": 7,
+    "screen_states_matched": 14,
+    "truncations_after_rule": 0,
+    "truncations_plain": 0,
+    "unclassified_dead_ends_after_rule": 0,
+    "unclassified_dead_ends_plain": 0
+  },
+  "before_rule": {
+    "boundary_hits": 7,
+    "boundary_rate": 0.007,
+    "boundary_wilson_95_high": 0.014378315465766588,
+    "boundary_wilson_95_low": 0.0033948684009907646,
+    "by_act": {
+      "1": {
+        "episodes": 504,
+        "max_final_floor": 17,
+        "mean_final_floor": 8.273809523809524,
+        "win_rate": 0.0,
+        "winning_seeds": [],
+        "wins": 0
+      },
+      "2": {
+        "episodes": 496,
+        "max_final_floor": 17,
+        "mean_final_floor": 8.254032258064516,
+        "win_rate": 0.014112903225806451,
+        "winning_seeds": [
+          130010053,
+          130010125,
+          130010155,
+          130010199,
+          130010318,
+          130010420,
+          130010613
+        ],
+        "wins": 7
+      }
+    },
+    "by_encounter": {},
+    "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000002000016.zip",
+    "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+    "dead_end_reasons": {},
+    "defect_truncation_rate": 0.0,
+    "deterministic": true,
+    "episodes": 1000,
+    "experimental": false,
+    "final_floor_histogram": {
+      "3": 1,
+      "4": 11,
+      "5": 125,
+      "6": 211,
+      "7": 218,
+      "8": 126,
+      "9": 86,
+      "11": 59,
+      "12": 31,
+      "13": 26,
+      "14": 29,
+      "15": 28,
+      "17": 49
+    },
+    "generated_at": "2026-09-19T19:09:41.177270+00:00",
+    "illegal_actions": 0,
+    "max_final_floor": 17,
+    "mean_final_floor": 8.264,
+    "mean_final_hp_fraction": 0.005247674418604652,
+    "mean_return": -29.25391065908201,
+    "mean_steps": 116.955,
+    "rejection_events": 485,
+    "schema_version": 6,
+    "scope": "simulator_act1",
+    "seed_count": 1000,
+    "seed_sha256": "38b88f118f52c3e54ee99c43053ae049d9bea84972430e16277d74827b5356dd",
+    "split": "rule-argmax",
+    "stage": "act1",
+    "truncation_rate": 0.0,
+    "truncations": 0,
+    "unclassified_dead_ends": 0,
+    "wilson_95_high": 0.014378315465766588,
+    "wilson_95_low": 0.0033948684009907646,
+    "win_rate": 0.007,
+    "winning_seeds": [
+      130010053,
+      130010125,
+      130010155,
+      130010199,
+      130010318,
+      130010420,
+      130010613
+    ],
+    "wins": 7
+  },
+  "generated_at": "2026-09-19T19:14:19+00:00",
+  "not_established": [
+    "that the rule is learnable by a policy -- it is a hand-written tiebreak applied at one screen, so a positive delta bounds what training could recover, it is not a trained result",
+    "that the matched screen is the boss relic screen specifically: the adapter keys on phase=relic_reward and current_node_type=boss, which any boss relic award satisfies",
+    "anything about the shipped game"
+  ],
+  "per_seed": [
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010000
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010001
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010002
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010003
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010004
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010005
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010006
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010007
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010008
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010009
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010010
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010011
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010012
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010013
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010014
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010015
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010016
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010017
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010018
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010019
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010020
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010021
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010022
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010023
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010024
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010025
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010026
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010027
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010028
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010029
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010030
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010031
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010032
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010033
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010034
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010035
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010036
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010037
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010038
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010039
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010040
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010041
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010042
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010043
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010044
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010045
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010046
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010047
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010048
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010049
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010050
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010051
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010052
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010053
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010054
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010055
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010056
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010057
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010058
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010059
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010060
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010061
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010062
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010063
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010064
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010065
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010066
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010067
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010068
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010069
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010070
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010071
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010072
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010073
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010074
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010075
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010076
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010077
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010078
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010079
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010080
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010081
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010082
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010083
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010084
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010085
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010086
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010087
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010088
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010089
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010090
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010091
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010092
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010093
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010094
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010095
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010096
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010097
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010098
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010099
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010100
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010101
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010102
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010103
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010104
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010105
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010106
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010107
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010108
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010109
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010110
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010111
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010112
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010113
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010114
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010115
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010116
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010117
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010118
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010119
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010120
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010121
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010122
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010123
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010124
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010125
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010126
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010127
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010128
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010129
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010130
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010131
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010132
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010133
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010134
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010135
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010136
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010137
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010138
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010139
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010140
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010141
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010142
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010143
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010144
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010145
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010146
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010147
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010148
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010149
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010150
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010151
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010152
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010153
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010154
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010155
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010156
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010157
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010158
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010159
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010160
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010161
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010162
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010163
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010164
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010165
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010166
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010167
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010168
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010169
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010170
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010171
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010172
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010173
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010174
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010175
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010176
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010177
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010178
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010179
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010180
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010181
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010182
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010183
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010184
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010185
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010186
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010187
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010188
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010189
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010190
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010191
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010192
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010193
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010194
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010195
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010196
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010197
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010198
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010199
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010200
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010201
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010202
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010203
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010204
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010205
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010206
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010207
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010208
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010209
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010210
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010211
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010212
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010213
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010214
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010215
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010216
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010217
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010218
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010219
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010220
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010221
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010222
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010223
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010224
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010225
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010226
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010227
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010228
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010229
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010230
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010231
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010232
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010233
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010234
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010235
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010236
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010237
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010238
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010239
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010240
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010241
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010242
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010243
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010244
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010245
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010246
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010247
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010248
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010249
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010250
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010251
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010252
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010253
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010254
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010255
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010256
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010257
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010258
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010259
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010260
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010261
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010262
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010263
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010264
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010265
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010266
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010267
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010268
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010269
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010270
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010271
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010272
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010273
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010274
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010275
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010276
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010277
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010278
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010279
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010280
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010281
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010282
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010283
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010284
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010285
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010286
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010287
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010288
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010289
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010290
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010291
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010292
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010293
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010294
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010295
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010296
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010297
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010298
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010299
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010300
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010301
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010302
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010303
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010304
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010305
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010306
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010307
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010308
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010309
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010310
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010311
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010312
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010313
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010314
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010315
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010316
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010317
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010318
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010319
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010320
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010321
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010322
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010323
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010324
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010325
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010326
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010327
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010328
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010329
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010330
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010331
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010332
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010333
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010334
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010335
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010336
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010337
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010338
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010339
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010340
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010341
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010342
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010343
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010344
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010345
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010346
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010347
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010348
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010349
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010350
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010351
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010352
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010353
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010354
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010355
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010356
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010357
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010358
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010359
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010360
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010361
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010362
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010363
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010364
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010365
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010366
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010367
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010368
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010369
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010370
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010371
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010372
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010373
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010374
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010375
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010376
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010377
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010378
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010379
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010380
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010381
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010382
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010383
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010384
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010385
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010386
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010387
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010388
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010389
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010390
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010391
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010392
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010393
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010394
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010395
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010396
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010397
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010398
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010399
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010400
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010401
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010402
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010403
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010404
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010405
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010406
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010407
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010408
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010409
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010410
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010411
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010412
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010413
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010414
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010415
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010416
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010417
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010418
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010419
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010420
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010421
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010422
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010423
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010424
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010425
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010426
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010427
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010428
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010429
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010430
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010431
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010432
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010433
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010434
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010435
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010436
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010437
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010438
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010439
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010440
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010441
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010442
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010443
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010444
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010445
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010446
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010447
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010448
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010449
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010450
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010451
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010452
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010453
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010454
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010455
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010456
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010457
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010458
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010459
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010460
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010461
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010462
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010463
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010464
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010465
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010466
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010467
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010468
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010469
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010470
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010471
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010472
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010473
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010474
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010475
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010476
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010477
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010478
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010479
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010480
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010481
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010482
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010483
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010484
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010485
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010486
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010487
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010488
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010489
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010490
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010491
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010492
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010493
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010494
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010495
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010496
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010497
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010498
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010499
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010500
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010501
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010502
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010503
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010504
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010505
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010506
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010507
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010508
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010509
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010510
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010511
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010512
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010513
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010514
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010515
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010516
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010517
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010518
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010519
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010520
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010521
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010522
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010523
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010524
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010525
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010526
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010527
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010528
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010529
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010530
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010531
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010532
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010533
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010534
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010535
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010536
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010537
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010538
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010539
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010540
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010541
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010542
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010543
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010544
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010545
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010546
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010547
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010548
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010549
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010550
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010551
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010552
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010553
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010554
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010555
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010556
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010557
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010558
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010559
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010560
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010561
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010562
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010563
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010564
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010565
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010566
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010567
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010568
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010569
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010570
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010571
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010572
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010573
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010574
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010575
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010576
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010577
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010578
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010579
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010580
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010581
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010582
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010583
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010584
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010585
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010586
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010587
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010588
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010589
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010590
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010591
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010592
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010593
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010594
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010595
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010596
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010597
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010598
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010599
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010600
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010601
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010602
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010603
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010604
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010605
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010606
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010607
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010608
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010609
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010610
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010611
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010612
+    },
+    {
+      "matched_screen": true,
+      "plain_won": 1,
+      "ruled_won": 1,
+      "seed": 130010613
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010614
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010615
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010616
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010617
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010618
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010619
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010620
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010621
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010622
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010623
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010624
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010625
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010626
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010627
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010628
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010629
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010630
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010631
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010632
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010633
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010634
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010635
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010636
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010637
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010638
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010639
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010640
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010641
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010642
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010643
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010644
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010645
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010646
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010647
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010648
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010649
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010650
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010651
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010652
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010653
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010654
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010655
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010656
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010657
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010658
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010659
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010660
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010661
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010662
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010663
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010664
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010665
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010666
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010667
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010668
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010669
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010670
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010671
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010672
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010673
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010674
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010675
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010676
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010677
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010678
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010679
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010680
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010681
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010682
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010683
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010684
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010685
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010686
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010687
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010688
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010689
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010690
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010691
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010692
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010693
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010694
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010695
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010696
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010697
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010698
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010699
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010700
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010701
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010702
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010703
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010704
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010705
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010706
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010707
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010708
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010709
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010710
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010711
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010712
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010713
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010714
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010715
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010716
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010717
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010718
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010719
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010720
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010721
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010722
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010723
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010724
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010725
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010726
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010727
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010728
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010729
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010730
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010731
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010732
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010733
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010734
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010735
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010736
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010737
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010738
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010739
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010740
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010741
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010742
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010743
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010744
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010745
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010746
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010747
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010748
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010749
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010750
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010751
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010752
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010753
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010754
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010755
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010756
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010757
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010758
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010759
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010760
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010761
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010762
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010763
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010764
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010765
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010766
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010767
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010768
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010769
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010770
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010771
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010772
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010773
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010774
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010775
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010776
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010777
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010778
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010779
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010780
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010781
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010782
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010783
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010784
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010785
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010786
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010787
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010788
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010789
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010790
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010791
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010792
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010793
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010794
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010795
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010796
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010797
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010798
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010799
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010800
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010801
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010802
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010803
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010804
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010805
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010806
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010807
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010808
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010809
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010810
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010811
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010812
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010813
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010814
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010815
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010816
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010817
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010818
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010819
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010820
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010821
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010822
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010823
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010824
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010825
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010826
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010827
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010828
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010829
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010830
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010831
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010832
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010833
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010834
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010835
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010836
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010837
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010838
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010839
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010840
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010841
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010842
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010843
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010844
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010845
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010846
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010847
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010848
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010849
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010850
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010851
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010852
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010853
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010854
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010855
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010856
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010857
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010858
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010859
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010860
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010861
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010862
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010863
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010864
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010865
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010866
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010867
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010868
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010869
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010870
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010871
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010872
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010873
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010874
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010875
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010876
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010877
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010878
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010879
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010880
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010881
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010882
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010883
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010884
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010885
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010886
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010887
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010888
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010889
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010890
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010891
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010892
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010893
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010894
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010895
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010896
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010897
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010898
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010899
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010900
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010901
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010902
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010903
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010904
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010905
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010906
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010907
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010908
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010909
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010910
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010911
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010912
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010913
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010914
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010915
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010916
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010917
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010918
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010919
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010920
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010921
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010922
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010923
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010924
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010925
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010926
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010927
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010928
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010929
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010930
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010931
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010932
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010933
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010934
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010935
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010936
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010937
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010938
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010939
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010940
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010941
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010942
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010943
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010944
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010945
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010946
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010947
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010948
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010949
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010950
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010951
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010952
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010953
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010954
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010955
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010956
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010957
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010958
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010959
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010960
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010961
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010962
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010963
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010964
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010965
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010966
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010967
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010968
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010969
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010970
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010971
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010972
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010973
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010974
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010975
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010976
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010977
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010978
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010979
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010980
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010981
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010982
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010983
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010984
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010985
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010986
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010987
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010988
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010989
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010990
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010991
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010992
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010993
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010994
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010995
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010996
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010997
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010998
+    },
+    {
+      "matched_screen": false,
+      "plain_won": 0,
+      "ruled_won": 0,
+      "seed": 130010999
+    }
+  ],
+  "per_seed_tally": {
+    "converted_to_win": 0,
+    "cost_a_win": 0,
+    "matched_screens": 7,
+    "unchanged": 1000
+  },
+  "rule": {
+    "argmax_elsewhere": true,
+    "chosen": "highest_legal",
+    "screen": "relic_reward at current_node_type=6"
+  },
+  "scope": "the seeds whose Act-2 boss clear went unjudged, replayed end to end under a stated reward-screen rule, classified by training/evaluation.py",
+  "seed_source": "--seeds",
+  "seeds": [
+    130010000,
+    130010001,
+    130010002,
+    130010003,
+    130010004,
+    130010005,
+    130010006,
+    130010007,
+    130010008,
+    130010009,
+    130010010,
+    130010011,
+    130010012,
+    130010013,
+    130010014,
+    130010015,
+    130010016,
+    130010017,
+    130010018,
+    130010019,
+    130010020,
+    130010021,
+    130010022,
+    130010023,
+    130010024,
+    130010025,
+    130010026,
+    130010027,
+    130010028,
+    130010029,
+    130010030,
+    130010031,
+    130010032,
+    130010033,
+    130010034,
+    130010035,
+    130010036,
+    130010037,
+    130010038,
+    130010039,
+    130010040,
+    130010041,
+    130010042,
+    130010043,
+    130010044,
+    130010045,
+    130010046,
+    130010047,
+    130010048,
+    130010049,
+    130010050,
+    130010051,
+    130010052,
+    130010053,
+    130010054,
+    130010055,
+    130010056,
+    130010057,
+    130010058,
+    130010059,
+    130010060,
+    130010061,
+    130010062,
+    130010063,
+    130010064,
+    130010065,
+    130010066,
+    130010067,
+    130010068,
+    130010069,
+    130010070,
+    130010071,
+    130010072,
+    130010073,
+    130010074,
+    130010075,
+    130010076,
+    130010077,
+    130010078,
+    130010079,
+    130010080,
+    130010081,
+    130010082,
+    130010083,
+    130010084,
+    130010085,
+    130010086,
+    130010087,
+    130010088,
+    130010089,
+    130010090,
+    130010091,
+    130010092,
+    130010093,
+    130010094,
+    130010095,
+    130010096,
+    130010097,
+    130010098,
+    130010099,
+    130010100,
+    130010101,
+    130010102,
+    130010103,
+    130010104,
+    130010105,
+    130010106,
+    130010107,
+    130010108,
+    130010109,
+    130010110,
+    130010111,
+    130010112,
+    130010113,
+    130010114,
+    130010115,
+    130010116,
+    130010117,
+    130010118,
+    130010119,
+    130010120,
+    130010121,
+    130010122,
+    130010123,
+    130010124,
+    130010125,
+    130010126,
+    130010127,
+    130010128,
+    130010129,
+    130010130,
+    130010131,
+    130010132,
+    130010133,
+    130010134,
+    130010135,
+    130010136,
+    130010137,
+    130010138,
+    130010139,
+    130010140,
+    130010141,
+    130010142,
+    130010143,
+    130010144,
+    130010145,
+    130010146,
+    130010147,
+    130010148,
+    130010149,
+    130010150,
+    130010151,
+    130010152,
+    130010153,
+    130010154,
+    130010155,
+    130010156,
+    130010157,
+    130010158,
+    130010159,
+    130010160,
+    130010161,
+    130010162,
+    130010163,
+    130010164,
+    130010165,
+    130010166,
+    130010167,
+    130010168,
+    130010169,
+    130010170,
+    130010171,
+    130010172,
+    130010173,
+    130010174,
+    130010175,
+    130010176,
+    130010177,
+    130010178,
+    130010179,
+    130010180,
+    130010181,
+    130010182,
+    130010183,
+    130010184,
+    130010185,
+    130010186,
+    130010187,
+    130010188,
+    130010189,
+    130010190,
+    130010191,
+    130010192,
+    130010193,
+    130010194,
+    130010195,
+    130010196,
+    130010197,
+    130010198,
+    130010199,
+    130010200,
+    130010201,
+    130010202,
+    130010203,
+    130010204,
+    130010205,
+    130010206,
+    130010207,
+    130010208,
+    130010209,
+    130010210,
+    130010211,
+    130010212,
+    130010213,
+    130010214,
+    130010215,
+    130010216,
+    130010217,
+    130010218,
+    130010219,
+    130010220,
+    130010221,
+    130010222,
+    130010223,
+    130010224,
+    130010225,
+    130010226,
+    130010227,
+    130010228,
+    130010229,
+    130010230,
+    130010231,
+    130010232,
+    130010233,
+    130010234,
+    130010235,
+    130010236,
+    130010237,
+    130010238,
+    130010239,
+    130010240,
+    130010241,
+    130010242,
+    130010243,
+    130010244,
+    130010245,
+    130010246,
+    130010247,
+    130010248,
+    130010249,
+    130010250,
+    130010251,
+    130010252,
+    130010253,
+    130010254,
+    130010255,
+    130010256,
+    130010257,
+    130010258,
+    130010259,
+    130010260,
+    130010261,
+    130010262,
+    130010263,
+    130010264,
+    130010265,
+    130010266,
+    130010267,
+    130010268,
+    130010269,
+    130010270,
+    130010271,
+    130010272,
+    130010273,
+    130010274,
+    130010275,
+    130010276,
+    130010277,
+    130010278,
+    130010279,
+    130010280,
+    130010281,
+    130010282,
+    130010283,
+    130010284,
+    130010285,
+    130010286,
+    130010287,
+    130010288,
+    130010289,
+    130010290,
+    130010291,
+    130010292,
+    130010293,
+    130010294,
+    130010295,
+    130010296,
+    130010297,
+    130010298,
+    130010299,
+    130010300,
+    130010301,
+    130010302,
+    130010303,
+    130010304,
+    130010305,
+    130010306,
+    130010307,
+    130010308,
+    130010309,
+    130010310,
+    130010311,
+    130010312,
+    130010313,
+    130010314,
+    130010315,
+    130010316,
+    130010317,
+    130010318,
+    130010319,
+    130010320,
+    130010321,
+    130010322,
+    130010323,
+    130010324,
+    130010325,
+    130010326,
+    130010327,
+    130010328,
+    130010329,
+    130010330,
+    130010331,
+    130010332,
+    130010333,
+    130010334,
+    130010335,
+    130010336,
+    130010337,
+    130010338,
+    130010339,
+    130010340,
+    130010341,
+    130010342,
+    130010343,
+    130010344,
+    130010345,
+    130010346,
+    130010347,
+    130010348,
+    130010349,
+    130010350,
+    130010351,
+    130010352,
+    130010353,
+    130010354,
+    130010355,
+    130010356,
+    130010357,
+    130010358,
+    130010359,
+    130010360,
+    130010361,
+    130010362,
+    130010363,
+    130010364,
+    130010365,
+    130010366,
+    130010367,
+    130010368,
+    130010369,
+    130010370,
+    130010371,
+    130010372,
+    130010373,
+    130010374,
+    130010375,
+    130010376,
+    130010377,
+    130010378,
+    130010379,
+    130010380,
+    130010381,
+    130010382,
+    130010383,
+    130010384,
+    130010385,
+    130010386,
+    130010387,
+    130010388,
+    130010389,
+    130010390,
+    130010391,
+    130010392,
+    130010393,
+    130010394,
+    130010395,
+    130010396,
+    130010397,
+    130010398,
+    130010399,
+    130010400,
+    130010401,
+    130010402,
+    130010403,
+    130010404,
+    130010405,
+    130010406,
+    130010407,
+    130010408,
+    130010409,
+    130010410,
+    130010411,
+    130010412,
+    130010413,
+    130010414,
+    130010415,
+    130010416,
+    130010417,
+    130010418,
+    130010419,
+    130010420,
+    130010421,
+    130010422,
+    130010423,
+    130010424,
+    130010425,
+    130010426,
+    130010427,
+    130010428,
+    130010429,
+    130010430,
+    130010431,
+    130010432,
+    130010433,
+    130010434,
+    130010435,
+    130010436,
+    130010437,
+    130010438,
+    130010439,
+    130010440,
+    130010441,
+    130010442,
+    130010443,
+    130010444,
+    130010445,
+    130010446,
+    130010447,
+    130010448,
+    130010449,
+    130010450,
+    130010451,
+    130010452,
+    130010453,
+    130010454,
+    130010455,
+    130010456,
+    130010457,
+    130010458,
+    130010459,
+    130010460,
+    130010461,
+    130010462,
+    130010463,
+    130010464,
+    130010465,
+    130010466,
+    130010467,
+    130010468,
+    130010469,
+    130010470,
+    130010471,
+    130010472,
+    130010473,
+    130010474,
+    130010475,
+    130010476,
+    130010477,
+    130010478,
+    130010479,
+    130010480,
+    130010481,
+    130010482,
+    130010483,
+    130010484,
+    130010485,
+    130010486,
+    130010487,
+    130010488,
+    130010489,
+    130010490,
+    130010491,
+    130010492,
+    130010493,
+    130010494,
+    130010495,
+    130010496,
+    130010497,
+    130010498,
+    130010499,
+    130010500,
+    130010501,
+    130010502,
+    130010503,
+    130010504,
+    130010505,
+    130010506,
+    130010507,
+    130010508,
+    130010509,
+    130010510,
+    130010511,
+    130010512,
+    130010513,
+    130010514,
+    130010515,
+    130010516,
+    130010517,
+    130010518,
+    130010519,
+    130010520,
+    130010521,
+    130010522,
+    130010523,
+    130010524,
+    130010525,
+    130010526,
+    130010527,
+    130010528,
+    130010529,
+    130010530,
+    130010531,
+    130010532,
+    130010533,
+    130010534,
+    130010535,
+    130010536,
+    130010537,
+    130010538,
+    130010539,
+    130010540,
+    130010541,
+    130010542,
+    130010543,
+    130010544,
+    130010545,
+    130010546,
+    130010547,
+    130010548,
+    130010549,
+    130010550,
+    130010551,
+    130010552,
+    130010553,
+    130010554,
+    130010555,
+    130010556,
+    130010557,
+    130010558,
+    130010559,
+    130010560,
+    130010561,
+    130010562,
+    130010563,
+    130010564,
+    130010565,
+    130010566,
+    130010567,
+    130010568,
+    130010569,
+    130010570,
+    130010571,
+    130010572,
+    130010573,
+    130010574,
+    130010575,
+    130010576,
+    130010577,
+    130010578,
+    130010579,
+    130010580,
+    130010581,
+    130010582,
+    130010583,
+    130010584,
+    130010585,
+    130010586,
+    130010587,
+    130010588,
+    130010589,
+    130010590,
+    130010591,
+    130010592,
+    130010593,
+    130010594,
+    130010595,
+    130010596,
+    130010597,
+    130010598,
+    130010599,
+    130010600,
+    130010601,
+    130010602,
+    130010603,
+    130010604,
+    130010605,
+    130010606,
+    130010607,
+    130010608,
+    130010609,
+    130010610,
+    130010611,
+    130010612,
+    130010613,
+    130010614,
+    130010615,
+    130010616,
+    130010617,
+    130010618,
+    130010619,
+    130010620,
+    130010621,
+    130010622,
+    130010623,
+    130010624,
+    130010625,
+    130010626,
+    130010627,
+    130010628,
+    130010629,
+    130010630,
+    130010631,
+    130010632,
+    130010633,
+    130010634,
+    130010635,
+    130010636,
+    130010637,
+    130010638,
+    130010639,
+    130010640,
+    130010641,
+    130010642,
+    130010643,
+    130010644,
+    130010645,
+    130010646,
+    130010647,
+    130010648,
+    130010649,
+    130010650,
+    130010651,
+    130010652,
+    130010653,
+    130010654,
+    130010655,
+    130010656,
+    130010657,
+    130010658,
+    130010659,
+    130010660,
+    130010661,
+    130010662,
+    130010663,
+    130010664,
+    130010665,
+    130010666,
+    130010667,
+    130010668,
+    130010669,
+    130010670,
+    130010671,
+    130010672,
+    130010673,
+    130010674,
+    130010675,
+    130010676,
+    130010677,
+    130010678,
+    130010679,
+    130010680,
+    130010681,
+    130010682,
+    130010683,
+    130010684,
+    130010685,
+    130010686,
+    130010687,
+    130010688,
+    130010689,
+    130010690,
+    130010691,
+    130010692,
+    130010693,
+    130010694,
+    130010695,
+    130010696,
+    130010697,
+    130010698,
+    130010699,
+    130010700,
+    130010701,
+    130010702,
+    130010703,
+    130010704,
+    130010705,
+    130010706,
+    130010707,
+    130010708,
+    130010709,
+    130010710,
+    130010711,
+    130010712,
+    130010713,
+    130010714,
+    130010715,
+    130010716,
+    130010717,
+    130010718,
+    130010719,
+    130010720,
+    130010721,
+    130010722,
+    130010723,
+    130010724,
+    130010725,
+    130010726,
+    130010727,
+    130010728,
+    130010729,
+    130010730,
+    130010731,
+    130010732,
+    130010733,
+    130010734,
+    130010735,
+    130010736,
+    130010737,
+    130010738,
+    130010739,
+    130010740,
+    130010741,
+    130010742,
+    130010743,
+    130010744,
+    130010745,
+    130010746,
+    130010747,
+    130010748,
+    130010749,
+    130010750,
+    130010751,
+    130010752,
+    130010753,
+    130010754,
+    130010755,
+    130010756,
+    130010757,
+    130010758,
+    130010759,
+    130010760,
+    130010761,
+    130010762,
+    130010763,
+    130010764,
+    130010765,
+    130010766,
+    130010767,
+    130010768,
+    130010769,
+    130010770,
+    130010771,
+    130010772,
+    130010773,
+    130010774,
+    130010775,
+    130010776,
+    130010777,
+    130010778,
+    130010779,
+    130010780,
+    130010781,
+    130010782,
+    130010783,
+    130010784,
+    130010785,
+    130010786,
+    130010787,
+    130010788,
+    130010789,
+    130010790,
+    130010791,
+    130010792,
+    130010793,
+    130010794,
+    130010795,
+    130010796,
+    130010797,
+    130010798,
+    130010799,
+    130010800,
+    130010801,
+    130010802,
+    130010803,
+    130010804,
+    130010805,
+    130010806,
+    130010807,
+    130010808,
+    130010809,
+    130010810,
+    130010811,
+    130010812,
+    130010813,
+    130010814,
+    130010815,
+    130010816,
+    130010817,
+    130010818,
+    130010819,
+    130010820,
+    130010821,
+    130010822,
+    130010823,
+    130010824,
+    130010825,
+    130010826,
+    130010827,
+    130010828,
+    130010829,
+    130010830,
+    130010831,
+    130010832,
+    130010833,
+    130010834,
+    130010835,
+    130010836,
+    130010837,
+    130010838,
+    130010839,
+    130010840,
+    130010841,
+    130010842,
+    130010843,
+    130010844,
+    130010845,
+    130010846,
+    130010847,
+    130010848,
+    130010849,
+    130010850,
+    130010851,
+    130010852,
+    130010853,
+    130010854,
+    130010855,
+    130010856,
+    130010857,
+    130010858,
+    130010859,
+    130010860,
+    130010861,
+    130010862,
+    130010863,
+    130010864,
+    130010865,
+    130010866,
+    130010867,
+    130010868,
+    130010869,
+    130010870,
+    130010871,
+    130010872,
+    130010873,
+    130010874,
+    130010875,
+    130010876,
+    130010877,
+    130010878,
+    130010879,
+    130010880,
+    130010881,
+    130010882,
+    130010883,
+    130010884,
+    130010885,
+    130010886,
+    130010887,
+    130010888,
+    130010889,
+    130010890,
+    130010891,
+    130010892,
+    130010893,
+    130010894,
+    130010895,
+    130010896,
+    130010897,
+    130010898,
+    130010899,
+    130010900,
+    130010901,
+    130010902,
+    130010903,
+    130010904,
+    130010905,
+    130010906,
+    130010907,
+    130010908,
+    130010909,
+    130010910,
+    130010911,
+    130010912,
+    130010913,
+    130010914,
+    130010915,
+    130010916,
+    130010917,
+    130010918,
+    130010919,
+    130010920,
+    130010921,
+    130010922,
+    130010923,
+    130010924,
+    130010925,
+    130010926,
+    130010927,
+    130010928,
+    130010929,
+    130010930,
+    130010931,
+    130010932,
+    130010933,
+    130010934,
+    130010935,
+    130010936,
+    130010937,
+    130010938,
+    130010939,
+    130010940,
+    130010941,
+    130010942,
+    130010943,
+    130010944,
+    130010945,
+    130010946,
+    130010947,
+    130010948,
+    130010949,
+    130010950,
+    130010951,
+    130010952,
+    130010953,
+    130010954,
+    130010955,
+    130010956,
+    130010957,
+    130010958,
+    130010959,
+    130010960,
+    130010961,
+    130010962,
+    130010963,
+    130010964,
+    130010965,
+    130010966,
+    130010967,
+    130010968,
+    130010969,
+    130010970,
+    130010971,
+    130010972,
+    130010973,
+    130010974,
+    130010975,
+    130010976,
+    130010977,
+    130010978,
+    130010979,
+    130010980,
+    130010981,
+    130010982,
+    130010983,
+    130010984,
+    130010985,
+    130010986,
+    130010987,
+    130010988,
+    130010989,
+    130010990,
+    130010991,
+    130010992,
+    130010993,
+    130010994,
+    130010995,
+    130010996,
+    130010997,
+    130010998,
+    130010999
+  ]
+}

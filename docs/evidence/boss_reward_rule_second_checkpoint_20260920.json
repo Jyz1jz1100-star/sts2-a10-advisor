@@ -1,0 +1,152 @@
+{
+  "after_rule": {
+    "boundary_hits": 7,
+    "boundary_rate": 1.0,
+    "boundary_wilson_95_high": 1.0,
+    "boundary_wilson_95_low": 0.6456695649333126,
+    "by_act": {
+      "2": {
+        "episodes": 7,
+        "max_final_floor": 17,
+        "mean_final_floor": 17.0,
+        "win_rate": 1.0,
+        "winning_seeds": [
+          130001110,
+          130001157,
+          130001220,
+          130001533,
+          130001859,
+          130003061,
+          130003427
+        ],
+        "wins": 7
+      }
+    },
+    "by_encounter": {},
+    "checkpoint": "runtime\\fanout\\b_terminal-0\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000004000032.zip",
+    "checkpoint_sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
+    "dead_end_reasons": {},
+    "defect_truncation_rate": 0.0,
+    "deterministic": true,
+    "episodes": 7,
+    "experimental": false,
+    "final_floor_histogram": {
+      "17": 7
+    },
+    "generated_at": "2026-09-19T19:03:58.150299+00:00",
+    "illegal_actions": 0,
+    "max_final_floor": 17,
+    "mean_final_floor": 17.0,
+    "mean_final_hp_fraction": 0.6369534399125504,
+    "mean_return": 12.916716882991155,
+    "mean_steps": 218.71428571428572,
+    "rejection_events": 24,
+    "schema_version": 6,
+    "scope": "simulator_act1",
+    "seed_count": 7,
+    "seed_sha256": "9681bcec095acbc0fe7cb73db9683228aa6b3b3300bc96ef93f40587a8bd9eb4",
+    "split": "rule-highest_legal",
+    "stage": "act1",
+    "truncation_rate": 0.0,
+    "truncations": 0,
+    "unclassified_dead_ends": 0,
+    "wilson_95_high": 1.0,
+    "wilson_95_low": 0.6456695649333126,
+    "win_rate": 1.0,
+    "winning_seeds": [
+      130001110,
+      130001157,
+      130001220,
+      130001533,
+      130001859,
+      130003061,
+      130003427
+    ],
+    "wins": 7
+  },
+  "aggregates": {
+    "delta_judged_wins": 7,
+    "episodes": 7,
+    "plain_wins": 0,
+    "rule_state_overrides": 7,
+    "ruled_wins": 7,
+    "screen_states_matched": 7,
+    "truncations_after_rule": 0,
+    "truncations_plain": 7,
+    "unclassified_dead_ends_after_rule": 0,
+    "unclassified_dead_ends_plain": 0
+  },
+  "before_rule": {
+    "boundary_hits": 0,
+    "boundary_rate": 0.0,
+    "boundary_wilson_95_high": 0.35433043506668743,
+    "boundary_wilson_95_low": 5.551115123125783e-17,
+    "by_act": {
+      "2": {
+        "episodes": 7,
+        "max_final_floor": 17,
+        "mean_final_floor": 17.0,
+        "win_rate": 0.0,
+        "winning_seeds": [],
+        "wins": 0
+      }
+    },
+    "by_encounter": {},
+    "checkpoint": "runtime\\fanout\\b_terminal-0\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000004000032.zip",
+    "checkpoint_sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
+    "dead_end_reasons": {
+      "empty_action_mask": 7
+    },
+    "defect_truncation_rate": 1.0,
+    "deterministic": true,
+    "episodes": 7,
+    "experimental": false,
+    "final_floor_histogram": {
+      "17": 7
+    },
+    "generated_at": "2026-09-19T19:03:57.263972+00:00",
+    "illegal_actions": 0,
+    "max_final_floor": 17,
+    "mean_final_floor": 17.0,
+    "mean_final_hp_fraction": 0.6369534399125504,
+    "mean_return": 5.074718757521458,
+    "mean_steps": 223.14285714285714,
+    "rejection_events": 24,
+    "schema_version": 6,
+    "scope": "simulator_act1",
+    "seed_count": 7,
+    "seed_sha256": "9681bcec095acbc0fe7cb73db9683228aa6b3b3300bc96ef93f40587a8bd9eb4",
+    "split": "rule-argmax",
+    "stage": "act1",
+    "truncation_rate": 1.0,
+    "truncations": 7,
+    "unclassified_dead_ends": 0,
+    "wilson_95_high": 0.35433043506668743,
+    "wilson_95_low": 5.551115123125783e-17,
+    "win_rate": 0.0,
+    "winning_seeds": [],
+    "wins": 0
+  },
+  "generated_at": "2026-09-19T19:03:58+00:00",
+  "not_established": [
+    "that the rule is learnable by a policy -- it is a hand-written tiebreak applied at one screen, so a positive delta bounds what training could recover, it is not a trained result",
+    "that the matched screen is the boss relic screen specifically: the adapter keys on phase=relic_reward and current_node_type=boss, which any boss relic award satisfies",
+    "anything about the shipped game"
+  ],
+  "rule": {
+    "argmax_elsewhere": true,
+    "chosen": "highest_legal",
+    "screen": "relic_reward at current_node_type=6"
+  },
+  "scope": "the seeds whose Act-2 boss clear went unjudged, replayed end to end under a stated reward-screen rule, classified by training/evaluation.py",
+  "seed_source": "--seeds",
+  "seeds": [
+    130001110,
+    130001157,
+    130001220,
+    130001533,
+    130001859,
+    130003061,
+    130003427
+  ]
+}
