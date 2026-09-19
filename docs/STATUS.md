@@ -1058,8 +1058,12 @@ about the operator's three-act target, and found one failure class worth naming.
    That corrects a guess recorded here earlier: those two are *not* the boss-exit family --
    the chained Act-2 map simply runs out of nodes past row 18, whereas the boss-exit class
    dead-ends at floor 17 immediately after clearing a NodeBoss node. Same label, two
-   mechanisms; why the chained Act-2 map stops at row 18 is still unexplained, as is whether
-   a chained run has any Act-2 terminal at all (floor 33 was never reached).
+   mechanisms; and the route's own shape is now read out of source: for the demo seed Act 2 is a
+   four-floor scripted strip (floors 18-21 only, `RunEngine.cs:1953-1979`, teleporting the cursor
+   to column 3 rows 1-4), after which the run is handed to a freshly generated 17-row map whose
+   boss row 16 sits at floor 33 -- so `terminalFloor = 33` is that map's real boss floor and a
+   two-act clear is expressible in principle, just never walked (frontier floor 22 over 84
+   checkpoints). What is still unexplained is only why the generated connectivity stops there.
 3. **A third outcome exists at floor 17: boss stalemate.** One checkpoint spent
    60000 steps in the Act 1 boss fight without dying or winning — every action
    mask-legal, HP pinned at 6/77, flat reward, and **59930 distinct combat
