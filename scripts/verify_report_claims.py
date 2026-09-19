@@ -1839,6 +1839,48 @@ def claim_chained_act2_reachability():
     }
 
 
+def claim_map_refusal_class_is_branch_specific():
+    """The map phase's refusals exist only on the chained branch, and "clean" there means measured.
+
+    Two artifacts that could easily be misread against each other: the rejection census reports the
+    map phase as clean, which a reader may take as "map cannot produce a refusal" -- while the
+    chained dead-end finding turns out to be exactly a map-phase refusal class (the wrapper's
+    synthetic sentinel, refused by the engine). So pin the contrast from both sides: the census
+    really did enumerate map decisions (they appear in its own per-phase counts, with zero
+    refusals), and the chained episodes really do absorb refusals at a map-phase state. If a future
+    change makes the two disagree, this is where it surfaces.
+    """
+    census = json.loads((ROOT / "docs/evidence/rejection_phase_attribution_20260919.json")
+                        .read_text(encoding="utf-8"))
+    shards = census["shards"]
+    decisions = collections.Counter()
+    refusals = collections.Counter()
+    for shard in shards:
+        decisions.update(shard.get("decisions_by_phase", {}))
+        refusals.update(shard.get("refusals_by_phase", {}))
+    deadend = json.loads((ROOT / "docs/evidence/chained_map_deadend_fork_20260920.json")
+                         .read_text(encoding="utf-8"))
+    forks = deadend["forks"]
+    return {
+        "the_census_counted_map_decisions_rather_than_omitting_them": (
+            decisions.get("map", 0) > 10_000 and "map" in decisions),
+        "no_map_refusals_on_the_ordinary_promotion_population": (
+            refusals.get("map", 0) == 0
+            and sum(refusals.values()) == sum(
+                shard.get("total_refusals", 0) for shard in shards)),
+        "the_chained_dead_end_is_a_map_phase_refusal_class": all(
+            fork["fork_state"]["phase"] == "map"
+            and fork["evaluator_judgement"]["rejection_events"] > 0
+            and fork["evaluator_judgement"]["illegal_actions"] == 0 for fork in forks),
+        "the_two_populations_disagree_as_stated": (
+            len(forks) == 2 and all(
+                fork["fork_masks_at_state"]["native_bases"] == [] for fork in forks)
+            and refusals.get("map", 0) == 0),
+        "shop_and_event_remain_the_only_ordinary_classes": (
+            set(refusals) == {"shop", "event"}),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2230,6 +2272,9 @@ CLAIMS = {
                                      "the run-start relic pick, offered rarely and positionally"),
     "ladder_promotion_ledger": (claim_ladder_promotion_ledger,
                                 "each rung's real gate decision, re-derived"),
+    "map_refusal_class_is_branch_specific": (
+        claim_map_refusal_class_is_branch_specific,
+        "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
     "chained_act2_reachability": (
         claim_chained_act2_reachability,
         "whether a different Act-2 map choice escapes the floor-19 dead end (it does not)"),

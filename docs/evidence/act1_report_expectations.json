@@ -498,5 +498,12 @@
     "search_was_not_cut_by_its_budget": true,
     "replay_was_faithful": true,
     "every_route_ended_in_a_real_terminal_state": true
+  },
+  "map_refusal_class_is_branch_specific": {
+    "the_census_counted_map_decisions_rather_than_omitting_them": true,
+    "no_map_refusals_on_the_ordinary_promotion_population": true,
+    "the_chained_dead_end_is_a_map_phase_refusal_class": true,
+    "the_two_populations_disagree_as_stated": true,
+    "shop_and_event_remain_the_only_ordinary_classes": true
   }
 }

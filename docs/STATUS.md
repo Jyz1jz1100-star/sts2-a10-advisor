@@ -1786,3 +1786,16 @@ search varies map choice, not combat strength, so reachable is not survivable. N
 objective: the maximum expressible flow is now characterised as "Act 2 is walkable to floor 22 with
 the map choice free, and the Act-2 boss node is never reached by any route in this tree", replacing
 "expressible in principle, never exercised" with a bounded, re-runnable statement.
+## 2026-09-20 -- "map is clean" was worth qualifying, because the chained branch is exactly a map refusal
+
+The rejection-phase census is the artifact behind the "0 illegal actions" caveat, and its per-phase
+counts include map: **0 refusals across 11,060 map decisions**. Read loosely that says map cannot
+produce a refusal -- which the dead-end finding contradicts, since the chained wall *is* a
+map-phase refusal (the contract's synthetic sentinel, refused by the engine). Both statements were
+true; nothing connected them, so the pair was a misreading waiting to happen.
+
+`claim_map_refusal_class_is_branch_specific` now pins both sides from the two artifacts: the census
+enumerated map decisions and found none; the chained forks sit in `map` with
+`rejection_events > 0` and `illegal_actions == 0`; and the ordinary population's refusal classes
+remain exactly `{shop, event}`. So "map is clean" is stated as a measured zero over ordinary seeds,
+not as a claim that the class cannot exist. 51/51 claims match the disk.
