@@ -110,6 +110,14 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
         raise ValueError(f"unsupported V2 config version {raw.get('version')!r}")
 
     target = raw.get("target", {})
+
+    def _relative_to_config(value) -> str:
+        """Resolve a config-relative artifact path against the config file."""
+        candidate = Path(str(value))
+        if candidate.is_absolute():
+            return str(candidate)
+        return str((path.parent / candidate).resolve())
+
     runtime = raw.get("runtime", {})
     algorithm_raw = raw.get("algorithm", {})
     reward_raw = raw.get("reward", {})
@@ -149,13 +157,8 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
             max_floor=(int(table["max_floor"]) if "max_floor" in table else None),
             initialize_from_previous=bool(table.get("initialize_from_previous", False)),
             train_seeds_file=(
-                None
-                if "train_seeds_file" not in table
-                else str(
-                    (path.parent / str(table["train_seeds_file"])).resolve()
-                    if not Path(str(table["train_seeds_file"])).is_absolute()
-                    else Path(str(table["train_seeds_file"]))
-                )
+                None if "train_seeds_file" not in table
+                else _relative_to_config(table["train_seeds_file"])
             ),
             promotion_probe_every_steps=int(
                 table.get("promotion_probe_every_steps", 0)

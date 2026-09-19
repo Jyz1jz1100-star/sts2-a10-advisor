@@ -146,8 +146,10 @@ class SeedList:
     def shard(self, index: int, total: int) -> "SeedList":
         if total <= 0 or index < 0 or index >= total:
             raise ValueError("require total > 0 and 0 <= index < total")
-        # Contiguous blocks would let one worker own every Nth generated act if
-        # the census were ordered; stride by worker instead.
+        # Stride rather than slice: a contiguous block would confine a worker to
+        # one corner of the censused window, while the range partitions the
+        # trainer normally uses are laid out one contiguous block per worker over
+        # the whole span.
         mine = self.seeds[index::total]
         if not mine:
             raise ValueError(f"seed list {self.name!r} is too small for {total} shards")
