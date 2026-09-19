@@ -569,5 +569,12 @@
     "every_stage_and_schema_resolves_to_zero": true,
     "the_legacy_exclusion_has_a_measured_cause": true,
     "the_ledger_does_not_close_because_a_field_was_blank": true
+  },
+  "boss_reward_rule_holdout": {
+    "the_holdout_was_never_evaluated_before_this": true,
+    "the_rule_converts_on_the_holdout_and_costs_nothing": true,
+    "the_conversion_arithmetic_matches_the_truncation_drop": true,
+    "the_holdout_declares_the_same_clean_contracts": true,
+    "the_holdout_plain_rate_is_in_line_with_the_tuned_window": true
   }
 }

@@ -2020,3 +2020,18 @@ surfaced only when I re-read the output. Fixed in `eb4c135`, and the rule now is
 output and refuse to commit when it contains `FAILED`/`ERROR`, rather than chaining on exit status
 through a filter. Same lesson as the measurements: check what the pipeline returns, not what you meant
 it to return. Current state: 512 + 120 tests OK, 58/58 claims match disk.
+
+## 2026-09-20 -- the reward-screen rule holds on the untouched holdout: 67 -> 83 wins, nothing lost
+
+Every earlier instance of this result sat in the promotion partition, which the arms trained beside, so
+the +21 could have been that window's property. The `act1.final` partition (130020000 up, 10,000
+seeds) is the holdout the campaign records as never evaluated on; rolling all of it twice gives plain
+**67 wins -> 83 with the rule**, 16 converted, **0 lost**, truncations 17 -> 1 (and 17 - 1 = 16 + 1
+checks out, which is what the arithmetic check in the claim pins), illegal and unclassified 0 in both
+passes. The holdout's plain rate (67/10,000) sits beside the tuned window's 68/10,000, so the rule's
+effect is not an artifact of seeds that had been looked at before.
+
+The artifact also demonstrates the discipline the campaign keeps needing: because no earlier
+measurement listed seeds in this window, the reconciliation keys are `None`, not `true`. `--compare-
+group none` exists so a holdout can only claim what it can actually show. Claim
+`boss_reward_rule_holdout` (5 checks); 59/59 claims and 54 evidence files.

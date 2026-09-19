@@ -42,9 +42,13 @@ def main() -> int:
     parser.add_argument("--misexit", type=Path,
                         default=ROOT / "docs/evidence/act2_boss_misexit_rate_20260919.json")
     parser.add_argument("--compare-group", default="whole_partition_promotion",
-                        choices=("whole_partition_promotion",
+                        choices=("none", "whole_partition_promotion",
                                  "independent_window_checkpoint_split",
-                                 "second_checkpoint_generality"))
+                                 "second_checkpoint_generality"),
+                        help="'none' for a window no earlier measurement pre-registered, such as "
+                             "the held-out final partition: the closure checks still run, the "
+                             "reconciliation ones are reported as not applicable rather than "
+                             "quietly passing")
     parser.add_argument("--label", default=None, help="free-text note carried into the artefact")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
@@ -57,8 +61,11 @@ def main() -> int:
     if len(seeds_covered) != len(set(seeds_covered)):
         raise SystemExit("two slices rolled the same seed; the partition would be double counted")
 
-    misexit = json.loads(args.misexit.read_text(encoding="utf-8"))
-    recorded_losses, baseline = recorded_for(misexit, args.compare_group)
+    if args.compare_group == "none":
+        recorded_losses, baseline = [], None
+    else:
+        misexit = json.loads(args.misexit.read_text(encoding="utf-8"))
+        recorded_losses, baseline = recorded_for(misexit, args.compare_group)
     converted = sorted({seed for data in slices
                         for seed in data["win_seed_join"]["converted_seeds"]})
     lost = sorted({seed for data in slices for seed in data["win_seed_join"]["lost_seeds"]})
@@ -69,7 +76,10 @@ def main() -> int:
 
     agg = {
         "converted_seed_count": len(converted),
-        "converted_seeds_equal_the_recorded_losses": converted == recorded_losses,
+        # None, not False, when no earlier measurement pre-registered this window: a holdout has
+        # nothing to reconcile against, and reporting that as a mismatch would misdescribe it.
+        "converted_seeds_equal_the_recorded_losses": (
+            converted == recorded_losses if baseline is not None else None),
         "episodes": summed(lambda d: d["aggregates"]["episodes"]),
         "illegal_actions_after_rule": summed(lambda d: d["after_rule"]["illegal_actions"]),
         "illegal_actions_plain": summed(lambda d: d["before_rule"]["illegal_actions"]),
@@ -77,8 +87,9 @@ def main() -> int:
         "lost_win_count": len(lost),
         "matched_boss_relic_screens": summed(lambda d: d["aggregates"]["screen_states_matched"]),
         "plain_win_count": summed(lambda d: d["aggregates"]["plain_wins"]),
-        "plain_win_matches_the_recorded_baseline":
-            summed(lambda d: d["aggregates"]["plain_wins"]) == baseline,
+        "plain_win_matches_the_recorded_baseline": (
+            summed(lambda d: d["aggregates"]["plain_wins"]) == baseline
+            if baseline is not None else None),
         "recorded_baseline_win_count": baseline,
         "rule_win_count": summed(lambda d: d["aggregates"]["ruled_wins"]),
         "slices": len(slices),
@@ -103,12 +114,18 @@ def main() -> int:
         "aggregates": agg,
         "checkpoint": str(slices[0]["after_rule"]["checkpoint"]).replace(BACKSLASH, "/"),
         "converted_seeds": converted,
-        "established": [
-            f"the plain pass over {agg['episodes']} promotion seeds reproduces the "
-            f"{baseline} judged wins the committed mis-exit measurement recorded, so the two "
-            "instruments are looking at the same population",
-            f"the rule adds {len(converted)} judged wins, removes {len(lost)}, and the added seeds "
-            "are exactly the runs recorded as cleared-the-boss-but-not-judged",
+        "established": (
+            [f"the plain pass over {agg['episodes']} promotion seeds reproduces the "
+             f"{baseline} judged wins the committed mis-exit measurement recorded, so the two "
+             "instruments are looking at the same population"]
+            if baseline is not None else
+            [f"{agg['episodes']} seeds were rolled with no pre-registered baseline to reconcile "
+             "against -- a holdout has nothing to match, so this artifact claims only its own "
+             "internal closure, not agreement with an earlier measurement"]) + [
+            f"the rule adds {len(converted)} judged wins and removes {len(lost)}"
+            + (", and the added seeds are exactly the runs recorded as "
+               "cleared-the-boss-but-not-judged" if baseline is not None else
+               " (no pre-registered seed list to compare the added set against)"),
             f"truncations fall {agg['truncations_plain']} -> {agg['truncations_after_rule']} while "
             "illegal actions and unclassified dead ends stay 0 in both passes"],
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),

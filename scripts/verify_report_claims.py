@@ -2242,6 +2242,41 @@ def claim_truncation_ledger():
     }
 
 
+def claim_boss_reward_rule_holdout():
+    """The reward-screen rule on the partition nothing was ever tuned on: 16 wins gained, none lost.
+
+    Every prior instance of this result lived in the promotion partition, which the arms trained
+    beside, so the +21 could have been an artifact of that window. The `act1.final` partition
+    (130020000 upward) is the holdout the campaign declares but never evaluates on, and this rolls
+    all 10,000 of it twice. It also shows what a holdout may and may not be claimed for: no earlier
+    measurement listed seeds here, so the reconciliation keys come back None rather than quietly
+    true, and the only claims are the internal ones -- the join, the arithmetic, and the contract
+    counters.
+    """
+    data = json.loads((ROOT / "docs/evidence/boss_reward_rule_holdout_final_20260920.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    return {
+        "the_holdout_was_never_evaluated_before_this": agg["recorded_baseline_win_count"] is None
+            and agg["plain_win_matches_the_recorded_baseline"] is None
+            and agg["converted_seeds_equal_the_recorded_losses"] is None,
+        "the_rule_converts_on_the_holdout_and_costs_nothing": (
+            agg["episodes"] == 10000 and agg["slices"] == 4
+            and agg["rule_win_count"] == agg["plain_win_count"] + agg["converted_seed_count"]
+            and agg["converted_seed_count"] == 16 and agg["lost_win_count"] == 0
+            and agg["kept_win_count"] == agg["plain_win_count"] == 67),
+        "the_conversion_arithmetic_matches_the_truncation_drop": (
+            agg["truncations_plain"] - agg["truncations_after_rule"]
+            == agg["converted_seed_count"] + 1),
+        "the_holdout_declares_the_same_clean_contracts": (
+            agg["illegal_actions_plain"] == agg["illegal_actions_after_rule"] == 0
+            and agg["unclassified_dead_ends_plain"] == 0
+            and agg["unclassified_dead_ends_after_rule"] == 0),
+        "the_holdout_plain_rate_is_in_line_with_the_tuned_window": (
+            abs(agg["plain_win_count"] - 68) <= 5),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2636,6 +2671,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "boss_reward_rule_holdout": (
+        claim_boss_reward_rule_holdout,
+        "the rule on the untouched final partition: wins gained, none lost"),
     "boss_reward_rule_generality": (
         claim_boss_reward_rule_generality,
         "the same rule at two other checkpoints, against pre-recorded seed lists"),
