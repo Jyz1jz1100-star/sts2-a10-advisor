@@ -1,0 +1,548 @@
+{
+  "aggregates": {
+    "forks_found": 34,
+    "groups_excluded_for_not_replaying_the_loss": [],
+    "groups_in_the_pooled_verdict": [
+      "independent_window_checkpoint_split",
+      "second_checkpoint_generality",
+      "whole_partition_promotion"
+    ],
+    "pct_of_forked_seeds_recoverable": 100.0,
+    "recoverable": 34,
+    "rows": 34,
+    "rows_per_group": {
+      "independent_window_checkpoint_split": 6,
+      "second_checkpoint_generality": 7,
+      "whole_partition_promotion": 21
+    },
+    "seeds_where_policy_chose_a_winning_action": 0,
+    "unrecoverable": 0,
+    "winning_action_counts": {
+      "1": 13,
+      "2": 14,
+      "3": 7
+    }
+  },
+  "established": [
+    "every seed in every group was forked at the checkpoint that recorded its loss, so a recoverable verdict is about the policy that actually played the run",
+    "of the 34 forked seeds, 34 had at least one legal action at the relic-reward screen that ended the run as a win, and the policy took it on 0 of them"
+  ],
+  "fork_phase": "relic_reward",
+  "generated_at": "2026-09-19T18:58:02+00:00",
+  "groups": [
+    {
+      "checkpoint": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip",
+      "checkpoint_provenance": "named by the measurement artifact",
+      "fork_phase": "relic_reward",
+      "group": "whole_partition_promotion",
+      "replays_the_recorded_loss": true,
+      "rows": [
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130012038,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130013858,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130014330,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130014336,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130014661,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130014860,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130015037,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130015223,
+          "winning_actions": [
+            7,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130015814,
+          "winning_actions": [
+            0,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130016448,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130016769,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130016820,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130017440,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130018316,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130018405,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130018585,
+          "winning_actions": [
+            0,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130019474,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130019593,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130019879,
+          "winning_actions": [
+            0,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130019886,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "whole_partition_promotion",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130019935,
+          "winning_actions": [
+            14,
+            21
+          ]
+        }
+      ]
+    },
+    {
+      "checkpoint": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip",
+      "checkpoint_provenance": "inherited from the top-level checkpoint because the artifact's reproduction line says 'same script' -- verified by replay",
+      "fork_phase": "relic_reward",
+      "group": "independent_window_checkpoint_split",
+      "replays_the_recorded_loss": true,
+      "rows": [
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "independent_window_checkpoint_split",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130000397,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "independent_window_checkpoint_split",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130000866,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "independent_window_checkpoint_split",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001066,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "independent_window_checkpoint_split",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001338,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "independent_window_checkpoint_split",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001859,
+          "winning_actions": [
+            0,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "independent_window_checkpoint_split",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001916,
+          "winning_actions": [
+            21
+          ]
+        }
+      ]
+    },
+    {
+      "checkpoint": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip",
+      "checkpoint_provenance": "named by the measurement artifact",
+      "fork_phase": "relic_reward",
+      "group": "second_checkpoint_generality",
+      "replays_the_recorded_loss": true,
+      "rows": [
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001110,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001157,
+          "winning_actions": [
+            7,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001220,
+          "winning_actions": [
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001533,
+          "winning_actions": [
+            0,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130001859,
+          "winning_actions": [
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130003061,
+          "winning_actions": [
+            7,
+            14,
+            21
+          ]
+        },
+        {
+          "as_played_floor": 17,
+          "as_played_phase": "map",
+          "as_played_won": false,
+          "fork_found": true,
+          "group": "second_checkpoint_generality",
+          "legal_action_count": 4,
+          "policy_choice_won": false,
+          "seed": 130003427,
+          "winning_actions": [
+            14,
+            21
+          ]
+        }
+      ]
+    }
+  ],
+  "max_steps_per_episode": 4000,
+  "not_established": [
+    "that a winning action at the relic screen is reachable by any policy that beats the boss: this forks the state the recorded run actually arrived at, so a seed whose run reached a different reward state is reported as fork_found false rather than assumed",
+    "that these wins survive a re-roll of the whole run -- the probe replays the recorded action prefix and substitutes one action at one state, which is a counterfactual about that state, not an end-to-end policy evaluation",
+    "anything about the shipped game",
+    "a rate over arrivals: the denominators here are the recorded losses only, so this answers 'were the lost ones recoverable', not 'what fraction of boss kills are lost'"
+  ],
+  "scope": "every seed the Act-2 boss mis-exit measurement recorded as cleared-but-not-judged, forked at the relic-reward screen of its own checkpoint",
+  "source_measurement": {
+    "artifact": "docs/evidence/act2_boss_misexit_rate_20260919.json",
+    "checkpoint_sha256": "a1ada27ad997a425e6ad10d33d11f5a2f2c3a67003732a68f27cf73e57c1e",
+    "groups": {
+      "independent_window_checkpoint_split": 6,
+      "second_checkpoint_generality": 7,
+      "whole_partition_promotion": 21
+    }
+  }
+}

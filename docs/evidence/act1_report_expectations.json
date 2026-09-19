@@ -527,5 +527,13 @@
     "the_card_screen_is_the_control_that_does_not": true,
     "both_artifacts_fork_the_phase_they_claim": true,
     "every_variant_substituted_a_legal_action_only": true
+  },
+  "boss_clear_recoverability": {
+    "every_recorded_loss_was_forked": true,
+    "a_group_counts_only_if_it_replays_the_recorded_loss": true,
+    "no_lost_clear_was_structurally_unwinnable_at_that_screen": true,
+    "the_policy_took_no_available_win": true,
+    "every_winning_action_was_one_the_state_offered": true,
+    "the_verdict_declares_its_own_limit": true
   }
 }

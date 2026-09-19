@@ -2016,6 +2016,42 @@ def claim_reward_fork_on_census_seeds():
     }
 
 
+def claim_boss_clear_recoverability():
+    """Every Act-2 boss clear the campaign lost had a winning action at the relic screen, untaken.
+
+    `act2_boss_misexit_rate_20260919.json` called these runs false negatives, which assumes a win was
+    available. This forks the relic-reward state of every seed that measurement recorded, at the
+    checkpoint that recorded it, and asks per seed whether any legal action ends the run `complete`.
+    The interesting pair of numbers is that the answer is yes for all of them and the policy's own
+    choice won none of them, while the checkpoint the measurement never named still had to reproduce
+    the recorded loss to be counted at all.
+    """
+    data = json.loads((ROOT / "docs/evidence/act2_boss_clear_recoverability_20260920.json")
+                      .read_text(encoding="utf-8"))
+    source = json.loads((ROOT / data["source_measurement"]["artifact"]).read_text(encoding="utf-8"))
+    expected_seeds = (len(source["truncation_seeds"])
+                      + len(source["independent_window_checkpoint_split"]["truncation_seeds"])
+                      + len(source["second_checkpoint_generality"]["truncation_seeds"]))
+    agg = data["aggregates"]
+    rows = [row for group in data["groups"] for row in group["rows"]]
+    return {
+        "every_recorded_loss_was_forked": (
+            len(rows) == expected_seeds == 34 and agg["forks_found"] == agg["rows"]),
+        "a_group_counts_only_if_it_replays_the_recorded_loss": (
+            len(agg["groups_in_the_pooled_verdict"]) + len(
+                agg["groups_excluded_for_not_replaying_the_loss"]) == 3
+            and agg["rows"] == sum(agg["rows_per_group"].values())),
+        "no_lost_clear_was_structurally_unwinnable_at_that_screen": (
+            agg["unrecoverable"] == 0 and agg["recoverable"] == agg["rows"]
+            and all(int(count) >= 1 for count in agg["winning_action_counts"])),
+        "the_policy_took_no_available_win": agg["seeds_where_policy_chose_a_winning_action"] == 0,
+        "every_winning_action_was_one_the_state_offered": all(
+            len(row["winning_actions"]) <= row["legal_action_count"] for row in rows),
+        "the_verdict_declares_its_own_limit": any(
+            "counterfactual" in line for line in data["not_established"]),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2410,6 +2446,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "boss_clear_recoverability": (
+        claim_boss_clear_recoverability,
+        "were the lost Act-2 boss clears winnable at the screen before the wall"),
     "reward_fork_on_census_seeds": (
         claim_reward_fork_on_census_seeds,
         "whether the located endings had a winning action available one screen earlier"),

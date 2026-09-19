@@ -1875,3 +1875,22 @@ mechanism was already known from `130012038`; what is new is that it holds on ce
 makes "reward-screen action choice" the cheapest capability to target after any unfreeze -- not
 model scale. Artifacts `act2_reward_fork_census_seeds_{relic,card}_20260920.json`, claim
 `reward_fork_on_census_seeds`. 53/53 claims match the disk.
+
+## 2026-09-20 -- every lost Act-2 boss clear had the win in hand at the relic screen; none took it
+
+`act2_boss_misexit_rate_20260919.json` called 27 (pooled) / 34 (per-group) runs "cleared the boss but
+not judged a win", and the word "false negative" quietly assumed a win was reachable. Forked properly
+this time: `scripts/census_boss_clear_recoverability.py` replays each recorded seed's prefix at the
+checkpoint that recorded it and substitutes every legal action at the floor-17 `relic_reward` state.
+**34 of 34 had one to three legal actions that end the run `complete / won=True`, and the argmax
+policy chose a winning one 0 times.** So the wall the census found is not "the engine offers nothing"
+all the way down -- at the screen immediately before it, the engine offered the win and the policy
+walked past it. That is the most specific unfreeze target the campaign now has, and it is a reward-
+screen action-selection problem, not a scale problem.
+
+Method note worth keeping: the middle group's artifact never recorded which checkpoint it used. The
+driver therefore refuses to pool a group whose replay does not reproduce the recorded loss (boss dead,
+final phase map, not won at floor 17); all three groups passed, so the inherited attribution is now
+backed by replay rather than by the phrase "same script". Claim `boss_clear_recoverability` (6
+checks); the counterfactual's own limit -- one substituted action at one state, not an end-to-end
+policy evaluation -- is the third entry in its `not_established`. 54/54 claims match the disk.

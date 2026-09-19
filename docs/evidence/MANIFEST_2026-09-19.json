@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "0e94fd8ba050a6ac1e389a2d2c098d0c20c58ff69a871f05b9a61b7e513de18d",
-  "evidence_file_count": 45,
-  "generated_at": "2026-09-19T18:53:21+00:00",
-  "git_head_at_generation": "53fc859",
+  "bundle_root": "ed90554bc4cefd9dbb706b1b8d218a1f7e1a5f152637688f8451425df827eeae",
+  "evidence_file_count": 46,
+  "generated_at": "2026-09-19T18:58:38+00:00",
+  "git_head_at_generation": "6e6b7dc",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2381,8 +2381,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "2d43c7dd9f799c0b4f31f3bbb3910c138e9587027c00f42573f5439d55db5cbd",
-      "bytes": 19612
+      "sha256": "79fbfae5c3f522a8d243f191d877b000f181f310d93a14cb0edce89ee98a73e3",
+      "bytes": 19990
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2393,6 +2393,11 @@
       "file": "act1_win_ledger_20260919.json",
       "sha256": "ef1e5b782f748ba2f319ce8845f62be93c77fcc1a4dde773944ee2a27fb61c5f",
       "bytes": 6630
+    },
+    {
+      "file": "act2_boss_clear_recoverability_20260920.json",
+      "sha256": "b318ff61b228b6878fd8e65b4b3ec5ee2e18e4d3e2b4824c9104c108bc3de63c",
+      "bytes": 16867
     },
     {
       "file": "act2_boss_completion_fork_20260919.json",
