@@ -1539,6 +1539,40 @@ def claim_upgrade_source_accounting():
     }
 
 
+def claim_upgrade_step_attribution():
+    """The upgrade residual is closed by watching the deck counter, and the books have to balance.
+
+    Four phase-scoped censuses left 599 of 1,140 upgraded cards unattributed. This one records every
+    step where the upgraded count changes, in any phase, so the sum of the channels is the whole
+    population -- and the arithmetic only closes if removals are tracked as well as promotions,
+    which is the trap an earlier version of the instrument fell into (it overshot by 40).
+    """
+    payload = json.loads((ROOT / "docs/evidence/upgrade_step_attribution_20260919.json")
+                         .read_text(encoding="utf-8"))
+    agg = payload["aggregates"]
+    increments = payload["increments"]
+    adds = sum(row["added"] for row in increments)
+    drops = sum(-row["added"] for row in payload["decrements"])
+    ancient = sum(row["added"] for row in increments if row["phase"] == "ancient")
+    event = sum(row["added"] for row in increments if row["phase"] == "event")
+    select = sum(row["added"] for row in increments if row["phase"] == "transform_select")
+    rows = collections.Counter(row["phase"] for row in increments)
+    return {
+        "books_close_with_removals": (
+            agg["upgrades_present_at_reset"] + adds - drops
+            == agg["upgraded_cards_final_total"] == 1140 and agg["unresolved_remainder"] == 0
+            and agg["books_close"] is True),
+        "nothing_is_upgraded_at_reset": agg["upgrades_present_at_reset"] == 0
+            and agg["episodes_with_upgrades_at_reset"] == 0,
+        "the_opening_screen_was_the_missing_channel": (ancient == 463 and rows["ancient"] == 304),
+        "it_agrees_with_the_campfire_census_exactly": select == 29,
+        "the_event_channel_is_bigger_than_the_source_classified_list": (
+            event == 686 and rows["event"] == 599),
+        "removals_are_not_zero_so_tracking_them_mattered": drops == 40,
+        "fourth_instrument_on_the_same_mean": agg["mean_upgraded_in_final_deck"] == 0.326,
+    }
+
+
 def claim_objective_clause_audit():
     """Keep the clause-by-clause audit honest: nine clauses, and the failing one stays failing.
 
@@ -1787,6 +1821,8 @@ CLAIMS = {
                                  "the report's own numbers about this harness, re-derived"),
     "arrival_state_equivalence": (claim_arrival_state_equivalence,
                                   "the two acts' boss arrivals are comparable runs"),
+    "upgrade_step_attribution": (claim_upgrade_step_attribution,
+                                 "every upgraded card, attributed to the step that made it"),
     "upgrade_source_accounting": (claim_upgrade_source_accounting,
                                   "where the policy's upgrades come from, counted per source"),
 }

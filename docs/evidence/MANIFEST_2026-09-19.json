@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "202a0cb008154c3ca15138cb6a5e0a4cfec4ec8f3d01d7e192adb540f4c173db",
-  "evidence_file_count": 35,
-  "generated_at": "2026-09-19T14:53:24+00:00",
-  "git_head_at_generation": "fdc7914",
+  "bundle_root": "9407eed42e79016921ce39195ac461cc961f26f0ca9b63f6481e90eb493cca93",
+  "evidence_file_count": 36,
+  "generated_at": "2026-09-19T15:26:48+00:00",
+  "git_head_at_generation": "b8e7538",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 658
+    "total_64_hex_strings_seen": 659
   },
   "resolved_checkpoints": [
     {
@@ -1457,7 +1457,8 @@
         "rejection_phase_attribution_20260919.json",
         "relic_pickup_upgrades_20260919.json",
         "rest_site_choice_20260919.json",
-        "reward_upgrade_availability_20260919.json"
+        "reward_upgrade_availability_20260919.json",
+        "upgrade_step_attribution_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip"
@@ -2263,8 +2264,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "056b3bdc8fc78537f536c86a9a0e0dbd6552bfa40a3a15b4370f647744d57bf7",
-      "bytes": 14397
+      "sha256": "73abd56e80f1132e449f7b6659ff5a50eb2e0cbc0f2a5423b6ff691c71d159d9",
+      "bytes": 14817
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2410,6 +2411,11 @@
       "file": "stalemate_tail_20k_20260919.json",
       "sha256": "60b77212ee29b6638dad33ecf547237cb5355e24652457ae2f0da4b122cf1bfe",
       "bytes": 21722
+    },
+    {
+      "file": "upgrade_step_attribution_20260919.json",
+      "sha256": "45903f4fc99a9e445126355a3063bdaf264a3b2e19bd399bfd64af943e8cb155",
+      "bytes": 835086
     }
   ]
 }

@@ -422,5 +422,14 @@
     "the_residual_is_named_not_hidden": true,
     "the_conditional_events_never_occurred": true,
     "the_relic_candidate_measures_zero_because_it_was_never_offered": true
+  },
+  "upgrade_step_attribution": {
+    "books_close_with_removals": true,
+    "nothing_is_upgraded_at_reset": true,
+    "the_opening_screen_was_the_missing_channel": true,
+    "it_agrees_with_the_campfire_census_exactly": true,
+    "removals_are_not_zero_so_tracking_them_mattered": true,
+    "fourth_instrument_on_the_same_mean": true,
+    "the_event_channel_is_bigger_than_the_source_classified_list": true
   }
 }

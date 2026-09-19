@@ -1555,3 +1555,16 @@ That leaves the 599-card residual unexplained and sharpens where to look next: a
 read `event`, `rest` and `relic_reward` phases and **none of them instrumented the opening screen**
 (phase `ancient`, Neow), and a once-per-run effect is the right order of magnitude for 599/3,500.
 Recorded as the next candidate, not as a result.
+
+**The candidate was then confirmed and the books close.** `scripts/attribute_upgrade_increments.py`
+stops reading one phase per instrument and records every step at which the deck's upgraded count
+changes, so the channels sum to the population: 1,140 upgraded cards = 0 at reset + 1,180 added or
+promoted − 40 removed, **remainder 0**. By card: the opening `ancient` screen 463 (304 steps, most
+granting two at once), event screens 686 (599 steps), `transform_select` -- where a campfire
+upgrade lands -- 29, card rewards 2; 38 of the 40 removals happen at event screens, since events can
+also take cards away. The `transform_select` 29 matches the campfire census's 29 digit for digit.
+Two lower bounds are now labelled as such rather than being read as totals: the event census's 512
+covered only the 17 events my source classifier recognised, and that list is incomplete --
+`RunEngine.cs:2210` and `:3307` add a card with an `upgraded` variable through neither
+`AddEventRewardCard` nor `UpgradeFirstCard`, which is why the step census counts 599 event-phase
+steps. Registry 44 claims, all matching the disk.
