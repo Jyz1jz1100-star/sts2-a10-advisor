@@ -1390,3 +1390,38 @@ the per-batch attestation exists precisely for this; (2) the fixed-seed availabi
 `compendium.current_run.seed`); (3) only then `supervise_solver_batch.py --mode observational
 --allow-actions`. Launching the game stays with the operator; the in-game solver is never turned
 off, and no live Steam/Workshop state is touched from here.
+
+## 2026-09-19 (late) -- two defects in the report's own integrity harness
+
+While re-verifying the campaign report, two problems turned out to be about the checker rather
+than about the runs. Both are now fixed and pinned; neither changes a measured result.
+
+**1. A tally that conflated "wrong interpreter" with "the report drifted".** Running
+`scripts/verify_report_claims.py` on the contract interpreter (`.tools\python\...`, `.venv`, or
+system python) fails exactly one claim -- `v2_contract_sizes` imports the environment, which needs
+numpy/Gymnasium -- and the old summary printed `39/40 claims match the disk`, which reads like a
+report-versus-disk mismatch. `main()` now scores a raising claim separately: it is named in a
+trailing "were not scored" line that says to use the training venv
+(`G:\qoder\third_party\slay-the-spire-2-emulator-main\.venv\Scripts\python.exe`, the same
+interpreter `scripts/test.ps1` uses for the torch half), and it is excluded from the fraction.
+The exit code stays 1 in both cases, so a wrong-interpreter run can never be read as a clean one.
+`tests/test_report_claim_gate.py` locks that behaviour (6 tests now).
+
+**2. The report quoted a constant its own harness rewrites on every run.** The prose pinned
+`bundle_root` to a literal short digest. But `docs/evidence/` contains
+`act1_report_expectations.json`, and that file is inside the bundle -- so *every re-pin of an
+expectation changes `bundle_root`*, and the quoted literal had been wrong since the previous re-pin
+with nothing checking it. The report now points at the manifest instead of quoting it, and a new
+claim, `harness_self_description`, re-derives the report's self-descriptions from the tree: the
+claim count quoted in prose against `len(CLAIMS)`, the gate-test count against the test methods in
+the file, the evidence-file count against the manifest's `evidence_file_count`, and a negative
+check that no `bundle_root` hex literal reappears in the prose. Four of those six were
+mutation-tested (re-introducing each stale value flips the matching check to false).
+`retraction_ledger_integrity` gained a matching check that its closing paragraph's count equals the
+row count, and the ledger grew to 15 rows -- this is the first entry that is not about the game.
+
+Registry after the change: **41 claims, all matching the disk (exit 0)**; `scripts/test.ps1`
+497 contract + 106 training-environment tests, OK. The attestation gap that the campaign report
+described as "13 arms" was recounted from `fanout_attestation_20260919.json` and is **19 of 21**
+arm runs lacking a `warm_start` block (17 act1-stage + 2 floor3→floor6 ladder arms); the two 09-19
+A/B arms carry both attestation mechanisms.

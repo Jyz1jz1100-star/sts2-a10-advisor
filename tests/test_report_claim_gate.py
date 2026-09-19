@@ -1,12 +1,16 @@
 """The claim verifier must not bless a check that came out False.
 
 Expectations are snapshots compared for equality, so before this gate a pinned ``false``
-read exactly like a passing run -- "32/32 claims match the disk" with a failed check inside
-it.  These tests lock the gate down, and lock the committed expectations to no false checks.
+read exactly like a passing run -- "40/40 scored claims match the disk" with a failed check
+inside it.  These tests lock the gate down, lock the committed expectations to no false
+checks, and lock a claim that cannot run on this interpreter to be an error the tally names
+rather than a mismatch it hides.
 """
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import sys
 import tempfile
@@ -22,7 +26,8 @@ _SPEC.loader.exec_module(V)
 
 
 class ReportClaimGateTests(unittest.TestCase):
-    def _run_with(self, claim_result: dict, pinned: dict, extra: dict | None = None) -> int:
+    def _capture_with(self, claim_result, pinned: dict, extra: dict | None = None,
+                      raiser: bool = False) -> tuple[int, str]:
         """Drive main() over one synthetic claim, restoring the module afterwards."""
         original = dict(V.CLAIMS)
         argv = list(sys.argv)
@@ -31,15 +36,27 @@ class ReportClaimGateTests(unittest.TestCase):
             expectations = {"demo": pinned}
             expectations.update(extra or {})
             path.write_text(json.dumps(expectations), encoding="utf-8")
+
+            def claim() -> dict:
+                if raiser:
+                    raise ModuleNotFoundError("No module named 'numpy'")
+                return claim_result
+
             V.CLAIMS.clear()
-            V.CLAIMS["demo"] = (lambda: claim_result, "demo claim")
+            V.CLAIMS["demo"] = (claim, "demo claim")
             sys.argv = ["verify_report_claims.py", "--expect", str(path), "--quiet"]
+            buffer = io.StringIO()
             try:
-                return V.main()
+                with contextlib.redirect_stdout(buffer):
+                    code = V.main()
+                return code, buffer.getvalue()
             finally:
                 sys.argv = argv
                 V.CLAIMS.clear()
                 V.CLAIMS.update(original)
+
+    def _run_with(self, claim_result: dict, pinned: dict, extra: dict | None = None) -> int:
+        return self._capture_with(claim_result, pinned, extra)[0]
 
     def test_a_pinned_false_check_is_reported_as_drift(self) -> None:
         result = {"holds": False, "other": True}
@@ -48,6 +65,15 @@ class ReportClaimGateTests(unittest.TestCase):
     def test_a_pinned_true_check_still_passes(self) -> None:
         result = {"holds": True, "other": True}
         self.assertEqual(0, self._run_with(result, result))
+
+    def test_a_claim_that_cannot_run_is_named_and_never_reads_as_clean(self) -> None:
+        # Running this harness on the contract interpreter used to print "39/40 claims match
+        # the disk" for an import error, which reads like the report drifted from the files.
+        code, output = self._capture_with({}, {}, raiser=True)
+        self.assertEqual(1, code, "an unrunnable claim must still fail the run")
+        self.assertIn("were not scored: demo", output)
+        self.assertNotIn("1/0", output)
+        self.assertIn("0/0 scored claims match the disk (1 registered)", output)
 
     def test_a_declared_false_check_is_allowed_through(self) -> None:
         # An author may legitimately pin a refutation; that has to be declared, not implicit.

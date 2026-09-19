@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "2585b6be90ae9ba95cfac197e83dbacbd27cb98ddcc1c73b3e9b8dca3978da98",
+  "bundle_root": "d61c9a03ad68a929fc28c9f38045844b6b71f3c011a25d177774fea10a4bed15",
   "evidence_file_count": 30,
-  "generated_at": "2026-09-19T12:05:54+00:00",
-  "git_head_at_generation": "b62b999",
+  "generated_at": "2026-09-19T12:24:32+00:00",
+  "git_head_at_generation": "a3d7ef7",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2258,8 +2258,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "199b0a140329b5137536f8cf141b83a5de32cb557381d3f0466d8f1be6b04a42",
-      "bytes": 12861
+      "sha256": "c6704acf4719ffa35d54c29a02bee3a43417e1b2a80061091ede743511b18ced",
+      "bytes": 13353
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",

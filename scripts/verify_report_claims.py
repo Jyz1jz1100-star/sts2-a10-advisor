@@ -1348,15 +1348,59 @@ def claim_retraction_ledger_integrity():
             for line in block.splitlines()
             if line.startswith("|") and "---" not in line and "曾经写下" not in line]
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
+    summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_fourteen_rows": len(rows) == 14,
+        "ledger_has_fifteen_rows": len(rows) == 15,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
             len(row[1]) > 8 and len(row[2]) > 8 for row in rows if len(row) == 3),
         "prose_count_matches_the_ledger": bool(quoted) and quoted == {len(rows)},
+        "closing_paragraph_count_matches_the_ledger": bool(summary) and summary == {len(rows)},
         "the_objective_clause_is_in_the_ledger_or_the_audit": (
             "未达成" in report and "不能标记为完成" in report),
+    }
+
+
+def claim_harness_self_description():
+    """What the report says about this harness has to be as checkable as what it says about runs.
+
+    The report quotes its own claim count and its own gate-test count, and both have already
+    lagged once this session. Each quote is re-derived here: the registry size, the number of
+    test methods in the gate test file, and the interpreter caveat that explains why a
+    contract-interpreter run prints a lower tally than a clean run.
+
+    The evidence-file count is checked too, because the report used to quote a literal
+    ``bundle_root`` there -- and the bundle contains the pinned expectations, so every re-pin
+    changes that digest and silently invalidated the quote. A report must not embed a constant
+    it rewrites on each run of its own harness.
+    """
+    report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
+    gate_tests = len(re.findall(r"^\s+def test_",
+                                (ROOT / "tests/test_report_claim_gate.py").read_text(
+                                    encoding="utf-8"), re.M))
+    claim_quotes = {(int(left), int(right)) for left, right in
+                    re.findall(r"(\d+)/(\d+) 计分声明与盘上一致", report)}
+    test_quotes = {int(n) for n in re.findall(r"test_report_claim_gate\.py`（(\d+) 项", report)}
+    manifest = json.loads((ROOT / "docs/evidence/MANIFEST_2026-09-19.json")
+                          .read_text(encoding="utf-8"))
+    file_quotes = {int(n) for n in
+                   re.findall(r"(\d+) 个[\s*]*(?:证据文件|JSON 产物|文件)", report.replace("**", ""))}
+    literal_roots = [window for window in
+                     (report[match.end():match.end() + 120]
+                      for match in re.finditer("bundle_root", report))
+                     if re.search(r"\b[0-9a-f]{16,}\b", window)]
+    return {
+        "report_quotes_the_live_claim_count_exactly_once": (
+            claim_quotes == {(len(CLAIMS), len(CLAIMS))}),
+        "gate_test_count_matches_the_quote": test_quotes == {gate_tests},
+        "interpreter_caveat_is_documented": (
+            "ModuleNotFoundError" in report and "训练 venv" in report),
+        "an_unrunnable_claim_is_tallied_separately_in_this_code": (
+            "were not scored" in (ROOT / "scripts/verify_report_claims.py").read_text(
+                encoding="utf-8")),
+        "evidence_file_count_matches_the_manifest": file_quotes == {manifest["evidence_file_count"]},
+        "no_literal_bundle_root_survives_in_the_prose": not literal_roots,
     }
 
 
@@ -1512,6 +1556,13 @@ def claim_fanout_overnight_attestation():
                     if row.get("stages") == ["floor3", "floor6"]) == 2),
         "the_warm_start_attestation_gap_is_still_two_of_twenty_one": (
             aggregates["plans_recording_warm_start"] == 2),
+        # The gap has a shape, and it is not "13 arms": 17 act1-stage runs plus the two ladder
+        # runs, against the two 2026-09-19 A/B arms that do attest.
+        "attestation_gap_breakdown_is_17_plus_2_vs_2": (
+            sum(1 for row in planned if row.get("stages") == ["act1"]
+                and not row.get("warm_start_recorded")) == 17
+            and sum(1 for row in planned if row.get("stages") == ["floor3", "floor6"]
+                and not row.get("warm_start_recorded")) == 2),
     }
 
 
@@ -1597,6 +1648,8 @@ CLAIMS = {
                                  "headline counts recomputed from committed content alone"),
     "fanout_overnight_attestation": (claim_fanout_overnight_attestation,
                                   "the multi-arm overnight run, from committed files only"),
+    "harness_self_description": (claim_harness_self_description,
+                                 "the report's own numbers about this harness, re-derived"),
 }
 
 
@@ -1612,6 +1665,10 @@ def main() -> int:
         expectations = json.loads(args.expect.read_text(encoding="utf-8"))
 
     drift = 0
+    # A claim that raises is usually this interpreter missing a training-side package, not the
+    # report drifting, so it is tallied separately; the exit code stays non-zero either way so a
+    # run on the contract interpreter can never read as clean.
+    unrunnable = []
     # An expectation is a snapshot, so a check that came out False and got pinned would pass
     # forever and read as "N/N match the disk". A False check is therefore drift on its own,
     # unless the run declares it deliberate in _expected_false_checks (currently unused).
@@ -1620,8 +1677,8 @@ def main() -> int:
         try:
             actual = fn()
         except Exception as error:  # a broken claim is reported, not swallowed
-            print(f"ERROR   {name}: {type(error).__name__}: {error}")
-            drift += 1
+            print(f"ERROR     {name}: {type(error).__name__}: {error}")
+            unrunnable.append(name)
             continue
         expected = expectations.get(name)
         if expected is None:
@@ -1644,8 +1701,14 @@ def main() -> int:
             if failed:
                 print(f"          false checks: {failed}")
             print(f"          {note}")
-    print(f"\n{len(CLAIMS) - drift}/{len(CLAIMS)} claims match the disk")
-    return 1 if drift else 0
+    ran = len(CLAIMS) - len(unrunnable)
+    print(f"\n{ran - drift}/{ran} scored claims match the disk ({len(CLAIMS)} registered)")
+    if unrunnable:
+        print(f"          {len(unrunnable)} claim(s) raised and were not scored: "
+              f"{', '.join(unrunnable)}")
+        print("          an import error here means the wrong interpreter: this harness needs the "
+              "training venv (see scripts/test.ps1 STS2_TRAINING_PYTHON), not .venv or system python")
+    return 1 if (drift or unrunnable) else 0
 
 
 if __name__ == "__main__":

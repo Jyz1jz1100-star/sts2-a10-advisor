@@ -369,10 +369,11 @@
     "conclusion_still_refuses_completion": true
   },
   "retraction_ledger_integrity": {
-    "ledger_has_fourteen_rows": true,
+    "ledger_has_fifteen_rows": true,
     "every_row_has_three_populated_cells": true,
     "no_row_is_a_bare_restatement": true,
     "prose_count_matches_the_ledger": true,
+    "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true
   },
   "metrics_index_reviewability": {
@@ -390,6 +391,15 @@
     "windows_overlap_so_arms_ran_together": true,
     "fanout_shape_is_per_run_parallel_envs_12": true,
     "stage_shapes_are_19_act1_plus_the_two_rung_ladder": true,
-    "the_warm_start_attestation_gap_is_still_two_of_twenty_one": true
+    "the_warm_start_attestation_gap_is_still_two_of_twenty_one": true,
+    "attestation_gap_breakdown_is_17_plus_2_vs_2": true
+  },
+  "harness_self_description": {
+    "report_quotes_the_live_claim_count_exactly_once": true,
+    "gate_test_count_matches_the_quote": true,
+    "interpreter_caveat_is_documented": true,
+    "an_unrunnable_claim_is_tallied_separately_in_this_code": true,
+    "evidence_file_count_matches_the_manifest": true,
+    "no_literal_bundle_root_survives_in_the_prose": true
   }
 }
