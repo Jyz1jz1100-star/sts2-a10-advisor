@@ -1360,3 +1360,33 @@ condition (1) of the Combat PPO unfreeze. One live call
 decides both. It starts a run, so it is not something to do unattended.
 
 **One clause in the campaign report was an over-correction, now fixed.** It had said the dead-end labelling "cannot tell 'cannot act' from 'acts too slowly'". A census over all 282 committed metrics files (`scripts/census_dead_end_vocabulary.py`, `docs/evidence/dead_end_vocabulary_20260919.json`, claim `dead_end_vocabulary`) gives a three-label vocabulary -- `native_rejection` 861 (legacy schema only), `empty_action_mask` 50, `step_cap` 3 -- so both notions are labelled and `step_cap` has fired, all three times in the act1 stage. The residual gap is narrower and different: `dead_end_reason` holds one value per episode, so a co-occurring pair would record only `empty_action_mask`, and whether that ever happens cannot be seen from these files. `unclassified_dead_ends` remains 0 across the whole population.
+
+## 2026-09-19 (late) -- the live path's first blocker is not the game being off
+
+`scripts/run_solver_comparison.py --dry-run --max-battles 1 --seed-mode fixed` reaches
+`verify_solver_inventory` (run_solver_comparison.py:146-175) and stops there with
+`VersionLockError: ... inventory incomplete/failing: STS2-RitsuLib, CombatSolver`. That gate
+re-hashes each required mod DLL against
+`evaluation_environment.mod_dll_inventory`, and two of the three required entries no longer match
+the files on disk (`docs/evidence/solver_inventory_drift_20260919.json`, captured by
+`scripts/capture_solver_inventory_drift.py`, read-only):
+
+| mod | locked sha256 | observed | observed version | DLL mtime |
+|---|---|---|---|---|
+| STS2-RitsuLib | `189DC61B...` | `E3959F17...` | 0.6.2 | 2026-09-16T15:29 |
+| CombatSolver | `E9787918...` | `41BDB5DA...` | 0.41.0 | 2026-09-18T16:31 |
+
+STS2_MCP and the optional RegentFX still match, so the inventory is not wholesale wrong -- these
+two are Workshop auto-updates. The lock's own `version_history` ends at **0.31.0**, so the install
+has moved twice since even the drift this working copy captured. Restoring git HEAD's lock does
+not help: the identical dry-run against a temporary copy of HEAD's version fails the same way, so
+this is not an artifact of the uncommitted capture.
+
+**What that means for the authorized live attempt.** Reconciling `config/combat_solver.lock.json`
+is the operator's call and the file was left untouched here. Once it is reconciled, the pre-flight
+order is: (1) re-validate grammar v2's marker vocabulary against a log from the 0.41.0 install --
+the per-batch attestation exists precisely for this; (2) the fixed-seed availability judgement
+(`seed_requested == seed_canonical == requested`, `seed_injection` true, authoritative
+`compendium.current_run.seed`); (3) only then `supervise_solver_batch.py --mode observational
+--allow-actions`. Launching the game stays with the operator; the in-game solver is never turned
+off, and no live Steam/Workshop state is touched from here.

@@ -1,0 +1,85 @@
+{
+  "_comment": [
+    "Read-only. config/combat_solver.lock.json was not modified, and nothing under the Steam",
+    "library was written. The dry-run was invoked with --solver-lock against a temporary copy",
+    "of git HEAD's lock to test whether restoring the committed version would clear the gate."
+  ],
+  "blocking_gate": "verify_solver_inventory (run_solver_comparison.py:146-175): every required entry in evaluation_environment.mod_dll_inventory must exist and hash-match",
+  "entries": [
+    {
+      "file_mtime": "2026-09-02T22:12:40",
+      "locked_sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+      "matches": true,
+      "mod_id": "STS2_MCP",
+      "observed_sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+      "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
+      "required": true
+    },
+    {
+      "file_mtime": "2026-09-16T15:29:12",
+      "locked_sha256": "189DC61B368CDDC88440C842A86A63001CB4D1D7277798831BCFBFC0CA940883",
+      "matches": false,
+      "mod_id": "STS2-RitsuLib",
+      "observed_sha256": "E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6",
+      "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747602295\\STS2-RitsuLib.dll",
+      "required": true
+    },
+    {
+      "file_mtime": "2026-09-18T16:31:33",
+      "locked_sha256": "E97879185E853D678D632A16695D06D3A0AF60E2ABD4582C75FB1C02D36512E9",
+      "matches": false,
+      "mod_id": "CombatSolver",
+      "observed_sha256": "41BDB5DA3CD90115965B1CFDA55CB2E899F346F6366680BE589E5E757E6E5783",
+      "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
+      "required": true
+    },
+    {
+      "file_mtime": "2026-09-02T12:52:35",
+      "locked_sha256": "0F0262B3C4304C824C81D908CA7F3CEDABD00AF4C6B522A02513FF380C36EF06",
+      "matches": true,
+      "mod_id": "RegentFX",
+      "observed_sha256": "0F0262B3C4304C824C81D908CA7F3CEDABD00AF4C6B522A02513FF380C36EF06",
+      "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747497501\\RegentFX.dll",
+      "required": false
+    }
+  ],
+  "established": [
+    "the live path stops before the bridge is ever contacted: ['STS2-RitsuLib', 'CombatSolver'] fail the DLL inventory gate, so 'launch the game and run the batch' is not yet sufficient",
+    "restoring the committed lock does not clear it -- the same dry-run against git HEAD's version fails identically, so this is not the uncommitted capture's fault",
+    "the install has moved twice since the newest entry the working copy records (0.31.0): observed {\"CombatSolver\": {\"dll_mtime\": \"2026-09-18T16:31:33\", \"dll_sha256\": \"41BDB5DA3CD90115965B1CFDA55CB2E899F346F6366680BE589E5E757E6E5783\", \"manifest_version\": \"0.41.0\", \"min_game_version\": \"0.111.0\"}, \"STS2-RitsuLib\": {\"dll_mtime\": \"2026-09-16T15:29:12\", \"dll_sha256\": \"E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6\", \"manifest_version\": \"0.6.2\", \"min_game_version\": \"0.107.1\"}}",
+    "STS2_MCP and the optional RegentFX still hash-match, so the inventory is not wholesale wrong -- exactly the two Workshop-auto-updated mods drifted"
+  ],
+  "generated_at": "2026-09-19T11:31:21+00:00",
+  "lock_newest_history_versions": [
+    "0.25.3",
+    "0.26.0",
+    "0.27.0",
+    "0.29.1",
+    "0.31.0"
+  ],
+  "not_established": [
+    "which of the drifted versions the current grammar v2 marker vocabulary was last validated against -- the attestation path (per-batch mod version/hash self-attestation) should be run against a 0.41.0 session log before any acceptance claim is made on this install",
+    "whether the operator wants to re-pin to 0.41.0/0.6.2, downgrade, or run with the gate widened; that file is operator-owned and was left untouched here"
+  ],
+  "observed_install": {
+    "CombatSolver": {
+      "dll_mtime": "2026-09-18T16:31:33",
+      "dll_sha256": "41BDB5DA3CD90115965B1CFDA55CB2E899F346F6366680BE589E5E757E6E5783",
+      "manifest_version": "0.41.0",
+      "min_game_version": "0.111.0"
+    },
+    "STS2-RitsuLib": {
+      "dll_mtime": "2026-09-16T15:29:12",
+      "dll_sha256": "E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6",
+      "manifest_version": "0.6.2",
+      "min_game_version": "0.107.1"
+    }
+  },
+  "preconditions_now_missing_for_task_9": [
+    "reconcile config/combat_solver.lock.json (operator decision)",
+    "re-validate grammar v2 against a log from the 0.41.0 install",
+    "launch the game (its process is not running; this agent will not cold-start it)",
+    "only then: fixed-seed availability judgement, then the observational batch"
+  ],
+  "scope": "this machine, this install, read-only capture"
+}

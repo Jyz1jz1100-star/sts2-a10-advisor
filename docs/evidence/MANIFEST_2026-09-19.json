@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "bc69da6251da92cfcac326fe6030c8ae766bd689e29d559fa1069d2872596198",
-  "evidence_file_count": 27,
-  "generated_at": "2026-09-19T11:10:56+00:00",
-  "git_head_at_generation": "c98f311",
+  "bundle_root": "2b1910e2e32d7e732c4221a9746bcae02a8647189d37df9cbc368e5832542de2",
+  "evidence_file_count": 28,
+  "generated_at": "2026-09-19T11:31:44+00:00",
+  "git_head_at_generation": "f71c643",
   "checkpoint_digests_cited": 14,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -301,6 +301,11 @@
       "file": "rejection_phase_attribution_20260919.json",
       "sha256": "bca9239280e80fcce9c34da5885ec6e5b6debbc7ece395cb4a057ef66e8ca69f",
       "bytes": 7204
+    },
+    {
+      "file": "solver_inventory_drift_20260919.json",
+      "sha256": "d841419a70d21ca06566ae9b7eb71b52c852721ba08a9dc83a586d72e751ebd0",
+      "bytes": 4832
     },
     {
       "file": "stalemate_mechanics_60k_20260919.json",
