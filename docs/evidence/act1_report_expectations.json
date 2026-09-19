@@ -354,12 +354,12 @@
     "artifact_and_disk_agree_on_step_cap_files": true
   },
   "report_exec_table_citations": {
-    "row_count_is_the_expected_fifteen": true,
     "every_row_has_a_verifiable_citation": true,
     "unbacked_rows": [],
     "table_precedes_the_body": true,
     "the_two_rows_that_drifted_once_now_cite_files": true,
-    "no_row_still_claims_the_refuted_labelling_gap": true
+    "no_row_still_claims_the_refuted_labelling_gap": true,
+    "row_count_is_the_expected_sixteen": true
   },
   "objective_clause_audit": {
     "audit_section_present": true,
@@ -372,12 +372,12 @@
     "conclusion_still_refuses_completion": true
   },
   "retraction_ledger_integrity": {
-    "ledger_has_sixteen_rows": true,
     "every_row_has_three_populated_cells": true,
     "no_row_is_a_bare_restatement": true,
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
-    "the_objective_clause_is_in_the_ledger_or_the_audit": true
+    "the_objective_clause_is_in_the_ledger_or_the_audit": true,
+    "ledger_has_seventeen_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -413,5 +413,13 @@
     "act_two_has_the_power_act_one_lacks": true,
     "arrival_resources_predict_nothing_within_act_two": true,
     "exactly_one_difference_favours_act_one": true
+  },
+  "upgrade_source_accounting": {
+    "three_instruments_agree_on_upgrades_per_episode": true,
+    "event_contribution_recomputes_from_rows": true,
+    "campfire_contribution_recomputes_from_rows": true,
+    "the_upgrade_option_was_never_missing_at_a_campfire": true,
+    "the_residual_is_named_not_hidden": true,
+    "the_conditional_events_never_occurred": true
   }
 }

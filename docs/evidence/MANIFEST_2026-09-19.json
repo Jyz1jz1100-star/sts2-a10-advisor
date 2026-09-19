@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "f2852b40037b1ed7ab1dd153ea8d268b2eca5fc3434703cd02e8e1b97f56860d",
-  "evidence_file_count": 32,
-  "generated_at": "2026-09-19T13:32:02+00:00",
-  "git_head_at_generation": "12476c9",
+  "bundle_root": "b7f7ec8f4eec6717ac8501f68d80f0aa89db7f0c8fe39128b9f36d7287dd362f",
+  "evidence_file_count": 34,
+  "generated_at": "2026-09-19T14:23:45+00:00",
+  "git_head_at_generation": "9eaac49",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 655
+    "total_64_hex_strings_seen": 657
   },
   "resolved_checkpoints": [
     {
@@ -1450,10 +1450,12 @@
         "act2_boss_node_comparison_20260919.json",
         "act2_terminal_check_20260919.json",
         "arrival_state_at_boss_20260919.json",
+        "event_upgrade_opportunities_20260919.json",
         "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json",
         "refusal_root_cause_20260919.json",
         "rejection_phase_attribution_20260919.json",
+        "rest_site_choice_20260919.json",
         "reward_upgrade_availability_20260919.json"
       ],
       "paths": [
@@ -2260,8 +2262,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "25402bf8b1ca192b5008931622b0870f3dcbdcbb69c251498575e1054fc7f307",
-      "bytes": 13942
+      "sha256": "e15980232dcb09845d31f58b266858631157176abb6274ccf8b390f3cad3e862",
+      "bytes": 14320
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2334,6 +2336,11 @@
       "bytes": 13739
     },
     {
+      "file": "event_upgrade_opportunities_20260919.json",
+      "sha256": "8323b4a8951a9aac6b06cc2ac93d27f3f7287482a9415511acd4ed39eb71af21",
+      "bytes": 1042475
+    },
+    {
       "file": "fanout_attestation_20260919.json",
       "sha256": "db4df657fb4b66826c6c8112106e06fdbd7fe793a9cda7466a32dde3b6f7b9ef",
       "bytes": 58328
@@ -2372,6 +2379,11 @@
       "file": "rejection_phase_attribution_20260919.json",
       "sha256": "bca9239280e80fcce9c34da5885ec6e5b6debbc7ece395cb4a057ef66e8ca69f",
       "bytes": 7204
+    },
+    {
+      "file": "rest_site_choice_20260919.json",
+      "sha256": "0916a553c25596c1d43e9b0b8f730cf9a4c64d2d9fc3673b81f85a881c85918a",
+      "bytes": 1227336
     },
     {
       "file": "reward_upgrade_availability_20260919.json",

@@ -1507,3 +1507,35 @@ that gap. What is *not* established, and is labelled so in the artifact: what th
 rate (this measured availability, not the counterfactual). `engine_findings_checklist` now covers
 six numbered findings and re-derives these counts from the artifact, including that both exceptions
 are the hard-coded floor-5 branch.
+
+## 2026-09-19 (late) -- the campfire upgrade is open every single time, and the policy takes it 1.5% of the time
+
+Chasing the "why are the decks so old" thread to its end produced the session's most actionable
+evaluation-only result. Three sources of an upgraded card, same checkpoint, same 3,500 seeds:
+
+| source | opportunities | upgrades realised |
+|---|---|---|
+| combat card reward | 12,677 offers | **0** -- `RollCardUpgrade` is a stub returning false |
+| events (17 classified: 10 promote a held card, 4 grant an upgraded card, 2 conditional, 1 plain) | 1,003 visits | 512 |
+| **campfire** (`StepRest`, `RestUpgradeAction = 1`) | **1,883 visits, upgrade legal in 1,883 of them** | **29** |
+
+`scripts/measure_rest_site_choice.py` reads the native 32-entry mask at each campfire, so "legal"
+is the engine's own advertisement, not an assumption: the upgrade option was never missing, and all
+29 times the policy took it, an upgraded card actually entered the deck (29/29) -- so there is no
+hidden precondition. The other 1,854 visits healed, for a mean of +22.8 HP.
+
+Read it narrowly. This is **not** "the policy plays rest sites wrong": the campaign's own Act-1
+finding is that fights are lost by dying too soon, and healing buys exactly that. What the numbers
+support is that the deck-strength path is *not* closed -- one lever is fully open, entirely
+policy-controlled, and used in 1.54% of opportunities, which makes it the first thing worth
+watching if the PPO freeze is lifted, and a reward-shaping decision rather than an engine defect.
+
+Two honesty items shipped with it. The accounting does **not** close: 1,140 upgraded cards exist
+across the population, events + campfire explain 541, so **599 (52.5%) are unattributed** --
+relic pickups (`RunNonCombatEffects.cs:99-104`, `RelicPomander` / `RelicNeowsTalisman`) are the
+plausible candidate and were deliberately not measured, so the residual is reported as a number.
+And 2,374 of the 3,500 runs never reached a campfire at all, so 1.54% is a rate over visits, not
+per run. Also retracted in place: engine checklist finding 6 had generalised "this class of
+improvement is unmeasurable and unlearnable here" from the one blocked path; it is now scoped to
+reward granting. Registry 43 claims, all matching the disk; 504 contract + 106 training-environment
+tests OK.

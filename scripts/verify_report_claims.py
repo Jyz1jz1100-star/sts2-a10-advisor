@@ -1342,7 +1342,7 @@ def claim_report_exec_table_citations():
             head = cells[0][:22] if cells else "?"
             unbacked.append(f"row {index + 1} ({head}): citation {citation[:52]!r}")
     return {
-        "row_count_is_the_expected_fifteen": len(rows) == 15,
+        "row_count_is_the_expected_sixteen": len(rows) == 16,
         "every_row_has_a_verifiable_citation": not unbacked,
         "unbacked_rows": unbacked,
         "table_precedes_the_body": report.index("| 问题 | 判定 | 出处 |") < report.index("## 结论"),
@@ -1373,7 +1373,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_sixteen_rows": len(rows) == 16,
+        "ledger_has_seventeen_rows": len(rows) == 17,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1478,6 +1478,50 @@ def claim_arrival_state_equivalence():
         "arrival_resources_predict_nothing_within_act_two": all(
             block["bootstrap_ci_95"][0] <= 0 <= block["bootstrap_ci_95"][1]
             for block in win_loss.values()),
+    }
+
+
+def claim_upgrade_source_accounting():
+    """Where an upgraded card can come from is now counted source by source, and it adds up.
+
+    Three instruments over the same 3,500 seeds and checkpoint must agree: the reward-screen
+    census, the event census and the campfire census all report the same mean upgrades per episode,
+    and the event and campfire contributions are re-derived here from their per-visit rows rather
+    than read out of their own aggregates. What is left over is reported as a number, because the
+    claim this artifact supports is "one lever is policy-controlled", not "every upgrade is
+    accounted for".
+    """
+    events = json.loads((ROOT / "docs/evidence/event_upgrade_opportunities_20260919.json")
+                        .read_text(encoding="utf-8"))
+    rest = json.loads((ROOT / "docs/evidence/rest_site_choice_20260919.json")
+                      .read_text(encoding="utf-8"))
+    reward = json.loads((ROOT / "docs/evidence/reward_upgrade_availability_20260919.json")
+                        .read_text(encoding="utf-8"))
+    realised_from_rows = sum(1 for sighting in events["sightings"]
+                             if (sighting.get("upgrade_delta") or 0) > 0)
+    rest_from_rows = sum(1 for visit in rest["visits"]
+                         if (visit.get("upgrade_delta") or 0) > 0)
+    advertised = [visit for visit in rest["visits"] if visit["legal"].get("upgrade")]
+    taken = [visit for visit in advertised if visit["chosen"] == 1]
+    total = sum(row["upgraded_in_final_deck"] for row in rest["per_seed"])
+    return {
+        "three_instruments_agree_on_upgrades_per_episode": (
+            events["aggregates"]["mean_upgraded_in_final_deck"]
+            == rest["aggregates"]["mean_upgraded_in_final_deck"]
+            == reward["aggregates"]["mean_upgraded_in_final_deck"] == 0.326),
+        "event_contribution_recomputes_from_rows": (
+            realised_from_rows == 512 == events["aggregates"]["events_that_realised_an_upgrade"]),
+        "campfire_contribution_recomputes_from_rows": (
+            rest_from_rows == 29 == rest["aggregates"]["rest_visits_realising_an_upgrade"]),
+        "the_upgrade_option_was_never_missing_at_a_campfire": (
+            len(advertised) == len(rest["visits"]) == 1883
+            and len(taken) == 29 and len(rest["visits"]) >= 10 * len(taken)),
+        "the_residual_is_named_not_hidden": (
+            total - 512 - 29 == 599
+            and events["aggregates"]["episodes"] == rest["aggregates"]["episodes"] == 3500),
+        "the_conditional_events_never_occurred": (
+            rest["aggregates"]["episodes"] == 3500
+            and events["aggregates"]["conditional_event_visits"] == 0),
     }
 
 
@@ -1729,6 +1773,8 @@ CLAIMS = {
                                  "the report's own numbers about this harness, re-derived"),
     "arrival_state_equivalence": (claim_arrival_state_equivalence,
                                   "the two acts' boss arrivals are comparable runs"),
+    "upgrade_source_accounting": (claim_upgrade_source_accounting,
+                                  "where the policy's upgrades come from, counted per source"),
 }
 
 
