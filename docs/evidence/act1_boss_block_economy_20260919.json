@@ -1,0 +1,966 @@
+{
+  "_comment": [
+    "Block per boss decision, measured at every decision rather than inferred.",
+    "net_pool_lost = (entry HP + entry block) - (HP + block at the last recorded decision).",
+    "It under-counts damage if the player heals mid-fight and counts block dissipated at turn end,",
+    "so it is an upper bound on efficiency, not an exact damage total."
+  ],
+  "generated_at": "2026-09-19T05:09:30Z",
+  "losers": {
+    "decisions_median": 22,
+    "entry_block_median": 0,
+    "entry_hp_median": 61,
+    "n": 83,
+    "net_pool_lost_median": 48,
+    "net_pool_lost_per_decision": {
+      "median_of_ratios": 2.0,
+      "ratio_of_medians": 2.18
+    },
+    "peak_block_median": 7,
+    "zero_block_at_entry_share": 0.964
+  },
+  "method_note": "ratio_of_medians divides group median damage by group median decisions; median_of_ratios is the per-fight median. Both are reported because they differ, and the claim in the report uses the conservative comparison.",
+  "reading": "Neither group brings block into the fight (median 0 at entry; 96% of losers and 100% of winners at exactly 0). Winners lose about 1.2 of their HP+block pool per boss decision, losers about 2.0-2.2 depending on whether the ratio is taken across medians or per fight -- roughly a 40% difference, with twice the peak block. At the losers rate, arriving with 80 HP instead of 61 buys ~30% more decisions, not the ~2.3x the winners show, so the entry pool alone cannot reach the 51 decisions the wins needed; the loss rate has to move too.",
+  "rows": {
+    "losers": [
+      {
+        "decisions": 19,
+        "entry_block": 0,
+        "entry_hp": 34,
+        "illegal": 0,
+        "net_pool_lost": 18,
+        "peak_block": 19,
+        "seed": 130010028,
+        "won": false
+      },
+      {
+        "decisions": 18,
+        "entry_block": 0,
+        "entry_hp": 58,
+        "illegal": 0,
+        "net_pool_lost": 54,
+        "peak_block": 0,
+        "seed": 130010040,
+        "won": false
+      },
+      {
+        "decisions": 30,
+        "entry_block": 0,
+        "entry_hp": 74,
+        "illegal": 0,
+        "net_pool_lost": 48,
+        "peak_block": 18,
+        "seed": 130010044,
+        "won": false
+      },
+      {
+        "decisions": 14,
+        "entry_block": 0,
+        "entry_hp": 32,
+        "illegal": 0,
+        "net_pool_lost": 20,
+        "peak_block": 5,
+        "seed": 130010062,
+        "won": false
+      },
+      {
+        "decisions": 29,
+        "entry_block": 0,
+        "entry_hp": 70,
+        "illegal": 0,
+        "net_pool_lost": 53,
+        "peak_block": 10,
+        "seed": 130010200,
+        "won": false
+      },
+      {
+        "decisions": 22,
+        "entry_block": 0,
+        "entry_hp": 81,
+        "illegal": 0,
+        "net_pool_lost": 55,
+        "peak_block": 0,
+        "seed": 130010252,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 56,
+        "illegal": 0,
+        "net_pool_lost": 32,
+        "peak_block": 5,
+        "seed": 130010368,
+        "won": false
+      },
+      {
+        "decisions": 19,
+        "entry_block": 0,
+        "entry_hp": 69,
+        "illegal": 0,
+        "net_pool_lost": 55,
+        "peak_block": 12,
+        "seed": 130010385,
+        "won": false
+      },
+      {
+        "decisions": 19,
+        "entry_block": 0,
+        "entry_hp": 64,
+        "illegal": 0,
+        "net_pool_lost": 51,
+        "peak_block": 8,
+        "seed": 130010393,
+        "won": false
+      },
+      {
+        "decisions": 25,
+        "entry_block": 0,
+        "entry_hp": 94,
+        "illegal": 0,
+        "net_pool_lost": 75,
+        "peak_block": 5,
+        "seed": 130010419,
+        "won": false
+      },
+      {
+        "decisions": 33,
+        "entry_block": 0,
+        "entry_hp": 78,
+        "illegal": 0,
+        "net_pool_lost": 76,
+        "peak_block": 5,
+        "seed": 130010482,
+        "won": false
+      },
+      {
+        "decisions": 9,
+        "entry_block": 0,
+        "entry_hp": 34,
+        "illegal": 0,
+        "net_pool_lost": 16,
+        "peak_block": 3,
+        "seed": 130011503,
+        "won": false
+      },
+      {
+        "decisions": 42,
+        "entry_block": 0,
+        "entry_hp": 87,
+        "illegal": 0,
+        "net_pool_lost": 73,
+        "peak_block": 13,
+        "seed": 130011559,
+        "won": false
+      },
+      {
+        "decisions": 26,
+        "entry_block": 0,
+        "entry_hp": 59,
+        "illegal": 0,
+        "net_pool_lost": 33,
+        "peak_block": 19,
+        "seed": 130011571,
+        "won": false
+      },
+      {
+        "decisions": 11,
+        "entry_block": 0,
+        "entry_hp": 35,
+        "illegal": 0,
+        "net_pool_lost": 17,
+        "peak_block": 5,
+        "seed": 130011635,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 50,
+        "illegal": 0,
+        "net_pool_lost": 38,
+        "peak_block": 5,
+        "seed": 130011774,
+        "won": false
+      },
+      {
+        "decisions": 22,
+        "entry_block": 10,
+        "entry_hp": 59,
+        "illegal": 0,
+        "net_pool_lost": 50,
+        "peak_block": 20,
+        "seed": 130011804,
+        "won": false
+      },
+      {
+        "decisions": 42,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 73,
+        "peak_block": 5,
+        "seed": 130011833,
+        "won": false
+      },
+      {
+        "decisions": 15,
+        "entry_block": 0,
+        "entry_hp": 49,
+        "illegal": 0,
+        "net_pool_lost": 28,
+        "peak_block": 5,
+        "seed": 130011939,
+        "won": false
+      },
+      {
+        "decisions": 24,
+        "entry_block": 0,
+        "entry_hp": 65,
+        "illegal": 0,
+        "net_pool_lost": 57,
+        "peak_block": 0,
+        "seed": 130011952,
+        "won": false
+      },
+      {
+        "decisions": 24,
+        "entry_block": 0,
+        "entry_hp": 59,
+        "illegal": 0,
+        "net_pool_lost": 55,
+        "peak_block": 5,
+        "seed": 130012052,
+        "won": false
+      },
+      {
+        "decisions": 18,
+        "entry_block": 0,
+        "entry_hp": 64,
+        "illegal": 0,
+        "net_pool_lost": 46,
+        "peak_block": 15,
+        "seed": 130012072,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 45,
+        "illegal": 0,
+        "net_pool_lost": 36,
+        "peak_block": 0,
+        "seed": 130012152,
+        "won": false
+      },
+      {
+        "decisions": 23,
+        "entry_block": 0,
+        "entry_hp": 71,
+        "illegal": 0,
+        "net_pool_lost": 42,
+        "peak_block": 10,
+        "seed": 130012154,
+        "won": false
+      },
+      {
+        "decisions": 22,
+        "entry_block": 0,
+        "entry_hp": 89,
+        "illegal": 0,
+        "net_pool_lost": 61,
+        "peak_block": 5,
+        "seed": 130012159,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 40,
+        "illegal": 0,
+        "net_pool_lost": 26,
+        "peak_block": 10,
+        "seed": 130012170,
+        "won": false
+      },
+      {
+        "decisions": 28,
+        "entry_block": 0,
+        "entry_hp": 68,
+        "illegal": 0,
+        "net_pool_lost": 51,
+        "peak_block": 10,
+        "seed": 130012198,
+        "won": false
+      },
+      {
+        "decisions": 12,
+        "entry_block": 0,
+        "entry_hp": 36,
+        "illegal": 0,
+        "net_pool_lost": 30,
+        "peak_block": 5,
+        "seed": 130012214,
+        "won": false
+      },
+      {
+        "decisions": 22,
+        "entry_block": 0,
+        "entry_hp": 45,
+        "illegal": 0,
+        "net_pool_lost": 40,
+        "peak_block": 9,
+        "seed": 130012389,
+        "won": false
+      },
+      {
+        "decisions": 17,
+        "entry_block": 0,
+        "entry_hp": 56,
+        "illegal": 0,
+        "net_pool_lost": 48,
+        "peak_block": 6,
+        "seed": 130012403,
+        "won": false
+      },
+      {
+        "decisions": 32,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 54,
+        "peak_block": 0,
+        "seed": 130012415,
+        "won": false
+      },
+      {
+        "decisions": 27,
+        "entry_block": 0,
+        "entry_hp": 63,
+        "illegal": 0,
+        "net_pool_lost": 52,
+        "peak_block": 5,
+        "seed": 130012435,
+        "won": false
+      },
+      {
+        "decisions": 14,
+        "entry_block": 0,
+        "entry_hp": 38,
+        "illegal": 0,
+        "net_pool_lost": 37,
+        "peak_block": 5,
+        "seed": 130012470,
+        "won": false
+      },
+      {
+        "decisions": 20,
+        "entry_block": 0,
+        "entry_hp": 65,
+        "illegal": 0,
+        "net_pool_lost": 53,
+        "peak_block": 6,
+        "seed": 130012535,
+        "won": false
+      },
+      {
+        "decisions": 10,
+        "entry_block": 0,
+        "entry_hp": 37,
+        "illegal": 0,
+        "net_pool_lost": 25,
+        "peak_block": 10,
+        "seed": 130012576,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 51,
+        "illegal": 0,
+        "net_pool_lost": 43,
+        "peak_block": 3,
+        "seed": 130012638,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 26,
+        "illegal": 0,
+        "net_pool_lost": 17,
+        "peak_block": 19,
+        "seed": 130012715,
+        "won": false
+      },
+      {
+        "decisions": 25,
+        "entry_block": 0,
+        "entry_hp": 60,
+        "illegal": 0,
+        "net_pool_lost": 48,
+        "peak_block": 5,
+        "seed": 130012771,
+        "won": false
+      },
+      {
+        "decisions": 43,
+        "entry_block": 0,
+        "entry_hp": 77,
+        "illegal": 0,
+        "net_pool_lost": 73,
+        "peak_block": 12,
+        "seed": 130012795,
+        "won": false
+      },
+      {
+        "decisions": 25,
+        "entry_block": 0,
+        "entry_hp": 76,
+        "illegal": 0,
+        "net_pool_lost": 65,
+        "peak_block": 6,
+        "seed": 130012833,
+        "won": false
+      },
+      {
+        "decisions": 21,
+        "entry_block": 0,
+        "entry_hp": 61,
+        "illegal": 0,
+        "net_pool_lost": 36,
+        "peak_block": 13,
+        "seed": 130012885,
+        "won": false
+      },
+      {
+        "decisions": 28,
+        "entry_block": 0,
+        "entry_hp": 57,
+        "illegal": 0,
+        "net_pool_lost": 37,
+        "peak_block": 10,
+        "seed": 130013013,
+        "won": false
+      },
+      {
+        "decisions": 19,
+        "entry_block": 0,
+        "entry_hp": 68,
+        "illegal": 0,
+        "net_pool_lost": 44,
+        "peak_block": 5,
+        "seed": 130013031,
+        "won": false
+      },
+      {
+        "decisions": 52,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 67,
+        "peak_block": 16,
+        "seed": 130013063,
+        "won": false
+      },
+      {
+        "decisions": 20,
+        "entry_block": 0,
+        "entry_hp": 48,
+        "illegal": 0,
+        "net_pool_lost": 42,
+        "peak_block": 5,
+        "seed": 130013070,
+        "won": false
+      },
+      {
+        "decisions": 31,
+        "entry_block": 0,
+        "entry_hp": 51,
+        "illegal": 0,
+        "net_pool_lost": 29,
+        "peak_block": 14,
+        "seed": 130013105,
+        "won": false
+      },
+      {
+        "decisions": 12,
+        "entry_block": 0,
+        "entry_hp": 35,
+        "illegal": 0,
+        "net_pool_lost": 20,
+        "peak_block": 7,
+        "seed": 130013110,
+        "won": false
+      },
+      {
+        "decisions": 21,
+        "entry_block": 0,
+        "entry_hp": 51,
+        "illegal": 0,
+        "net_pool_lost": 35,
+        "peak_block": 0,
+        "seed": 130013150,
+        "won": false
+      },
+      {
+        "decisions": 19,
+        "entry_block": 0,
+        "entry_hp": 51,
+        "illegal": 0,
+        "net_pool_lost": 40,
+        "peak_block": 15,
+        "seed": 130013160,
+        "won": false
+      },
+      {
+        "decisions": 23,
+        "entry_block": 0,
+        "entry_hp": 50,
+        "illegal": 0,
+        "net_pool_lost": 37,
+        "peak_block": 10,
+        "seed": 130013249,
+        "won": false
+      },
+      {
+        "decisions": 26,
+        "entry_block": 0,
+        "entry_hp": 61,
+        "illegal": 0,
+        "net_pool_lost": 54,
+        "peak_block": 7,
+        "seed": 130013259,
+        "won": false
+      },
+      {
+        "decisions": 38,
+        "entry_block": 0,
+        "entry_hp": 64,
+        "illegal": 0,
+        "net_pool_lost": 54,
+        "peak_block": 17,
+        "seed": 130013282,
+        "won": false
+      },
+      {
+        "decisions": 24,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 67,
+        "peak_block": 8,
+        "seed": 130013328,
+        "won": false
+      },
+      {
+        "decisions": 28,
+        "entry_block": 0,
+        "entry_hp": 55,
+        "illegal": 0,
+        "net_pool_lost": 48,
+        "peak_block": 0,
+        "seed": 130013351,
+        "won": false
+      },
+      {
+        "decisions": 24,
+        "entry_block": 0,
+        "entry_hp": 57,
+        "illegal": 0,
+        "net_pool_lost": 46,
+        "peak_block": 12,
+        "seed": 130013399,
+        "won": false
+      },
+      {
+        "decisions": 10,
+        "entry_block": 0,
+        "entry_hp": 35,
+        "illegal": 0,
+        "net_pool_lost": 25,
+        "peak_block": 5,
+        "seed": 130013417,
+        "won": false
+      },
+      {
+        "decisions": 25,
+        "entry_block": 0,
+        "entry_hp": 75,
+        "illegal": 0,
+        "net_pool_lost": 57,
+        "peak_block": 10,
+        "seed": 130013476,
+        "won": false
+      },
+      {
+        "decisions": 30,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 50,
+        "peak_block": 13,
+        "seed": 130010526,
+        "won": false
+      },
+      {
+        "decisions": 31,
+        "entry_block": 0,
+        "entry_hp": 85,
+        "illegal": 0,
+        "net_pool_lost": 72,
+        "peak_block": 0,
+        "seed": 130010544,
+        "won": false
+      },
+      {
+        "decisions": 24,
+        "entry_block": 0,
+        "entry_hp": 72,
+        "illegal": 0,
+        "net_pool_lost": 62,
+        "peak_block": 10,
+        "seed": 130010622,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 0,
+        "entry_hp": 49,
+        "illegal": 0,
+        "net_pool_lost": 32,
+        "peak_block": 5,
+        "seed": 130010647,
+        "won": false
+      },
+      {
+        "decisions": 14,
+        "entry_block": 0,
+        "entry_hp": 40,
+        "illegal": 0,
+        "net_pool_lost": 27,
+        "peak_block": 0,
+        "seed": 130010661,
+        "won": false
+      },
+      {
+        "decisions": 16,
+        "entry_block": 10,
+        "entry_hp": 48,
+        "illegal": 0,
+        "net_pool_lost": 51,
+        "peak_block": 10,
+        "seed": 130010669,
+        "won": false
+      },
+      {
+        "decisions": 13,
+        "entry_block": 0,
+        "entry_hp": 42,
+        "illegal": 0,
+        "net_pool_lost": 20,
+        "peak_block": 16,
+        "seed": 130010671,
+        "won": false
+      },
+      {
+        "decisions": 21,
+        "entry_block": 0,
+        "entry_hp": 34,
+        "illegal": 0,
+        "net_pool_lost": 17,
+        "peak_block": 21,
+        "seed": 130010706,
+        "won": false
+      },
+      {
+        "decisions": 43,
+        "entry_block": 10,
+        "entry_hp": 101,
+        "illegal": 0,
+        "net_pool_lost": 82,
+        "peak_block": 15,
+        "seed": 130010710,
+        "won": false
+      },
+      {
+        "decisions": 18,
+        "entry_block": 0,
+        "entry_hp": 45,
+        "illegal": 0,
+        "net_pool_lost": 28,
+        "peak_block": 6,
+        "seed": 130010719,
+        "won": false
+      },
+      {
+        "decisions": 21,
+        "entry_block": 0,
+        "entry_hp": 63,
+        "illegal": 0,
+        "net_pool_lost": 51,
+        "peak_block": 3,
+        "seed": 130010735,
+        "won": false
+      },
+      {
+        "decisions": 47,
+        "entry_block": 0,
+        "entry_hp": 94,
+        "illegal": 0,
+        "net_pool_lost": 83,
+        "peak_block": 5,
+        "seed": 130010799,
+        "won": false
+      },
+      {
+        "decisions": 23,
+        "entry_block": 0,
+        "entry_hp": 79,
+        "illegal": 0,
+        "net_pool_lost": 61,
+        "peak_block": 12,
+        "seed": 130010915,
+        "won": false
+      },
+      {
+        "decisions": 30,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 79,
+        "peak_block": 18,
+        "seed": 130010980,
+        "won": false
+      },
+      {
+        "decisions": 18,
+        "entry_block": 0,
+        "entry_hp": 64,
+        "illegal": 0,
+        "net_pool_lost": 42,
+        "peak_block": 0,
+        "seed": 130010999,
+        "won": false
+      },
+      {
+        "decisions": 18,
+        "entry_block": 0,
+        "entry_hp": 61,
+        "illegal": 0,
+        "net_pool_lost": 37,
+        "peak_block": 5,
+        "seed": 130011033,
+        "won": false
+      },
+      {
+        "decisions": 30,
+        "entry_block": 0,
+        "entry_hp": 68,
+        "illegal": 0,
+        "net_pool_lost": 52,
+        "peak_block": 10,
+        "seed": 130011097,
+        "won": false
+      },
+      {
+        "decisions": 15,
+        "entry_block": 0,
+        "entry_hp": 56,
+        "illegal": 0,
+        "net_pool_lost": 37,
+        "peak_block": 5,
+        "seed": 130011138,
+        "won": false
+      },
+      {
+        "decisions": 30,
+        "entry_block": 0,
+        "entry_hp": 55,
+        "illegal": 0,
+        "net_pool_lost": 32,
+        "peak_block": 12,
+        "seed": 130011166,
+        "won": false
+      },
+      {
+        "decisions": 44,
+        "entry_block": 0,
+        "entry_hp": 77,
+        "illegal": 0,
+        "net_pool_lost": 49,
+        "peak_block": 29,
+        "seed": 130011224,
+        "won": false
+      },
+      {
+        "decisions": 26,
+        "entry_block": 0,
+        "entry_hp": 72,
+        "illegal": 0,
+        "net_pool_lost": 58,
+        "peak_block": 5,
+        "seed": 130011234,
+        "won": false
+      },
+      {
+        "decisions": 40,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 77,
+        "peak_block": 10,
+        "seed": 130011251,
+        "won": false
+      },
+      {
+        "decisions": 20,
+        "entry_block": 0,
+        "entry_hp": 66,
+        "illegal": 0,
+        "net_pool_lost": 56,
+        "peak_block": 5,
+        "seed": 130011275,
+        "won": false
+      },
+      {
+        "decisions": 19,
+        "entry_block": 0,
+        "entry_hp": 32,
+        "illegal": 0,
+        "net_pool_lost": 23,
+        "peak_block": 21,
+        "seed": 130011284,
+        "won": false
+      },
+      {
+        "decisions": 25,
+        "entry_block": 0,
+        "entry_hp": 77,
+        "illegal": 0,
+        "net_pool_lost": 58,
+        "peak_block": 10,
+        "seed": 130011335,
+        "won": false
+      },
+      {
+        "decisions": 17,
+        "entry_block": 0,
+        "entry_hp": 45,
+        "illegal": 0,
+        "net_pool_lost": 37,
+        "peak_block": 13,
+        "seed": 130011472,
+        "won": false
+      }
+    ],
+    "winners": [
+      {
+        "decisions": 46,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 63,
+        "peak_block": 48,
+        "seed": 130011349,
+        "won": true
+      },
+      {
+        "decisions": 46,
+        "entry_block": 0,
+        "entry_hp": 82,
+        "illegal": 0,
+        "net_pool_lost": 57,
+        "peak_block": 10,
+        "seed": 130017492,
+        "won": true
+      },
+      {
+        "decisions": 56,
+        "entry_block": 0,
+        "entry_hp": 90,
+        "illegal": 0,
+        "net_pool_lost": 83,
+        "peak_block": 16,
+        "seed": 130015199,
+        "won": true
+      },
+      {
+        "decisions": 63,
+        "entry_block": 0,
+        "entry_hp": 80,
+        "illegal": 0,
+        "net_pool_lost": 64,
+        "peak_block": 18,
+        "seed": 130016374,
+        "won": true
+      },
+      {
+        "decisions": 63,
+        "entry_block": 0,
+        "entry_hp": 77,
+        "illegal": 0,
+        "net_pool_lost": 68,
+        "peak_block": 8,
+        "seed": 130008774,
+        "won": true
+      },
+      {
+        "decisions": 57,
+        "entry_block": 0,
+        "entry_hp": 68,
+        "illegal": 0,
+        "net_pool_lost": 61,
+        "peak_block": 15,
+        "seed": 130015189,
+        "won": true
+      },
+      {
+        "decisions": 51,
+        "entry_block": 0,
+        "entry_hp": 72,
+        "illegal": 0,
+        "net_pool_lost": 48,
+        "peak_block": 14,
+        "seed": 130017978,
+        "won": true
+      },
+      {
+        "decisions": 48,
+        "entry_block": 0,
+        "entry_hp": 87,
+        "illegal": 0,
+        "net_pool_lost": 71,
+        "peak_block": 10,
+        "seed": 130019400,
+        "won": true
+      },
+      {
+        "decisions": 33,
+        "entry_block": 0,
+        "entry_hp": 65,
+        "illegal": 0,
+        "net_pool_lost": 58,
+        "peak_block": 5,
+        "seed": 130008177,
+        "won": true
+      }
+    ]
+  },
+  "scope": "simulator_act1, act 1 boss node only",
+  "winners": {
+    "all_won": true,
+    "decisions_median": 51,
+    "entry_block_median": 0,
+    "entry_hp_median": 80,
+    "illegal_total": 0,
+    "n": 9,
+    "net_pool_lost_median": 63,
+    "net_pool_lost_per_decision": {
+      "median_of_ratios": 1.24,
+      "ratio_of_medians": 1.24
+    },
+    "peak_block_median": 14,
+    "zero_block_at_entry_share": 1.0
+  }
+}

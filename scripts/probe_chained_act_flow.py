@@ -233,6 +233,11 @@ def main() -> int:
                         "enemy_hp": [hp for hp, _ in enemies],
                         "enemy_max_hp": [m for _, m in enemies],
                         "player_hp": info.get("player_hp"),
+                        # CombatObservation.cs:22 -- the block value is what turns
+                        # "arrived with 61 HP" into an effective-HP statement, and it
+                        # was the one quantity the loss model had to leave unmeasured.
+                        "player_block": int(raw[2]),
+                        "energy": int(raw[3]),
                         "combat_sig": hashlib.sha256(
                             repr(combat).encode("utf-8")).hexdigest()[:12],
                     })

@@ -128,6 +128,17 @@
     "band_within_0p1": true,
     "sample_sizes_sum": 171
   },
+  "block_economy": {
+    "fights": [
+      83,
+      9
+    ],
+    "no_group_enters_with_block": true,
+    "winners_peak_block_higher": true,
+    "losers_bleed_faster_both_conventions": true,
+    "winners_all_won": true,
+    "winners_illegal_total": 0
+  },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
     "same_checkpoint": true,

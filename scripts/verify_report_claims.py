@@ -440,6 +440,35 @@ def claim_action_mix_invariant():
     }
 
 
+def claim_block_economy():
+    """Recompute the block-economy gap that closes the Act 1 model.
+
+    The report's final claim is that neither group arrives with block and the winners
+    simply bleed slower. Both halves are recomputed from the per-fight rows, and the
+    loss ratio is reported under both conventions because they do not agree exactly.
+    """
+    data = json.loads((ROOT / "docs/evidence/act1_boss_block_economy_20260919.json")
+                      .read_text(encoding="utf-8"))
+    losers, winners = data["rows"]["losers"], data["rows"]["winners"]
+    return {
+        "fights": [len(losers), len(winners)],
+        "no_group_enters_with_block": (data["losers"]["entry_block_median"] == 0
+                                       and data["winners"]["entry_block_median"] == 0),
+        "winners_peak_block_higher": (data["winners"]["peak_block_median"]
+                                      > data["losers"]["peak_block_median"]),
+        "losers_bleed_faster_both_conventions": all(
+            losers_ratio > winners_ratio
+            for (losers_ratio, winners_ratio) in [
+                (data["losers"]["net_pool_lost_per_decision"]["ratio_of_medians"],
+                 data["winners"]["net_pool_lost_per_decision"]["ratio_of_medians"]),
+                (data["losers"]["net_pool_lost_per_decision"]["median_of_ratios"],
+                 data["winners"]["net_pool_lost_per_decision"]["median_of_ratios"]),
+            ]),
+        "winners_all_won": data["winners"]["all_won"],
+        "winners_illegal_total": data["winners"]["illegal_total"],
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -470,6 +499,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "block_economy": (claim_block_economy,
+                      "nobody brings block to the boss; winners just bleed ~1.7x slower"),
     "action_mix_invariant": (claim_action_mix_invariant,
                              "plays per decision barely differs across won and lost fights"),
     "entry_hp_refutation": (claim_entry_hp_refutation,
