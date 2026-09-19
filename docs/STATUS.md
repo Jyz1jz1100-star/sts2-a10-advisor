@@ -1111,10 +1111,12 @@ to survive without advancing. Dissecting one boss stalemate decision-by-decision
 (`docs/ACT1_CAMPAIGN_2026-09-19.md`, "僵持的机制") found the opposite: the policy
 passed the turn with a playable card in hand **zero** times out of 59,681 end_turns,
 and end_turn was the *only* legal action in 99.995% of them. The boss in that
-fight is Vantom -- inferred from max HP 183 being unique in the generated enemy table
-(`Enemies.g.cs:110`), since the combat observation deliberately carries no enemy
-identity -- and `EnemyAI.cs:259-263` programs it to deal three unplayable Wounds into
-the player's deck every fourth move, so a 20-card hand saturates by arithmetic. Read literally,
+fight is Vantom (`EnemyAI.cs:259-263` deals it three unplayable Wounds into the
+player's deck every fourth move), confirmed by `RunEngine.cs:459-471`, which gates a
+retained-trace script on exactly this seed/floor/encounter/HP/gold. **That same script
+hardcodes the fight's opening hand and a 10-card draw pile, so this instance cannot
+carry a general claim about Vantom fights** -- it needs a non-demo-seed re-run. What it
+does establish is the direction of the error: the policy was never refusing to act. Read literally,
 condition (2) asks for a fix to a behaviour that is not happening. Two things do
 remain worth fixing, and they are different: the contract should treat a persistent
 single-legal-action combat state as terminal rather than a truncation, and the
