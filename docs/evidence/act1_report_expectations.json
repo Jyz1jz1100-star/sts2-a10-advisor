@@ -381,7 +381,7 @@
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_eighteen_rows": true
+    "ledger_has_nineteen_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -443,5 +443,14 @@
     "the_take_rate_depends_on_the_position": true,
     "cards_agree_with_the_step_attribution_census": true,
     "the_offering_is_observable_not_hidden": true
+  },
+  "ladder_promotion_ledger": {
+    "recomputation_used_the_repos_own_gate": true,
+    "eight_evaluations_two_promotions": true,
+    "floor3_promoted_and_floor6_never": true,
+    "floor6_final_two_missed_only_on_boundary_rate": true,
+    "floor10_was_evaluated_once_and_rejected": true,
+    "floor13_has_no_run_at_all": true,
+    "digests_rehashed_here": 34
   }
 }

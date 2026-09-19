@@ -1373,7 +1373,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_eighteen_rows": len(rows) == 18,
+        "ledger_has_nineteen_rows": len(rows) == 19,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1615,6 +1615,51 @@ def claim_opening_choice_position_pref():
             sum(row.get("upgrade_delta") or 0 for row in offered) == ancient_cards == 463),
         "the_offering_is_observable_not_hidden": '("neow_options", 3)' in observation_spec
             and '_copy("neow_options", neow_options, 3)' in observation_spec,
+    }
+
+
+def claim_ladder_promotion_ledger():
+    """Every rung's real gate decision, re-derived with the repository's own promotion function.
+
+    The report had been describing the ladder from the absence of parent links; this ledger reads the
+    500-episode promotion records the trainer wrote and judges them with ``decide_promotion``, so a
+    missing rung and a rejected rung can no longer be reported as the same thing. ``digests_re-
+    hashed_here`` is a count on purpose: checkpoints live under gitignored ``runs/``, so on another
+    machine it reads 0 and surfaces as drift instead of passing vacuously.
+    """
+    payload = json.loads((ROOT / "docs/evidence/ladder_promotion_ledger_20260919.json")
+                         .read_text(encoding="utf-8"))
+    agg = payload["aggregates"]
+    by_stage: dict[str, list] = {}
+    digests_checked = 0
+    for row in payload["rows"]:
+        by_stage.setdefault(row["stage"], []).extend(row.get("promotion_evaluations", []))
+        for checkpoint in row.get("checkpoints", []):
+            path = ROOT / checkpoint["file"]
+            if path.is_file():
+                digests_checked += int(
+                    __import__("hashlib").sha256(path.read_bytes()).hexdigest()
+                    == checkpoint["sha256"])
+    floor6, floor3, floor10 = by_stage.get("floor6", []), by_stage.get("floor3", []), by_stage.get("floor10", [])
+    return {
+        "recomputation_used_the_repos_own_gate": all(
+            "reasons" in record and "observed" in record for row in payload["rows"]
+            for record in row.get("promotion_evaluations", [])),
+        "eight_evaluations_two_promotions": (
+            agg["promotion_evaluations_total"] == 8
+            and agg["promotion_evaluations_promoting_total"] == 2),
+        "floor3_promoted_and_floor6_never": (
+            len(floor3) == 2 and all(record["promoted"] for record in floor3)
+            and len(floor6) == 5 and not any(record["promoted"] for record in floor6)),
+        "floor6_final_two_missed_only_on_boundary_rate": all(
+            record["observed"].get("defect_truncation_rate") == 0.0
+            and any(reason.startswith("boundary") for reason in record["reasons"])
+            for record in floor6[-2:]),
+        "floor10_was_evaluated_once_and_rejected": (
+            len(floor10) == 1 and floor10[0]["promoted"] is False
+            and any("boundary_rate" in reason for reason in floor10[0]["reasons"])),
+        "floor13_has_no_run_at_all": "floor13" in agg["stages_with_no_run_at_all"],
+        "digests_rehashed_here": digests_checked,
     }
 
 
@@ -1906,6 +1951,8 @@ CLAIMS = {
                                   "the two acts' boss arrivals are comparable runs"),
     "opening_choice_position_pref": (claim_opening_choice_position_pref,
                                      "the run-start relic pick, offered rarely and positionally"),
+    "ladder_promotion_ledger": (claim_ladder_promotion_ledger,
+                                "each rung's real gate decision, re-derived"),
     "upgrade_step_attribution": (claim_upgrade_step_attribution,
                                  "every upgraded card, attributed to the step that made it"),
     "upgrade_source_accounting": (claim_upgrade_source_accounting,

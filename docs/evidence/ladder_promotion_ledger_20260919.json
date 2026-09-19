@@ -1,0 +1,860 @@
+{
+  "aggregates": {
+    "configured_stages": [
+      "floor3",
+      "floor6",
+      "floor10",
+      "floor13",
+      "act1"
+    ],
+    "stages_with_no_run_at_all": [
+      "act1",
+      "floor13"
+    ],
+    "stages_with_a_promotion_decision": [
+      "floor10",
+      "floor3",
+      "floor6"
+    ],
+    "promotion_evaluations_total": 8,
+    "promotion_evaluations_promoting_total": 2,
+    "gate_failure_reasons": {
+      "defect_truncation_rate": 3,
+      "boundary_rate": 6,
+      "boundary_wilson_95_low": 5
+    },
+    "checkpoints_recorded": 34
+  },
+  "generated_at": "2026-09-19T15:48:45+00:00",
+  "not_established": [
+    "that any of these decisions is still reachable by a reviewer on another machine -- runs/ is gitignored, so only this ledger's contents travel",
+    "the parent of each act-1 arm, which is a separate question handled by ladder_lineage_20260919.json; a rung can be evaluated and still not be the parent",
+    "anything about the shipped game; thresholds come from this repository's own config"
+  ],
+  "rows": [
+    {
+      "stage": "floor3",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3",
+      "promotion_evaluations": [
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\metrics\\early-promotion-0m.json",
+          "is_early_promotion_record": true,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 1.0,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\checkpoints\\step_000000500016.zip",
+          "steps": null,
+          "promoted": true,
+          "reasons": [],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 1.0,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 1.0,
+            "defect_truncation_rate": 0.0,
+            "illegal_actions": 0,
+            "mean_final_floor": 3.0,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.9,
+            "min_boundary_wilson_lower": null
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "rejection_events",
+            "winning_seeds"
+          ]
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\metrics\\promotion.json",
+          "is_early_promotion_record": false,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 1.0,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\checkpoints\\step_000000500016.zip",
+          "steps": null,
+          "promoted": true,
+          "reasons": [],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 1.0,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 1.0,
+            "defect_truncation_rate": 0.0,
+            "illegal_actions": 0,
+            "mean_final_floor": 3.0,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.9,
+            "min_boundary_wilson_lower": null
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "rejection_events",
+            "winning_seeds"
+          ]
+        }
+      ],
+      "checkpoint_probes": 2,
+      "probe_episode_counts": [
+        100
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\checkpoints\\step_000000250008.zip",
+          "sha256": "07ec858bbeca9ccc6b61913851bd2ed5f0e3bae7f89acf0eea037e0995a4df4e",
+          "bytes": 3109000
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\checkpoints\\step_000000500016.zip",
+          "sha256": "69c6c32d693f51be14e78e549b3892ee22747d84338fdb58b7cfd0449a0528db",
+          "bytes": 3109001
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor3",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor3",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 3,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor3\\checkpoints\\final.zip",
+          "sha256": "7b1d52ee95a75e95441ddbf851f321f85943081062623976a2c533af3764e14d",
+          "bytes": 3016169
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor3\\checkpoints\\step_000000001024.zip",
+          "sha256": "91b45795e94704444094ec628ba061626af1bdc548fbf90fea9a272797f16bd4",
+          "bytes": 1041503
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor3\\checkpoints\\step_000000002048.zip",
+          "sha256": "bab84bd50a9a73bd60136c2866e2b231749fdeea36c997c7205d63250ec49f4f",
+          "bytes": 3016169
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor3",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor3",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 3,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor3\\checkpoints\\final.zip",
+          "sha256": "18e8581be1422a5adc2d174a0f190995cabd40a092b8bf434ca969b7d3d2f67e",
+          "bytes": 3016212
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor3\\checkpoints\\step_000000001024.zip",
+          "sha256": "0ee588ac69abf6282c2d7e795a94e2512a8396d543bc4f7f29b2a1966ec2433c",
+          "bytes": 1041546
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor3\\checkpoints\\step_000000002048.zip",
+          "sha256": "71ac97d8c0976008888275d1b01ac48547d3576c3d9515f3847dd2c011553df0",
+          "bytes": 3016212
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor3",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor3",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 3,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor3\\checkpoints\\final.zip",
+          "sha256": "5d866fb705158f1e8e412f0ff3cacc8a2bd2e35f4dcbdd7ba4d6fb5a9c1d601e",
+          "bytes": 3016212
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor3\\checkpoints\\step_000000001024.zip",
+          "sha256": "e21348eebed24414d818bb4ad4b21630455846353a0655795be1e78536fe186b",
+          "bytes": 1041546
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor3\\checkpoints\\step_000000002048.zip",
+          "sha256": "5734979460d4aad5f23a222da21e5833134ac5ca876dcb0ee3dddcfbc87a33d6",
+          "bytes": 3016212
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor3",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor3",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 3,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor3\\checkpoints\\final.zip",
+          "sha256": "ad6d597ad37d3031b736991b9e3f4b8a9a5562378810dd17d17476acf5425db9",
+          "bytes": 3016212
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor3\\checkpoints\\step_000000001024.zip",
+          "sha256": "64a38ba34878e8ebd00ef6b5f0b2cf2e8dbcb64083c422f932bb2b83eb3bee3b",
+          "bytes": 1041546
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor3\\checkpoints\\step_000000002048.zip",
+          "sha256": "032a009f4196b7e640f616500c65bd78c3cb0fd1df4a32e14029fb2ebad1955f",
+          "bytes": 3016212
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor6",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6",
+      "promotion_evaluations": [
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\metrics\\early-promotion-step_000001000008.json",
+          "is_early_promotion_record": true,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 0.872,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T095635Z\\floor6\\checkpoints\\step_000001000008.zip",
+          "steps": null,
+          "promoted": false,
+          "reasons": [
+            "defect_truncation_rate 0.4340 > allowed 0.0300",
+            "boundary_rate 0.4380 < required 0.9300",
+            "boundary_wilson_95_low 0.0000 < required 0.9000"
+          ],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 0.438,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 0.872,
+            "defect_truncation_rate": 0.434,
+            "illegal_actions": 0,
+            "mean_final_floor": 4.866,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.93,
+            "min_boundary_wilson_lower": 0.9
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "rejection_events",
+            "winning_seeds"
+          ]
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\metrics\\early-promotion-step_000002000016.json",
+          "is_early_promotion_record": true,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 0.87,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T095635Z\\floor6\\checkpoints\\step_000002000016.zip",
+          "steps": null,
+          "promoted": false,
+          "reasons": [
+            "defect_truncation_rate 0.3280 > allowed 0.0300",
+            "boundary_rate 0.5420 < required 0.9300",
+            "boundary_wilson_95_low 0.0000 < required 0.9000"
+          ],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 0.542,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 0.87,
+            "defect_truncation_rate": 0.328,
+            "illegal_actions": 0,
+            "mean_final_floor": 5.15,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.93,
+            "min_boundary_wilson_lower": 0.9
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "rejection_events",
+            "winning_seeds"
+          ]
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\metrics\\early-promotion-step_000003000024.json",
+          "is_early_promotion_record": true,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 0.91,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T095635Z\\floor6\\checkpoints\\step_000003000024.zip",
+          "steps": null,
+          "promoted": false,
+          "reasons": [
+            "defect_truncation_rate 0.4480 > allowed 0.0300",
+            "boundary_rate 0.4620 < required 0.9300",
+            "boundary_wilson_95_low 0.0000 < required 0.9000"
+          ],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 0.462,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 0.91,
+            "defect_truncation_rate": 0.448,
+            "illegal_actions": 0,
+            "mean_final_floor": 4.912,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.93,
+            "min_boundary_wilson_lower": 0.9
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "rejection_events",
+            "winning_seeds"
+          ]
+        }
+      ],
+      "checkpoint_probes": 6,
+      "probe_episode_counts": [
+        100
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\checkpoints\\step_000000500004.zip",
+          "sha256": "9dda45ca9c2f13b8eb195a2012ebdcdebfe38c448b0abb5d2e729d25b8acf98d",
+          "bytes": 3109177
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\checkpoints\\step_000001000008.zip",
+          "sha256": "fce8104147402b15cec466c06e67749516e86ed07d84afc8dd298c820e8c9bd5",
+          "bytes": 3109178
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\checkpoints\\step_000001500012.zip",
+          "sha256": "b6693141ff4e71478136a8244b7d1c63bbd63e9b92621462a772ce9d62730f69",
+          "bytes": 3109179
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\checkpoints\\step_000002000016.zip",
+          "sha256": "7a242d1e36bba2e9e606d2279af59b97de123b14984040ee9329d35a8a077c7b",
+          "bytes": 3109179
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\checkpoints\\step_000002500020.zip",
+          "sha256": "3d52dc02bd473a913daffac6e8bcdfca9ed45b56a520d8f39c4877314427aa9c",
+          "bytes": 3109179
+        },
+        {
+          "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\checkpoints\\step_000003000024.zip",
+          "sha256": "ff3c867b1a8fda075007104ce7921b0a0360fc05fc27ff4bac857f0130e25352",
+          "bytes": 3109180
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor6",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6",
+      "promotion_evaluations": [
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\metrics\\early-promotion-step_000001000008.json",
+          "is_early_promotion_record": true,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 0.86,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\checkpoints\\step_000001000008.zip",
+          "steps": null,
+          "promoted": false,
+          "reasons": [
+            "boundary_rate 0.8600 < required 0.9300",
+            "boundary_wilson_95_low 0.0000 < required 0.9000"
+          ],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 0.86,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 0.86,
+            "defect_truncation_rate": 0.0,
+            "illegal_actions": 0,
+            "mean_final_floor": 5.852,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.93,
+            "min_boundary_wilson_lower": 0.9
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "winning_seeds"
+          ]
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\metrics\\promotion.json",
+          "is_early_promotion_record": false,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 0.86,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\checkpoints\\step_000001000008.zip",
+          "steps": null,
+          "promoted": false,
+          "reasons": [
+            "boundary_rate 0.8600 < required 0.9300",
+            "boundary_wilson_95_low 0.0000 < required 0.9000"
+          ],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 0.86,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 0.86,
+            "defect_truncation_rate": 0.0,
+            "illegal_actions": 0,
+            "mean_final_floor": 5.852,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.93,
+            "min_boundary_wilson_lower": 0.9
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "winning_seeds"
+          ]
+        }
+      ],
+      "checkpoint_probes": 2,
+      "probe_episode_counts": [
+        100
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\checkpoints\\step_000000500004.zip",
+          "sha256": "f325559d44f9c7431d30d17e31ec1dfaee102d3e2b79d755b534dd74f2f3e1c3",
+          "bytes": 3109177
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\checkpoints\\step_000001000008.zip",
+          "sha256": "b8deab061798daeb65bb681eebece3d54a53229bb7e6767f22c71e082e355ce4",
+          "bytes": 3109178
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor6",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor6",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 2,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor6\\checkpoints\\final.zip",
+          "sha256": "df5b88c684858596be24a751fc145e58236bd5cfcf16d9003403b74ea01669bb",
+          "bytes": 3016345
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor6\\checkpoints\\step_000000001024.zip",
+          "sha256": "e94d2578634e8e634b9323998d6876e8fe686c34f5ee28fe7f8fcd3bc75bbf38",
+          "bytes": 3016345
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor6",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor6",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 2,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor6\\checkpoints\\final.zip",
+          "sha256": "d307cb69bc2ed7db2c7327c4d673f029c53d725bb6902b9fdea7de72b9ec8bae",
+          "bytes": 3016388
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor6\\checkpoints\\step_000000001024.zip",
+          "sha256": "cc09d17b57cc020be358ba8015a4bd27e1c589912d6571db373ba46f7ad3143a",
+          "bytes": 3016388
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor6",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor6",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 2,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor6\\checkpoints\\final.zip",
+          "sha256": "8a84bacac37fbc8a4c6ebd48ceeb0b243c733924d4ae1dbe2cfdaf18d1c3a480",
+          "bytes": 3016388
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor6\\checkpoints\\step_000000001024.zip",
+          "sha256": "ce35c0f9bdbb5e0c5046d6eeaf76b334d8285c2525431e27cf3af2d9d20da5d0",
+          "bytes": 3016388
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor6",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor6",
+      "promotion_evaluations": [],
+      "checkpoint_probes": 2,
+      "probe_episode_counts": [
+        20,
+        30
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor6\\checkpoints\\final.zip",
+          "sha256": "3091b78ac3331c8bcffdb921589b85faf4f11b3d54bf50a584d1af20dd02ae25",
+          "bytes": 3016388
+        },
+        {
+          "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor6\\checkpoints\\step_000000001024.zip",
+          "sha256": "76d4089c60e310fa52f4eb781a8b250bba89424937dd5d6ed599682de9c15510",
+          "bytes": 3016388
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor10",
+      "run_present": true,
+      "run_dir": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10",
+      "promotion_evaluations": [
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\metrics\\early-promotion-step_000002000016.json",
+          "is_early_promotion_record": true,
+          "episodes": 500,
+          "win_rate": 0.0,
+          "wilson_lower": null,
+          "truncation_rate": 0.238,
+          "illegal_actions": 0,
+          "recorded_checkpoint": "G:\\ds harness\\sts2-a10-advisor\\runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\checkpoints\\step_000002000016.zip",
+          "steps": null,
+          "promoted": false,
+          "reasons": [
+            "boundary_rate 0.2380 < required 0.7000"
+          ],
+          "observed": {
+            "episodes": 500,
+            "win_rate": 0.0,
+            "wilson_95_low": 4.336808689942018e-19,
+            "boundary_rate": 0.238,
+            "boundary_wilson_95_low": 0.0,
+            "truncation_rate": 0.238,
+            "defect_truncation_rate": 0.0,
+            "illegal_actions": 0,
+            "mean_final_floor": 7.592,
+            "mean_final_hp_fraction": null,
+            "unclassified_dead_ends": 0
+          },
+          "required": {
+            "min_episodes": 500,
+            "min_win_rate": 0.0,
+            "min_wilson_lower": 0.0,
+            "max_truncation_rate": 0.03,
+            "max_illegal_actions": 0,
+            "min_mean_floor": null,
+            "min_boundary_rate": 0.7,
+            "min_boundary_wilson_lower": null
+          },
+          "fields_absent_from_the_record": [
+            "boundary_hits",
+            "boundary_wilson_95_high",
+            "boundary_wilson_95_low",
+            "by_act",
+            "final_floor_histogram",
+            "mean_final_hp_fraction",
+            "winning_seeds"
+          ]
+        }
+      ],
+      "checkpoint_probes": 4,
+      "probe_episode_counts": [
+        100
+      ],
+      "checkpoints": [
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\checkpoints\\step_000001000008.zip",
+          "sha256": "63f62dbc72555b01b849498d70719ae2ef4c2e50343cd91db832b778e0c489e3",
+          "bytes": 3109178
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\checkpoints\\step_000002000016.zip",
+          "sha256": "239e20ab4c48512f3a18bbae922328bb941601fa2761082c028ad571bcf5bb8c",
+          "bytes": 3109190
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\checkpoints\\step_000003000024.zip",
+          "sha256": "2d112dafa790543c0daf778f71781be6c3fc94f6aabb0a2ae40f994759b45731",
+          "bytes": 3109180
+        },
+        {
+          "file": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\checkpoints\\step_000004000032.zip",
+          "sha256": "538fbac62458b36bf4f461ae5c92ec39739720611041037388feb0fbbf8af10c",
+          "bytes": 3109180
+        }
+      ],
+      "gate_thresholds": {
+        "min_win_rate": 0.0,
+        "min_wilson_lower": 0.0,
+        "max_truncation_rate": 0.03,
+        "max_illegal_actions": 0,
+        "min_episodes": 500,
+        "promotion_eval_episodes": 500
+      }
+    },
+    {
+      "stage": "floor13",
+      "run_present": false,
+      "run_dirs": [],
+      "promotion_evaluations": [],
+      "checkpoint_probes": 0,
+      "checkpoints": []
+    },
+    {
+      "stage": "act1",
+      "run_present": false,
+      "run_dirs": [],
+      "promotion_evaluations": [],
+      "checkpoint_probes": 0,
+      "checkpoints": []
+    }
+  ],
+  "scope": "every runs/curriculum_v2*/**/<configured stage> directory, judged against config/training_v2.toml as it reads now"
+}

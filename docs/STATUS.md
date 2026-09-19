@@ -1586,3 +1586,27 @@ only for `relic_reward` screens, because these same relics are handed out at the
 (retraction ledger row 18). Overall the strength picture is now: combat rewards structurally zero,
 events 686 cards, opening choice 463 with a 12.5% availability ceiling and a 47%/92% slot bias,
 campfire 29 of 1,883 legal chances. Registry 45 claims, all matching the disk.
+
+## 2026-09-19 (late) -- what the ladder's own gate records say, rung by rung
+
+The warm-start clause had been summarised from missing parent links, which conflated "this rung was
+never trained" with "this rung was trained and rejected". `scripts/build_ladder_promotion_ledger.py`
+now reads the 500-episode promotion records the trainer wrote under `runs/curriculum_v2*/**/<stage>/
+metrics/` and judges each one with the repository's own `decide_promotion` rather than a
+re-implementation of the thresholds, producing `ladder_promotion_ledger_20260919.json`
+(claim `ladder_promotion_ledger`, 34 recorded checkpoint digests re-hashed here).
+
+Eight promotion evaluations exist; two promoted. floor3 promoted (both evaluations pass:
+`defect_truncation_rate` 0.0, `boundary_rate` 1.0). floor6 was evaluated five times and **never**
+promoted -- the first three failed on defect truncation 0.33-0.45 against a 0.03 cap, the last two
+reached 0.0 truncation and were still rejected for `boundary_rate` 0.86 against a 0.93 requirement
+(and its Wilson lower bound). floor10 has one evaluation, rejected at `boundary_rate` 0.238 against
+0.70. floor13 has no directory at all. So the ladder's break is at **floor6**, and the act-1 arms
+exist because the config started that stage, not because anything promoted into it.
+
+Two mistakes were made and fixed on the way here, both recorded in the campaign's retraction ledger
+(row 19) and in the script's docstring: the report had claimed floor10 had *no* promotion decision
+(it does, one, negative), and the first version of this ledger compared `truncation_rate` against
+the gate instead of `defect_truncation_rate` -- the field `training/promotion.py:39-48` actually
+reads -- which reported a clean 8/8 failure that was entirely the tool's own error. The number to
+look at first if the freeze is ever lifted is floor6's 0.86-versus-0.93 boundary rate, not truncation.
