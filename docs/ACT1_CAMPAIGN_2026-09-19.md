@@ -574,3 +574,18 @@ A/B 用的 n≈504，半宽 ≈ **0.31 层**。一个真为 0.5 层的效应会�
 既能越过 0.5 的幅度门、区间也不含 0——**所以 0.5 层这个阈值在 504 个种子上是探测得到的，
 不是拍脑袋定的**。反过来也说明：如果两臂差落在 ±0.3 附近，那就必须报"读不出"，
 不能因为方向好看就说成进展。
+
+### A/B 的判定命令（结果出来之前就固定，不允许事后改）
+
+```
+"G:/qoder/third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe" \
+  scripts/compare_act1_seed_filter_arms.py \
+  --config runtime/act1_ab/a1filt.toml \
+  --arm a1mix  runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/checkpoints/step_000002000000.zip \
+  --arm a1filt runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/checkpoints/step_000002000000.zip \
+  --episodes 1000 --out runtime/act1_ab/paired_ab.json
+```
+
+（左臂为基线，Δ = `a1filt − a1mix`；`a1mix` 在前，正的 Δ 就代表过滤有增益。）
+两臂各自的 `plan.json` 已经带 `warm_start` 与 `train_seeds` 两条自证，
+所以"同一父检查点 + 同一窗口 + 只差一个过滤器"这件事是产物级的，不是叙述。
