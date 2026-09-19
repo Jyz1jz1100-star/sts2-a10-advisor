@@ -1132,3 +1132,25 @@ was inherited state, not something I started; my own additions are the two arms.
   recorded as "survival-without-advance reward exploitation", which is also the
   most plausible explanation for the campaign's flat act1 series (depth saturating
   around floor 8 while survival reward keeps accruing).
+
+## One static contradiction that currently gates two things (2026-09-19 02:27 UTC)
+
+`docs/FIXED_SEED_FEASIBILITY.md` now records this in full. Short version: the
+recorded `installed_bridge_supported = false` is contradicted by the binary that
+is actually installed — the DLL at the locked path (`CD3EA7409F5AC697…`, equal to
+`live_version.lock.json`) contains `seed_requested` / `seed_canonical` /
+`seed_injection` / `seed_verified`, `/api/v1/singleplayer`, and five
+`Seeded embark requires/failed…` error strings.
+
+I deliberately did **not** flip that flag or its asserting test: compiled strings
+show a code path exists, not that the endpoint honours `seed` and that the
+authoritative `current_run.seed` reads back equal — and this project's rule is no
+live readback, no support claim. What changed is the flag's status: it is now
+"unverified, static evidence favourable", which is not the same as "verified false",
+and should no longer be quoted as the latter.
+
+Why it is worth one operator-minute: that same gap is the stated reason
+`docs/COMBAT_SOLVER.md` keeps formal Phase B BLOCKED, and the Phase B verdict is
+condition (1) of the Combat PPO unfreeze. One live call
+(`scripts/run_solver_comparison.py --max-battles 1`, checks listed in the note)
+decides both. It starts a run, so it is not something to do unattended.
