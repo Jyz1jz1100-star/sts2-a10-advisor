@@ -2171,3 +2171,24 @@ The digest guard had already fired once for real: a shell variable assembled fro
 substitutions carried a stray newline, so the guard rejected an *empty-ish* expectation instead of rolling
 25 episodes against weights nobody had verified. Refusing on a malformed expectation is the direction I
 wanted, and the error prints both digests so the fix is obvious. 61/61 claims, 512 + 132 tests.
+
+## 2026-09-20 -- a stale metrics index was undetectable; now it is, and the check cost me one of my own bugs
+
+`metrics_index_reviewability` is the portable half of the reviewability story: it recomputes the campaign's
+headline counts **from the committed index** so a clean clone gets the same answer. That is also why it could
+never notice the corpus outgrowing the index -- every number stays self-consistent while describing fewer
+files than exist, the index-side twin of a checkpoint population nobody recounted. The claim now re-walks
+both metrics globs and requires set equality (so an added file and a deleted one both surface) and reports
+the disk count as a number, which reads 0 against 282 on a machine without the gitignored originals and
+shows up as drift instead of a pass. Measured equal here: 282 rows, 282 files, no adds, no deletions.
+
+The first run said "not equal" and that was my bug, not the corpus's: `ROOT.glob` yields absolute paths
+while the index stores repo-relative ones, so the comparison could never succeed. The tell was a count that
+agreed while the contents did not. Commit `37e2f8b`; 61/61 claims, 512 + 132 tests.
+
+**Still open, by constraint rather than by effort:** the objective's first clause (Act 1-3 full-flow win) is
+not representable in this simulator, and the only remaining reproducible-command item never re-run end to
+end is item 4, the 102-checkpoint frontier sweep -- long-running, and its population count is already
+re-derived by `chained_frontier` on every claim run, so its marginal value is artifact bytes rather than
+new information. The real-machine path and the learnability question are both gated on the operator
+(solver lock reconciliation, game launch, PPO freeze).
