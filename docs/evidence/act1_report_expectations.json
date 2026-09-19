@@ -205,7 +205,10 @@
     "policy_choice_is_on_the_truncating_side": true,
     "card_screen_is_a_negative_control": true,
     "all_three_runs_fought_the_same_boss": true,
-    "truncating_run_is_a_false_negative": true
+    "truncating_run_is_a_false_negative": true,
+    "sampled_losses_are_internally_consistent": true,
+    "proceed_recovers_every_sampled_loss": true,
+    "leftmost_claim_truncates_in_every_sampled_loss": true
   },
   "dead_end_reason_census": {
     "files_with_reason_field": 49,

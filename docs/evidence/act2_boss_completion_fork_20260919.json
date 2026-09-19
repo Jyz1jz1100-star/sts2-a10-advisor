@@ -23,7 +23,9 @@
     "an act-2 truncation previously read as 'the policy reached the boss and could not finish' is a reward-screen-order artifact: on seed 130012038 the same policy, same seed and same already-won boss fight reaches phase=complete when it claims reward item 2 or proceeds instead of claiming item 0",
     "the card-reward screen is not the deciding state -- substituting every legal action there leaves each seed's outcome unchanged",
     "generated act-2 maps really do end at row 17: the run that exits to Map at floor 17 has no legal map action, so the floor-33 terminalFloor that AdvanceAfterNode uses for underdocks is unreachable for a generated act-2 run",
-    "act 1 is structurally immune to this path: its terminalFloor is 17, so both exits from the boss node end the run, which is why the Act-1 0/83 conversion deficit cannot be explained by it"
+    "act 1 is structurally immune to this path: its terminalFloor is 17, so both exits from the boss node end the run, which is why the Act-1 0/83 conversion deficit cannot be explained by it",
+    "the recovering action is the same one in every sampled case: pressing proceed (base 3) at the boss relic screen completes 7 of 7 lost runs examined, while the policy chose the leftmost claim (base 0) in all 7 and truncated in all 7",
+    "so the loss is not a dead-end state the policy cannot escape -- it is one legal action away in every sampled run, and that action is 'stop claiming and leave the rest of the reward screen'"
   ],
   "forks": [
     {
@@ -31,8 +33,58 @@
       "fork_phase": "card_reward",
       "negative_control": true,
       "seeds": [
-        {"policy_chosen_base": 0, "seed": 130012038, "variants": [{"action_base": 0, "final_phase": "map", "run_won": false}, {"action_base": 1, "final_phase": "map", "run_won": false}, {"action_base": 2, "final_phase": "map", "run_won": false}, {"action_base": 3, "final_phase": "map", "run_won": false}]},
-        {"policy_chosen_base": 1, "seed": 130010053, "variants": [{"action_base": 0, "final_phase": "complete", "run_won": true}, {"action_base": 1, "final_phase": "complete", "run_won": true}, {"action_base": 2, "final_phase": "complete", "run_won": true}, {"action_base": 3, "final_phase": "complete", "run_won": true}]}
+        {
+          "policy_chosen_base": 0,
+          "seed": 130012038,
+          "variants": [
+            {
+              "action_base": 0,
+              "final_phase": "map",
+              "run_won": false
+            },
+            {
+              "action_base": 1,
+              "final_phase": "map",
+              "run_won": false
+            },
+            {
+              "action_base": 2,
+              "final_phase": "map",
+              "run_won": false
+            },
+            {
+              "action_base": 3,
+              "final_phase": "map",
+              "run_won": false
+            }
+          ]
+        },
+        {
+          "policy_chosen_base": 1,
+          "seed": 130010053,
+          "variants": [
+            {
+              "action_base": 0,
+              "final_phase": "complete",
+              "run_won": true
+            },
+            {
+              "action_base": 1,
+              "final_phase": "complete",
+              "run_won": true
+            },
+            {
+              "action_base": 2,
+              "final_phase": "complete",
+              "run_won": true
+            },
+            {
+              "action_base": 3,
+              "final_phase": "complete",
+              "run_won": true
+            }
+          ]
+        }
       ]
     },
     {
@@ -41,27 +93,141 @@
       "negative_control": false,
       "seeds": [
         {
-          "fork_state_info": {"act": 2, "current_node_type": 6, "deck_size": 16, "encounter_id": 84, "floor": 17, "gold": 18, "phase_name": "relic_reward", "player_hp": 86, "player_max_hp": 92, "player_won": true, "relic_count": 4, "relic_reward": 215},
+          "fork_state_info": {
+            "act": 2,
+            "current_node_type": 6,
+            "deck_size": 16,
+            "encounter_id": 84,
+            "floor": 17,
+            "gold": 18,
+            "phase_name": "relic_reward",
+            "player_hp": 86,
+            "player_max_hp": 92,
+            "player_won": true,
+            "relic_count": 4,
+            "relic_reward": 215
+          },
           "fork_step": 197,
           "policy_chosen_base": 0,
           "seed": 130012038,
           "variants": [
-            {"action_base": 0, "final_floor": 17, "final_phase": "map", "run_won": false, "trace_tail": ["combat", "relic_reward", "card_reward", "map"]},
-            {"action_base": 1, "final_floor": 17, "final_phase": "map", "run_won": false, "trace_tail": ["combat", "relic_reward", "card_reward", "map"]},
-            {"action_base": 2, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
-            {"action_base": 3, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["rest", "map", "combat", "relic_reward"]}
+            {
+              "action_base": 0,
+              "final_floor": 17,
+              "final_phase": "map",
+              "run_won": false,
+              "trace_tail": [
+                "combat",
+                "relic_reward",
+                "card_reward",
+                "map"
+              ]
+            },
+            {
+              "action_base": 1,
+              "final_floor": 17,
+              "final_phase": "map",
+              "run_won": false,
+              "trace_tail": [
+                "combat",
+                "relic_reward",
+                "card_reward",
+                "map"
+              ]
+            },
+            {
+              "action_base": 2,
+              "final_floor": 17,
+              "final_phase": "complete",
+              "run_won": true,
+              "trace_tail": [
+                "combat",
+                "relic_reward",
+                "card_reward",
+                "relic_reward"
+              ]
+            },
+            {
+              "action_base": 3,
+              "final_floor": 17,
+              "final_phase": "complete",
+              "run_won": true,
+              "trace_tail": [
+                "rest",
+                "map",
+                "combat",
+                "relic_reward"
+              ]
+            }
           ]
         },
         {
-          "fork_state_info": {"act": 2, "current_node_type": 6, "deck_size": 19, "encounter_id": 84, "floor": 17, "gold": 16, "phase_name": "relic_reward", "player_hp": 60, "player_max_hp": 86, "player_won": true, "relic_count": 4, "relic_reward": 10},
+          "fork_state_info": {
+            "act": 2,
+            "current_node_type": 6,
+            "deck_size": 19,
+            "encounter_id": 84,
+            "floor": 17,
+            "gold": 16,
+            "phase_name": "relic_reward",
+            "player_hp": 60,
+            "player_max_hp": 86,
+            "player_won": true,
+            "relic_count": 4,
+            "relic_reward": 10
+          },
           "fork_step": 177,
           "policy_chosen_base": 1,
           "seed": 130010053,
           "variants": [
-            {"action_base": 0, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
-            {"action_base": 1, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
-            {"action_base": 2, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
-            {"action_base": 3, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["rest", "map", "combat", "relic_reward"]}
+            {
+              "action_base": 0,
+              "final_floor": 17,
+              "final_phase": "complete",
+              "run_won": true,
+              "trace_tail": [
+                "combat",
+                "relic_reward",
+                "card_reward",
+                "relic_reward"
+              ]
+            },
+            {
+              "action_base": 1,
+              "final_floor": 17,
+              "final_phase": "complete",
+              "run_won": true,
+              "trace_tail": [
+                "combat",
+                "relic_reward",
+                "card_reward",
+                "relic_reward"
+              ]
+            },
+            {
+              "action_base": 2,
+              "final_floor": 17,
+              "final_phase": "complete",
+              "run_won": true,
+              "trace_tail": [
+                "combat",
+                "relic_reward",
+                "card_reward",
+                "relic_reward"
+              ]
+            },
+            {
+              "action_base": 3,
+              "final_floor": 17,
+              "final_phase": "complete",
+              "run_won": true,
+              "trace_tail": [
+                "rest",
+                "map",
+                "combat",
+                "relic_reward"
+              ]
+            }
           ]
         }
       ]
@@ -74,5 +240,96 @@
   ],
   "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/probe_boss_reward_order.py --checkpoint runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip --seeds 130012038,130010053 --fork-phase relic_reward --out runtime/boss_relic_reward_order.json",
   "scope": "simulator_act1 label, generated act 2 (underdocks), argmax, one checkpoint",
-  "supersedes_open_question_in": "act2_boss_node_comparison_20260919.json"
+  "supersedes_open_question_in": "act2_boss_node_comparison_20260919.json",
+  "sampled_lost_runs_boss_relic_screen": {
+    "_comment": [
+      "Seven census truncations replayed to their floor-17 relic screen and forked on every legal",
+      "action, same checkpoint and argmax policy. bases: 0/1/2 claim the 1st/2nd/3rd pending item,",
+      "3 = proceed. All seven had current_node_type=6, encounter_id=84, generated act 2.",
+      "Recommendation deliberately NOT 'train base 3': at a boss the proceeding action skips the",
+      "remaining relic, so optimising into it would teach the policy to leave a reward on the table",
+      "to satisfy a simulator exit condition. The clean fix is engine-side, and until then the",
+      "act-2 judged-win rate should be read as depressed by this class."
+    ],
+    "policy_choice_in_all_runs": 0,
+    "proceed_completes": 7,
+    "runs_sampled": 7,
+    "runs": [
+      {
+        "seed": 130012038,
+        "fork_step": 197,
+        "completing_bases": [
+          2,
+          3
+        ],
+        "relic_reward": 215,
+        "relics": 4,
+        "player_hp": 86
+      },
+      {
+        "seed": 130013858,
+        "fork_step": 293,
+        "completing_bases": [
+          2,
+          3
+        ],
+        "relic_reward": 252,
+        "relics": 2,
+        "player_hp": 29
+      },
+      {
+        "seed": 130014330,
+        "fork_step": 214,
+        "completing_bases": [
+          3
+        ],
+        "relic_reward": 23,
+        "relics": 2,
+        "player_hp": 29
+      },
+      {
+        "seed": 130016448,
+        "fork_step": 210,
+        "completing_bases": [
+          3
+        ],
+        "relic_reward": 19,
+        "relics": 3,
+        "player_hp": 63
+      },
+      {
+        "seed": 130019935,
+        "fork_step": 231,
+        "completing_bases": [
+          2,
+          3
+        ],
+        "relic_reward": 3,
+        "relics": 4,
+        "player_hp": 40
+      },
+      {
+        "seed": 130000397,
+        "fork_step": 259,
+        "completing_bases": [
+          3
+        ],
+        "relic_reward": 172,
+        "relics": 2,
+        "player_hp": 27
+      },
+      {
+        "seed": 130000866,
+        "fork_step": 265,
+        "completing_bases": [
+          3
+        ],
+        "relic_reward": 9,
+        "relics": 3,
+        "player_hp": 65
+      }
+    ],
+    "base_2_completes": 3,
+    "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e"
+  }
 }

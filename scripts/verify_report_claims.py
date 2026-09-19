@@ -543,6 +543,8 @@ def claim_boss_completion_fork():
     card = next(f for f in fork["forks"] if f["fork_phase"] == "card_reward")
     losing = next(s for s in relic["seeds"] if s["seed"] == 130012038)
     phases = {row["action_base"]: row["final_phase"] for row in losing["variants"]}
+    sampled = fork["sampled_lost_runs_boss_relic_screen"]
+    runs = sampled["runs"]
     return {
         "relic_screen_splits_two_ways": sorted(phases.values()) == ["complete", "complete", "map", "map"],
         "policy_choice_is_on_the_truncating_side": phases[losing["policy_chosen_base"]] == "map",
@@ -555,6 +557,14 @@ def claim_boss_completion_fork():
             and all(row["boss_emptied"] for row in node["runs"])),
         "truncating_run_is_a_false_negative": node["runs"][0]["outcome"] == "truncated"
                                              and node["runs"][0]["boss_emptied"],
+        "sampled_losses_are_internally_consistent": len(runs) == sampled["runs_sampled"],
+        # The claim that matters for the unfreeze decision: no sampled loss is a stuck
+        # state, every one of them is one legal action from a judged win.
+        "proceed_recovers_every_sampled_loss": all(3 in row["completing_bases"] for row in runs)
+                                               and sampled["proceed_completes"] == len(runs),
+        "leftmost_claim_truncates_in_every_sampled_loss": all(
+            0 not in row["completing_bases"] for row in runs)
+            and sampled["policy_choice_in_all_runs"] == 0,
     }
 
 
