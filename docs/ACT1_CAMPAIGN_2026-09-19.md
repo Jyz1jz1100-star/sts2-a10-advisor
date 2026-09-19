@@ -1,5 +1,32 @@
 # 夜间 Act 1 战役评估（2026-09-19）
 
+## 先读：目标里的"Act 1–3 全流程"在模拟器范围内**不可表示**
+
+目标要求 Ironclad A10 的 **Act 1–3** 全流程胜利（真机第三幕有两个 boss）。这一条
+不是"还没训练到"，而是**当前这台模拟器结构上没有第三幕**，四条源码证据（均为
+`third_party/slay-the-spire-2-emulator-main`，可在盘上逐条打开核对）：
+
+1. **幕的枚举只有两个值。** `src/Sts2Emulator/Core/Run/RunConstants.cs:35-36` 只有
+   `ActOvergrowth = 1` 与 `ActUnderdocks = 2`，没有任何第三个 act 常量。
+2. **开局按种子二选一。** `RunMapGenerator.cs:9-11`：`actRng.NextBool()` 决定
+   `state.Act` 是 underdocks 还是 overgrowth——一次运行只生成**一幕**。
+   （本晚普查 10000 局得到 overgrowth 5014 / underdocks 4986，正好是这次枚举的分布证据。）
+3. **唯一的跨幕分支被硬编码种子门控。** `RunEngine.cs:1907-1920` 的
+   `AdvanceAfterRelicReward` 只在 `StringSeed == "7MS1YN8NWB" && Floor == 17` 时把
+   Act 置为 Underdocks 并重生成地图；任何其它种子在 boss 后直接
+   `Phase = Complete`（同文件 1922-1923）。即"链到第二幕"这件事只对**一个演示种子**成立，
+   而且只链 Act 1 → Act 2。
+4. **终局层数因此也是两档。** `RunEngine.cs:1986-1990`：`terminalFloor` 对 overgrowth 是
+   `MapBossRow + 1 = 17`，只有 underdocks 才是 `MapBossRow * 2 + 1 = 33`（而 underdocks
+   能走到 33 的，实际只有上面那条被门控的演示种子链）。
+
+**含义**：模拟器的可达上限 = "单幕通关"（Act 1 或 Act 2 到 boss 并取胜，floor 17），
+最多加上那条**写死的** 1→2 双幕链。它不含 Act 3，也不含"第三幕两个 boss"。
+所以本文给出的所有胜利证据，**最多只能证明目标的前两幕部分**，
+按字面判定目标**未完成**；真正的 Act 1–3 全流程只能走真机路径
+（见 `docs/ACCEPTANCE.md` 与任务"操作员开机后跑真机三幕批次"）。
+我没有去给模拟器补一个第三幕——那等于凭空发明游戏内容，产出的"胜利"不能当作游戏的证据。
+
 ## 结论
 
 V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检查点与种子分区均可重算）：
@@ -207,6 +234,8 @@ VERDICT: reproduced        (exit code 0)
    `Phase` 置为 `Complete`。Python 侧 `training/evaluation.py:108` 的 `final_floor`
    取 episode **最后一步** info 里的 `floor`。所以 **17 = boss 节点本身**，
    不是"已经打赢"：死在 boss 与打赢 boss 的局终局层数都是 17，只能靠 `won` 区分。
+   （**此处不完整**：第二晚实测还有第三种——在 boss 战里**僵持**到步数上限，
+   `terminated=False` 且 `truncated=True`，见文末"boss 战僵持"一节。）
    第 16 层从不出现在终局层数里也说得通——在那一层死掉的局本来就极少。
 
    所以瓶颈的主次是清楚的：挡住胜率的是**前中段的消耗**（66% 在 5–8 层出局），
@@ -347,3 +376,105 @@ Act-1 单独评估把胜利种子写进了 `winning_seeds`（指标 schema 6）�
   被写过，冷启动新运行可能顶掉在跑的一局。三幕需要操作员本人开机后再跑：
   `python scripts/supervise_solver_batch.py --mode observational --allow-actions
   --max-battles 50`。
+
+## 双幕链实测：模拟器能表达的最长流程（第二晚追加）
+
+既然第三幕不存在，模拟器能表达的**最长**流程就是那条被硬编码门控的 Act 1 → Act 2 链。
+它可以从现有 V2 栈直接跑到：`Sts2Run_Reset` 接受的是 **UTF-8 种子串**
+（`src/sts2_gym/native.py:402`，我们的 `training/v2_native_env.py:62` 用 `str(seed)` 传入），
+所以把种子写成 `"7MS1YN8NWB"` 就能进入 `RunEngine.cs:1909` 的分支。
+工具：`scripts/probe_chained_act_flow.py`（终止/胜负/非法动作判定语义照抄
+`training/evaluation.py`，以免与本晚口径漂移）。
+
+把战役里 **全部 76 个 act1 检查点**各跑一遍该种子
+（`runtime/chained_demo_seed_sweep.json`，`--max-steps 60000`）：
+
+| 结果 | 计数 | 说明 |
+|------|------|------|
+| 打赢脚本化 Act 1、**真正进入 Act 2** | **3 / 76** | 检查点见下表 |
+| 在 Act 2 里阵亡（`hp=0`，`terminated`） | 1 | 最深到 **Act 2 floor 22**（上限 33） |
+| Act 2 内被**环境侧截断**（人还活着） | 2 | 都停在 floor 19 map、`hp=37/77` |
+| Act 1 boss 战斗**僵持**到步数上限 | 1 | 见下一节 |
+| 非法动作合计 | **0** | 76 局全为 0 |
+| 双幕全胜 | **0** | — |
+
+进入 Act 2 的三个检查点（sha256 前 16 位，可据此核对盘上文件）：
+
+| 臂 / 检查点 | sha256 | 终局 |
+|-------------|--------|------|
+| `c_explore-1 / 182830Z / step_000002000016` | `7867df360a4fdf38` | act=2 floor=22 `hp=0/77` loss（真阵亡） |
+| `b_terminal / 175708Z / step_000001000008` | `f7ba5c02c270931d` | act=2 floor=19 `hp=37/77` 环境侧 truncated |
+| `b_terminal-1 / 182051Z / step_000001000008` | `0af9d1719f96011a` | act=2 floor=19 `hp=37/77` 环境侧 truncated |
+
+**两件事必须说清楚，否则这张表会被读歪：**
+
+1. **"进入第二幕"是真证据，"第二幕走到几层"不是。** 后两个检查点的 act-2 轨迹
+   **逐步相同**（`17 map → 18 event → 18 map → 19 combat → 19 relic_reward →
+   19 card_reward → 19 relic_reward → 19 map`），终局 HP 也都恰好是 `37/77`——两个
+   不同权重的策略不该撞出同一个终局血量。这说明**该演示种子的 Act 2 一侧同样被
+   留档 trace 分支钉住**（`RunEngine.cs:1957` 等一系列 `StringSeed == "7MS1YN8NWB"`
+   判定），跑出留档范围就由**环境**发出 truncated。
+   所以 Act 2 的 19/22 层**不能当作"策略在第二幕的能力"引用**；
+   其中只有那个 `hp=0` 的 loss 是真实战死。
+2. **双幕全胜今晚拿不到，是算得出来的**：脚本化 Act 1 通过率 `3/76 ≈ 0.04`，
+   第二幕通过率取本文实测的 `65/4986 ≈ 0.0130`，乘积 `≈ 5×10⁻⁴`，即**期望命中 1 次需要
+   约 2000 个检查点**；用 76 个检查点去撞，期望命中 0.04 次。
+   因此这不是"再跑一夜"能翻的牌，而是要么策略本身变强，要么走真机三幕。
+
+复现：
+
+```text
+../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe \
+  scripts/probe_chained_act_flow.py --max-steps 60000 \
+  --checkpoint runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip \
+  --out runtime/chained_demo_seed_hits.json
+```
+
+## boss 战僵持：floor 17 还有第三种结局（不是死、也不是赢）
+
+`b_terminal / 175708Z / step_000002000016`（sha `eff8c5c51e9b897d`）在该种子上走到
+floor 17（boss 节点）后 **60000 步没有结束**：每一步都通过动作掩码（`illegal=0`），
+但既不赢也不死。逐项排查：
+
+- **不是短循环**：把 combat 观测块（前 164 个整数）逐步哈希，得到
+  **59930 个互不相同的 combat 状态**，没有周期。所以"检测到重复状态就跳出"的护栏救不了它。
+- **不是缓慢流血**：每 2000 步采样一次，`player_hp` 全程钉在 **6/77**，
+  窗口累计奖励从第 6000 步起稳定在 `-278.46`（只剩逐步惩罚），
+  非零战斗整数在 20–22 之间来回——双方都杀不动对方，是**僵局**。
+
+这条推翻本文上面一处表述：原来写"死在 boss 与打赢 boss 的局终局层数都是 17，
+只能靠 `won` 区分"——实际上 floor 17 有**三种**结局：赢、死、**僵持**
+（`terminated=False` 且 `truncated=True`）。规模用盘上文件界定：战役
+`runtime/**` 里 `stage=act1`、`scope=simulator_act1` 的 **106 份指标、29000 局**中
+`truncated` 共 **50 局（0.17%）**，且这 50 局所在的每一份文件
+`max_final_floor` 都是 **17**——即这类截断**全部发生在 boss 层**。
+它**不是某个臂的毛病**：`b_terminal` 系、`c_explore` 系、`a_base`、`fan_cont` 续跑臂
+里都有（各臂 0–9 局，最高 `fan_cont/b_terminal-0` 的 9/1900 ≈ 0.47%），
+所以这是一种与臂无关的**结局类别**，而不是某次训练的偶发。
+它们已被分类为截断（不是"未分类死局"），但实质上是一类**打不完的 boss 战**，
+应按死局对待。
+
+## 同一分区上按幕拆分的各臂排名（step_4M，Act-1-only）
+
+`scripts/split_win_rate_by_generated_act.py --split promotion --act 1 --episodes 1000`
+（`runtime/act1_ranking.log`、`runtime/act1_ranking_explore.log`）。六个臂共用同一个
+`act1.promotion` 分区（`start=130010000 count=10000`，已逐臂与该 run 的 `plan.json`
+对过），其中前 1000 个种子里 504 个生成 Act 1，所以分母是 504：
+
+| 臂（step_000004000032） | Act 1 胜/局 | mean_floor | 非法 | 未分类 |
+|--------------------------|-------------|------------|------|--------|
+| `b_terminal-0` | 0/504 | 7.99 | 0 | 0 |
+| `b_terminal-1` | 0/504 | 7.72 | 0 | 0 |
+| `b_terminal-2` | 0/504 | 7.64 | 0 | 0 |
+| `c_explore-0` | 0/504 | 7.80 | 0 | 0 |
+| `c_explore-1` | 0/504 | 7.32 | 0 | 0 |
+| `c_explore-2` | 0/504 | 7.53 | 0 | 0 |
+
+**`0/504` 既不是退步，也不说明臂间有差别。** 按本文的 Act 1 速率 `3/5014 ≈ 0.0006`，
+504 局的**期望胜局只有 0.30**——观测到 0 局完全在噪声内（P(0 胜) ≈ e^-0.30 ≈ 0.74）。
+六个臂合起来是 **3024 个 Act-1 种子、0 胜**，而按 0.0006 的速率期望值也只有 1.88 胜，
+所以"这一批 step_4M 检查点上一个都没赢"与"某个臂上有 3 局赢"并不矛盾——
+它们来自不同的检查点/种子切片。
+要在这把尺子上分辨两个臂，每臂大约需要 `1/0.0006 ≈ 1700` 个 Act-1 种子
+（两幕混排时即约 3400 局）。这是"下一夜该测什么"的具体答案：
+不是更多臂，而是**把 Act-1 种子数按这个量级加上去**，否则各臂排名永远读不出差别。
