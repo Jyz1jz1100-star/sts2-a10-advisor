@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "a3ff3ceab5893d31843f222e15e8eeaa385e196758fca279ec368e69a4b568e0",
-  "evidence_file_count": 31,
-  "generated_at": "2026-09-19T13:02:49+00:00",
-  "git_head_at_generation": "ce4b16f",
+  "bundle_root": "1250311ec74cf3b36f56460f9a522a86047aa62658142456b8b0d69609cc9e4a",
+  "evidence_file_count": 32,
+  "generated_at": "2026-09-19T13:11:52+00:00",
+  "git_head_at_generation": "4e0c71a",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 654
+    "total_64_hex_strings_seen": 655
   },
   "resolved_checkpoints": [
     {
@@ -1453,7 +1453,8 @@
         "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json",
         "refusal_root_cause_20260919.json",
-        "rejection_phase_attribution_20260919.json"
+        "rejection_phase_attribution_20260919.json",
+        "reward_upgrade_availability_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip"
@@ -2259,8 +2260,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "6cfee3a8da548791ff7efb3a5b08bd004b1637b1f9049140138a7f1df117a37c",
-      "bytes": 13766
+      "sha256": "8b8f13a4a76776b057a498b72aef1421597fb0e5615072b27ec8b22fc77976f7",
+      "bytes": 13886
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2371,6 +2372,11 @@
       "file": "rejection_phase_attribution_20260919.json",
       "sha256": "bca9239280e80fcce9c34da5885ec6e5b6debbc7ece395cb4a057ef66e8ca69f",
       "bytes": 7204
+    },
+    {
+      "file": "reward_upgrade_availability_20260919.json",
+      "sha256": "8770fae18a5550332bd96f4e11a7733be866afbb96952d36ee62d520ff6db600",
+      "bytes": 3443023
     },
     {
       "file": "solver_inventory_drift_20260919.json",

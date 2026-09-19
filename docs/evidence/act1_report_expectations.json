@@ -313,14 +313,16 @@
   },
   "engine_findings_checklist": {
     "section_present": true,
-    "five_findings_listed": true,
     "misexit_magnitude_matches": true,
     "complete_overcount_matches": true,
     "phantom_slot_numbers_match": true,
     "event_exposure_numbers_match": true,
     "channel_numbers_match": true,
     "cited_artifacts_exist": true,
-    "states_the_engine_was_not_edited": true
+    "states_the_engine_was_not_edited": true,
+    "six_findings_listed": true,
+    "upgrade_stub_numbers_match_the_census": true,
+    "the_two_exceptions_are_the_hardcoded_floor_five_branch": true
   },
   "refusal_class_generality": {
     "both_classes_reproduce_in_every_run": true,

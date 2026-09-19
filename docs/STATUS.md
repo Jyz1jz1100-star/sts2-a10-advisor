@@ -1462,7 +1462,43 @@ had quietly encoded "no difference measured" as "nothing favours Act 2".
 
 Consequence for the goal: the Act-1 wall is not an arrival-resource problem, which is the
 cheapest thing a reader would have blamed, so the remaining candidates stay where the earlier
-sections put them -- longevity in the boss fight itself. Registry is now 42 claims, all matching
-the disk. `potion_slot_cost_20260919.json` was assembled by a merger that kept only per-shard
-`aggregates`, so it carries no top-level `checkpoint_sha256`; the new merge records the digest and
-the encounters, which is why the reproduction check could be run at all.
+sections put them -- longevity in the boss fight itself. Registry: 42 claims, all matching the disk.
+One provenance gap surfaced while doing this -- `potion_slot_cost_20260919.json` was assembled by a
+merger that kept only per-shard `aggregates`, so it carries no top-level `checkpoint_sha256` and its
+rows are attributable only via sibling artifacts; the new merge records the digest and the
+encounters, which is what let its reproduction check run at all.
+
+## 2026-09-19 (late) -- combat card rewards never roll an upgrade, and the demo reward branch reaches ordinary seeds
+
+`RunRewardGenerator.cs:1127-1131` is the whole finding:
+
+```csharp
+private static bool RollCardUpgrade(RunState state, int cardId, GameRng rng)
+{
+    _ = rng.NextDouble();
+    return false;
+}
+```
+
+The upgraded-reward pathway is implemented in shape -- `RewardUpgraded[i]` is set from this roll at
+`RunRewardGenerator.cs:800`, and `RunEngine.cs:1737` adds the taken card with that flag -- but the
+roll is a stub that burns an RNG draw and returns false. `scripts/measure_reward_upgrade_availability.py`
+censused it over the campaign checkpoint and 3,500 promotion seeds: **12,677 card-reward decisions,
+2 carrying an upgraded card, 0 taken**, and **77.5% of episodes finishing with no upgraded card at
+all** (mean deck 15.5 cards, 0.326 upgraded).
+
+Those two exceptions are the second half of the finding: both sat on **floor 5 with all three offers
+upgraded**, which is the branch `ApplyRetainedTraceCardReward` wrote for the demo seed -- guarded by
+`state.Floor == 5 && state.PlayerHp == 74 && state.Gold == 120`, i.e. by mutable run values and
+**not** by the seed string. Any ordinary seed that passes through those numbers is handed a
+three-upgraded-card reward the unmodified engine would never offer. (The policy skipped both, n=2,
+recorded as anecdote not result.)
+
+Why this matters for the objective: it is a ceiling, not a misjudgement. Nothing trained inside this
+simulator can learn or be measured on "preferring upgraded cards", so deck strength reachable here
+sits below deck strength reachable in the shipped game, and the Act-1 boss survival numbers inherit
+that gap. What is *not* established, and is labelled so in the artifact: what the shipped game rolls
+(the emulator source is the only thing in evidence) and whether removing the stub would raise win
+rate (this measured availability, not the counterfactual). `engine_findings_checklist` now covers
+six numbered findings and re-derives these counts from the artifact, including that both exceptions
+are the hard-coded floor-5 branch.

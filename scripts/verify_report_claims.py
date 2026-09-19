@@ -1097,16 +1097,34 @@ def claim_engine_findings_checklist():
                       .read_text(encoding="utf-8"))["channels"]
     aud = json.loads((ROOT / "docs/evidence/event_mask_case_audit_20260919.json")
                      .read_text(encoding="utf-8"))
+    upg = json.loads((ROOT / "docs/evidence/reward_upgrade_availability_20260919.json")
+                     .read_text(encoding="utf-8"))["aggregates"]
     named = ["docs/evidence/act2_boss_misexit_rate_20260919.json",
              "docs/evidence/potion_slot_cost_20260919.json",
              "docs/evidence/refusal_root_cause_20260919.json",
              "docs/evidence/event_mask_case_audit_20260919.json",
-             "docs/evidence/contract_channels_20260919.json"]
+             "docs/evidence/contract_channels_20260919.json",
+             "docs/evidence/reward_upgrade_availability_20260919.json"]
+    odd_offers = [event for event in
+                  json.loads((ROOT / "docs/evidence/reward_upgrade_availability_20260919.json")
+                             .read_text(encoding="utf-8"))["events"]
+                  if any(event["offered_upgraded"])]
     return {
         "section_present": True,
-        "five_findings_listed": (
-            len(re.findall(r"### \d\.", section)) == 5
+        "six_findings_listed": (
+            len(re.findall(r"### \d\.", section)) == 6
             and "### 谁判定" in section),
+        "upgrade_stub_numbers_match_the_census": (
+            upg["card_reward_decisions"] == 12677
+            and upg["decisions_with_an_upgraded_offer"] == 2
+            and upg["took_an_upgraded_offer"] == 0
+            and upg["episodes"] == 3500
+            and upg["share_of_episodes_with_zero_upgrades"] == 0.7749
+            and upg["mean_upgraded_in_final_deck"] == 0.326),
+        "the_two_exceptions_are_the_hardcoded_floor_five_branch": (
+            len(odd_offers) == 2 and all(event["floor"] == 5
+                                         and event["offered_upgraded"] == [1, 1, 1]
+                                         and event["chosen"] == 3 for event in odd_offers)),
         "misexit_magnitude_matches": (
             f"{mis['act2_boss_kills']} 次 boss 击杀" in section
             and f"{mis['act2']['cleared_not_judged']} 次没被判赢" in section
