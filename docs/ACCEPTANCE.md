@@ -8,14 +8,16 @@ in terms of what the gates can now actually check:
 - The 0.41.0 journal reader (grammar v2) is merged and registered in
   `scripts/test.ps1`, so a live batch's in-combat evidence is readable and
   judgeable; before this, a real batch could play but not be assessed.  Suite:
-  482 contract + 99 training-environment tests.
+  486 contract + 106 training-environment tests.
 - The precondition "stop Workshop auto-update" was dropped as un-actionable and
   replaced by **per-batch mod attestation** (`combat_solver/modpin.py`, wired into
   `scripts/supervise_solver_batch.py`): every batch hashes the locked mod binaries
   and manifest versions at both ends of its window.  With
   `config/combat_solver.lock.json` still pinning 0.31.0 while 0.41.0 / RitsuLib
   0.6.2 are on disk, a batch correctly reports `attested: false` — reconciling that
-  lock is the operator's call, not the agent's.
+  lock is the operator's call, not the agent's.  The digests and DLL timestamps that
+  decision needs are recorded read-only in
+  `docs/evidence/modpin_drift_20260919.json`.
 - The bridge can no longer report a survived run as a victory (see
   `bridge/outcome.py` and "explicit terminal victory" below): a live clear must be
   corroborated by the run's own trace, not inferred from positive HP.
