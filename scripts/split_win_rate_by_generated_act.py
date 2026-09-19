@@ -68,6 +68,12 @@ def main() -> int:
                         help="evaluate only the seeds that generate this act")
     parser.add_argument("--census-only", action="store_true",
                         help="just report which seed generates which act")
+    parser.add_argument("--sampled", action="store_true",
+                        help="sample the policy instead of taking the argmax; every "
+                             "campaign record is argmax, and argmax can lock into a "
+                             "combat that never resolves, so this isolates that mode")
+    parser.add_argument("--sample-seed", type=int, default=0,
+                        help="torch seed for --sampled, so a sampled run is re-runnable")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -126,6 +132,14 @@ def main() -> int:
     probe = DummyVecEnv([lambda: factory(seeds[0])])
     model = MaskablePPO.load(str(args.checkpoint), env=probe, device="cpu")
 
+    deterministic = not args.sampled
+    if not deterministic:
+        # Sampling without a seed would make the record unreproducible, and the
+        # whole point of this tool is that a win can be re-run.
+        import torch
+
+        torch.manual_seed(args.sample_seed)
+
     rows: list[dict[str, object]] = []
     for act, name in sorted(ACT_NAMES.items()):
         if args.act is not None and act != args.act:
@@ -141,6 +155,7 @@ def main() -> int:
             split=f"{args.split}_act{act}",
             scope=f"simulator_act{act}",
             checkpoint=args.checkpoint,
+            deterministic=deterministic,
             max_steps_per_episode=stage.max_episode_steps,
         ).to_dict()
         row = {"act": act, "act_name": name, "seeds": len(subset),
@@ -161,6 +176,7 @@ def main() -> int:
                "generated_by": "scripts/split_win_rate_by_generated_act.py",
                "config": str(args.config), "stage": stage.name, "split": args.split,
                "checkpoint": str(args.checkpoint), "census": dict(census),
+               "policy_mode": "argmax" if deterministic else f"sampled(torch={args.sample_seed})",
                "note": ("campaign records labelled simulator_act1 are a mixed-act "
                         "population; these subsets are split by the act the emulator "
                         "generated for each seed"),

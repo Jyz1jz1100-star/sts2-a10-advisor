@@ -40,6 +40,12 @@ def main() -> int:
     parser.add_argument("--checkpoint", type=Path, action="append", required=True)
     parser.add_argument("--seed", default=CHAINED_SEED)
     parser.add_argument("--max-steps", type=int, default=60_000)
+    parser.add_argument("--sampled", action="store_true",
+                        help="sample instead of taking the argmax, to test whether the "
+                             "argmax policy is what locks a boss fight into a stalemate")
+    parser.add_argument("--sample-seed", type=int, default=0)
+    parser.add_argument("--repeats", type=int, default=1,
+                        help="roll the same seed N times; only meaningful with --sampled")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -70,72 +76,84 @@ def main() -> int:
         checkpoint = checkpoint.resolve()
         probe = DummyVecEnv([lambda: factory(args.seed)])
         model = MaskablePPO.load(str(checkpoint), env=probe, device="cpu")
-        env = factory(args.seed)
-        observation, info = env.reset(seed=args.seed)
-        trace: list[dict[str, object]] = []
-        last = None
-        steps = 0
-        terminal = truncated = False
-        illegal_actions = 0
-        dead_end = None
-        # Termination, win and illegal-action semantics are copied from
-        # training/evaluation.py so this probe cannot drift from the contract
-        # the campaign numbers were measured under.
-        while not (terminal or truncated):
-            marker = (info.get("act"), info.get("floor"), info.get("phase_name"))
-            if marker != last:
-                trace.append({"act": marker[0], "floor": marker[1], "phase": marker[2]})
-                last = marker
-            mask = env.action_masks()
-            if not any(bool(value) for value in mask):
-                truncated = True
-                dead_end = "empty_action_mask"
-                break
-            action_raw, _ = model.predict(observation, action_masks=mask, deterministic=True)
-            action = int(action_raw.item() if hasattr(action_raw, "item") else action_raw)
-            if action < 0 or action >= len(mask) or not bool(mask[action]):
-                truncated = True
-                illegal_actions += 1
-                dead_end = "policy_illegal_action"
-                break
-            observation, _reward, terminal, truncated, info = env.step(action)
-            steps += 1
-            if steps >= args.max_steps:
-                truncated = True
-                dead_end = "step_cap"
-        won = bool(terminal and info.get("player_won", False))
-        final = {
-            "seed": args.seed,
-            "checkpoint": str(checkpoint),
-            "checkpoint_sha256": _sha256(checkpoint),
-            "steps": steps,
-            "illegal_actions": illegal_actions,
-            "dead_end": dead_end,
-            "final_act": info.get("act"),
-            "final_floor": info.get("floor"),
-            "final_phase": info.get("phase_name"),
-            "run_won": won,
-            "run_outcome": info.get("run_outcome"),
-            "run_outcome_source": info.get("run_outcome_source"),
-            # A run can stop without the policy dying: the retained-trace seed
-            # carries an environment-side truncation signal of its own.  Without
-            # these four fields "reached Act 2 then stopped" reads as a death.
-            "final_player_hp": info.get("player_hp"),
-            "final_player_max_hp": info.get("player_max_hp"),
-            "run_terminated": info.get("run_terminated"),
-            "run_truncated": info.get("run_truncated"),
-            "reached_act_two": any(t["act"] and int(t["act"]) >= 2 for t in trace),
-            "max_act": max((int(t["act"]) for t in trace if t["act"]), default=0),
-            "max_floor": max((int(t["floor"]) for t in trace if t["floor"]), default=0),
-            "trace": trace,
-        }
-        env.close()
-        results.append(final)
-        print(
-            f"{checkpoint.name}: act={final['final_act']} floor={final['final_floor']} "
-            f"phase={final['final_phase']} won={won} illegal={illegal_actions} "
-            f"dead_end={dead_end} steps={steps} reached_act2={final['reached_act_two']}"
-        )
+        for repeat in range(args.repeats):
+            if args.sampled:
+                import torch
+
+                torch.manual_seed(args.sample_seed + repeat)
+            deterministic = not args.sampled
+            env = factory(args.seed)
+            observation, info = env.reset(seed=args.seed)
+            trace: list[dict[str, object]] = []
+            last = None
+            steps = 0
+            terminal = truncated = False
+            illegal_actions = 0
+            dead_end = None
+            # Termination, win and illegal-action semantics are copied from
+            # training/evaluation.py so this probe cannot drift from the contract
+            # the campaign numbers were measured under.
+            while not (terminal or truncated):
+                marker = (info.get("act"), info.get("floor"), info.get("phase_name"))
+                if marker != last:
+                    trace.append({"act": marker[0], "floor": marker[1], "phase": marker[2]})
+                    last = marker
+                mask = env.action_masks()
+                if not any(bool(value) for value in mask):
+                    truncated = True
+                    dead_end = "empty_action_mask"
+                    break
+                action_raw, _ = model.predict(
+                    observation, action_masks=mask, deterministic=deterministic
+                )
+                action = int(action_raw.item() if hasattr(action_raw, "item") else action_raw)
+                if action < 0 or action >= len(mask) or not bool(mask[action]):
+                    truncated = True
+                    illegal_actions += 1
+                    dead_end = "policy_illegal_action"
+                    break
+                observation, _reward, terminal, truncated, info = env.step(action)
+                steps += 1
+                if steps >= args.max_steps:
+                    truncated = True
+                    dead_end = "step_cap"
+            won = bool(terminal and info.get("player_won", False))
+            final = {
+                "repeat": repeat,
+                "policy_mode": "argmax" if deterministic else f"sampled({args.sample_seed}+{repeat})",
+                "seed": args.seed,
+                "checkpoint": str(checkpoint),
+                "checkpoint_sha256": _sha256(checkpoint),
+                "steps": steps,
+                "illegal_actions": illegal_actions,
+                "dead_end": dead_end,
+                "final_act": info.get("act"),
+                "final_floor": info.get("floor"),
+                "final_phase": info.get("phase_name"),
+                "run_won": won,
+                "run_outcome": info.get("run_outcome"),
+                "run_outcome_source": info.get("run_outcome_source"),
+                # A run can stop without the policy dying: the retained-trace seed
+                # carries an environment-side truncation signal of its own.  Without
+                # these four fields "reached Act 2 then stopped" reads as a death.
+                "final_player_hp": info.get("player_hp"),
+                "final_player_max_hp": info.get("player_max_hp"),
+                "run_terminated": info.get("run_terminated"),
+                "run_truncated": info.get("run_truncated"),
+                "reached_act_two": any(t["act"] and int(t["act"]) >= 2 for t in trace),
+                "max_act": max((int(t["act"]) for t in trace if t["act"]), default=0),
+                "max_floor": max((int(t["floor"]) for t in trace if t["floor"]), default=0),
+                "trace": trace,
+            }
+            env.close()
+            results.append(final)
+            print(
+                f"{checkpoint.name} r{repeat}: act={final['final_act']} "
+                f"floor={final['final_floor']} phase={final['final_phase']} "
+                f"hp={final['final_player_hp']}/{final['final_player_max_hp']} won={won} "
+                f"illegal={illegal_actions} dead_end={dead_end} steps={steps} "
+                f"reached_act2={final['reached_act_two']}"
+            )
 
     payload = {
         "generated_at": datetime.now(UTC).isoformat(),

@@ -1026,3 +1026,49 @@ touched.
 4. Capture fixed-seed real-game traces and begin simulator parity closure.
 5. Only then consider the experimental `full_run` stage; A10 acceptance remains
    a real-game measurement.
+
+## Second overnight phase: 2026-09-19 (session 6)
+
+Read-only with respect to the game: no process started, no POST, no bridge or
+Steam state touched. This phase settled what the simulator can and cannot answer
+about the operator's three-act target, and found one failure class worth naming.
+
+1. **"Act 1-3" is not expressible in the simulator, by construction.**
+   `RunConstants.cs:35-36` enumerates exactly two acts; `RunMapGenerator.cs:9-11`
+   picks one per seed; the only act-chaining branch
+   (`RunEngine.cs:1907-1920`) is gated on hardcoded seed `7MS1YN8NWB` and chains
+   Act 1 -> Act 2 only. So no simulator artifact, however clean, can satisfy the
+   literal target, and the goal stays open. Details and citations:
+   `docs/ACT1_CAMPAIGN_2026-09-19.md`.
+2. **The chained two-act flow is reachable from the existing stack** —
+   `Sts2Run_Reset` takes a UTF-8 seed string (`native.py:402`), so
+   `training/v2_native_env.py:62`'s `str(seed)` accepts `"7MS1YN8NWB"` directly.
+   New tool `scripts/probe_chained_act_flow.py` ran all 76 campaign act1
+   checkpoints through it: **3 cleared the scripted Act 1 boss and entered Act 2**,
+   0 illegal actions, deepest Act 2 floor 22 of a possible 33. Two of those three
+   then stopped on an *environment-side* truncation while alive at 37/77 HP with
+   identical Act 2 traces, so Act-2 depth on this seed measures the retained trace,
+   not the policy. Combined-rate arithmetic (~0.04 x 0.013) puts one expected
+   two-act sweep at ~2000 checkpoints; this is not a brute-force target.
+3. **A third outcome exists at floor 17: boss stalemate.** One checkpoint spent
+   60000 steps in the Act 1 boss fight without dying or winning — every action
+   mask-legal, HP pinned at 6/77, flat reward, and **59930 distinct combat
+   observations with no repeat**, so cycle detection cannot break it. Pooled over
+   the campaign, 50 of 29000 act1-scope episodes (0.17%) truncate, and every file
+   containing one has `max_final_floor = 17`, across all arm families. This is a
+   second boss-side target beyond "the boss kills us".
+4. **Six-arm Act-1-only ranking: 0/504 in every arm** on the shared
+   `act1.promotion` partition (verified identical to each arm's own `plan.json`).
+   At the measured Act 1 rate the expected win count for 504 seeds is 0.30, so this
+   ranks nothing — the sizing requirement (~1700 Act-1 seeds per arm) is recorded in
+   the campaign doc.
+5. **Anti-misreading audit**: a repo-wide scan of all 274 metrics files found the
+   highest act1-scope rates on the Aug-31 *V1* run (5/100). That run cannot be
+   compared: different contract (V2 verified at `OBS_SIZE = 1739`, `Discrete(225)`),
+   schema 1 records neither act nor raw seeds, and its own file carries
+   `illegal_actions = 1`.
+
+Live side unchanged: `127.0.0.1:15526/health` refused at 23:42 with no game
+process, so the three-act real-game batch remains an operator action
+(`scripts/supervise_solver_batch.py --mode observational --allow-actions
+--max-battles 50`); the supervisor still never starts the game.
