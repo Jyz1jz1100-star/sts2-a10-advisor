@@ -1130,7 +1130,15 @@ are the same for both acts (83 Act 1 vs 79 Act 2), but conversion is not -- the 
 policy kills the Act 2 boss in 25/79 arrivals (31.6%, CI 22.5-42.6) and the Act 1
 boss in **0/83** (CI 0-4.4%). So the deficit is the first act's boss fight itself,
 not attrition before it, which is a different and much cheaper thing to aim at than
-"deepen Act 1". The nine ledgered Act 1 victories are unaffected: all nine seeds were
+"deepen Act 1". Dissecting what happens inside those fights narrows it once more
+(`docs/evidence/act1_boss_arrival_anatomy_20260919.json`): HP on arrival is the same
+across groups (61 / 56.5 / 62) and damage per decision barely separates a lost Act 1
+fight from a won Act 2 one (3.45 vs 3.79), but survived decisions do -- Act 2 winners
+last 66 boss decisions, Act 2 losers 37, Act 1 arrivals 22, against bosses of 183 to
+324 HP. Clearing a 262-HP act-1 boss at that rate needs ~76 decisions. The trainable
+objective is therefore boss-fight longevity, and note the act-1 wall is not one enemy:
+arrivals face three boss tiers (183x25, 262x30, 324x28), so Wantom -- the Wound-dealing
+boss dissected earlier -- is 25 of 83 arrivals, not the whole wall. The nine ledgered Act 1 victories are unaffected: all nine seeds were
 re-censused as overgrowth-generating, and this checkpoint's three of them simply sit
 outside the enumerated seed window. One honest method note: the census first read as
 "15% of boss arrivals convert", and every one of those wins turned out to be an Act 2

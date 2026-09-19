@@ -43,6 +43,18 @@
     "act1": {"ran": true, "decision_recorded": true, "gate_passed": false}
   },
   "promoted_checkpoint_digests": {"floor3": "ok", "floor6": "ok"},
+  "boss_anatomy": {
+    "group_sizes_sum": 162,
+    "act1_boss_hp_tiers_sum": 83,
+    "illegal_actions_total": 0,
+    "no_act1_wins": true,
+    "damage_per_decision_recomputed": {
+      "act1_loss": "ok",
+      "act1_win": "empty",
+      "act2_loss": "ok",
+      "act2_win": "ok"
+    }
+  },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
     "same_checkpoint": true,

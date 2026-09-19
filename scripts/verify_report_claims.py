@@ -329,6 +329,35 @@ def claim_arrivals_by_generated_act():
     return out
 
 
+def claim_boss_anatomy():
+    """Check the survivability-vs-output arithmetic the anatomy section rests on.
+
+    The section's whole argument is that decisions survived, not damage dealt, is
+    what separates a won boss fight from a lost one -- so the per-decision rate is
+    recomputed from the two medians it claims to summarise. If a group's rate had
+    been transcribed independently of its own counts, this is where it fails.
+    """
+    data = json.loads((ROOT / "docs/evidence/act1_boss_arrival_anatomy_20260919.json")
+                      .read_text(encoding="utf-8"))
+    groups = data["groups"]
+    out = {
+        "group_sizes_sum": sum(g["n"] for g in groups.values()),
+        "act1_boss_hp_tiers_sum": sum(data["act1_boss_hp_at_entry_counts"].values()),
+        "illegal_actions_total": data["illegal_actions_total"],
+        "no_act1_wins": groups["act1_win"]["n"] == 0,
+    }
+    rates = {}
+    for name, entry in groups.items():
+        if not entry.get("n"):
+            rates[name] = "empty"
+            continue
+        implied = entry["boss_hp_removed_median"] / entry["boss_decisions_median"]
+        rates[name] = ("ok" if abs(implied - entry["damage_per_decision"]) < 0.02
+                       else f"DRIFT stored={entry['damage_per_decision']} implied={implied:.2f}")
+    out["damage_per_decision_recomputed"] = rates
+    return out
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -359,6 +388,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "boss_anatomy": (claim_boss_anatomy,
+                     "inside the boss node: survived decisions, not damage, separate win from loss"),
 }
 
 
