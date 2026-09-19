@@ -1208,6 +1208,12 @@ both checkpoints) were replayed through the independent rollout loop and every o
 evaluation paths agree on step counts seed for seed. Caveat kept in that file: per-run boss
 HP was not recorded for all 34, so "boss emptied" is inferred from standing on the Map phase
 of a NodeBoss node, with direct HP evidence only for the seven forked runs.
+Priced against the live gate (`config/training_v2.toml`, recomputed by the
+`gate_math_uses_the_live_config` claim): 21/10,000 episodes = 0.21%, i.e. ~1.05 expected
+truncations in a 500-episode promotion draw against a 15-episode allowance -- **no promotion
+decision in the campaign flips because of this class**, but the mixed clear rate is
+understated by 23.6% (68 judged vs 89 actual boss kills per 10,000 episodes), which does
+matter to 1%-level cross-arm comparisons.
 Sampling six more
 census truncations and forking each one's boss relic screen: **7 of 7 lost runs have a
 legal action that would have judged them a win, and it is the same action every time --

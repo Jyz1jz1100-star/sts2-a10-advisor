@@ -631,6 +631,12 @@ def claim_boss_misexit_rate():
     second_act2 = second["act2"]
     second_kills = second_act2["boss_win"] + second_act2["cleared_not_judged"]
     pooled_share = pooled_block["cleared_not_judged"] / pooled_kills
+    gate = data["promotion_gate_impact"]
+    import tomllib
+    with (ROOT / "config/training_v2.toml").open("rb") as handle:
+        cfg = tomllib.load(handle)
+    act1 = cfg["stages"]["act1"]
+    lost = whole["act2"]["cleared_not_judged"]
     return {
         "seeds_enumerated": whole["seeds"],
         "rows_add_up_per_act": adds_up and all(
@@ -667,6 +673,17 @@ def claim_boss_misexit_rate():
             == second_act2["wilson_mis_exit_share"]
             and second_act2["wilson_mis_exit_share"][0] <= pooled_share
             <= second_act2["wilson_mis_exit_share"][1]),
+        # Read the live gate out of the config rather than trusting the artifact's copy, so a
+        # future threshold change invalidates this claim instead of leaving it quietly true.
+        "gate_math_uses_the_live_config": (
+            gate["promotion_eval_episodes"] == act1["promotion_eval_episodes"]
+            and gate["max_truncation_rate"] == act1["max_truncation_rate"]
+            and gate["min_win_rate"] == act1["min_win_rate"]
+            and act1["promotion_eval_episodes"] * lost / whole["seeds"]
+            < act1["promotion_eval_episodes"] * act1["max_truncation_rate"]
+            and not gate["would_flip_the_truncation_gate"]
+            and gate["judged_clears_per_episode"] == round(
+                (whole["act1"]["boss_win"] + whole["act2"]["boss_win"]) / whole["seeds"], 6)),
         "contract_clean": data["contract"]["illegal_actions_total"] == 0
                           and data["contract"]["unclassified_dead_ends_total"] == 0
                           and indep["contract"]["illegal_actions_total"] == 0

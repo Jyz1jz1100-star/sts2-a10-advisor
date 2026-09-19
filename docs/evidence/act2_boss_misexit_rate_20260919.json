@@ -35,7 +35,8 @@
     "an independent split reproduces the class at 6/27 act-2 boss kills (22.2%), and generated act 1 again loses 0 of 89 arrivals that way",
     "pooled over both splits -- 13,500 seeds and 113 act-2 boss kills -- the share cleared but not judged a win is 27/113 = 23.9% [17.0,32.5]",
     "the census's 68 completed floor-17 wins over the 10,000-seed promotion partition (3 act 1 + 65 act 2) reproduce, count for count, the earlier batch act-split of the same checkpoint reported in the same document (scripts/split_win_rate_by_generated_act.py, same seed set) -- two evaluation paths, one VecEnv batch and one seed-at-a-time, agreeing on every win",
-    "a second, different arm's checkpoint on the same 3,500 seeds loses 7 of its 28 act-2 boss kills (25.0%) and none of its 73 act-1 arrivals, so the class is a property of the engine's exits and not of one policy's reward-screen habits"
+    "a second, different arm's checkpoint on the same 3,500 seeds loses 7 of its 28 act-2 boss kills (25.0%) and none of its 73 act-1 arrivals, so the class is a property of the engine's exits and not of one policy's reward-screen habits",
+    "the class is too small to flip any campaign decision: at 21/10,000 episodes it contributes ~1.05 truncations to a 500-episode promotion draw against a 15-episode allowance, while understating the mixed clear rate by 23.6% (68 judged vs 89 actual boss kills per 10,000 episodes)"
   ],
   "generated_at": "2026-09-19T06:40:00Z",
   "not_established": [
@@ -227,6 +228,25 @@
       130001859,
       130003061,
       130003427
+    ]
+  },
+  "promotion_gate_impact": {
+    "promotion_eval_episodes": 500,
+    "max_truncation_rate": 0.03,
+    "min_win_rate": 0.35,
+    "source": "config/training_v2.toml [stages.act1] promotion gate",
+    "mis_exit_per_episode": 0.0021,
+    "expected_mis_exit_truncations_in_a_promotion_draw": 1.05,
+    "truncation_allowance_in_episodes": 15.0,
+    "would_flip_the_truncation_gate": false,
+    "judged_clears_per_episode": 0.0068,
+    "true_boss_kills_per_episode": 0.0089,
+    "understatement_relative_to_the_true_rate": 0.236,
+    "uplift_if_recovered": 0.3088,
+    "note": [
+      "rates are per episode over the 10,000-seed mixed-act promotion partition, which is how the promotion draw samples",
+      "the gate allows 3% truncated episodes = 15 of 500; this class contributes ~1.05 expected episodes, so no campaign promotion decision flips because of it",
+      "what it does change is signal size: 68 judged clears vs 89 boss kills per 10,000 episodes (0.68% vs 0.89%). Both conventions are stored because they differ -- the judged figure sits 23.6% below the true one, or +31% if every lost run were recovered."
     ]
   }
 }
