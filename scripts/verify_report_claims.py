@@ -506,20 +506,34 @@ def claim_block_economy():
 
 
 def claim_chained_frontier():
-    """Check the exhaustive two-act frontier, including that nothing was dropped.
+    """Check the exhaustive two-act frontier, including that the population really is exhaustive.
 
-    The sweep's value is that it covers every checkpoint on disk, so the arithmetic
-    of coverage is part of the claim: rolled plus skipped must equal what exists.
-    The previous attempt crashed on the first foreign-contract checkpoint and produced
-    no artifact, which is the failure mode this guards against.
+    The sweep's value is that it covers every checkpoint on disk, so the arithmetic of coverage is
+    part of the claim: rolled plus skipped must equal what exists, and "what exists" is recounted
+    here by re-running the sweep's own discovery against the live tree -- not taken from the
+    artifact. The 2026-09-19 sweep said "every checkpoint on disk" with no committed way to re-derive
+    that set, and by 2026-09-20 the population had grown from 84 to 102 without anything noticing,
+    which is exactly how a completeness statement rots. The previous attempt also crashed on the
+    first foreign-contract checkpoint and produced no artifact, so the skips are counted too.
     """
-    data = json.loads((ROOT / "docs/evidence/chained_frontier_full_20260919.json")
+    import importlib.util
+
+    data = json.loads((ROOT / "docs/evidence/chained_frontier_full_20260920.json")
                       .read_text(encoding="utf-8"))
+    spec = importlib.util.spec_from_file_location(
+        "run_chained_frontier_sweep", ROOT / "scripts/run_chained_frontier_sweep.py")
+    sweep = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sweep)
+    live_digests = {hashlib.sha256(path.read_bytes()).hexdigest() for path in sweep.discover()}
     runs = data["chained_runs"]
+    probe = (data.get("step_cap_budget_probe") or [{}])[0]
     return {
+        "population_is_recounted_not_asserted": (
+            len(live_digests) == data["checkpoints_found_on_disk"]
+            and live_digests == set(data["checkpoint_digests"])),
         "coverage_exact": (data["rolled"] + data["skipped_contract_mismatch"]
                            == data["checkpoints_found_on_disk"]),
-        "skipped_are_contract_mismatch": data["skipped_contract_mismatch"] == 10,
+        "skipped_are_contract_mismatch": data["skipped_contract_mismatch"] == 9,
         "chained_into_act_two": data["chained_into_act_two"],
         "deepest_chained_floor": max(run["max_floor"] for run in runs),
         "environment_truncated_alive": sum(
@@ -527,6 +541,15 @@ def claim_chained_frontier():
             if run["run_outcome"] == "truncated" and (run["final_player_hp"] or 0) > 0),
         "wins_anywhere": data["wins_anywhere"],
         "illegal_actions_total": data["illegal_actions_total"],
+        # The one run that hit the 4,000-step cap was re-rolled at 10x: same floor, same HP, still
+        # not won -- so the recorded frontier is a property of the policy, not of the budget.
+        "the_frontier_is_not_budget_limited": (
+            len(data["results_step_cap_hits"]) == 1
+            and probe.get("steps", 0) >= 10 * data["max_steps_per_run"]
+            and probe.get("max_floor") == 17 and not probe.get("run_won")),
+        "population_grew_since_the_previous_sweep": (
+            data["checkpoints_found_on_disk"] == 102
+            and data["previous_sweep"]["digests_absent_from_the_previous_artifact"] > 0),
     }
 
 
@@ -1407,7 +1430,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_twenty_rows": len(rows) == 20,
+        "ledger_has_twenty_one_rows": len(rows) == 21,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(

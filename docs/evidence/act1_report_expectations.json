@@ -147,13 +147,16 @@
     "winners_illegal_total": 0
   },
   "chained_frontier": {
+    "population_is_recounted_not_asserted": true,
     "coverage_exact": true,
     "skipped_are_contract_mismatch": true,
     "chained_into_act_two": 3,
     "deepest_chained_floor": 22,
     "environment_truncated_alive": 2,
     "wins_anywhere": 0,
-    "illegal_actions_total": 0
+    "illegal_actions_total": 0,
+    "the_frontier_is_not_budget_limited": true,
+    "population_grew_since_the_previous_sweep": true
   },
   "terminal_floor_qualification": {
     "act1_named_wins": 9,
@@ -346,7 +349,7 @@
     "digests_and_sizes_recompute": true,
     "bundle_root_recomputes": true,
     "manifest_excludes_itself": true,
-    "checkpoint_files_rehashed_here": 218,
+    "checkpoint_files_rehashed_here": 219,
     "every_citation_is_accounted_for": true,
     "no_citation_is_loose": true
   },
@@ -388,7 +391,7 @@
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_twenty_rows": true
+    "ledger_has_twenty_one_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,

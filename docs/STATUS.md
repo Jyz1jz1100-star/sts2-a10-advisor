@@ -1708,3 +1708,33 @@ evidence-file count, which is the failure mode of any number-shaped prose in a d
 extracted by regex. Out-of-range citations return empty text and count as unresolved, so the builder
 exits non-zero rather than recording a hash of nothing. `docs/evidence` is now 39 files and
 `scripts/test.ps1` runs 512 contract tests + 106 training tests; claims stand at 48/48.
+## 2026-09-20 -- "every checkpoint on disk" was a snapshot, and it had already expired
+
+The exhaustive two-act frontier sweep is the evidence for the report's first clause ("0 two-act
+clears"), and its `_comment` says "every act1 checkpoint that exists on disk was rolled". That was
+true on 2026-09-19 and was not re-checkable: the driver was a hand-assembled argument list, so
+nothing recomputed the population. Re-discovering it by pattern today gives **102 checkpoints where
+the artifact recorded 84** -- the overnight and A/B arms landed more weights -- and no claim
+noticed. The conclusion survived the re-run unchanged (same 3 checkpoints chain into Act 2, deepest
+Act 2 floor 22, 0 two-act clears, 0 illegal actions, 93 rolled + 9 V1-contract skips), but the
+completeness statement is now a computation instead of a recollection:
+`scripts/run_chained_frontier_sweep.py` discovers the population from its globs, deduplicates by
+content digest, delegates every rollout to `probe_chained_act_flow.py`, records the discovered
+digests in the artifact, and exits non-zero if any run hits the step cap -- a capped "deepest floor"
+is a property of the budget, not a frontier.
+
+That last clause earned its keep immediately: exactly one run hit the 4,000-step cap (the
+`b_terminal` 2M checkpoint, stalled at Act 1 floor 17 on 6 HP). Re-rolled alone at **40,000 steps**,
+it is still at floor 17 with 6 HP, still not won, `dead_end: step_cap` -- so that is the boss
+stalemate itself, not insufficient budget, and `chained_frontier` now pins it
+(`the_frontier_is_not_budget_limited`). Note the two directions of that test: the 09-19 sweep shrank
+the cap 15x and nothing moved; today's grew one run's budget 10x and nothing moved. Either alone
+would have been a weak argument.
+
+`claim_chained_frontier` gained three checks -- `population_is_recounted_not_asserted` (it re-runs
+the sweep's own discovery and compares digests, so the artifact cannot vouch for itself),
+`the_frontier_is_not_budget_limited`, `population_grew_since_the_previous_sweep` -- and the retraction
+ledger carries row 21 for the expired "exhaustive" wording. The 09-19 artifact stays committed as
+history; `chained_frontier_full_20260920.json` is the live one. Generalisable: **an assertion whose
+content is "all"/"every" must ship the rule that enumerates it**, otherwise it describes the
+directory listing at the moment it was written.
