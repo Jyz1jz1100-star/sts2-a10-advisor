@@ -11,6 +11,13 @@ trusting prose.
 A DRIFT line means the report and the disk disagree. That is a finding about the
 report, not a reason to edit the expectation to match: several of these numbers
 moved during the night because a measurement superseded an earlier one.
+
+Run it with the emulator's venv interpreter, like every other evaluation tool
+here -- the repo's ``.tools/python`` has no numpy, so the ``v2_contract_sizes``
+claim reports ERROR and the rest still verify::
+
+    ../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe \
+        scripts/verify_report_claims.py
 """
 
 from __future__ import annotations
