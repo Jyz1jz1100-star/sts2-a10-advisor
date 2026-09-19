@@ -105,6 +105,33 @@ permuted without replacement; exhaustion is a hard error. Evaluation always
 records a SHA-256 digest of the ordered seed list. Do not tune a policy after
 examining the final split.
 
+### A range is not an act
+
+`train_seeds_file` on a stage replaces that stage's *training* seeds with an
+explicit list, because a contiguous range cannot express "Act 1": the emulator
+chooses the act per seed, so censusing 4,000 consecutive seeds of an act1
+stage's own train partition gives 1,990 overgrowth / 2,010 underdocks, and
+Act 2 clears ~22x more often for the same policy. Produce the list by measuring,
+never by reimplementing that choice:
+
+```
+scripts/split_win_rate_by_generated_act.py --config <arm.toml> --stage act1 \
+  --split train --start-offset <k*10000> --episodes 10000 --act 1 --emit-seed-list <chunk.json>
+```
+
+(`--start-offset` exists because a census costs one map generation per seed,
+measured at ~18.7 seeds/s per process.) Constraints the loader enforces:
+
+- every seed must lie inside the stage's declared `seeds.train` partition, so a
+  filtered list cannot escape the fan-out's disjointness or the teacher-reserved
+  range — those are properties of the partitions;
+- the file must state `generated_act`, and seeds must be unique and non-empty;
+- only the train split may be filtered. Checkpoint, promotion and final stay
+  ranges, so a filtered arm is still evaluated on the same population as an
+  unfiltered one;
+- `plan.json` records the list's digest, count and per-worker budget, and
+  exhaustion of a filtered list is still a hard error rather than a re-use.
+
 ## Outputs
 
 Each curriculum run creates:
