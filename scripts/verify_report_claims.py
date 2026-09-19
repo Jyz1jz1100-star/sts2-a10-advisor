@@ -1068,6 +1068,68 @@ def claim_potion_slot_cost():
     }
 
 
+def claim_engine_findings_checklist():
+    """Guard the consolidated engine-findings section against doc rot.
+
+    The checklist is the part of the report an operator acts on, so every magnitude in it has
+    to be the value its artifact carries, and every file it names has to exist.  Whitespace is
+    collapsed before matching because the prose wraps mid-number.
+    """
+    report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
+    header = "## 本战役查出的引擎侧问题"
+    if header not in report:
+        return {"section_present": False}
+    section = re.sub(r"\s+", " ", report[report.index(header):])
+    mis = json.loads((ROOT / "docs/evidence/act2_boss_misexit_rate_20260919.json")
+                     .read_text(encoding="utf-8"))["whole_partition"]
+    pot = json.loads((ROOT / "docs/evidence/potion_slot_cost_20260919.json")
+                     .read_text(encoding="utf-8"))["aggregates"]
+    rej = json.loads((ROOT / "docs/evidence/refusal_root_cause_20260919.json")
+                     .read_text(encoding="utf-8"))["aggregates"]
+    chan = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
+                      .read_text(encoding="utf-8"))["channels"]
+    aud = json.loads((ROOT / "docs/evidence/event_mask_case_audit_20260919.json")
+                     .read_text(encoding="utf-8"))
+    named = ["docs/evidence/act2_boss_misexit_rate_20260919.json",
+             "docs/evidence/potion_slot_cost_20260919.json",
+             "docs/evidence/refusal_root_cause_20260919.json",
+             "docs/evidence/event_mask_case_audit_20260919.json",
+             "docs/evidence/contract_channels_20260919.json"]
+    return {
+        "section_present": True,
+        "five_findings_listed": (
+            len(re.findall(r"### \d\.", section)) == 5
+            and "### 谁判定" in section),
+        "misexit_magnitude_matches": (
+            f"{mis['act2_boss_kills']} 次 boss 击杀" in section
+            and f"{mis['act2']['cleared_not_judged']} 次没被判赢" in section
+            and f"{mis['floor17_completed_wins']}" in section),
+        "complete_overcount_matches": (
+            f"{pot['arrivals_ending_in_engine_phase_complete']} 个以 Complete 结束" in section
+            and f"{pot['arrivals']} 个 boss 到达局" in section
+            and f"{pot['cleared_arrivals']}" in section),
+        "phantom_slot_numbers_match": (
+            f"{rej['shop_refusals']} 次拒绝全部是这一条" in section
+            and f"{rej['shop_affected_distinct_seed_floor']} 家商店" in section
+            and f"{pot['arrivals']} 个 boss 到达局里第三格有药水的是"
+            f" **{pot['phantom_third_slot_occupied_at_boss']} 个**" in section),
+        "event_exposure_numbers_match": (
+            f"**{len(aud['over_advertising_events'])} / {aud['declared_event_count']} 个声明事件**" in section
+            and f"{aud['events_in_mask_switch']} 个事件按条件开选项" in section
+            and f"{aud['events_in_step_switch']} 个事件" in section
+            and f"{rej['event_refusals']} 次" in section
+            and f"{rej['event_precondition_rows']} 次前置不满足" in section
+            and f"{rej['event_phantom_option_rows']} 次选项号压根不存在" in section),
+        "channel_numbers_match": (
+            f"{chan['rejection_events_total_current_schema']}" in section
+            and f"{chan['episodes_current_schema']}" in section
+            and f"{rej['refusals']}/{rej['refusals']}" in section),
+        "cited_artifacts_exist": all((ROOT / path).exists() for path in named),
+        "states_the_engine_was_not_edited": (
+            "没有改引擎" in section and "没有关掉局内自动求解器" in section),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1132,6 +1194,8 @@ CLAIMS = {
                            "why each refusal happens, re-classified row by row against the engine"),
     "potion_slot_cost": (claim_potion_slot_cost,
                          "the phantom potion slot, and why this study cannot price it"),
+    "engine_findings_checklist": (claim_engine_findings_checklist,
+                                "the operator-facing engine list, against its artifacts"),
 }
 
 
@@ -1147,6 +1211,10 @@ def main() -> int:
         expectations = json.loads(args.expect.read_text(encoding="utf-8"))
 
     drift = 0
+    # An expectation is a snapshot, so a check that came out False and got pinned would pass
+    # forever and read as "N/N match the disk". A False check is therefore drift on its own,
+    # unless the run declares it deliberate in _expected_false_checks (currently unused).
+    deliberate = expectations.get("_expected_false_checks", {})
     for name, (fn, note) in CLAIMS.items():
         try:
             actual = fn()
@@ -1163,10 +1231,17 @@ def main() -> int:
         else:
             status = "DRIFT"
             drift += 1
+        failed = sorted(key for key, value in (actual.items() if isinstance(actual, dict) else ())
+                        if value is False and key not in deliberate.get(name, ()))
+        if status == "ok" and failed:
+            status = "FALSE_CHECK"
+            drift += 1
         if status != "ok" or not args.quiet:
-            print(f"{status:9} {name}: {json.dumps(actual, sort_keys=True)}")
+            print(f"{status:11} {name}: {json.dumps(actual, sort_keys=True)}")
             if status == "DRIFT":
                 print(f"          expected {json.dumps(expected, sort_keys=True)}")
+            if failed:
+                print(f"          false checks: {failed}")
             print(f"          {note}")
     print(f"\n{len(CLAIMS) - drift}/{len(CLAIMS)} claims match the disk")
     return 1 if drift else 0

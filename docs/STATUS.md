@@ -1278,6 +1278,19 @@ makes "boss node cleared" the shared test on both exits (upstream/operator call,
 invalidates every terminal figure here) or act-2 judged-win rates keep being read as
 depressed by this class.
 
+**That is one of four engine-side findings, now consolidated in one place.**
+`docs/ACT1_CAMPAIGN_2026-09-19.md` ends with a checklist ("本战役查出的引擎侧问题") listing,
+each with its measured magnitude and source lines: the two-exit boss-completion judgement
+(21 of 86 act-2 kills unjudged = 24.4%, replicated 22.2% and 25.0%, 0 in act 1);
+`RunPhase.Complete` being written on a loss too, which is the field-level reason floor 17
+cannot separate dying from clearing (161 of 162 arrivals report Complete, only 25 are clears);
+the phantom third potion slot (641 of 753 refusals, none of them unaffordable); and
+`WriteEventActionMask`'s `default:` arm advertising every option for 48 of 58 declared events
+(112 refusals, 72 precondition and 40 nonexistent options). Claim `engine_findings_checklist`
+ties each number in that section back to its artifact and fails if the section loses an item or
+cites a file that no longer exists. All four are read-only measurements: nothing in the engine
+was modified, no DLL was swapped, and the in-game solver stayed on throughout.
+
 **What I ran against it:** two new V2 curriculum act1-stage arms
 (`runtime/act1_ab/a1filt`, `runtime/act1_ab/a1mix`), 2,000,000 timesteps × 12 envs
 each, started 2026-09-19 00:31:39 UTC, both finishing below the promotion gate.
