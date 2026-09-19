@@ -588,7 +588,9 @@ def claim_boss_misexit_rate():
     that were assembled from five shards, so the arithmetic is checked rather than
     trusted: each act's rows must add up to its arrivals, the pooled win counts must
     equal the per-window sums, the intervals must match their own numerator and
-    denominator, and the class must be confined to generated act 2.
+    denominator, and the class must be confined to generated act 2.  The independent
+    `checkpoint`-split window is checked the same way, because it is what turned the
+    promotion head window's 1/26 from "the rate is unquotable" into "that window is low".
     """
     from training.wilson import wilson_interval
 
@@ -608,9 +610,19 @@ def claim_boss_misexit_rate():
                                         whole["act2"]["arrivals_at_floor_17"])
     a1_low, a1_high = wilson_interval(whole["act1"]["boss_win"],
                                       whole["act1"]["arrivals_at_floor_17"])
+    indep = data["independent_window_checkpoint_split"]
+    pooled_block = data["pooled_two_disjoint_splits"]
+    indep_kills = indep["act2"]["boss_win"] + indep["act2"]["cleared_not_judged"]
+    pooled_kills = kills + indep_kills
+    pooled_mis = whole["act2"]["cleared_not_judged"] + indep["act2"]["cleared_not_judged"]
+    pooled_low, pooled_high = wilson_interval(pooled_mis, pooled_kills)
+    ind_low, ind_high = wilson_interval(indep["act2"]["cleared_not_judged"], indep_kills)
     return {
         "seeds_enumerated": whole["seeds"],
-        "rows_add_up_per_act": adds_up,
+        "rows_add_up_per_act": adds_up and all(
+            indep[key]["arrivals_at_floor_17"] == indep[key]["boss_win"]
+            + indep[key]["cleared_not_judged"] + indep[key]["died_in_fight"]
+            for key in ("act1", "act2")),
         "windows_sum_to_partition": pooled == {
             "act1": whole["act1"]["arrivals_at_floor_17"],
             "act2": whole["act2"]["arrivals_at_floor_17"]},
@@ -618,9 +630,22 @@ def claim_boss_misexit_rate():
                                         whole["act1"]["boss_win"] + whole["act2"]["boss_win"],
         "truncation_seed_list_matches_count": len(data["truncation_seeds"]) ==
                                               whole["act2"]["cleared_not_judged"],
-        "class_confined_to_generated_act2": whole["act1"]["cleared_not_judged"] == 0,
+        "class_confined_to_generated_act2": whole["act1"]["cleared_not_judged"] == 0
+                                            and indep["act1"]["cleared_not_judged"] == 0,
+        "independent_window_replicates_the_class": len(indep["truncation_seeds"]) ==
+                                                   indep["act2"]["cleared_not_judged"]
+                                                   and indep_kills > 0,
+        "pooled_block_equals_its_parts": (pooled_block["act2_boss_kills"] == pooled_kills
+                                          and pooled_block["cleared_not_judged"] == pooled_mis
+                                          and pooled_block["seeds"] == whole["seeds"] + indep["seeds"]),
+        "pooled_interval_recomputes": [round(pooled_low, 4), round(pooled_high, 4)]
+                                      == pooled_block["wilson_mis_exit_share"],
+        "windows_compatible": ind_low <= pooled_block["cleared_not_judged"] / pooled_kills <= ind_high
+                              and mis_low <= pooled_block["cleared_not_judged"] / pooled_kills <= mis_high,
         "contract_clean": data["contract"]["illegal_actions_total"] == 0
-                          and data["contract"]["unclassified_dead_ends_total"] == 0,
+                          and data["contract"]["unclassified_dead_ends_total"] == 0
+                          and indep["contract"]["illegal_actions_total"] == 0
+                          and indep["contract"]["unclassified_dead_ends_total"] == 0,
         "published_intervals_recompute": [
             [round(mis_low, 4), round(mis_high, 4)] == whole["wilson_mis_exit_share_of_act2_kills"],
             [round(kill_low, 4), round(kill_high, 4)] == whole["act2"]["wilson_killed_boss_given_arrival"],

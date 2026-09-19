@@ -220,6 +220,10 @@
     "floor17_completed_wins_match": true,
     "truncation_seed_list_matches_count": true,
     "class_confined_to_generated_act2": true,
+    "independent_window_replicates_the_class": true,
+    "pooled_block_equals_its_parts": true,
+    "pooled_interval_recomputes": true,
+    "windows_compatible": true,
     "contract_clean": true,
     "published_intervals_recompute": [true, true, true, true],
     "head_tail_heterogeneity_is_real_in_the_data": true

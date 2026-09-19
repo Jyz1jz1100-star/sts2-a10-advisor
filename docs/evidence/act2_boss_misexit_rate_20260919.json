@@ -11,7 +11,12 @@
     "found, so both are reported; the pooled figure is quoted with that split visible.",
     "Reproduction checks: 3,500 head seeds re-measured with the current code -- 0 category",
     "disagreements and 0 step-count differences; 3 tail truncating seeds re-measured in a",
-    "sequential process -- all 3 still truncate at the same step counts."
+    "sequential process -- all 3 still truncate at the same step counts.",
+    "Third block added after the first draft of this file: an INDEPENDENT 3,500-seed window from the",
+    "'checkpoint' split (130000000-130003499, disjoint from both promotion windows) was swept to ask",
+    "whether the promotion partition's head/tail disagreement (1/26 vs 20/60) makes the pooled rate",
+    "unquotable. It comes in at 6/27 = 22.2%, i.e. it replicates the tail, so ~24% is quotable and the",
+    "promotion head window is the outlier. Its cause is still not identified."
   ],
   "checkpoint": "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip",
   "checkpoint_sha256": "a1ada27ad997a425e6ad10d33d11f5a2f2c3a67003732a68f27cf73e57c1e",
@@ -26,13 +31,15 @@
     "the same window contains 21 generated act-2 runs that cleared the act boss and were never judged a win, i.e. 24.4% [16.6,34.5] of the 86 act-2 boss kills",
     "generated act 1 loses 245 of its 248 boss arrivals inside the fight and shows zero empty-mask endings, which is the asymmetry the two-exit code predicts",
     "the three act-1 completions the tail found are exactly the ledger's named seeds for this checkpoint (130015189, 130017978, 130019400), so the census and the win ledger now agree seed by seed rather than only being 'not in conflict'",
-    "sharding does not change results: the census is reproducible across 1, 2, 4 and 5 concurrent processes"
+    "sharding does not change results: the census is reproducible across 1, 2, 4 and 5 concurrent processes",
+    "an independent split reproduces the class at 6/27 act-2 boss kills (22.2%), and generated act 1 again loses 0 of 89 arrivals that way",
+    "pooled over both splits -- 13,500 seeds and 113 act-2 boss kills -- the share cleared but not judged a win is 27/113 = 23.9% [17.0,32.5]"
   ],
   "generated_at": "2026-09-19T06:40:00Z",
   "not_established": [
-    "why the head window yields 1 mis-exit in 26 act-2 kills and the tail 20 in 60 -- determinism was checked in both directions, so this is reported as unexplained window heterogeneity, not pooled silently",
-    "whether the 21 runs would all have flipped under a different claim order; the per-run fork was replayed for one seed only",
-    "any rate for other arms or checkpoints -- this is one checkpoint on one partition"
+    "why the promotion window 130010000-130013499 gives 1/26 where the other two windows give 22-33%; determinism was checked in both directions, so this is an outlier in the data, not a measurement difference, and no mechanism was found",
+    "whether the 27 runs would all have flipped under a different claim order; the per-run fork was replayed for one seed only",
+    "any rate for other arms or checkpoints -- every number here is one checkpoint (b_terminal-1 step_2M)"
   ],
   "per_window": {
     "head_seeds_130010000_130013499": {
@@ -70,7 +77,8 @@
   },
   "reproduction": [
     "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/enumerate_act1_terminals.py --checkpoint <zip> --split promotion --limit 1625 --start-offset 3500 --out <file.json>  (x4 shards)",
-    "single-seed recheck form: --limit 1 --start-offset <seed - 130010000>"
+    "single-seed recheck form: --limit 1 --start-offset <seed - 130010000>",
+    "independent window: same script with --split checkpoint --limit 875 --start-offset 0|875|1750|2625 (seeds 130000000-130003499)"
   ],
   "scope": "simulator_act1 label over the act1 stage's promotion partition; mixed-act population split by generated act",
   "truncation_seeds": [
@@ -128,5 +136,57 @@
       0.1656,
       0.3446
     ]
+  },
+  "independent_window_checkpoint_split": {
+    "act1": {
+      "arrivals_at_floor_17": 89,
+      "boss_win": 0,
+      "cleared_not_judged": 0,
+      "died_in_fight": 89
+    },
+    "act2": {
+      "arrivals_at_floor_17": 61,
+      "boss_win": 21,
+      "cleared_not_judged": 6,
+      "died_in_fight": 34,
+      "wilson_killed_boss_given_arrival": [
+        0.3251,
+        0.567
+      ],
+      "wilson_judged_win_given_arrival": [
+        0.2375,
+        0.4695
+      ]
+    },
+    "contract": {
+      "illegal_actions_total": 0,
+      "unclassified_dead_ends_total": 0
+    },
+    "mis_exit_share_of_act2_kills": 0.222,
+    "seeds": 3500,
+    "seeds_range": "130000000-130003499",
+    "shards": "4 x 875, disjoint offsets 0/875/1750/2625",
+    "truncation_seeds": [
+      130000397,
+      130000866,
+      130001066,
+      130001338,
+      130001859,
+      130001916
+    ],
+    "wilson_mis_exit_share": [
+      0.1061,
+      0.4076
+    ]
+  },
+  "pooled_two_disjoint_splits": {
+    "act2_boss_kills": 113,
+    "cleared_not_judged": 27,
+    "seeds": 13500,
+    "wilson_mis_exit_share": [
+      0.1697,
+      0.3253
+    ],
+    "note": "promotion whole partition (10,000) plus the checkpoint-split window (3,500); act-1 stays 3/337 arrivals and 0 mis-exits"
   }
 }

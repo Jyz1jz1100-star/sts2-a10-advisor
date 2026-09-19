@@ -1190,11 +1190,15 @@ act2_boss_misexit_rate_20260919.json`, the full 10,000-seed promotion partition 
 in disjoint shards): generated act 2 kills the boss in 86/241 arrivals (35.7%) but is
 judged a win only 65 times, so **21/86 = 24.4% [16.6,34.5] of act-2 boss kills are lost
 to that exit**; generated act 1 loses zero of its 248 arrivals that way, and 245 of them
-die inside the fight. One thing that did **not** resolve: the 21 are not spread evenly --
-1 in seeds 130010000-130013499 versus 20 in 130013500-130019999, and determinism checks
-(3,500 head seeds re-measured with zero category or step differences, 3 tail truncations
-re-run sequentially, shard counts 1/2/4/5) rule out measurement noise. Unexplained
-window heterogeneity, so quote the split rather than only the pooled figure. An
+die inside the fight. Within the promotion partition the 21 are unevenly spread -- 1 in
+seeds 130010000-130013499 versus 20 in 130013500-130019999 -- so an **independent,
+disjoint window was measured to arbitrate**: the `checkpoint` split's first 3,500 seeds
+(130000000-130003499) give act-2 kills 27 with 6 lost (22.2%) and act 1 again 0 of 89.
+Determinism was checked before trusting any of it (3,500 promotion-head seeds
+re-measured with the current code: zero category and zero step-count differences; 3 tail
+truncations re-run sequentially truncate at the same step; shard counts 1/2/4/5 agree).
+So the quotable figure is the two-split pool, **27/113 = 23.9% [17.0,32.5]**, and the
+promotion head window is a low outlier whose cause was **not** found. An
 engine-side fix is the operator's call, and note it would change how runs end, so
 every campaign figure in this file would need re-measuring under it.
 
