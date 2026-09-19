@@ -164,6 +164,64 @@ class RewardRuleMergeTests(unittest.TestCase):
             scratch.rmdir()
 
 
+class TruncationLedgerTests(unittest.TestCase):
+    """The ledger must be able to fail, and must not close because a field was blank.
+
+    `summarise` is the whole audit, so these feed it rows where the identity holds, where it does
+    not, and where a term is missing rather than zero -- the last case being the one that would let a
+    quiet counter masquerade as balanced books.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ledger = _load("census_truncation_ledger", "scripts/census_truncation_ledger.py")
+
+    def _row(self, *, truncations, reasons, boundary, wins, unclassified=0, current=True,
+             fields=True, file="x.json", stage="act1"):
+        accounted = sum(reasons.values()) + unclassified + max(0, boundary - wins)
+        return {"accounted": accounted, "boundary_hits": boundary, "carries_no_truncations":
+                truncations == 0, "current_schema": current, "dead_end_reasons": reasons,
+                "file": file, "has_boundary_field": fields, "has_dead_end_reason_field": fields,
+                "has_unclassified_field": fields, "residual": truncations - accounted,
+                "schema_version": 3 if current else 1, "split": "promotion", "stage": stage,
+                "truncations": truncations, "unclassified": unclassified, "wins": wins}
+
+    def test_a_balanced_ledger_reports_no_residual_and_no_violations(self) -> None:
+        rows = [self._row(truncations=52, reasons={"empty_action_mask": 50, "step_cap": 2},
+                          boundary=134, wins=134),
+                self._row(truncations=93, reasons={}, boundary=93, wins=0, stage="floor3")]
+        agg = self.ledger.summarise(rows)["aggregates"]
+        self.assertEqual(agg["current_schema_residual_total"], 0)
+        self.assertEqual(agg["nonzero_residual_files"], 0)
+        self.assertEqual(agg["current_schema_files_missing_any_identity_field"], 0)
+
+    def test_truncations_that_no_category_explains_are_a_violation(self) -> None:
+        rows = [self._row(truncations=10, reasons={"empty_action_mask": 4}, boundary=0, wins=0)]
+        agg = self.ledger.summarise(rows)["aggregates"]
+        self.assertEqual(agg["nonzero_residual_files"], 1)
+        self.assertEqual(agg["current_schema_residual_total"], 6)
+        self.assertEqual(agg["files_with_a_nonzero_residual"][0]["residual"], 6)
+
+    def test_a_missing_field_is_counted_rather_than_read_as_zero(self) -> None:
+        # Residual is zero here, yet the row must still be flagged: a file that never wrote the
+        # boundary key cannot support the identity that subtracts it.
+        rows = [self._row(truncations=0, reasons={}, boundary=0, wins=0, fields=False)]
+        agg = self.ledger.summarise(rows)["aggregates"]
+        self.assertEqual(agg["nonzero_residual_files"], 0)
+        self.assertEqual(agg["current_schema_files_missing_any_identity_field"], 1)
+
+    def test_legacy_files_are_split_between_untestable_and_vacuous(self) -> None:
+        rows = [self._row(truncations=10, reasons={}, boundary=0, wins=0, current=False,
+                          file="legacy-a.json"),
+                self._row(truncations=0, reasons={}, boundary=0, wins=0, current=False,
+                          file="legacy-b.json")]
+        agg = self.ledger.summarise(rows)["aggregates"]
+        self.assertEqual(agg["legacy_files_excluded"], 2)
+        self.assertEqual(agg["legacy_files_missing_the_boundary_field"], 2)
+        self.assertEqual(agg["legacy_files_with_truncations"], 1)
+        self.assertEqual(agg["legacy_files_with_no_truncations_at_all"], 1)
+
+
 class _StubModel:
     def __init__(self, action: int):
         self._action = action
