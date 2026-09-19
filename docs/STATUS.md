@@ -1198,7 +1198,10 @@ Determinism was checked before trusting any of it (3,500 promotion-head seeds
 re-measured with the current code: zero category and zero step-count differences; 3 tail
 truncations re-run sequentially truncate at the same step; shard counts 1/2/4/5 agree).
 So the quotable figure is the two-split pool, **27/113 = 23.9% [17.0,32.5]**, and the
-promotion head window is a low outlier whose cause was **not** found. Sampling six more
+promotion head window is a low outlier whose cause was **not** found. A second, different
+arm's checkpoint on the same 3,500 seeds loses 7 of its 28 act-2 boss kills (25.0%) and
+none of its 73 act-1 arrivals, so the class is engine-side, not one policy's habit.
+Sampling six more
 census truncations and forking each one's boss relic screen: **7 of 7 lost runs have a
 legal action that would have judged them a win, and it is the same action every time --
 `proceed` (base 3) -- while the policy chose the leftmost claim (base 0) in all 7.**

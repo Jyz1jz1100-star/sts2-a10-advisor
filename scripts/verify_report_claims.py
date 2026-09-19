@@ -627,6 +627,10 @@ def claim_boss_misexit_rate():
     pooled_mis = whole["act2"]["cleared_not_judged"] + indep["act2"]["cleared_not_judged"]
     pooled_low, pooled_high = wilson_interval(pooled_mis, pooled_kills)
     ind_low, ind_high = wilson_interval(indep["act2"]["cleared_not_judged"], indep_kills)
+    second = data["second_checkpoint_generality"]
+    second_act2 = second["act2"]
+    second_kills = second_act2["boss_win"] + second_act2["cleared_not_judged"]
+    pooled_share = pooled_block["cleared_not_judged"] / pooled_kills
     return {
         "seeds_enumerated": whole["seeds"],
         "rows_add_up_per_act": adds_up and all(
@@ -652,6 +656,17 @@ def claim_boss_misexit_rate():
                                       == pooled_block["wilson_mis_exit_share"],
         "windows_compatible": ind_low <= pooled_block["cleared_not_judged"] / pooled_kills <= ind_high
                               and mis_low <= pooled_block["cleared_not_judged"] / pooled_kills <= mis_high,
+        "second_checkpoint_adds_up": second_act2["arrivals_at_floor_17"] == second_kills
+                                     + second_act2["died_in_fight"]
+                                     and second["act1"]["cleared_not_judged"] == 0,
+        "second_checkpoint_is_a_different_checkpoint": (
+            second["checkpoint_sha256_first16"] != data["checkpoint_sha256"][:16]
+            and second["seeds"] == indep["seeds"]),
+        "second_checkpoint_share_in_pooled_ci": (
+            [round(x, 4) for x in wilson_interval(second_act2["cleared_not_judged"], second_kills)]
+            == second_act2["wilson_mis_exit_share"]
+            and second_act2["wilson_mis_exit_share"][0] <= pooled_share
+            <= second_act2["wilson_mis_exit_share"][1]),
         "contract_clean": data["contract"]["illegal_actions_total"] == 0
                           and data["contract"]["unclassified_dead_ends_total"] == 0
                           and indep["contract"]["illegal_actions_total"] == 0

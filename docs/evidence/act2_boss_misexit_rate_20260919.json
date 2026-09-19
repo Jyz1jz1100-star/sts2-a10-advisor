@@ -34,13 +34,15 @@
     "sharding does not change results: the census is reproducible across 1, 2, 4 and 5 concurrent processes",
     "an independent split reproduces the class at 6/27 act-2 boss kills (22.2%), and generated act 1 again loses 0 of 89 arrivals that way",
     "pooled over both splits -- 13,500 seeds and 113 act-2 boss kills -- the share cleared but not judged a win is 27/113 = 23.9% [17.0,32.5]",
-    "the census's 68 completed floor-17 wins over the 10,000-seed promotion partition (3 act 1 + 65 act 2) reproduce, count for count, the earlier batch act-split of the same checkpoint reported in the same document (scripts/split_win_rate_by_generated_act.py, same seed set) -- two evaluation paths, one VecEnv batch and one seed-at-a-time, agreeing on every win"
+    "the census's 68 completed floor-17 wins over the 10,000-seed promotion partition (3 act 1 + 65 act 2) reproduce, count for count, the earlier batch act-split of the same checkpoint reported in the same document (scripts/split_win_rate_by_generated_act.py, same seed set) -- two evaluation paths, one VecEnv batch and one seed-at-a-time, agreeing on every win",
+    "a second, different arm's checkpoint on the same 3,500 seeds loses 7 of its 28 act-2 boss kills (25.0%) and none of its 73 act-1 arrivals, so the class is a property of the engine's exits and not of one policy's reward-screen habits"
   ],
   "generated_at": "2026-09-19T06:40:00Z",
   "not_established": [
     "why the promotion window 130010000-130013499 gives 1/26 where the other two windows give 22-33%; determinism was checked in both directions, so this is an outlier in the data, not a measurement difference, and no mechanism was found",
     "whether the 27 runs would all have flipped under a different claim order; the per-run fork was replayed for one seed only",
-    "any rate for other arms or checkpoints -- every number here is one checkpoint (b_terminal-1 step_2M)"
+    "any rate for other arms or checkpoints -- every number here is one checkpoint (b_terminal-1 step_2M)",
+    "a rate that mixes checkpoints: 27/113 pools three windows of one checkpoint only; the second checkpoint is reported separately at 7/28"
   ],
   "per_window": {
     "head_seeds_130010000_130013499": {
@@ -189,5 +191,33 @@
       0.3253
     ],
     "note": "promotion whole partition (10,000) plus the checkpoint-split window (3,500); act-1 stays 3/337 arrivals and 0 mis-exits"
+  },
+  "second_checkpoint_generality": {
+    "_comment": "Same 3,500-seed checkpoint-split window, a different arm's checkpoint, to ask whether the ~24% is this policy's habit or the engine's. It is the engine's: 7 of 28 act-2 boss kills lost (25.0%).",
+    "checkpoint": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip",
+    "checkpoint_sha256_first16": "b39ea4ba9a9883cc",
+    "seeds": 3500,
+    "seeds_range": "130000000-130003499",
+    "shards": "4 x 875, disjoint offsets 0/875/1750/2625",
+    "act1": {
+      "arrivals_at_floor_17": 73,
+      "boss_win": 0,
+      "cleared_not_judged": 0
+    },
+    "act2": {
+      "arrivals_at_floor_17": 66,
+      "boss_win": 21,
+      "cleared_not_judged": 7,
+      "died_in_fight": 38,
+      "wilson_mis_exit_share": [
+        0.1268,
+        0.4336
+      ]
+    },
+    "contract": {
+      "illegal_actions_total": 0,
+      "unclassified_dead_ends_total": 0
+    },
+    "mis_exit_share_of_act2_kills": 0.25
   }
 }

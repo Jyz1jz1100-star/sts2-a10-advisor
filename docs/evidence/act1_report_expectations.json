@@ -227,6 +227,9 @@
     "pooled_block_equals_its_parts": true,
     "pooled_interval_recomputes": true,
     "windows_compatible": true,
+    "second_checkpoint_adds_up": true,
+    "second_checkpoint_is_a_different_checkpoint": true,
+    "second_checkpoint_share_in_pooled_ci": true,
     "contract_clean": true,
     "published_intervals_recompute": [true, true, true, true],
     "head_tail_heterogeneity_is_real_in_the_data": true
