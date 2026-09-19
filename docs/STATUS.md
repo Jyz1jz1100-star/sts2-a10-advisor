@@ -2066,3 +2066,27 @@ ranges abut, 100M-130M), so `--stride` must exceed that, not the largest single 
 what the driver's own error message advised, and why two legitimate rejections looked like a broken driver.
 The message now prints the measured span.
 
+## 2026-09-20 -- the "never evaluated" holdout had been evaluated: a glob, not a corpus, was saying zero
+
+Chasing the artifact-window fix above meant re-running the split census that underwrites the report's
+holdout claim, and the honest version of that query is wider than the original. The original walked
+`**/metrics/*.json` after 2026-09-18T16:00Z and found `split = final` in 0 files, which the report turned
+into "the 10,000 seeds from 130020000 are a clean holdout". The same query over every JSON under `runs/`
+and `runtime/` finds **two**, both written by `scripts/evaluate_checkpoint_series.py` at 09-18 21:35 and
+21:48 UTC, both covering seeds **130020000-130020199** -- and one of them records **2 wins** across four
+checkpoints (1/1/0/0 per 200-episode run). So the first 200 seeds of the "holdout" were read, and read
+with a positive result.
+
+The consequence for the reward-screen rule is measured rather than argued: all **16** of its holdout
+conversions land in 130020483-130029371, i.e. inside the 9,800 seeds nothing ever touched, and only one of
+the 67 plain wins (`130020081`) sits in the scanned block -- so "+16, 0 broken" does not lean on the 2%
+that had been looked at. The holdout artifact's `label` now says this instead of "never used by any
+training or evaluation record". Claim `holdout_partition_usage` (6 checks) pins both glob views, the seed
+range, the two wins, the 9,800 tail and the disjointness. Retraction ledger row 26; 61/61 claims, 54
+evidence files.
+
+**The general form:** a "never / no / all" statement about files is only as strong as the enumeration that
+produced it, and `**/metrics/*.json` is a convention about where evaluation records usually live, not a
+fact about where this campaign wrote them.
+
+

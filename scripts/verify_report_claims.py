@@ -28,7 +28,7 @@ import hashlib
 import json
 import re
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -1430,7 +1430,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "the_ledger_row_count_is_the_pinned_number": len(rows) == 25,
+        "the_ledger_row_count_is_the_pinned_number": len(rows) == 26,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -2322,6 +2322,77 @@ def claim_boss_reward_rule_window_self_consistency():
     }
 
 
+def claim_holdout_partition_usage():
+    """What has actually been evaluated on the `act1.final` partition, counted two ways.
+
+    The report long asserted "`split = final`: 0 artifacts, so the 10,000 seeds from 130020000 are a
+    clean holdout". That census walked ``**/metrics/*.json``. Widening it to every JSON under
+    ``runs/`` and ``runtime/`` finds two final-split artifacts that never sat in a ``metrics/``
+    directory -- so the zero was the glob's, not the corpus's. The correction is narrow (both record
+    0 wins, so nothing was ever selected on them) but it is the same failure as quoting a count that
+    only describes the query that produced it, and the holdout is the window the report leans on for
+    "not tuned on".
+    """
+    cut = datetime(2026, 9, 18, 16, 0, tzinfo=UTC)
+    narrow, wide = collections.Counter(), collections.Counter()
+    final_artifacts = []
+    for pattern in ("runs/**/*.json", "runtime/**/*.json"):
+        for path in sorted(ROOT.glob(pattern)):
+            try:
+                if datetime.fromtimestamp(path.stat().st_mtime, UTC) <= cut:
+                    continue
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(payload, dict) or not isinstance(payload.get("split"), str):
+                continue
+            split = payload["split"]
+            wide[split] += 1
+            if "metrics" in path.parts:
+                narrow[split] += 1
+            if split == "final":
+                seeds = payload.get("seeds") or {}
+                final_artifacts.append({
+                    "count": seeds.get("count"), "end": seeds.get("end"),
+                    "path": path.relative_to(ROOT).as_posix(),
+                    "start": seeds.get("start"),
+                    "wins": sum(int(row.get("wins") or 0) for row in payload.get("results") or []
+                                if isinstance(row, dict)),
+                })
+    from training.v2_config import load_v2_training_config
+
+    partition = load_v2_training_config((ROOT / "config/training_v2.toml").resolve()).partition(
+        "act1", "final")
+    holdout = json.loads((ROOT / "docs/evidence/boss_reward_rule_holdout_final_20260920.json")
+                         .read_text(encoding="utf-8"))
+    covered = {tuple(sorted({int(row["start"]), int(row["end"])})) for row in final_artifacts}
+    seeds_in_partition = set(partition.seeds())
+    # The union, not the sum: both scans cover the same first 200 seeds, so adding their counts would
+    # report a 9,600 tail and shrink the holdout by seeds nobody read twice.
+    read = set()
+    for row in final_artifacts:
+        read.update(range(int(row["start"]), int(row["end"]) + 1))
+    untouched = len(seeds_in_partition - read)
+    wins_recorded = sum(row["wins"] for row in final_artifacts)
+    converted = [int(seed) for seed in holdout["converted_seeds"]]
+    return {
+        "the_narrow_glob_still_reports_zero_and_that_was_its_blind_spot": (
+            narrow.get("final", 0) == 0 and wide["final"] == len(final_artifacts) > 0),
+        "both_final_artifacts_are_the_same_first_200_seeds": covered == {(130020000, 130020199)},
+        "the_scans_recorded_two_wins_so_nothing_can_claim_that_window_was_never_read": (
+            wins_recorded == 2),
+        "the_untouched_tail_is_the_partition_less_the_union_of_what_was_read": (
+            partition.seeds()[0] == 130020000 and len(read & seeds_in_partition) == 200
+            and untouched == 9800),
+        "every_reward_rule_conversion_lies_in_the_untouched_tail": (
+            len(converted) == 16 and not (read & set(converted))
+            and all(130020200 <= seed <= 130029999 for seed in converted)),
+        "the_holdout_label_discloses_the_prior_reads": (
+            "never used by any training or evaluation record" not in str(holdout.get("label"))
+            and "200" in str(holdout.get("label")) and "09-18" in str(holdout.get("label"))),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2740,6 +2811,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "holdout_partition_usage": (
+        claim_holdout_partition_usage,
+        "what has really been evaluated on the act1.final partition, counted with both globs"),
     "boss_reward_rule_window_self_consistency": (
         claim_boss_reward_rule_window_self_consistency,
         "each merged rule artifact states the partition its own slices actually rolled"),
