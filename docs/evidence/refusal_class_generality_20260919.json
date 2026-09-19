@@ -1,0 +1,179 @@
+{
+  "_comment": [
+    "Do the two engine classes behind the hidden refusals depend on the checkpoint the whole",
+    "campaign quotes, or on the emulator? Four runs: the census checkpoint (1,500 seeds, three",
+    "disjoint shards), a second act1 arm, a later checkpoint of the same arm, and a different",
+    "stage (floor6) with a different seed partition and depth window. Same predicates, same",
+    "pre-step keying, argmax, evaluation only."
+  ],
+  "capacity_pattern": {
+    "note": "the shop mask and one event's own mask arm test capacity as 'any of the three slots is empty', which AddPotion (min(2, len) slots) cannot honour; the two '!= 0' sites are a different question -- 'does the player hold a potion' -- and match their step arms (verified row by row for events 31 and 35).",
+    "sites_testing_capacity_as_any_empty_slot": [
+      "RunEngine.cs:727",
+      "RunEngine.cs:3519"
+    ],
+    "sites_testing_holding_a_potion": [
+      "RunNonCombatEffects.cs:377",
+      "RunNonCombatEffects.cs:380"
+    ]
+  },
+  "established": [
+    "both classes reproduce on every run: potion-capacity refusals appear in all 6 runs and event refusals in all 6, with native 1602/1602 refused bases advertised by the engine's own mask",
+    "this repo's expansion is clean in every run: flat mask wider than native on 0 of 348,890 decisions, executed actions outside the native mask 0",
+    "the class MIX is not stable, so a single per-episode refusal rate is not a transferable number: the act1 census is shop-heavy (641 potion vs 112 event) while floor6, whose episodes are shorter and event-denser, is the reverse (43 potion vs 292 event, 273 of them refused option indices the event's arm never handles)",
+    "the phantom slot is not confined to shops: 10 refusals across these runs are event id 7 (TheLegendsWereTrue) option 1 -- an event the mask switch DOES handle, whose own arm advertises a potion when any of three slots is empty (RunEngine.cs:3519) while its step calls AddPotion (RunEngine.cs:2263). 10/10 carry the exact slot signature (two full, third empty); hp is not in the row schema so the PlayerHp > 8 clause was not checked",
+    "the capacity test appears at 2 mask sites and both contradict AddPotion, so the fix is a pattern, not a line"
+  ],
+  "event_7_by_run": {
+    "act1_later_checkpoint|0": {
+      "all_match_the_capacity_signature": true,
+      "bases": {
+        "1": 3
+      },
+      "rows": 3
+    },
+    "act1_main_census_checkpoint|0": {
+      "all_match_the_capacity_signature": false,
+      "bases": {},
+      "rows": 0
+    },
+    "act1_main_census_checkpoint|1000": {
+      "all_match_the_capacity_signature": false,
+      "bases": {},
+      "rows": 0
+    },
+    "act1_main_census_checkpoint|500": {
+      "all_match_the_capacity_signature": false,
+      "bases": {},
+      "rows": 0
+    },
+    "act1_other_arm|0": {
+      "all_match_the_capacity_signature": false,
+      "bases": {},
+      "rows": 0
+    },
+    "floor6_other_stage|0": {
+      "all_match_the_capacity_signature": true,
+      "bases": {
+        "1": 7
+      },
+      "rows": 7
+    }
+  },
+  "generated_at": "2026-09-19T10:36:48+00:00",
+  "not_established": [
+    "that the mix is stage-driven rather than checkpoint-driven: floor6 differs from act1 in both stage and checkpoint, so which of the two moves the ratio is not separated here",
+    "any behaviour of a policy trained toward these states -- these are evaluations of existing checkpoints under the 2026-09-02 freeze",
+    "the PlayerHp > 8 clause of event 7's arm, for the reason above"
+  ],
+  "per_run": {
+    "act1_later_checkpoint|0": {
+      "checkpoint": "step_000004000032.zip",
+      "checkpoint_sha256": "318c1c800e54c90da5eb35a8214281b615b5a6fc69ab4b4c3ee458ea2b4c760c",
+      "decisions": 61237,
+      "episodes": 500,
+      "executed_outside_native": 0,
+      "flat_wider_than_native": 0,
+      "native_advertised": 195,
+      "reasons": {
+        "event_option_invalid_for_this_event": 94,
+        "potion_capacity_mask_mismatch": 101
+      },
+      "refusals": 195,
+      "split": "promotion",
+      "stage": "act1",
+      "start_offset": 0
+    },
+    "act1_main_census_checkpoint|0": {
+      "checkpoint": "step_000002000016.zip",
+      "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "decisions": 58702,
+      "episodes": 500,
+      "executed_outside_native": 0,
+      "flat_wider_than_native": 0,
+      "native_advertised": 231,
+      "reasons": {
+        "event_option_invalid_for_this_event": 41,
+        "potion_capacity_mask_mismatch": 190
+      },
+      "refusals": 231,
+      "split": "promotion",
+      "stage": "act1",
+      "start_offset": 0
+    },
+    "act1_main_census_checkpoint|1000": {
+      "checkpoint": "step_000002000016.zip",
+      "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "decisions": 59338,
+      "episodes": 500,
+      "executed_outside_native": 0,
+      "flat_wider_than_native": 0,
+      "native_advertised": 268,
+      "reasons": {
+        "event_option_invalid_for_this_event": 39,
+        "potion_capacity_mask_mismatch": 229
+      },
+      "refusals": 268,
+      "split": "promotion",
+      "stage": "act1",
+      "start_offset": 1000
+    },
+    "act1_main_census_checkpoint|500": {
+      "checkpoint": "step_000002000016.zip",
+      "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "decisions": 58253,
+      "episodes": 500,
+      "executed_outside_native": 0,
+      "flat_wider_than_native": 0,
+      "native_advertised": 254,
+      "reasons": {
+        "event_option_invalid_for_this_event": 32,
+        "potion_capacity_mask_mismatch": 222
+      },
+      "refusals": 254,
+      "split": "promotion",
+      "stage": "act1",
+      "start_offset": 500
+    },
+    "act1_other_arm|0": {
+      "checkpoint": "step_000002000016.zip",
+      "checkpoint_sha256": "69b16f533e89537df9f3988accf7940a58f49f1dd9fb4456d9c54804edb3175f",
+      "decisions": 60320,
+      "episodes": 500,
+      "executed_outside_native": 0,
+      "flat_wider_than_native": 0,
+      "native_advertised": 319,
+      "reasons": {
+        "event_option_invalid_for_this_event": 47,
+        "potion_capacity_mask_mismatch": 272
+      },
+      "refusals": 319,
+      "split": "promotion",
+      "stage": "act1",
+      "start_offset": 0
+    },
+    "floor6_other_stage|0": {
+      "checkpoint": "step_000002000016.zip",
+      "checkpoint_sha256": "7a242d1e36bba2e9e606d2279af59b97de123b14984040ee9329d35a8a077c7b",
+      "decisions": 51040,
+      "episodes": 500,
+      "executed_outside_native": 0,
+      "flat_wider_than_native": 0,
+      "native_advertised": 335,
+      "reasons": {
+        "event_option_invalid_for_this_event": 292,
+        "potion_capacity_mask_mismatch": 43
+      },
+      "refusals": 335,
+      "split": "promotion",
+      "stage": "floor6",
+      "start_offset": 0
+    }
+  },
+  "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/probe_shop_refusals.py --checkpoint <zip> [--stage act1|floor6] --split promotion --limit 500 --start-offset <0|500|1000> --out <file.json>",
+  "scope": "simulator_act1 and simulator floor6 stage labels, argmax, evaluation only",
+  "source_sha256": {
+    "RunEngine.cs": "aca9d707759066db1d1e4647734eeaac8c54440acaa80a9c46e84982cf467c69",
+    "RunRewardGenerator.cs": "2db1e27e9440c900ea424909a78166e82d2243a5c726d4feab73c2a2926d6361"
+  }
+}

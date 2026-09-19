@@ -321,5 +321,14 @@
     "channel_numbers_match": true,
     "cited_artifacts_exist": true,
     "states_the_engine_was_not_edited": true
+  },
+  "refusal_class_generality": {
+    "both_classes_reproduce_in_every_run": true,
+    "wrapper_is_clean_in_every_run": true,
+    "census_shards_still_sum_to_the_pinned_split": true,
+    "more_than_one_checkpoint_and_stage": true,
+    "mix_is_not_stable": true,
+    "event_7_is_the_same_capacity_bug_in_a_handled_event": true,
+    "capacity_pattern_site_count_matches_the_source": true
   }
 }

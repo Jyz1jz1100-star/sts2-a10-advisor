@@ -1130,6 +1130,53 @@ def claim_engine_findings_checklist():
     }
 
 
+def claim_refusal_class_generality():
+    """Check the four-run generality study, including the finding it stumbled onto.
+
+    The generality question is answered per run (both classes appear everywhere, our expansion
+    is clean everywhere) and the mix is deliberately reported as unstable -- a per-episode
+    refusal rate quoted from one stage does not transfer.  Event 7 is the interesting row: it
+    is handled by the mask switch, so a refusal there is not the default-arm class, and it
+    carries the shop bug's exact slot signature because the same faulty capacity test appears
+    in its own mask arm.
+    """
+    data = json.loads((ROOT / "docs/evidence/refusal_class_generality_20260919.json")
+                      .read_text(encoding="utf-8"))
+    runs = data["per_run"]
+    event7 = data["event_7_by_run"]
+    stages = {run["stage"] for run in runs.values()}
+    checkpoints = {run["checkpoint_sha256"] for run in runs.values()}
+    return {
+        "both_classes_reproduce_in_every_run": all(
+            run["reasons"].get("potion_capacity_mask_mismatch", 0) > 0
+            and run["reasons"].get("event_option_invalid_for_this_event", 0) > 0
+            for run in runs.values()) and len(runs) == 6,
+        "wrapper_is_clean_in_every_run": all(
+            run["flat_wider_than_native"] == 0 and run["executed_outside_native"] == 0
+            and run["native_advertised"] == run["refusals"] for run in runs.values()),
+        "census_shards_still_sum_to_the_pinned_split": (
+            sum(r["refusals"] for k, r in runs.items()
+                if k.startswith("act1_main_census_checkpoint")) == 753),
+        "more_than_one_checkpoint_and_stage": (
+            len(checkpoints) == 4 and stages == {"act1", "floor6"}
+            and len({k.split("|")[0] for k in runs}) == 4),
+        "mix_is_not_stable": (
+            max(r["reasons"]["potion_capacity_mask_mismatch"] / max(r["refusals"], 1)
+                for r in runs.values()) > 0.8
+            and min(r["reasons"]["potion_capacity_mask_mismatch"] / max(r["refusals"], 1)
+                    for r in runs.values()) < 0.2),
+        "event_7_is_the_same_capacity_bug_in_a_handled_event": (
+            sum(v["rows"] for v in event7.values()) == 10
+            and all(v["all_match_the_capacity_signature"] for v in event7.values() if v["rows"])
+            and all({int(base) for base in v["bases"]} <= {1} for v in event7.values())),
+        "capacity_pattern_site_count_matches_the_source": (
+            data["capacity_pattern"]["sites_testing_capacity_as_any_empty_slot"]
+            == ["RunEngine.cs:727", "RunEngine.cs:3519"]
+            and data["capacity_pattern"]["sites_testing_holding_a_potion"]
+            == ["RunNonCombatEffects.cs:377", "RunNonCombatEffects.cs:380"]),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1196,6 +1243,8 @@ CLAIMS = {
                          "the phantom potion slot, and why this study cannot price it"),
     "engine_findings_checklist": (claim_engine_findings_checklist,
                                 "the operator-facing engine list, against its artifacts"),
+    "refusal_class_generality": (claim_refusal_class_generality,
+                                 "the refusal classes on three checkpoints and two stages"),
 }
 
 

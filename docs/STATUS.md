@@ -1291,6 +1291,21 @@ ties each number in that section back to its artifact and fails if the section l
 cites a file that no longer exists. All four are read-only measurements: nothing in the engine
 was modified, no DLL was swapped, and the in-game solver stayed on throughout.
 
+**The refusal classes are not this checkpoint's quirk, and the capacity bug is a pattern.**
+`docs/evidence/refusal_class_generality_20260919.json` (claim `refusal_class_generality`) re-runs
+the classifier over 4 checkpoints and 2 stages, six runs and 1602 refusals: both
+classes appear in every run, and every run reports 0 decisions where our flat mask advertised a
+base the native mask had off. The mix is *not* stable -- the act1 census is 641 potion-capacity vs
+112 event while the floor6 stage inverts it to 43 vs 292 -- so no per-episode refusal rate quoted
+from one stage transfers. And the faulty capacity test turns up in a second place: event 7
+(`TheLegendsWereTrue`) option 1's own mask arm uses
+`PotionSlots.Any(potion => potion == 0)` (RunEngine.cs:3519) against a step that calls `AddPotion`
+(`:2263`), so a mask-*handled* event refuses too (10 rows, all
+carrying the two-full-one-empty signature). A whole-tree scan finds the test at exactly
+2 mask sites, RunEngine.cs:727, RunEngine.cs:3519, and both contradict `AddPotion` -- the fix is a
+predicate pattern, not one line. Unseparated: whether the class mix moves because of the stage or
+the checkpoint, since floor6 differs in both.
+
 **What I ran against it:** two new V2 curriculum act1-stage arms
 (`runtime/act1_ab/a1filt`, `runtime/act1_ab/a1mix`), 2,000,000 timesteps × 12 envs
 each, started 2026-09-19 00:31:39 UTC, both finishing below the promotion gate.
