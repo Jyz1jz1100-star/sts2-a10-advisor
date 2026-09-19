@@ -1118,9 +1118,14 @@ hardcodes the fight's opening hand and a 10-card draw pile, so this instance can
 carry a general claim about Vantom fights** -- it needs a non-demo-seed re-run. What it
 does establish is the direction of the error: the policy was never refusing to act. Read literally,
 condition (2) asks for a fix to a behaviour that is not happening. Two things do
-remain worth fixing, and they are different: the contract should treat a persistent
-single-legal-action combat state as terminal rather than a truncation, and the
-trainable objective is to kill before the deck saturates. Recorded for the decision,
+remain worth addressing, and they are different. A persistent single-legal-action
+combat state could be recognised early instead of running to the step cap -- though
+note it is already counted, since act 1 has no `max_floor` every such truncation lands
+in `defect_truncation_rate`, which the 3% promotion gate caps (verified by re-running
+one such episode through `evaluate_policy`: `dead_end_reasons={'empty_action_mask': 1}`,
+`defect_truncation_rate=1.0`, `unclassified_dead_ends=0`). So the gap is that the label
+cannot distinguish "cannot act" from "acts too slowly", not that the gate misses it.
+The second is trainable: kill before the deck saturates. Recorded for the decision,
 **not acted on** -- the freeze still stands and no new PPO budget was spent.
 
 A per-seed census then sharpened where that budget should go
