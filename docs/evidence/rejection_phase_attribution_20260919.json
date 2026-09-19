@@ -1,0 +1,142 @@
+{
+  "_comment": [
+    "Attribution of the mask/engine refusals counted in contract_channels_20260919.json, by the phase",
+    "the decision was made in, plus what the filter-mode re-ask then executed. Measured with",
+    "scripts/census_rejection_phases.py over three disjoint 500-seed shards of the act1 promotion",
+    "partition (same checkpoint every census figure in the report uses), keyed to the state BEFORE the",
+    "step so a refusal is matched to the decision it refused.",
+    "Why this was worth measuring: illegal_actions cannot be non-zero in filter mode, so the phase",
+    "distribution is what tells a reader which campaign numbers the refusals can touch.",
+    "The per-shard rows below are the raw output of the three runs, minus the checkpoint path, the",
+    "per-shard digest (identical across the three, so recorded once above) and the timestamp; two",
+    "launch fields, start_offset and limit, were added to identify each window. The aggregation is",
+    "their exact elementwise sum, and verify_report_claims.py recomputes it from these rows rather",
+    "than trusting the summary.",
+    "decisions_total, reward_screen_decisions and the two per-phase rates are derived from the shard rows, not hand-added; the report quotes these fields."
+  ],
+  "aggregation": {
+    "decisions_by_phase": {
+      "ancient": 1500,
+      "card_reward": 5459,
+      "combat": 130993,
+      "event": 4305,
+      "map": 11060,
+      "relic_reward": 17698,
+      "rest": 1626,
+      "shop": 2866,
+      "transform_select": 290,
+      "treasure": 496
+    },
+    "decisions_total": 176293,
+    "episodes": 1500,
+    "event_refusal_rate": 0.026,
+    "executed_after_refusal_differs": 503,
+    "refusals_by_phase": {
+      "event": 112,
+      "shop": 641
+    },
+    "refusals_per_episode": 0.502,
+    "reward_screen_decisions": 23157,
+    "shop_refusal_rate": 0.2237,
+    "states_with_refusals": 503,
+    "total_refusals": 753
+  },
+  "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+  "established": [
+    "every refusal in 1,500 episodes lands in exactly two phases: shop (641 of 2,866 shop decisions) and event (112 of 4,305)",
+    "combat is clean: 0 refusals across 130,993 combat decisions, and so are the two reward screens that the boss-exit fork conclusions rest on: 0 of 17,698 relic_reward and 0 of 5,459 card_reward decisions",
+    "when the engine refuses an advertised action the re-ask always executes something different: 503 of 503 refusal states ended in an action the policy had not chosen first",
+    "the per-episode refusal rate measured this way (0.502) is the same order as the independently computed campaign counter for this stage/split (0.530 per the contract-channels census), so the two paths agree rather than one being derived from the other"
+  ],
+  "generated_at": "2026-09-19T09:21:00Z",
+  "not_established": [
+    "why the shop and event masks advertise actions their own step refuses -- affordability and event-option limits are plausible and testable (compare the refused base against the shop cost vector at that state), but nothing was measured here",
+    "that shop/event behaviour is identical on other checkpoints; this is one checkpoint, though it is the one every census figure in the report uses",
+    "how much the shop refusals shift deck strength, and therefore how much of the act-1 deficit is entangled with them",
+    "anything about potion_reward: the phase never occurs in these 1,500 episodes, so it is unobserved here, not measured clean -- 'reward screens are clean' covers relic_reward and card_reward only"
+  ],
+  "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/census_rejection_phases.py --checkpoint <zip> --limit 500 --start-offset <0|500|1000> --out <file.json>",
+  "scope": "simulator_act1 label, mixed-act population, argmax, one checkpoint, 1,500 seeds",
+  "seed_windows": "act1 promotion partition, offsets 0-499 / 500-999 / 1000-1499 of config.partition('act1','promotion').seeds()",
+  "shards": [
+    {
+      "decisions_by_phase": {
+        "ancient": 500,
+        "card_reward": 1807,
+        "combat": 43668,
+        "event": 1507,
+        "map": 3675,
+        "relic_reward": 5862,
+        "rest": 548,
+        "shop": 874,
+        "transform_select": 109,
+        "treasure": 152
+      },
+      "episodes": 500,
+      "executed_after_refusal_differs": 161,
+      "limit": 500,
+      "refusals_by_phase": {
+        "event": 41,
+        "shop": 190
+      },
+      "reward_screen_events": [],
+      "seeds_enumerated": 500,
+      "start_offset": 0,
+      "states_with_refusals": 161,
+      "total_refusals": 231
+    },
+    {
+      "decisions_by_phase": {
+        "ancient": 500,
+        "card_reward": 1788,
+        "combat": 43464,
+        "event": 1350,
+        "map": 3589,
+        "relic_reward": 5840,
+        "rest": 502,
+        "shop": 963,
+        "transform_select": 101,
+        "treasure": 156
+      },
+      "episodes": 500,
+      "executed_after_refusal_differs": 169,
+      "limit": 500,
+      "refusals_by_phase": {
+        "event": 32,
+        "shop": 222
+      },
+      "reward_screen_events": [],
+      "seeds_enumerated": 500,
+      "start_offset": 500,
+      "states_with_refusals": 169,
+      "total_refusals": 254
+    },
+    {
+      "decisions_by_phase": {
+        "ancient": 500,
+        "card_reward": 1864,
+        "combat": 43861,
+        "event": 1448,
+        "map": 3796,
+        "relic_reward": 5996,
+        "rest": 576,
+        "shop": 1029,
+        "transform_select": 80,
+        "treasure": 188
+      },
+      "episodes": 500,
+      "executed_after_refusal_differs": 173,
+      "limit": 500,
+      "refusals_by_phase": {
+        "event": 39,
+        "shop": 229
+      },
+      "reward_screen_events": [],
+      "seeds_enumerated": 500,
+      "start_offset": 1000,
+      "states_with_refusals": 173,
+      "total_refusals": 268
+    }
+  ],
+  "verdict": "the refusals that filter mode hides from illegal_actions are a shop/event phenomenon; every number in this report about combat behaviour and about boss reward-screen action choice is measured on states where no refusal occurred"
+}

@@ -1252,10 +1252,20 @@ advertised) **18,160 = 0.455 per episode, 0.530 on act1/promotion**, and episode
 zero on the first channel is partly structural: the default `rejection_mode="filter"`
 (`training/v2_flat_env.py:164,276-290`) removes the refused action and hands the decision
 back, so the policy never executes an illegal action and the disagreement reappears as a
-rejection. Consequence for every act-2 statement in this file: when it says "the policy chose
-base 0 at the boss reward screen", it means the action that was **executed after filtering**,
-not what the policy would have done unconstrained. Not measured: which phase the refusals
-land in, and how win rate or floor depth would move if the first choice were executable.
+rejection. **Which phase that happens in is now measured, and it narrows the caveat to
+almost nothing where this file's strongest claims live.** `scripts/census_rejection_phases.py`
+keyed every refusal to the state before the step, over three disjoint 500-seed slices of the
+act1 promotion partition on the census checkpoint (1,500 episodes, 176,293 decisions;
+`docs/evidence/rejection_phase_attribution_20260919.json`, claim `rejection_phase_attribution`):
+refusals occur **only** in `shop` (641 of 2,866 decisions = 22.4%) and `event` (112 of 4,305 =
+2.6%), and **never** in `combat` (0 of 130,993), `relic_reward` (0 of 17,698) or `card_reward`
+(0 of 5,459). So "the policy chose base 0 at the boss reward screen" is not a filtered
+artefact -- those 23,157 screen decisions contain no refusal at all. `potion_reward` never
+occurred in these episodes, so it is unobserved rather than clean. What the caveat does reach:
+in shop and event, every one of the 503 refusal states ended with an action the policy had
+*not* chosen first, so filter mode is re-deciding, not discarding. Still not measured: why
+those two masks advertise actions their own step refuses, how much deck strength the shop
+refusals shift, and how depth would move if the first choice were executable.
 
 Sampling six more
 census truncations and forking each one's boss relic screen: **7 of 7 lost runs have a

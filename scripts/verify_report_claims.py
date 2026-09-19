@@ -890,6 +890,68 @@ def claim_contract_channels():
     }
 
 
+def claim_rejection_phase_attribution():
+    """Recompute the phase attribution from its own shards, then bound what it can say.
+
+    ``illegal_actions`` is structurally zero in filter mode, so the phase a refusal lands in
+    is the only thing that tells a reader which campaign numbers the refusals can touch.
+    The aggregate here is rebuilt from the committed per-shard rows rather than quoted, and
+    the cross-check compares two independently computed rates over different populations:
+    1,500 seeds of one checkpoint against every act1/promotion metrics file.
+    """
+    data = json.loads((ROOT / "docs/evidence/rejection_phase_attribution_20260919.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregation"]
+    shards = data["shards"]
+
+    def summed(key):
+        out: collections.Counter = collections.Counter()
+        for shard in shards:
+            out.update(shard[key])
+        return dict(out)
+
+    decisions = agg["decisions_by_phase"]
+    refusals = agg["refusals_by_phase"]
+    campaigns = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
+                           .read_text(encoding="utf-8"))["by_stage_split"]["act1/promotion"]
+    return {
+        "aggregate_is_the_shard_sum": all(
+            summed(key) == agg[key]
+            for key in ("decisions_by_phase", "refusals_by_phase"))
+            and all(sum(s[key] for s in shards) == agg[key] for key in (
+                "episodes", "total_refusals", "states_with_refusals",
+                "executed_after_refusal_differs")),
+        "windows_are_disjoint_five_hundred_seed_slices": (
+            [s["start_offset"] for s in shards] == [0, 500, 1000]
+            and all(s["limit"] == 500 and s["seeds_enumerated"] == 500 for s in shards)
+            and agg["episodes"] == 1500),
+        "refusals_confined_to_shop_and_event": set(refusals) == {"shop", "event"},
+        "combat_and_boss_reward_screens_are_refusal_free": (
+            decisions["combat"] > 100_000 and decisions["relic_reward"] > 10_000
+            and decisions["card_reward"] > 1_000
+            and not any(p in refusals for p in ("combat", "relic_reward", "card_reward"))
+            and all(not s["reward_screen_events"] for s in shards)),
+        "potion_reward_is_unobserved_not_clean": "potion_reward" not in decisions,
+        "the_reask_always_changed_the_action": (
+            agg["executed_after_refusal_differs"] == agg["states_with_refusals"] > 0),
+        "per_phase_rates_are_what_the_report_quotes": (
+            round(refusals["shop"] / decisions["shop"], 4) == agg["shop_refusal_rate"]
+            and round(refusals["event"] / decisions["event"], 4) == agg["event_refusal_rate"]),
+        "decisions_total_is_the_sum_of_its_phases": (
+            sum(decisions.values()) == agg["decisions_total"]
+            and agg["reward_screen_decisions"]
+            == decisions["relic_reward"] + decisions["card_reward"]),
+        "cross_checks_the_campaign_counter": (
+            round(agg["total_refusals"] / agg["episodes"], 3) == agg["refusals_per_episode"]
+            and agg["refusals_per_episode"] > 0 and campaigns[2] > 0
+            and abs(agg["refusals_per_episode"] - campaigns[2]) < 0.05),
+        "single_checkpoint": (
+            len({s["start_offset"] for s in shards}) == 3
+            and data["checkpoint_sha256"]
+            == "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e"),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -948,6 +1010,8 @@ CLAIMS = {
                         "which warm-start parent links are attestable from a run's own files"),
     "contract_channels": (claim_contract_channels,
                           "illegal actions vs mask/engine disagreements, recomputed apart"),
+    "rejection_phase_attribution": (claim_rejection_phase_attribution,
+                                    "which phases the hidden refusals land in, rebuilt from its shards"),
 }
 
 
