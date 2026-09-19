@@ -699,7 +699,10 @@ scanned 605 json artifacts under runs, runtime
 | 幕 | 种子数 | 胜 | win_rate | mean_floor | max | trunc | 非法 | 未分类 |
 |----|--------|----|----------|------------|-----|-------|------|--------|
 | Act 1 (overgrowth) | 5006 | **1** | 0.000200 | 7.8214 | 17 | 0.00060 | 0 | 0 |
-| Act 2 (underdocks) | 4994 | — | 见下注 | | | | | |
+| Act 2 (underdocks) | 4994 | 未评估 | — | — | — | — | — | — |
+
+（这一跑用了 `--act 1`，所以只评估 overgrowth 那一半；4994 这个数字来自同一次
+种子普查，**不是**测出来的 Act 2 成绩。普查整体是 5006 overgrowth / 4994 underdocks。）
 
 Act 1 的那个胜局是 **seed 130008177**，并且已经单独逐个复现过
 （`runtime/wide_win1_verify.log`：`generated acts: {'overgrowth': 1}`，
