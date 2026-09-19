@@ -420,6 +420,26 @@ def claim_entry_hp_refutation():
     }
 
 
+def claim_action_mix_invariant():
+    """Check the claim that behaviour, not tempo, is what fails to separate win from loss.
+
+    The report's sharpest statement is a negative one -- the policy plays at the same
+    rate whether it wins, loses, or changes act -- so the band is recomputed from the
+    per-group numbers instead of being taken on faith. If any group had drifted out of
+    the band, "the lever is not behaviour" would stop being true.
+    """
+    data = json.loads((ROOT / "docs/evidence/act1_boss_arrival_anatomy_20260919.json")
+                      .read_text(encoding="utf-8"))
+    groups = data["action_mix_by_group"]
+    rates = {name: entry["plays_per_decision"] for name, entry in groups.items()}
+    return {
+        "groups": len(rates),
+        "band": [min(rates.values()), max(rates.values())],
+        "band_within_0p1": max(rates.values()) - min(rates.values()) < 0.1,
+        "sample_sizes_sum": sum(entry["n"] for entry in groups.values()),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -450,6 +470,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "action_mix_invariant": (claim_action_mix_invariant,
+                             "plays per decision barely differs across won and lost fights"),
     "entry_hp_refutation": (claim_entry_hp_refutation,
                             "arriving at full HP does not predict winning; it predicts lasting"),
     "boss_win_anatomy": (claim_boss_win_anatomy,

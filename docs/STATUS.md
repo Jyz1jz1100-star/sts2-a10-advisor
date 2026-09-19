@@ -1143,7 +1143,16 @@ health does not predict victory. What it predicts is longevity (correlation 0.74
 high-HP losers last 31 boss decisions against 19 for low-HP ones), and winners need
 33-63. So the model is one condition, not two: **outlast the boss fight**, with arrival
 health as an upstream contributor. That is also why deepening Act 1 alone and raising
-damage alone each failed to move the win rate. The act-1 wall is also not one enemy: arrivals face three boss tiers
+damage alone each failed to move the win rate. Checking the behaviour itself removed a
+third candidate: plays per decision is the same to within 0.06 across lost act-1
+fights, lost act-2 fights, won act-2 fights and the nine won act-1 fights
+(0.727 / 0.730 / 0.667 / 0.686), so the policy does not play differently when it
+wins. At roughly four decisions per player turn, and with Vantom averaging ~13
+unmitigated damage per turn, act-1 losers absorb about 5.5 boss turns and winners
+about 12.8 -- implying the win needs on the order of 166 effective HP (health plus
+block). The one quantity that would decide how to get there, block per boss turn,
+is in the observation but was not captured at entry; it is the first thing to
+measure, and it is a reward-design question, so it waits for the unfreeze call. The act-1 wall is also not one enemy: arrivals face three boss tiers
 (183x25, 262x30, 324x28), so Vantom -- the Wound-dealing boss dissected earlier -- is
 25 of 83 arrivals, and no Wound hand appeared in any of the nine winning fights. The nine ledgered Act 1 victories are unaffected: all nine seeds were
 re-censused as overgrowth-generating, and this checkpoint's three of them simply sit
