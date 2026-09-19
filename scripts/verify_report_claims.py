@@ -850,6 +850,46 @@ def claim_ladder_lineage():
     }
 
 
+def claim_contract_channels():
+    """Recompute the three contract channels instead of quoting the policy-side one alone.
+
+    The objective names "0 illegal actions", and on this stack that figure is partly
+    structural: the default rejection mode re-asks the policy when the native layer refuses
+    an advertised action, so the disagreements surface as rejection events rather than as
+    illegal actions.  Both numbers, plus the legacy schema that counted them as episode
+    endings, are re-derived here from every metrics file.
+    """
+    data = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
+                      .read_text(encoding="utf-8"))
+    channels = data["channels"]
+    current = legacy = 0
+    events = episodes = illegal = native_current = native_legacy = 0
+    for _path, payload in _metrics_payloads():
+        reasons = payload.get("dead_end_reasons") or {}
+        native = int(reasons.get("native_rejection") or 0)
+        if "rejection_events" in payload:
+            current += 1
+            events += int(payload.get("rejection_events") or 0)
+            episodes += int(payload.get("episodes") or 0)
+            illegal += int(payload.get("illegal_actions") or 0)
+            native_current += native
+        else:
+            legacy += 1
+            native_legacy += native
+    return {
+        "policy_channel_is_zero": illegal == 0 and channels["illegal_actions_total_current_schema"] == 0,
+        "mask_engine_disagreements_are_counted": events > 0 and events == channels["rejection_events_total_current_schema"],
+        "file_population_matches": (current == channels["metrics_files_current_schema"]
+                                    and legacy == channels["metrics_files_legacy_schema"]),
+        "episode_total_matches": episodes == channels["episodes_current_schema"],
+        "ending_channel_split_matches": (
+            native_current == channels["episodes_ended_by_native_rejection_current_schema"] == 0
+            and native_legacy == channels["episodes_ended_by_native_rejection_legacy_schema"] > 0),
+        "per_episode_rate_matches": episodes and (
+            round(events / episodes, 4) == channels["rejections_per_episode_overall"]),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -906,6 +946,8 @@ CLAIMS = {
                                "the objective's two gate clauses, checked on the multi-act path"),
     "ladder_lineage": (claim_ladder_lineage,
                         "which warm-start parent links are attestable from a run's own files"),
+    "contract_channels": (claim_contract_channels,
+                          "illegal actions vs mask/engine disagreements, recomputed apart"),
 }
 
 

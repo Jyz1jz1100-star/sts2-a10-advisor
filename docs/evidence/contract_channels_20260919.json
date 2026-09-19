@@ -1,0 +1,93 @@
+{
+  "_comment": [
+    "What 'illegal_actions = 0' can and cannot mean on the V2 stack, measured across every",
+    "metrics file on disk. Three separate channels exist and only the first is the policy's:",
+    "  illegal_actions      -- the policy chose an action outside the advertised mask",
+    "  rejection_events     -- the native layer refused an action the mask had advertised",
+    "  dead_end_reason      -- how an episode ended (empty_action_mask / step_cap / ...)",
+    "The env runs in rejection_mode='filter' by default (training/v2_flat_env.py:164,276-290):",
+    "a rejected action is removed from that state's mask and the decision is handed back to the",
+    "policy, so the step is taken by the policy's NEXT-BEST legal action instead. In this mode",
+    "illegal_actions cannot be non-zero for a mask-legal chooser -- the disagreements are real,",
+    "but they show up in the second channel.",
+    "This is not a contradiction between files: the 861 native_rejection dead ends live in 12",
+    "legacy-schema files that have no rejection_events field at all (all from",
+    "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z), i.e. an older stack where a",
+    "rejection ended the episode. Every current-schema file that counts rejections ends zero",
+    "episodes that way."
+  ],
+  "channels": {
+    "illegal_actions_total_current_schema": 0,
+    "rejection_events_total_current_schema": 18160,
+    "episodes_current_schema": 39891,
+    "rejections_per_episode_overall": 0.4552,
+    "metrics_files_current_schema": 225,
+    "metrics_files_legacy_schema": 57,
+    "episodes_ended_by_native_rejection_current_schema": 0,
+    "episodes_ended_by_native_rejection_legacy_schema": 861,
+    "legacy_files_holding_those": 12,
+    "legacy_dirs": {
+      "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor6": 2,
+      "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor3": 1,
+      "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6": 9
+    },
+    "_legacy_dirs_note": "paths relative to the repository root"
+  },
+  "by_stage_split": {
+    "act1/checkpoint": [
+      3674,
+      7400,
+      0.4965
+    ],
+    "act1/experiment-final": [
+      246,
+      500,
+      0.492
+    ],
+    "act1/promotion": [
+      13245,
+      25000,
+      0.5298
+    ],
+    "floor10/checkpoint": [
+      52,
+      400,
+      0.13
+    ],
+    "floor10/promotion": [
+      104,
+      500,
+      0.208
+    ],
+    "floor3/checkpoint": [
+      4,
+      120,
+      0.0333
+    ],
+    "floor6/checkpoint": [
+      682,
+      3860,
+      0.1767
+    ],
+    "floor6/promotion": [
+      153,
+      1992,
+      0.0768
+    ],
+    "_comment": "[rejections, episodes, per-episode rate]; stage/split pairs with zero rejections are omitted"
+  },
+  "established": [
+    "on the act1 stage the mask and the native layer disagree about 0.53 times per episode (13,245 rejections over 25,000 promotion episodes), and the deepest per-file rate seen is 385 rejections in one 500-episode evaluation",
+    "the campaign's reported 'illegal_actions = 0' is therefore partly structural in filter mode: the wrapper prevents the execution rather than observing it, and the underlying disagreements are counted in a different field",
+    "the two field populations are explained without hand-waving: legacy files (no rejection_events, 861 native_rejection endings) versus current files (counter present, zero endings)",
+    "every figure in this file is emitted by scripts/census_contract_channels.py over the same population, not transcribed by hand"
+  ],
+  "not_established": [
+    "which phase the rejections land in, and therefore what to fix first -- attributing them needs a per-step recording pass, which has not been run",
+    "how much the win-rate and mean-floor numbers would move if the policy had been allowed to execute its first choice: filter mode re-decides, so the counterfactual is not observable from these files",
+    "whether the disagreement rate is stable across checkpoints or specific to particular ones"
+  ],
+  "generated_at": "2026-09-19T09:05:00Z",
+  "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/census_contract_channels.py",
+  "scope": "every metrics file on disk, all stages and splits; simulator_act1 label"
+}

@@ -1241,6 +1241,22 @@ truncations in a 500-episode promotion draw against a 15-episode allowance -- **
 decision in the campaign flips because of this class**, but the mixed clear rate is
 understated by 23.6% (68 judged vs 89 actual boss kills per 10,000 episodes), which does
 matter to 1%-level cross-arm comparisons.
+
+**How to read the objective's "0 illegal actions" clause on this stack.** There are three
+separate contract channels and only the first is the policy's; recomputed over all 225
+current-schema metrics files (39,891 episodes) by `scripts/census_contract_channels.py`
+(`docs/evidence/contract_channels_20260919.json`, claim `contract_channels`):
+`illegal_actions` **0**, `rejection_events` (the native layer refusing an action the mask
+advertised) **18,160 = 0.455 per episode, 0.530 on act1/promotion**, and episodes *ended* by
+`native_rejection` **0** under the current schema versus **861** under the legacy one. The
+zero on the first channel is partly structural: the default `rejection_mode="filter"`
+(`training/v2_flat_env.py:164,276-290`) removes the refused action and hands the decision
+back, so the policy never executes an illegal action and the disagreement reappears as a
+rejection. Consequence for every act-2 statement in this file: when it says "the policy chose
+base 0 at the boss reward screen", it means the action that was **executed after filtering**,
+not what the policy would have done unconstrained. Not measured: which phase the refusals
+land in, and how win rate or floor depth would move if the first choice were executable.
+
 Sampling six more
 census truncations and forking each one's boss relic screen: **7 of 7 lost runs have a
 legal action that would have judged them a win, and it is the same action every time --
