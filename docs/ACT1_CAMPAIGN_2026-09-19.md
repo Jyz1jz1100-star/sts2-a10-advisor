@@ -1655,6 +1655,11 @@ digest mismatches: 0
   写完上面那条八步清单时又原样重跑了一次并并回同一份台账（第三次，行哈希仍是
   `9e10f978ff8f…`、`rows_identical_across_runs` 为 true）——那条检查钉的是"至少两次且逐次相同"
   这个下界，**不是** 恰好两次，所以合法的再跑不会把它变成 DRIFT；这正是当初把它写成下界的原因。
+  **目标自己那三个限定词现在是从逐种子行重算的**：9 局全部 `won`、`final_floor` 只有 17 这一个值、
+  `illegal_actions` / `unclassified_dead_ends` / `truncations` 全为 0、9 个种子互不相同。而 17 不是抄来的：
+  它等于 `RunConstants.cs:14` 的 `MapBossRow = 16` 加一，那个 `+1` 写在 `RunEngine.cs:1986-1989` 的
+  overgrowth 分支里（第二幕那一支是 `* 2 + 1 = 33`，也就是「打赢第二幕 boss 还要走到 33 层」那件事的出处）。
+  两条检查都挂在 `win_ledger` 上，所以这一格不再是正文自说自话。
 - 复现失败时脚本以非零退出，且把失败行留在台账里——**不允许**把不再复现的胜局
   悄悄改掉。任何人跑一次 `python scripts/act1_win_ledger.py` 就能重做这条检查。
 - 本文收尾时（03:38 UTC）又整表重跑了一次：**9/9 仍全部复现**，且重生成台账与原提交

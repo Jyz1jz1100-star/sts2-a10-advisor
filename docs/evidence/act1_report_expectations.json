@@ -60,7 +60,9 @@
     "wins_failed_to_reproduce": 0,
     "rows": 5,
     "two_runs_recorded_and_their_rows_hash_alike": true,
-    "the_recorded_rows_match_the_rows_this_file_carries": true
+    "the_recorded_rows_match_the_rows_this_file_carries": true,
+    "every_reproduced_win_is_a_clean_terminal_win": true,
+    "the_terminal_floor_agrees_with_the_engines_boss_row_constant": true
   },
   "ladder_rungs": {
     "floor3": {

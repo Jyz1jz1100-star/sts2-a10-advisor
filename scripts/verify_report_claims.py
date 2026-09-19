@@ -153,9 +153,34 @@ def claim_evidence_matrix_totals():
 def claim_win_ledger():
     ledger = json.loads((ROOT / "docs/evidence/act1_win_ledger_20260919.json").read_text(encoding="utf-8"))
     runs = ledger.get("verification_runs", [])
+    recorded_wins = [row for entry in ledger.get("rows", [])
+                     for row in (entry.get("per_seed") or [])]
+    provenance = json.loads((ROOT / "docs/evidence/emulator_source_provenance_20260920.json")
+                            .read_text(encoding="utf-8"))
+    boss_row = next((int(match.group(1))
+                     for cite in provenance["citations"]
+                     if cite.get("file") == "RunConstants.cs"
+                     and str(cite.get("first_line")) == "14"
+                     and (match := re.search(r"MapBossRow\s*=\s*(\d+)", str(cite.get("snippet"))))),
+                    None)
     return {"wins_reproduced": ledger["wins_reproduced"],
             "wins_failed_to_reproduce": ledger["wins_failed_to_reproduce"],
             "rows": ledger["win_rows"],
+            # The objective's own three qualifiers, recomputed from the per-seed rows rather than read
+            # out of the summary table: every reproduced win is a terminal win, and not one of them
+            # was bought with an illegal action, an unclassified dead end or a truncation.
+            "every_reproduced_win_is_a_clean_terminal_win": (
+                len(recorded_wins) == 9 and all(row["won"] for row in recorded_wins)
+                and {int(row["final_floor"]) for row in recorded_wins} == {17}
+                and all(int(row["illegal_actions"]) == 0 for row in recorded_wins)
+                and all(int(row["unclassified_dead_ends"]) == 0 for row in recorded_wins)
+                and all(int(row["truncations"]) == 0 for row in recorded_wins)
+                and len({int(row["seed"]) for row in recorded_wins}) == 9),
+            # The +1 from boss row to terminal floor is RunEngine.cs:1986-1989, whose text is
+            # hash-pinned by the provenance claim; a snippet only carries 90 characters, so this reads
+            # the constant from the snippet and takes the relation from that pinned citation.
+            "the_terminal_floor_agrees_with_the_engines_boss_row_constant": (
+                boss_row is not None and boss_row + 1 == 17),
             # The campaign's headline is nine individually reproducible wins, so the thing worth
             # pinning is not "they reproduced once" but "two runs, days and one code refactor
             # apart, produced rows that hash the same".  Booleans and a digest, no counts: a
