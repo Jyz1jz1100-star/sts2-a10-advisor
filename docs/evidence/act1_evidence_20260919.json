@@ -1,0 +1,186 @@
+{
+  "caveats": [
+    "episodes share two seed populations; win events across arms on one population are NOT independent samples",
+    "every winning seed was re-run individually and reproduced (overgrowth, 1/1, floor 17, 0 illegal, 0 unclassified)",
+    "two arms produced zero wins on a population where another arm won three"
+  ],
+  "generated_at": "2026-09-19T02:21:26.935159+00:00",
+  "missing_sources": [],
+  "not_scope": "real-machine A10 acceptance; the emulator has no Act 3",
+  "rows": [
+    {
+      "act1_episodes": 5014,
+      "arm": "b_terminal-1 step_2M x promotion",
+      "checkpoint_sha256": "A1ADA27AD997A425E6AD10D33C13D11F5A2F2C3A67003732A68F27CF73E57C1E",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 8.373554048663742,
+      "seed_sha256": "bab5c7a69e07bdcf9c47beaecf7eeaa08c560cd8ac8b392802a10596e36c7d65",
+      "source": "runs/act_split/b_terminal-1_2m_act1only.json",
+      "split": "promotion",
+      "truncation_rate": 0.00019944156362185878,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.0005983246908655763,
+      "winning_seeds": [
+        130015189,
+        130017978,
+        130019400
+      ],
+      "wins": 3
+    },
+    {
+      "act1_episodes": 5006,
+      "arm": "b_terminal-1 step_4M x checkpoint",
+      "checkpoint_sha256": "F514FFA3FFBE62C06C4BF469668516E6000C939B40C7F9D8F8152FC0AF8A8B4E",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 7.821414302836596,
+      "seed_sha256": "2080fccc16b29dc2ae2413cee35a411fa64fab9cc506c4f51f2b7f8d9a0ed754",
+      "source": "runtime/act1_on_checkpointsplit.json",
+      "split": "checkpoint",
+      "truncation_rate": 0.0005992808629644426,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.00019976028765481422,
+      "winning_seeds": [
+        130008177
+      ],
+      "wins": 1
+    },
+    {
+      "act1_episodes": 5014,
+      "arm": "b_terminal-0 step_4M x promotion",
+      "checkpoint_sha256": "3193B87DBE004D1BCAFB9D677D684B18C88621451991F71F27204CF2236E9931",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 7.993019545273235,
+      "seed_sha256": "bab5c7a69e07bdcf9c47beaecf7eeaa08c560cd8ac8b392802a10596e36c7d65",
+      "source": "runtime/act1_wide/b_terminal-0.json",
+      "split": "promotion",
+      "truncation_rate": 0.0,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.00039888312724371757,
+      "winning_seeds": [
+        130015199,
+        130016374
+      ],
+      "wins": 2
+    },
+    {
+      "act1_episodes": 5014,
+      "arm": "b_terminal-2 step_4M x promotion",
+      "checkpoint_sha256": "310F71B4C0097939FDF89DF3489FDF82DD8BAA9F1029F05692B26B715E9A496A",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 7.628440366972477,
+      "seed_sha256": "bab5c7a69e07bdcf9c47beaecf7eeaa08c560cd8ac8b392802a10596e36c7d65",
+      "source": "runtime/act1_wide/b_terminal-2.json",
+      "split": "promotion",
+      "truncation_rate": 0.00039888312724371757,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.0,
+      "winning_seeds": [],
+      "wins": 0
+    },
+    {
+      "act1_episodes": 5014,
+      "arm": "fancont b_terminal-1 step_3M x promotion",
+      "checkpoint_sha256": "E914F5FC637D70032D01C175BA1EF7B876351E30FBF06B3C0407012C4CB1ECCE",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 7.917830075787794,
+      "seed_sha256": "bab5c7a69e07bdcf9c47beaecf7eeaa08c560cd8ac8b392802a10596e36c7d65",
+      "source": "runtime/act1_wide/fancont-b1.json",
+      "split": "promotion",
+      "truncation_rate": 0.00019944156362185878,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.0,
+      "winning_seeds": [],
+      "wins": 0
+    },
+    {
+      "act1_episodes": 5006,
+      "arm": "b_terminal-1 step_2M x checkpoint",
+      "checkpoint_sha256": "A1ADA27AD997A425E6AD10D33C13D11F5A2F2C3A67003732A68F27CF73E57C1E",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 8.309828206152616,
+      "seed_sha256": "2080fccc16b29dc2ae2413cee35a411fa64fab9cc506c4f51f2b7f8d9a0ed754",
+      "source": "runtime/act1_wide/b1_step2m_ckpt.json",
+      "split": "checkpoint",
+      "truncation_rate": 0.0,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.00019976028765481422,
+      "winning_seeds": [
+        130008774
+      ],
+      "wins": 1
+    },
+    {
+      "act1_episodes": 5014,
+      "arm": "b_terminal-0 step_1M x promotion",
+      "checkpoint_sha256": "8B06D38E33541FCE636C7ABDDA23D58E6FE3807A181CE4C7CD92D2AC288B58B5",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 8.093139210211408,
+      "seed_sha256": "bab5c7a69e07bdcf9c47beaecf7eeaa08c560cd8ac8b392802a10596e36c7d65",
+      "source": "runtime/act1_wide/b0_step1m_promo.json",
+      "split": "promotion",
+      "truncation_rate": 0.0,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.00039888312724371757,
+      "winning_seeds": [
+        130011349,
+        130017492
+      ],
+      "wins": 2
+    },
+    {
+      "act1_episodes": 5014,
+      "arm": "a_base final x promotion",
+      "checkpoint_sha256": "CE7417EE8EF24030B9DD6192E4A33215E97C17783A40E7A39478F3B28AFA8BC8",
+      "illegal_actions": 0,
+      "max_final_floor": 17,
+      "mean_final_floor": 7.777223773434383,
+      "seed_sha256": "bab5c7a69e07bdcf9c47beaecf7eeaa08c560cd8ac8b392802a10596e36c7d65",
+      "source": "runtime/act1_wide/a_base_final_promo.json",
+      "split": "promotion",
+      "truncation_rate": 0.00019944156362185878,
+      "unclassified_dead_ends": 0,
+      "win_rate": 0.0,
+      "winning_seeds": [],
+      "wins": 0
+    }
+  ],
+  "schema_version": 1,
+  "scope": "simulator_act1_only_split_by_generated_act",
+  "totals": {
+    "act1_evaluations_episodes": 40096,
+    "distinct_seed_populations": 2,
+    "distinct_winning_seeds": 9,
+    "illegal_actions_total": 0,
+    "per_episode_rate": 0.00022446129289704707,
+    "per_split": {
+      "checkpoint": {
+        "episodes": 10012,
+        "wins": 2
+      },
+      "promotion": {
+        "episodes": 30084,
+        "wins": 7
+      }
+    },
+    "unclassified_dead_ends_total": 0,
+    "win_events": 9,
+    "winning_seeds": [
+      130008177,
+      130008774,
+      130011349,
+      130015189,
+      130015199,
+      130016374,
+      130017492,
+      130017978,
+      130019400
+    ]
+  }
+}
