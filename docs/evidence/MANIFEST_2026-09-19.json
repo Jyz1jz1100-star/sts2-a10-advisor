@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "92b44e931366c221578b0007e1d888fbc86b6f1473a14b88870eb62158dbc2de",
-  "evidence_file_count": 26,
-  "generated_at": "2026-09-19T11:02:08+00:00",
-  "git_head_at_generation": "7b8af6c",
+  "bundle_root": "bc69da6251da92cfcac326fe6030c8ae766bd689e29d559fa1069d2872596198",
+  "evidence_file_count": 27,
+  "generated_at": "2026-09-19T11:10:56+00:00",
+  "git_head_at_generation": "c98f311",
   "checkpoint_digests_cited": 14,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -204,8 +204,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "5bf6b7626dfa5f21130761eae569b0e8b949f6194b322eacc7dc448c64bfec26",
-      "bytes": 10698
+      "sha256": "6b58c9a961f72e7781280fbd96a4a245fd374532815c68528cde94a12c6b206c",
+      "bytes": 11103
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -261,6 +261,11 @@
       "file": "contract_channels_20260919.json",
       "sha256": "2af1f66f26347dad162fc379551b8e4703a71ab389f9960555e6883a29703b00",
       "bytes": 4373
+    },
+    {
+      "file": "dead_end_vocabulary_20260919.json",
+      "sha256": "8d080a12adcdac6e947762eff96de56f3e43bfed46d7e164d1a01bab528c8251",
+      "bytes": 3574
     },
     {
       "file": "event_mask_case_audit_20260919.json",

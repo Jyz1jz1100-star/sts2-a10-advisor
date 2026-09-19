@@ -1358,3 +1358,5 @@ Why it is worth one operator-minute: that same gap is the stated reason
 condition (1) of the Combat PPO unfreeze. One live call
 (`scripts/run_solver_comparison.py --max-battles 1`, checks listed in the note)
 decides both. It starts a run, so it is not something to do unattended.
+
+**One clause in the campaign report was an over-correction, now fixed.** It had said the dead-end labelling "cannot tell 'cannot act' from 'acts too slowly'". A census over all 282 committed metrics files (`scripts/census_dead_end_vocabulary.py`, `docs/evidence/dead_end_vocabulary_20260919.json`, claim `dead_end_vocabulary`) gives a three-label vocabulary -- `native_rejection` 861 (legacy schema only), `empty_action_mask` 50, `step_cap` 3 -- so both notions are labelled and `step_cap` has fired, all three times in the act1 stage. The residual gap is narrower and different: `dead_end_reason` holds one value per episode, so a co-occurring pair would record only `empty_action_mask`, and whether that ever happens cannot be seen from these files. `unclassified_dead_ends` remains 0 across the whole population.

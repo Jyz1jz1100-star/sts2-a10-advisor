@@ -1,0 +1,81 @@
+{
+  "_comment": [
+    "What the dead-end labelling has actually ever recorded, over the same 282-file population the",
+    "contract-channel census walks. This exists to correct a sentence in the campaign report that",
+    "claimed the vocabulary cannot separate 'cannot act' from 'acts too slowly': it can, the",
+    "evaluator labels the evaluator's own horizon as step_cap (training/evaluation.py:129-132), and",
+    "three episodes carry that label. The residual gap is different and narrower -- see 'refines'."
+  ],
+  "by_reason_and_stage": {
+    "empty_action_mask": {
+      "act1/checkpoint": 13,
+      "act1/experiment-final": 1,
+      "act1/promotion": 36
+    },
+    "native_rejection": {
+      "floor3/checkpoint": 1,
+      "floor6/checkpoint": 248,
+      "floor6/promotion": 612
+    },
+    "step_cap": {
+      "act1/checkpoint": 2,
+      "act1/promotion": 1
+    }
+  },
+  "established": [
+    "the vocabulary across every committed metrics file is exactly {'empty_action_mask': 50, 'native_rejection': 861, 'step_cap': 3}",
+    "unclassified_dead_ends is 0 in all 49 files that carry any reason, and the population records 1972 truncations among the reason-bearing files alone",
+    "`step_cap` has fired 3 times, so 'acts too slowly' IS separately labelled; `empty_action_mask` has fired 50 times, so 'cannot act' is the other label",
+    "the 861 native_rejection endings belong to the legacy schema (pre-filter-mode) files and do not contradict the 0 recorded under the current schema -- the same split the contract-channel census documents"
+  ],
+  "generated_at": "2026-09-19T11:05:54+00:00",
+  "metrics_files_with_any_reason": 49,
+  "not_established": [
+    "that step_cap and empty_action_mask can never describe the same episode: the label is a single string per episode and the evaluator prefers the env's own label, so a co-occurrence would be recorded as empty_action_mask only. Nothing here shows whether that ever happens -- it needs a run that records both conditions, not a re-reading of these files"
+  ],
+  "refines": [
+    "the sentence this replaces: 'the only thing missing is a label that cannot tell cannot-act from acts-too-slowly'. Correct version: both labels exist and both have fired; what is NOT established is that they are mutually exclusive per episode, because dead_end_reason holds one value"
+  ],
+  "scope": "all committed metrics files, both schema generations",
+  "step_cap_files": [
+    {
+      "episodes": 100,
+      "file": "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/metrics/step_000012000000.json",
+      "reasons": {
+        "step_cap": 1
+      },
+      "split": "checkpoint",
+      "stage": "act1",
+      "truncations": 1,
+      "unclassified_dead_ends": 0
+    },
+    {
+      "episodes": 100,
+      "file": "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/metrics/step_000003000024.json",
+      "reasons": {
+        "empty_action_mask": 1,
+        "step_cap": 1
+      },
+      "split": "checkpoint",
+      "stage": "act1",
+      "truncations": 2,
+      "unclassified_dead_ends": 0
+    },
+    {
+      "episodes": 500,
+      "file": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/metrics/promotion.json",
+      "reasons": {
+        "step_cap": 1
+      },
+      "split": "promotion",
+      "stage": "act1",
+      "truncations": 1,
+      "unclassified_dead_ends": 0
+    }
+  ],
+  "vocabulary": {
+    "empty_action_mask": 50,
+    "native_rejection": 861,
+    "step_cap": 3
+  }
+}

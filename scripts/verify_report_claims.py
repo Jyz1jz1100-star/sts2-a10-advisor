@@ -1223,6 +1223,50 @@ def claim_evidence_bundle_integrity():
     }
 
 
+def claim_dead_end_vocabulary():
+    """Recount the dead-end labels the metrics have ever produced.
+
+    This claim exists because the report asserted a gap that the vocabulary refutes: it said the
+    labelling cannot tell "cannot act" from "acts too slowly", when `step_cap` is an assigned
+    label (training/evaluation.py:129-132) and three episodes carry it. Pinning the whole
+    vocabulary is the honest substitute for pinning the sentence -- if a fourth reason ever
+    appears, or `step_cap` stops appearing, this goes red and the prose has to be re-read.
+    """
+    from collections import Counter
+
+    data = json.loads((ROOT / "docs/evidence/dead_end_vocabulary_20260919.json")
+                      .read_text(encoding="utf-8"))
+    vocabulary: Counter = Counter()
+    unclassified = 0
+    cap_stages: set[str] = set()
+    legacy_native = current_native = 0
+    for _path, payload in _metrics_payloads():
+        reasons = payload.get("dead_end_reasons") or {}
+        vocabulary.update({k: int(v) for k, v in reasons.items()})
+        unclassified += int(payload.get("unclassified_dead_ends", 0) or 0)
+        if "step_cap" in reasons:
+            cap_stages.add(str(payload.get("stage")))
+        native = int(reasons.get("native_rejection", 0) or 0)
+        if "rejection_events" in payload:
+            current_native += native
+        else:
+            legacy_native += native
+    return {
+        "vocabulary_matches_the_artifact": dict(vocabulary) == data["vocabulary"],
+        "vocabulary_is_exactly_three_labels": dict(vocabulary) == {
+            "empty_action_mask": 50, "native_rejection": 861, "step_cap": 3},
+        "acts_too_slowly_is_labelled": vocabulary["step_cap"] > 0,
+        "cannot_act_is_labelled": vocabulary["empty_action_mask"] > 0,
+        "nothing_is_unclassified": unclassified == 0,
+        "step_cap_is_act1_stage_only": cap_stages == {"act1"},
+        "legacy_and_current_native_rejection_still_split": (
+            legacy_native == 861 and current_native == 0),
+        "artifact_and_disk_agree_on_step_cap_files": (
+            len(data["step_cap_files"]) == vocabulary["step_cap"]
+            and all("step_cap" in row["reasons"] for row in data["step_cap_files"])),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1293,6 +1337,8 @@ CLAIMS = {
                                  "the refusal classes on three checkpoints and two stages"),
     "evidence_bundle_integrity": (claim_evidence_bundle_integrity,
                                "the whole docs/evidence bundle, re-hashed from disk"),
+    "dead_end_vocabulary": (claim_dead_end_vocabulary,
+                             "every dead-end label the metrics have ever produced"),
 }
 
 
