@@ -163,6 +163,14 @@ def main() -> int:
             env = factory(seed)
             report, _used, _f = roll(env, model, seed, actions[:index] + [action],
                                      args.max_steps, args.fork_phase, args.fork_floor)
+            if report.get("diverged"):
+                # Replay is deterministic, so this should not happen -- but a sweep
+                # that dies halfway reports nothing at all, which is worse than a
+                # partial artifact with the broken row marked.
+                variants.append({"action": action, "is_policy_choice": action == chosen,
+                                 "diverged": True})
+                print(f"{seed} fork action {action}: DIVERGED")
+                continue
             variants.append({"action": action, "is_policy_choice": action == chosen,
                              "outcome": {k: report[k] for k in
                                          ("final_phase", "run_won", "truncated",
