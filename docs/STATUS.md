@@ -2192,3 +2192,21 @@ end is item 4, the 102-checkpoint frontier sweep -- long-running, and its popula
 re-derived by `chained_frontier` on every claim run, so its marginal value is artifact bytes rather than
 new information. The real-machine path and the learnability question are both gated on the operator
 (solver lock reconciliation, game launch, PPO freeze).
+
+## 2026-09-20 -- tried to upgrade the 09-18 arms' warm-start attestation from script text to digest; the run artifacts cannot support it
+
+The ladder clause sits at "partly met" partly because only 2 of 21 arm plans carry a `warm_start` block, and
+the rest are attested only by the launch script that named their parent checkpoint. The hoped-for upgrade was
+to pin each named parent's bytes with a sha256 recovered from the run itself, which would move the evidence
+from "text says a parent was loaded" toward "the parent's exact bytes are on record". It does not exist: the
+09-18 generated arm configs contain no `warm_start`, `resume`, or parent field at all (grepped), and
+`runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/plan.json` reports `warm_start: null` with no
+parent key among its ten top-level fields. The trainer recorded parentage in the launcher, not in the run,
+for that batch.
+
+So `ladder_lineage_20260919.json`'s current `not_established` wording is the honest ceiling, not an
+under-measurement -- and a digest computed now from whatever file the script names would be pinned by
+*today's* reading of that text, which proves the file exists and not that the arm loaded it. Rejected before
+building it for that reason; recorded so the next session does not spend a turn rediscovering it. Only the
+09-19 A/B arms (`a1filt`, `a1mix`) carry both kinds of self-attestation, which is what the field was added
+for.
