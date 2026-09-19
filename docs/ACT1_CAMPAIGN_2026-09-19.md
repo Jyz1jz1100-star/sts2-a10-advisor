@@ -662,3 +662,30 @@ scanned 605 json artifacts under runs, runtime
 含义：本文所有数字都来自 promotion / checkpoint 两个可见评估分区，
 `130020000` 起的那 10000 个种子仍然是一个干净的 holdout，留给真机验收之前的最后一次
 防过拟合检查。`train_seeds_file` 只作用于训练种子，不会、也不应该去碰评估分区。
+
+## "能不能给模拟器补一个第三幕"——查过了，答案是不行（不是麻烦，是没有原料）
+
+文首我说不去给模拟器造第三幕。这次把"到底有没有现成原料可以接线"查清了：
+
+- **战斗工厂只有一个遭遇枚举**：`Core/CombatFactory.cs:27` 的
+  `ActOneEncounter`，共 **87 个成员**，两幕都用它（名字是历史遗留，
+  `Underdocks*Encounters` 也从这个枚举里取值）。整个文件里
+  **没有 `Act3` / `ActThree` / `ThirdAct` 任何字样**。
+- **每一场战斗是手写的**：`ActOneEncounter.Cultists => …`、
+  `ActOneEncounter.Vantom => [CreateVantom(rng)]` 这种一一对应的 switch，
+  所以"第三幕的怪"不是打开某个开关就能出现的——它需要新写敌人行为。
+- **`RunConstants.cs:35-36` 也只有两个 act 常量**，没有第三幕的地图规格、
+  没有第三幕的遭遇池、也没有第三幕的奖励表。
+
+结论：第三幕在模拟器里**每一层都缺**（常量、池、战斗内容、地图），
+不是"有数据没接线"。因此"给模拟器补一幕再拿它当验收证据"这条路，
+本质上是拿我编的内容冒充游戏，**不能作为目标达成**——这一点现在有正面证据了。
+
+### 顺带一个会咬人的坑：两套敌人 id 不是一回事
+
+审计"哪些敌人真的可达"时，**不要**把 `Generated/Enemies.g.cs` 的 106 条
+`EnemyDef(Id: n)` 与 `RunConstants.*Encounters` 引用的 id 直接比对：
+运行期遭遇 id 走的是 `ActOneEncounter` 枚举值（`CombatFactory.cs`），
+那是**另一个 id 空间**。我第一次这么比，得出"69 个敌人从未被任何幕使用"
+以及"池里引用了不存在的 id 0"两条——都是跨 id 空间造成的假发现，
+实际含义是枚举值与生成表编号并不重合。留在这里，避免下一棒再照着它开 bug。
