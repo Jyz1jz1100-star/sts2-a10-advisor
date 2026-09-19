@@ -156,11 +156,14 @@ gitignore——**检查点与指标文件本身不入库**。因此这份"哈希
 
 ## 复现状态
 
-**已复现四次，跨三个不同臂与两种不同分区（未见 promotion 500 局 ×2、checkpoint
-100 局 ×2）。** 其中 `b_terminal-1` 的 6/500 是这批里最强的一个未见分区证据。
+**已复现五次，跨四个不同臂与两种不同分区（未见 promotion 500 局 ×2、checkpoint
+100 局 ×3）。** 其中 `b_terminal-1` 的 6/500 是这批里最强的一个未见分区证据。
 `scripts/reevaluate_checkpoint.py` 独立重跑了
-`b_terminal-0` 的 500 局 promotion 评估与 `c_explore-0` 的 100 局 checkpoint 评估，
-逐项一致。
+`b_terminal-0` 的 500 局 promotion 评估、`c_explore-0` 与 `b_terminal-0` 的
+100 局 checkpoint 评估，以及（2026-09-19 00:35，本文最后一格"待复现"）手工臂
+`a_base` 的 100 局 checkpoint 评估（`runtime/a_base_reeval.log`：检查点哈希、
+种子哈希、`win_rate 0.01`、`illegal 0`、`unclassified 0`、`max_final_floor 17`
+逐项一致），至此**结论表五行全部独立复现**。
 
 复核要用**装了 numpy/torch 的那个解释器**（模拟器自己的 venv），仓库 `.venv` 与
 `.tools/python` 都不含评估依赖；用错解释器只会以 `ModuleNotFoundError` 崩掉，
@@ -189,7 +192,7 @@ VERDICT: reproduced        (exit code 0)
 `training.evaluation.evaluate_policy`。它不是"又跑了一次自己的实现"，因此
 `win_rate` 相等才有意义。
 
-结论限定在：**存在可复核、可复现的 V2 Act 1 终局胜利（最强一条 6/500，四次独立复现）**。
+结论限定在：**存在可复核、可复现的 V2 Act 1 终局胜利（最强一条 6/500，五次独立复现）**。
 它不等于策略能稳定赢，更不等于三幕通关（见范围声明）。
 
 ## 同一分区上的横向对照（这条比上面的记录数更重要）
@@ -367,13 +370,15 @@ Act-1 单独评估把胜利种子写进了 `winning_seeds`（指标 schema 6）�
   换新种子段（400M/406M/412M），最终并入上表的 20 臂 / 110 份 / 61 条非零记录。
 - **下一夜不建议照同样形状重放。** 同一分区上的曲线是平的（见上节），且终局层数
   分布显示 66% 的局死在第 5–8 层：要动的是前中段的深度，而不是同等配置的臂数与
-  时长。可选的具体方向（都还没做，等操作员定）：把 warm-start 阶梯的某一级设在
-  floor 6→10 之间继续加深，或针对 5–8 层遭遇的奖励/采样做一轮消融。
+  时长。**"等操作员定"的那条已经做了一部分**：第二晚起，"按幕过滤 act1 阶段的
+  训练种子"从判断变成了预注册的 A/B（见文末第三阶段），并且顺带补上了
+  1M→4M 的**配对**零效应检查。仍未做的是针对 5–8 层遭遇的奖励/采样消融。
 - 真机侧的代码拦路石已经清掉：grammar v2 合入主干并进入验收套件
   （47/47；15 会话真机回放零漂移），逐批次模组自证也已落地
   （`combat_solver/modpin.py` + `scripts/supervise_solver_batch.py`）。
-- 剩下的拦路石不是代码：04:37 与 05:31 两次实测 `127.0.0.1:15526/health` 均拒连、
-  无游戏进程。supervisor 设计上**永不启动游戏**（只 GET 探测然后
+- 剩下的拦路石不是代码：`127.0.0.1:15526/health` 在 04:37、05:31（本地）
+  与 23:42、00:42（UTC，等价本地 07:42、08:42）四次实测**均拒连、无游戏进程**。
+  supervisor 设计上**永不启动游戏**（只 GET 探测然后
   `game_wait_timeout`），这个设计此刻是有意的——profile 存档树在 00:03–00:04
   被写过，冷启动新运行可能顶掉在跑的一局。三幕需要操作员本人开机后再跑：
   `python scripts/supervise_solver_batch.py --mode observational --allow-actions
