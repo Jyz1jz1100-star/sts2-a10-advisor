@@ -19,6 +19,7 @@ import dataclasses
 import hashlib
 import json
 import sys
+from collections import deque
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -27,6 +28,35 @@ sys.path.insert(0, str(ROOT.parent / "third_party" / "slay-the-spire-2-emulator-
 sys.path.insert(0, str(ROOT))
 
 CHAINED_SEED = "7MS1YN8NWB"
+
+from training.v2_constants import (  # noqa: E402
+    COMBAT_OBS_SIZE,
+    MAX_ENEMIES,
+    MAX_HAND,
+    PHASE_COMBAT,
+)
+from training.v2_flat_env import SENTINEL_FLAT, TARGET_SLOTS  # noqa: E402
+
+
+def _tail_report(blocks) -> dict[str, object]:
+    """Which combat integers still move when both sides' HP is frozen.
+
+    A stalemate of 59,830 *distinct* states is only meaningful once you know what
+    is still varying: if only a counter moves, the fight is not progressing and
+    the mask never says so, which is an environment dead end rather than a policy
+    choice.
+    """
+    rows = [list(b) for b in blocks]
+    if not rows:
+        return {}
+    varying = [index for index in range(COMBAT_OBS_SIZE)
+               if len({row[index] for row in rows}) > 1]
+    return {
+        "tail_blocks_kept": len(rows),
+        "tail_varying_indices": varying,
+        "tail_first_block": rows[0],
+        "tail_last_block": rows[-1],
+    }
 
 
 def _sha256(path: Path) -> str:
@@ -44,6 +74,14 @@ def main() -> int:
                         help="sample instead of taking the argmax, to test whether the "
                              "argmax policy is what locks a boss fight into a stalemate")
     parser.add_argument("--sample-seed", type=int, default=0)
+    parser.add_argument("--watch-floor", type=int, default=17,
+                        help="floor whose action stream to record (default: the boss node)")
+    parser.add_argument("--watch-steps", type=int, default=0,
+                        help="record N chosen actions at --watch-floor so a stalemate can "
+                             "be read as a behaviour, not inferred from a step count")
+    parser.add_argument("--watch-raw", type=int, default=0,
+                        help="keep the last N combat observation blocks and report which "
+                             "integer positions still change while HP is frozen")
     parser.add_argument("--repeats", type=int, default=1,
                         help="roll the same seed N times; only meaningful with --sampled")
     parser.add_argument("--out", type=Path, default=None)
@@ -85,6 +123,9 @@ def main() -> int:
             env = factory(args.seed)
             observation, info = env.reset(seed=args.seed)
             trace: list[dict[str, object]] = []
+            window: list[dict[str, object]] = []
+            tail_blocks: deque = deque(maxlen=args.watch_raw or None)
+            state_shape = None
             last = None
             steps = 0
             terminal = truncated = False
@@ -112,12 +153,136 @@ def main() -> int:
                     illegal_actions += 1
                     dead_end = "policy_illegal_action"
                     break
+                # Record *before* stepping, against the state the choice was made
+                # in: after a step the engine has already moved on and the numbers
+                # would describe a different decision.
+                if args.watch_steps and info.get("floor") == args.watch_floor \
+                        and len(window) <= args.watch_steps:
+                    # Decode from the raw observation with the same offsets the env
+                    # uses to name actions (v2_flat_env._action_names).  Going
+                    # through codec() would be wrong: it describes the engine's raw
+                    # candidate set, which is not the index space the policy's mask
+                    # was taken in.
+                    flat_env = env.unwrapped
+                    raw = flat_env.raw_observation()
+                    base, slot = divmod(int(action), TARGET_SLOTS)
+                    phase = int(raw[COMBAT_OBS_SIZE])
+                    hand = [int(raw[8 + i * 2]) for i in range(MAX_HAND) if raw[8 + i * 2]]
+                    if int(action) == SENTINEL_FLAT:
+                        kind, detail = "sentinel_dead_end", ""
+                    elif phase == PHASE_COMBAT:
+                        if base < len(hand):
+                            kind, detail = "play_card", f"card:{hand[base]}@hand{base}"
+                        elif base == len(hand):
+                            kind, detail = "end_turn", ""
+                        elif base <= len(hand) + 3:
+                            potions = [int(raw[28 + i * 2]) for i in range(3) if raw[28 + i * 2]]
+                            idx = base - len(hand) - 1
+                            kind = "potion"
+                            detail = f"potion:{potions[idx]}" if idx < len(potions) else "potion:?"
+                        else:
+                            kind, detail = "other_combat", ""
+                    else:
+                        kind, detail = f"phase{phase}", ""
+                    combat = tuple(int(v) for v in raw[:COMBAT_OBS_SIZE])
+                    # Enemy slots: v2_observation.py:183-186 (base 54, stride 15,
+                    # hp at +0, max_hp at +1).  Player HP declining is not enough to
+                    # call this a stalemate -- whether the boss is being ground down
+                    # is what separates "too slow" from "not fighting".
+                    enemies = [
+                        (int(raw[54 + slot * 15]), int(raw[54 + slot * 15 + 1]))
+                        for slot in range(MAX_ENEMIES)
+                        if int(raw[54 + slot * 15 + 1]) > 0
+                    ]
+                    # "It keeps ending its turn" only means something if it *could*
+                    # have played.  Count the mask's playable-card candidates at
+                    # this exact decision, so an energy-starved turn cannot be
+                    # misread as reward exploitation.
+                    flat_mask = flat_env.action_masks()
+                    legal_plays = sum(
+                        1 for index, on in enumerate(flat_mask)
+                        if bool(on) and divmod(index, TARGET_SLOTS)[0] < len(hand)
+                    )
+                    window.append({
+                        "step": steps,
+                        "flat": int(action),
+                        "kind": kind,
+                        "detail": detail,
+                        "target_slot": slot,
+                        "hand_count": len(hand),
+                        "legal_play_actions": legal_plays,
+                        "legal_total": int(sum(1 for on in flat_mask if bool(on))),
+                        "enemy_hp": [hp for hp, _ in enemies],
+                        "enemy_max_hp": [m for _, m in enemies],
+                        "player_hp": info.get("player_hp"),
+                        "combat_sig": hashlib.sha256(
+                            repr(combat).encode("utf-8")).hexdigest()[:12],
+                    })
+                    tail_blocks.append(combat)
+                    if state_shape is None:
+                        state_shape = sorted(flat_env.state_info())
                 observation, _reward, terminal, truncated, info = env.step(action)
                 steps += 1
                 if steps >= args.max_steps:
                     truncated = True
                     dead_end = "step_cap"
             won = bool(terminal and info.get("player_won", False))
+            kinds = {}
+            missed = 0
+            alone = 0
+            enemy_min = None
+            for row in window:
+                kinds[row["kind"]] = kinds.get(row["kind"], 0) + 1
+                if row["kind"] == "end_turn" and row["legal_play_actions"] > 0:
+                    missed += 1
+                if row["kind"] == "end_turn" and row["legal_total"] == 1:
+                    alone += 1
+                for hp in row["enemy_hp"]:
+                    if enemy_min is None or hp < enemy_min:
+                        enemy_min = hp
+            # When did the fight stop being playable at all?  "It turtles" and
+            # "it is locked out" look identical in a step count.
+            last_actionable = next(
+                (row["step"] for row in reversed(window) if row["legal_play_actions"] > 0),
+                None,
+            )
+            first_locked = next(
+                (row["step"] for row in window
+                 if row["legal_play_actions"] == 0 and last_actionable is not None
+                 and row["step"] > last_actionable),
+                None,
+            )
+            signatures = [row["combat_sig"] for row in window]
+            end_turn_sizes = {}
+            for row in window:
+                if row["kind"] == "end_turn":
+                    end_turn_sizes[row["legal_total"]] = (
+                        end_turn_sizes.get(row["legal_total"], 0) + 1
+                    )
+            final_window = {
+                "recorded_steps": len(window),
+                "chosen_action_kinds": dict(sorted(kinds.items(), key=lambda kv: -kv[1])),
+                "end_turn_with_a_playable_card": missed,
+                "end_turn_when_end_turn_was_the_only_legal_action": alone,
+                "end_turn_legal_candidate_count_hist": dict(sorted(end_turn_sizes.items())),
+                "last_step_with_a_playable_card": last_actionable,
+                "decisions_after_playability_ended": (
+                    None if last_actionable is None
+                    else len(window) - 1 - next(
+                        i for i, row in enumerate(window) if row["step"] == last_actionable)),
+                "hand_locked_from_step": first_locked,
+                "enemy_hp_first": window[0]["enemy_hp"],
+                "enemy_hp_last": window[-1]["enemy_hp"],
+                "enemy_hp_lowest_seen": enemy_min,
+                "enemy_max_hp": window[0]["enemy_max_hp"],
+                "distinct_combat_states": len(set(signatures)),
+                "player_hp_values": sorted({row["player_hp"] for row in window},
+                                           key=lambda v: (v is None, v)),
+                "state_info_keys_at_first_record": state_shape,
+                "first_rows": window[:12],
+                "last_rows": window[-6:],
+                **_tail_report(tail_blocks),
+            } if window else None
             final = {
                 "repeat": repeat,
                 "policy_mode": "argmax" if deterministic else f"sampled({args.sample_seed}+{repeat})",
@@ -133,6 +298,7 @@ def main() -> int:
                 "run_won": won,
                 "run_outcome": info.get("run_outcome"),
                 "run_outcome_source": info.get("run_outcome_source"),
+                "action_window": final_window,
                 # A run can stop without the policy dying: the retained-trace seed
                 # carries an environment-side truncation signal of its own.  Without
                 # these four fields "reached Act 2 then stopped" reads as a death.

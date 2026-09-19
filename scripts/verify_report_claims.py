@@ -205,6 +205,36 @@ def claim_promoted_checkpoint_digests():
     return out
 
 
+def claim_stalemate_lock():
+    """Re-derive the report's stalemate mechanism from the committed probe artifacts.
+
+    The claim being checked is the strong one -- "the policy is locked out, not
+    turtling" -- so the numbers that carry it are recomputed from the raw combat
+    block rather than read back out of a summary field: a five-card hand of
+    unplayable Wounds, full energy, and HP frozen across the whole sampled tail.
+    """
+    sixk = json.loads((ROOT / "docs/evidence/stalemate_mechanics_60k_20260919.json")
+                      .read_text(encoding="utf-8"))
+    tail = json.loads((ROOT / "docs/evidence/stalemate_tail_20k_20260919.json")
+                      .read_text(encoding="utf-8"))
+    wide = sixk["results"][0]["action_window"]
+    block = tail["results"][0]["action_window"]["tail_last_block"]
+    hand = [int(block[8 + i * 2]) for i in range(10) if int(block[8 + i * 2]) != 0]
+    return {
+        "end_turn_decisions": wide["chosen_action_kinds"].get("end_turn"),
+        "play_card_decisions": wide["chosen_action_kinds"].get("play_card"),
+        "end_turn_with_a_playable_card": wide["end_turn_with_a_playable_card"],
+        "end_turn_was_the_only_legal_action":
+            wide["end_turn_when_end_turn_was_the_only_legal_action"],
+        # 10011 is "Wound": Cost -1, Type Status, Unplayable true
+        # (third_party .../Generated/Cards.g.cs:136).
+        "tail_hand_is_five_wounds": hand == [10011] * 5,
+        "tail_energy_at_max": int(block[3]) == int(block[4]) and int(block[3]) > 0,
+        "tail_hp_fields_not_varying": not ({0, 54} & set(
+            tail["results"][0]["action_window"]["tail_varying_indices"])),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -227,6 +257,8 @@ CLAIMS = {
                      "configured warm-start rungs vs the ones that actually ran and promoted"),
     "promoted_checkpoint_digests": (claim_promoted_checkpoint_digests,
                                     "the frozen floor3/floor6 checkpoints everyone continues from"),
+    "stalemate_lock": (claim_stalemate_lock,
+                       "the boss stalemate is a lockout (unplayable Wound hand), not turtling"),
 }
 
 

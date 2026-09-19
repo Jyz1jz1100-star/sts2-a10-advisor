@@ -1,0 +1,680 @@
+{
+  "chained_branch_source": "third_party/.../RunEngine.cs:1907-1920",
+  "does_not_evidence": [
+    "policy generalisation across acts (Act 1 of this seed is a hardcoded trace)",
+    "a three-act clear (the emulator has no Act 3)",
+    "real-game A10 acceptance"
+  ],
+  "evidences": "two-act flow reachable from the V2 harness",
+  "generated_at": "2026-09-19T03:13:29.025435+00:00",
+  "results": [
+    {
+      "action_window": {
+        "chosen_action_kinds": {
+          "end_turn": 59681,
+          "play_card": 148,
+          "potion": 1
+        },
+        "distinct_combat_states": 59830,
+        "end_turn_legal_candidate_count_hist": {
+          "1": 59678,
+          "2": 3
+        },
+        "end_turn_when_end_turn_was_the_only_legal_action": 59678,
+        "end_turn_with_a_playable_card": 0,
+        "enemy_hp_first": [
+          183
+        ],
+        "enemy_hp_last": [
+          43
+        ],
+        "enemy_hp_lowest_seen": 18,
+        "enemy_max_hp": [
+          183
+        ],
+        "first_rows": [
+          {
+            "combat_sig": "5828ee09d0fe",
+            "detail": "card:131@hand3",
+            "enemy_hp": [
+              183
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 21,
+            "hand_count": 5,
+            "kind": "play_card",
+            "legal_play_actions": 4,
+            "legal_total": 6,
+            "player_hp": 59,
+            "step": 170,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "ce113cc9dd7c",
+            "detail": "card:472@hand0",
+            "enemy_hp": [
+              183
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 0,
+            "hand_count": 4,
+            "kind": "play_card",
+            "legal_play_actions": 2,
+            "legal_total": 4,
+            "player_hp": 59,
+            "step": 171,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "e329ed435904",
+            "detail": "card:45@hand1",
+            "enemy_hp": [
+              182
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 3,
+            "kind": "play_card",
+            "legal_play_actions": 1,
+            "legal_total": 3,
+            "player_hp": 59,
+            "step": 172,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "a3f2794a2896",
+            "detail": "card:47@hand0",
+            "enemy_hp": [
+              182
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 0,
+            "hand_count": 2,
+            "kind": "play_card",
+            "legal_play_actions": 1,
+            "legal_total": 3,
+            "player_hp": 56,
+            "step": 173,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "e2f392bcd0b7",
+            "detail": "",
+            "enemy_hp": [
+              181
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 1,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 2,
+            "player_hp": 56,
+            "step": 174,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "030c8516d963",
+            "detail": "card:238@hand1",
+            "enemy_hp": [
+              181
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 5,
+            "kind": "play_card",
+            "legal_play_actions": 5,
+            "legal_total": 7,
+            "player_hp": 54,
+            "step": 175,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "3a6e3664feaa",
+            "detail": "card:131@hand1",
+            "enemy_hp": [
+              180
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 4,
+            "kind": "play_card",
+            "legal_play_actions": 4,
+            "legal_total": 6,
+            "player_hp": 54,
+            "step": 176,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "877763c48cae",
+            "detail": "card:30@hand1",
+            "enemy_hp": [
+              180
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 3,
+            "kind": "play_card",
+            "legal_play_actions": 3,
+            "legal_total": 5,
+            "player_hp": 54,
+            "step": 177,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "5e2156131813",
+            "detail": "",
+            "enemy_hp": [
+              179
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 14,
+            "hand_count": 2,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 2,
+            "player_hp": 54,
+            "step": 178,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "4f474dbbfac4",
+            "detail": "card:131@hand1",
+            "enemy_hp": [
+              179
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 5,
+            "kind": "play_card",
+            "legal_play_actions": 5,
+            "legal_total": 7,
+            "player_hp": 46,
+            "step": 179,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "4db94c577d87",
+            "detail": "card:433@hand1",
+            "enemy_hp": [
+              179
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 7,
+            "hand_count": 4,
+            "kind": "play_card",
+            "legal_play_actions": 3,
+            "legal_total": 5,
+            "player_hp": 46,
+            "step": 180,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "0f23d888b450",
+            "detail": "card:472@hand0",
+            "enemy_hp": [
+              179
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 0,
+            "hand_count": 4,
+            "kind": "play_card",
+            "legal_play_actions": 2,
+            "legal_total": 4,
+            "player_hp": 46,
+            "step": 181,
+            "target_slot": 0
+          }
+        ],
+        "last_rows": [
+          {
+            "combat_sig": "7520202bf083",
+            "detail": "",
+            "enemy_hp": [
+              43
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 35,
+            "hand_count": 5,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 1,
+            "player_hp": 6,
+            "step": 59994,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "87291611ad94",
+            "detail": "",
+            "enemy_hp": [
+              43
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 35,
+            "hand_count": 5,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 1,
+            "player_hp": 6,
+            "step": 59995,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "e64f5ebbf853",
+            "detail": "",
+            "enemy_hp": [
+              43
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 35,
+            "hand_count": 5,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 1,
+            "player_hp": 6,
+            "step": 59996,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "013843c3edf7",
+            "detail": "",
+            "enemy_hp": [
+              43
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 35,
+            "hand_count": 5,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 1,
+            "player_hp": 6,
+            "step": 59997,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "33e045b34cea",
+            "detail": "",
+            "enemy_hp": [
+              43
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 35,
+            "hand_count": 5,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 1,
+            "player_hp": 6,
+            "step": 59998,
+            "target_slot": 0
+          },
+          {
+            "combat_sig": "42947f032f8c",
+            "detail": "",
+            "enemy_hp": [
+              43
+            ],
+            "enemy_max_hp": [
+              183
+            ],
+            "flat": 35,
+            "hand_count": 5,
+            "kind": "end_turn",
+            "legal_play_actions": 0,
+            "legal_total": 1,
+            "player_hp": 6,
+            "step": 59999,
+            "target_slot": 0
+          }
+        ],
+        "player_hp_values": [
+          1,
+          2,
+          6,
+          9,
+          20,
+          21,
+          31,
+          46,
+          54,
+          56,
+          59
+        ],
+        "recorded_steps": 59830,
+        "state_info_keys_at_first_record": [
+          "act",
+          "current_node_type",
+          "deck_size",
+          "encounter_id",
+          "event_id",
+          "floor",
+          "gold",
+          "phase",
+          "phase_name",
+          "player_hp",
+          "player_max_hp",
+          "player_won",
+          "relic_count",
+          "relic_reward"
+        ]
+      },
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000002000016.zip",
+      "checkpoint_sha256": "eff8c5c51e9b897d05bb90eeb9ca524ee34512c357fef9373fef02a10bd0eb10",
+      "dead_end": "step_cap",
+      "final_act": 1,
+      "final_floor": 17,
+      "final_phase": "combat",
+      "final_player_hp": 6,
+      "final_player_max_hp": 77,
+      "illegal_actions": 0,
+      "max_act": 1,
+      "max_floor": 17,
+      "policy_mode": "argmax",
+      "reached_act_two": false,
+      "repeat": 0,
+      "run_outcome": "truncated",
+      "run_outcome_source": "environment",
+      "run_terminated": false,
+      "run_truncated": true,
+      "run_won": false,
+      "seed": "7MS1YN8NWB",
+      "steps": 60000,
+      "trace": [
+        {
+          "act": 1,
+          "floor": 1,
+          "phase": "ancient"
+        },
+        {
+          "act": 1,
+          "floor": 1,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 2,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 2,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 2,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 2,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 2,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 3,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 3,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 3,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 3,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 3,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 4,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 4,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 4,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 4,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 4,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 5,
+          "phase": "shop"
+        },
+        {
+          "act": 1,
+          "floor": 5,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 6,
+          "phase": "event"
+        },
+        {
+          "act": 1,
+          "floor": 6,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 7,
+          "phase": "rest"
+        },
+        {
+          "act": 1,
+          "floor": 7,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 8,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 8,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 8,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 8,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 9,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 9,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 9,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 9,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 10,
+          "phase": "treasure"
+        },
+        {
+          "act": 1,
+          "floor": 10,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 11,
+          "phase": "rest"
+        },
+        {
+          "act": 1,
+          "floor": 11,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 12,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 12,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 12,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 12,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 13,
+          "phase": "transform_select"
+        },
+        {
+          "act": 1,
+          "floor": 13,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 14,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 14,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 14,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 14,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 15,
+          "phase": "combat"
+        },
+        {
+          "act": 1,
+          "floor": 15,
+          "phase": "relic_reward"
+        },
+        {
+          "act": 1,
+          "floor": 15,
+          "phase": "card_reward"
+        },
+        {
+          "act": 1,
+          "floor": 15,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 16,
+          "phase": "rest"
+        },
+        {
+          "act": 1,
+          "floor": 16,
+          "phase": "map"
+        },
+        {
+          "act": 1,
+          "floor": 17,
+          "phase": "combat"
+        }
+      ]
+    }
+  ],
+  "scope": "simulator_chained_demo_seed"
+}

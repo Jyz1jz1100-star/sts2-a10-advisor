@@ -42,5 +42,14 @@
     "floor13": {"ran": false, "decision_recorded": false, "gate_passed": false},
     "act1": {"ran": true, "decision_recorded": true, "gate_passed": false}
   },
-  "promoted_checkpoint_digests": {"floor3": "ok", "floor6": "ok"}
+  "promoted_checkpoint_digests": {"floor3": "ok", "floor6": "ok"},
+  "stalemate_lock": {
+    "end_turn_decisions": 59681,
+    "play_card_decisions": 148,
+    "end_turn_with_a_playable_card": 0,
+    "end_turn_was_the_only_legal_action": 59678,
+    "tail_hand_is_five_wounds": true,
+    "tail_energy_at_max": true,
+    "tail_hp_fields_not_varying": true
+  }
 }
