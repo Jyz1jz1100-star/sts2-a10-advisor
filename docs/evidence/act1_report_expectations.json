@@ -199,5 +199,18 @@
     "tail_hand_is_five_wounds": true,
     "tail_energy_at_max": true,
     "tail_hp_fields_not_varying": true
+  },
+  "boss_completion_fork": {
+    "relic_screen_splits_two_ways": true,
+    "policy_choice_is_on_the_truncating_side": true,
+    "card_screen_is_a_negative_control": true,
+    "all_three_runs_fought_the_same_boss": true,
+    "truncating_run_is_a_false_negative": true
+  },
+  "dead_end_reason_census": {
+    "files_with_reason_field": 49,
+    "empty_action_mask": 50,
+    "step_cap": 3,
+    "native_rejection": 861
   }
 }

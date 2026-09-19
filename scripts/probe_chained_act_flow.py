@@ -157,6 +157,7 @@ def main() -> int:
             observation, info = env.reset(seed=seed)
             trace: list[dict[str, object]] = []
             window: list[dict[str, object]] = []
+            info_snapshot: dict[str, object] = {}
             tail_blocks: deque = deque(maxlen=args.watch_raw or None)
             state_shape = None
             last = None
@@ -253,11 +254,20 @@ def main() -> int:
                         # was the one quantity the loss model had to leave unmeasured.
                         "player_block": int(raw[2]),
                         "energy": int(raw[3]),
+                        # Node type is what decides completion (NodeBoss -> Complete),
+                        # so a run that stops "at the boss floor" without completing has
+                        # to be read against this field, not against the floor number.
+                        "node_type": int(raw[COMBAT_OBS_SIZE + 8]),
                         "combat_sig": hashlib.sha256(
                             repr(combat).encode("utf-8")).hexdigest()[:12],
                     })
                     tail_blocks.append(combat)
                     if state_shape is None:
+                        info_snapshot = {
+                            key: value for key, value in flat_env.state_info().items()
+                            if key in ("act", "floor", "current_node_type",
+                                       "encounter_id", "event_id", "phase_name")
+                        }
                         state_shape = sorted(flat_env.state_info())
                 observation, _reward, terminal, truncated, info = env.step(action)
                 steps += 1
@@ -321,6 +331,7 @@ def main() -> int:
                 "player_hp_values": sorted({row["player_hp"] for row in window},
                                            key=lambda v: (v is None, v)),
                 "state_info_keys_at_first_record": state_shape,
+                "first_decision_state": info_snapshot,
                 "first_rows": window[:12],
                 "last_rows": window[-6:],
                 **_tail_report(tail_blocks),

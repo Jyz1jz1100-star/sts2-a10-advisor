@@ -23,6 +23,7 @@ claim reports ERROR and the rest still verify::
 from __future__ import annotations
 
 import argparse
+import collections
 import hashlib
 import json
 import re
@@ -500,8 +501,11 @@ def claim_terminal_floor_qualification():
     The previous version declared act-2 wins non-terminal because terminalFloor is 33.
     Retracted: completion is `CurrentNodeType == NodeBoss` for either act, and six
     re-run act-2 victories end at floor 17 with phase=complete, so calling them
-    non-clears was an over-correction. What the objective turns on is single-act
-    versus multi-act, and that is what is asserted here.
+    non-clears was an over-correction.  That retraction then over-corrected itself --
+    "the same for both acts" holds only for the relic-reward exit; see
+    claim_boss_completion_fork, which pins the counterfactual that caught it.
+    What the objective turns on is single-act versus multi-act, and that is what is
+    asserted here.
     """
     wins = json.loads((ROOT / "docs/evidence/act1_boss_win_anatomy_20260919.json")
                       .read_text(encoding="utf-8"))["rows"]
@@ -522,6 +526,59 @@ def claim_terminal_floor_qualification():
         "multi_act_clears_anywhere": 0,
     }
 
+
+def claim_boss_completion_fork():
+    """Pin the counterfactual that decides whether a cleared act-2 boss is judged a win.
+
+    Seed 130012038 has carried three labels tonight, so nothing here is restated from
+    prose: the relic-reward screen must really split 2/2, the card screen must really
+    not split, the policy's own choice must be on the truncating side, and all three
+    compared runs must really share node type, encounter and an emptied boss.
+    """
+    fork = json.loads((ROOT / "docs/evidence/act2_boss_completion_fork_20260919.json")
+                      .read_text(encoding="utf-8"))
+    node = json.loads((ROOT / "docs/evidence/act2_boss_node_comparison_20260919.json")
+                      .read_text(encoding="utf-8"))
+    relic = next(f for f in fork["forks"] if f["fork_phase"] == "relic_reward")
+    card = next(f for f in fork["forks"] if f["fork_phase"] == "card_reward")
+    losing = next(s for s in relic["seeds"] if s["seed"] == 130012038)
+    phases = {row["action_base"]: row["final_phase"] for row in losing["variants"]}
+    return {
+        "relic_screen_splits_two_ways": sorted(phases.values()) == ["complete", "complete", "map", "map"],
+        "policy_choice_is_on_the_truncating_side": phases[losing["policy_chosen_base"]] == "map",
+        "card_screen_is_a_negative_control": all(
+            len({row["final_phase"] for row in seed["variants"]}) == 1
+            for seed in card["seeds"]),
+        "all_three_runs_fought_the_same_boss": (
+            len({(row["node_type_at_boss"], row["encounter_id"], row["floor"])
+                 for row in node["runs"]}) == 1
+            and all(row["boss_emptied"] for row in node["runs"])),
+        "truncating_run_is_a_false_negative": node["runs"][0]["outcome"] == "truncated"
+                                             and node["runs"][0]["boss_emptied"],
+    }
+
+
+def claim_dead_end_reason_census():
+    """How much of the on-disk campaign actually records *why* a run ended.
+
+    The report says the false-negative class is not countable across the whole
+    campaign, and that claim rests on this field's coverage: per-file reason
+    counters exist, but they carry no per-run floor or node type, so a campaign-wide
+    figure for "cleared the boss yet never judged a win" cannot be produced from them.
+    """
+    totals = collections.Counter()
+    files_with_field = 0
+    for _path, payload in _metrics_payloads():
+        reasons = payload.get("dead_end_reasons")
+        if isinstance(reasons, dict) and reasons:
+            files_with_field += 1
+            totals.update({key: int(value) for key, value in reasons.items()})
+    return {
+        "files_with_reason_field": files_with_field,
+        "empty_action_mask": totals["empty_action_mask"],
+        "step_cap": totals["step_cap"],
+        "native_rejection": totals["native_rejection"],
+    }
 
 
 CLAIMS = {
@@ -568,6 +625,10 @@ CLAIMS = {
                          "the nine Act 1 wins: entered near full HP, survived ~51 boss decisions"),
     "boss_anatomy": (claim_boss_anatomy,
                      "inside the boss node: survived decisions, not damage, separate win from loss"),
+    "boss_completion_fork": (claim_boss_completion_fork,
+                             "a cleared act-2 boss is judged a win only on the relic-reward exit"),
+    "dead_end_reason_census": (claim_dead_end_reason_census,
+                               "what the campaign actually records about why runs end"),
 }
 
 

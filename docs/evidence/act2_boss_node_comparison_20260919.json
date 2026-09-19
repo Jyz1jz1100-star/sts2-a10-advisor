@@ -1,0 +1,65 @@
+{
+  "_comment": [
+    "Three generated act-2 runs on the same checkpoint, compared at the boss node.",
+    "All three share current_node_type and encounter_id, and all three drive the boss to dead,",
+    "yet the engine completes two and returns the third to Map where the action mask empties.",
+    "This artifact is what decides the claim that has flip-flopped twice in this report.",
+    "enemy_sum_min_in_first_12_rows is the minimum surviving enemy-HP total over the first 12 recorded boss decisions -- not a final value; the boss being dead is carried separately by boss_emptied."
+  ],
+  "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+  "established": [
+    "the truncating seed fought the same node type and encounter as the completing seeds, and emptied it, so it was the act boss",
+    "the engine still returned that run to Map with an empty action mask instead of Complete, so the earlier label cleared-but-not-judged-a-win was right after all"
+  ],
+  "generated_at": "2026-09-19T05:49:00Z",
+  "runs": [
+    {
+      "boss_emptied": true,
+      "encounter_id": 84,
+      "enemy_sum_min_in_first_12_rows": 199,
+      "final_phase": "map",
+      "floor": 17,
+      "illegal": 0,
+      "node_type_at_boss": 6,
+      "outcome": "truncated",
+      "seed": 130012038,
+      "sentinel_chosen": 1,
+      "steps": 202,
+      "won": false
+    },
+    {
+      "boss_emptied": true,
+      "encounter_id": 84,
+      "enemy_sum_min_in_first_12_rows": 208,
+      "final_phase": "complete",
+      "floor": 17,
+      "illegal": 0,
+      "node_type_at_boss": 6,
+      "outcome": "win",
+      "seed": 130010053,
+      "sentinel_chosen": 0,
+      "steps": 183,
+      "won": true
+    },
+    {
+      "boss_emptied": true,
+      "encounter_id": 84,
+      "enemy_sum_min_in_first_12_rows": 204,
+      "final_phase": "complete",
+      "floor": 17,
+      "illegal": 0,
+      "node_type_at_boss": 6,
+      "outcome": "win",
+      "seed": 130010155,
+      "sentinel_chosen": 0,
+      "steps": 244,
+      "won": true
+    }
+  ],
+  "scope": "simulator_act1 label, generated act 2 (underdocks), argmax",
+  "unresolved": [
+    "SUPERSEDED by act2_boss_completion_fork_20260919.json the same hour: forking the floor-17 relic-reward",
+    "screen on this seed shows 2 of its 4 legal actions reach complete and 2 reach map, so the split is",
+    "reward-claim order, not node type or encounter"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "_comment": [
+    "Counterfactual fork at the boss-floor reward screens, same checkpoint and same argmax policy.",
+    "The fight is already over at the fork state in every row: the boss is dead and player_won is the",
+    "engine's LAST-COMBAT flag (RunEngine.cs:1282 -> State.LastPlayerWon), not a verdict on the run.",
+    "What varies is only which item the policy claims first on the reward screen.",
+    "Card-screen fork (fork_phase=card_reward) is the negative control: all four actions agree per seed.",
+    "Relic-screen fork (fork_phase=relic_reward) is the deciding state on the truncating seed: 2 of 4",
+    "legal actions end the run as a win, 2 fall back to Map where the action mask empties.",
+    "Both screens advertise the same four bases. v2_flat_env._action_names only names base 3 ('proceed');",
+    "on the relic screen the other three are the still-pending reward items in engine order, on the card",
+    "screen they are the offered cards. The fork conclusion needs neither naming, only that the state is held",
+    "fixed and every legal action is replayed."
+  ],
+  "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+  "code_refs": {
+    "boss_completes_only_on_relic_exit": "RunEngine.cs:1905-1925 (AdvanceAfterRelicReward: CurrentNodeType == NodeBoss -> Complete)",
+    "other_exit_is_floor_arithmetic": "RunEngine.cs:1983-1997 (AdvanceAfterNode: Floor >= terminalFloor, 17 for overgrowth / MapBossRow*2+1 = 33 for underdocks)",
+    "reward_order_selects_the_exit": "RunEngine.cs:1746-1781 (after the card: pending rewards -> RelicReward, none -> AdvanceAfterNode)",
+    "pending_reward_definition": "RunRewardGenerator.cs:711-717 (RewardGold | RewardPotion | RelicReward | RewardCardPending)"
+  },
+  "established": [
+    "an act-2 truncation previously read as 'the policy reached the boss and could not finish' is a reward-screen-order artifact: on seed 130012038 the same policy, same seed and same already-won boss fight reaches phase=complete when it claims reward item 2 or proceeds instead of claiming item 0",
+    "the card-reward screen is not the deciding state -- substituting every legal action there leaves each seed's outcome unchanged",
+    "generated act-2 maps really do end at row 17: the run that exits to Map at floor 17 has no legal map action, so the floor-33 terminalFloor that AdvanceAfterNode uses for underdocks is unreachable for a generated act-2 run",
+    "act 1 is structurally immune to this path: its terminalFloor is 17, so both exits from the boss node end the run, which is why the Act-1 0/83 conversion deficit cannot be explained by it"
+  ],
+  "forks": [
+    {
+      "fork_floor": 17,
+      "fork_phase": "card_reward",
+      "negative_control": true,
+      "seeds": [
+        {"policy_chosen_base": 0, "seed": 130012038, "variants": [{"action_base": 0, "final_phase": "map", "run_won": false}, {"action_base": 1, "final_phase": "map", "run_won": false}, {"action_base": 2, "final_phase": "map", "run_won": false}, {"action_base": 3, "final_phase": "map", "run_won": false}]},
+        {"policy_chosen_base": 1, "seed": 130010053, "variants": [{"action_base": 0, "final_phase": "complete", "run_won": true}, {"action_base": 1, "final_phase": "complete", "run_won": true}, {"action_base": 2, "final_phase": "complete", "run_won": true}, {"action_base": 3, "final_phase": "complete", "run_won": true}]}
+      ]
+    },
+    {
+      "fork_floor": 17,
+      "fork_phase": "relic_reward",
+      "negative_control": false,
+      "seeds": [
+        {
+          "fork_state_info": {"act": 2, "current_node_type": 6, "deck_size": 16, "encounter_id": 84, "floor": 17, "gold": 18, "phase_name": "relic_reward", "player_hp": 86, "player_max_hp": 92, "player_won": true, "relic_count": 4, "relic_reward": 215},
+          "fork_step": 197,
+          "policy_chosen_base": 0,
+          "seed": 130012038,
+          "variants": [
+            {"action_base": 0, "final_floor": 17, "final_phase": "map", "run_won": false, "trace_tail": ["combat", "relic_reward", "card_reward", "map"]},
+            {"action_base": 1, "final_floor": 17, "final_phase": "map", "run_won": false, "trace_tail": ["combat", "relic_reward", "card_reward", "map"]},
+            {"action_base": 2, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
+            {"action_base": 3, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["rest", "map", "combat", "relic_reward"]}
+          ]
+        },
+        {
+          "fork_state_info": {"act": 2, "current_node_type": 6, "deck_size": 19, "encounter_id": 84, "floor": 17, "gold": 16, "phase_name": "relic_reward", "player_hp": 60, "player_max_hp": 86, "player_won": true, "relic_count": 4, "relic_reward": 10},
+          "fork_step": 177,
+          "policy_chosen_base": 1,
+          "seed": 130010053,
+          "variants": [
+            {"action_base": 0, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
+            {"action_base": 1, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
+            {"action_base": 2, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["combat", "relic_reward", "card_reward", "relic_reward"]},
+            {"action_base": 3, "final_floor": 17, "final_phase": "complete", "run_won": true, "trace_tail": ["rest", "map", "combat", "relic_reward"]}
+          ]
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-09-19T06:01:00Z",
+  "not_established": [
+    "which item index the boss relic occupies on the screen -- the pending set is ordered gold, potion, relic, card (RunRewardGenerator.cs:724-772) but per-seed composition was not decoded",
+    "how often reward-screen order flips an act-2 boss win in the population: this is 1 known case out of 79 act-2 arrivals, measured by replay rather than by sampling"
+  ],
+  "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/probe_boss_reward_order.py --checkpoint runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip --seeds 130012038,130010053 --fork-phase relic_reward --out runtime/boss_relic_reward_order.json",
+  "scope": "simulator_act1 label, generated act 2 (underdocks), argmax, one checkpoint",
+  "supersedes_open_question_in": "act2_boss_node_comparison_20260919.json"
+}

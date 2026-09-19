@@ -1170,6 +1170,26 @@ outside the enumerated seed window. One honest method note: the census first rea
 seed -- `simulator_act1` is a mixed-act population, so any conversion figure that
 does not split by generated act is meaningless.
 
+**Act-2 completion is not a function of the boss fight.** The single truncation among
+the census' 162 boss arrivals was forked, and it was the act boss (same
+`current_node_type=6`, same `encounter_id=84`, same floor 17, boss emptied). The
+engine checks `CurrentNodeType == NodeBoss` on only *one* of the two exits from a
+boss node -- `AdvanceAfterRelicReward` (`RunEngine.cs:1905-1925`); the other exit is
+`AdvanceAfterNode` (`:1983-1997`), which compares `Floor >= terminalFloor`, and that
+is 17 for overgrowth but 33 for underdocks, a floor no generated act-2 map reaches.
+Replaying seed `130012038` to its floor-17 relic-reward decision and substituting
+every legal action (`scripts/probe_boss_reward_order.py`,
+`docs/evidence/act2_boss_completion_fork_20260919.json`): 2 of 4 end
+`phase=complete won=true`, 2 fall back to `map` and dead-end on an empty mask; the
+card-reward screen is the negative control (all 4 actions identical). Consequences,
+bounded: that run is a **false negative** in the win ledger, so "34 named clears"
+reads as a floor rather than a count; and act 1 is **structurally immune** (both
+exits complete at floor 17), so this cannot explain the 0/83 conversion deficit.
+Not measured: how often claim order flips an act-2 arrival campaign-wide -- the
+per-file `dead_end_reasons` counters carry no per-run floor or node type. An
+engine-side fix is the operator's call, and note it would change how runs end, so
+every campaign figure in this file would need re-measuring under it.
+
 **What I ran against it:** two new V2 curriculum act1-stage arms
 (`runtime/act1_ab/a1filt`, `runtime/act1_ab/a1mix`), 2,000,000 timesteps × 12 envs
 each, started 2026-09-19 00:31:39 UTC, both finishing below the promotion gate.
