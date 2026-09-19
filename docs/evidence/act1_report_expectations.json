@@ -1,0 +1,38 @@
+{
+  "_comment": [
+    "Expected values for scripts/verify_report_claims.py. Pinned by hand against",
+    "the numbers quoted in docs/ACT1_CAMPAIGN_2026-09-19.md, not copied from a",
+    "run of the script, so a changed disk still produces DRIFT rather than",
+    "silently redefining the report.",
+    "Counts that grew during 2026-09-19 did so because this session's own",
+    "evaluations added artifacts; the report is updated to the same figures."
+  ],
+  "metrics_file_count": 282,
+  "act1_scope_population": {"episodes": 46011, "files": 262},
+  "campaign_truncation_class": {
+    "episodes": 31400,
+    "files": 114,
+    "truncated": 51,
+    "truncation_bearing_files_not_floor17": 0
+  },
+  "repo_wide_truncation_population": {
+    "v1/original": {"episodes": 1300, "files": 9, "truncated": 32},
+    "v1/reevaluated": {"episodes": 1400, "files": 10, "truncated": 33},
+    "v2/original": {"episodes": 32900, "files": 125, "truncated": 53}
+  },
+  "v2_contract_sizes": {"flat_action_size": 225, "observation_size": 1739},
+  "emulator_act_ceiling": {
+    "act_count": 2,
+    "acts": ["ActOvergrowth", "ActUnderdocks"],
+    "map_boss_row": 16,
+    "terminal_floor_single_act": 17
+  },
+  "evidence_matrix_totals": {
+    "act1_episodes": 40096,
+    "win_events": 9,
+    "distinct_winning_seeds": 9,
+    "illegal_actions": 0,
+    "unclassified_dead_ends": 0
+  },
+  "win_ledger": {"rows": 5, "wins_reproduced": 9, "wins_failed_to_reproduce": 0}
+}
