@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "465915784bfa59168c78895fce3414e4c026ed32f2ac9bbb50265fff0e40459c",
-  "evidence_file_count": 38,
-  "generated_at": "2026-09-19T16:32:09+00:00",
-  "git_head_at_generation": "5fb4162",
+  "bundle_root": "e395fd1b9dc0ddbe498a4e532d4a99d1ffd77f4f777f7ce699434bb36a248b1d",
+  "evidence_file_count": 39,
+  "generated_at": "2026-09-19T16:41:26+00:00",
+  "git_head_at_generation": "52efaf6",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 696
+    "total_64_hex_strings_seen": 770
   },
   "resolved_checkpoints": [
     {
@@ -2265,8 +2265,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "3cbf9a36598f76fc14b0d396c504ace14fcdc11bce8fa61b3205d24bd1c9aa11",
-      "bytes": 16848
+      "sha256": "518556a3380f2daf521e617189a85a3847472cf9ab4626a74014ec3c4f85a301",
+      "bytes": 17222
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2332,6 +2332,11 @@
       "file": "dead_end_vocabulary_20260919.json",
       "sha256": "8d080a12adcdac6e947762eff96de56f3e43bfed46d7e164d1a01bab528c8251",
       "bytes": 3574
+    },
+    {
+      "file": "emulator_source_provenance_20260920.json",
+      "sha256": "ebe8cea9d79c6d149f15301495adb2d67f554324a994c15a03e8c197679bd1fa",
+      "bytes": 23071
     },
     {
       "file": "event_mask_case_audit_20260919.json",

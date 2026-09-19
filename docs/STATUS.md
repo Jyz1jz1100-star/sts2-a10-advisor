@@ -1683,3 +1683,28 @@ Act-1 wins were replayed on their own checkpoints and configs. **9/9 reproduce, 
 `verification_runs` inside the travelling artifact -- row contents hashed, timestamps not -- and
 `win_ledger` pins the property, so "the refactor did not move the wins" is a check rather than a
 sentence. Re-running the ledger without that flag remains the plain one-shot check.
+## 2026-09-20 -- the hash chain stopped one step short of the engine, and now it does not
+
+`MANIFEST_2026-09-19.json` binds every evidence file to every other, and the win ledger binds each row
+to a checkpoint digest. Neither binds a number to the **engine build** that produced it. Every engine
+finding in the campaign report is written as `RunEngine.cs:1286-1293`, and the emulator checkout is
+**not a git repository**, so there is no commit to cite; its own freshness guard compares the built
+library's mtime against the newest source, which catches a forgotten rebuild and not a source edited
+under a preserved timestamp. This project has already lost a grammar version to exactly that class of
+drift (Workshop auto-update, commit `57f1055`).
+
+`scripts/build_emulator_provenance.py` → `emulator_source_provenance_20260920.json` records content
+instead of dates: a digest over all 37 `src/Sts2Emulator` source files, per-file sha256 for each of
+the 11 cited files, the sha256 of the `out/Sts2Emulator.dll` the evaluation loads, and for every
+`*.cs:line` citation in the report the hash of **the text at that range** plus a 90-character snippet.
+Claim `emulator_source_provenance` recomputes all of it; four injections (tree digest, one cited text,
+library digest, an extra citation) each flipped exactly their intended check and nothing else.
+
+Two things worth keeping from building it. A citation count **must not** be copied into prose: the
+report's own `harness_self_description` already forbids embedding recomputed constants, and my first
+draft quoted "60 citations" where the paragraph itself was the 61st mention. And the check caught a
+real phrasing collision -- writing "11 个文件" in that section made the harness read it as an
+evidence-file count, which is the failure mode of any number-shaped prose in a document whose counts are
+extracted by regex. Out-of-range citations return empty text and count as unresolved, so the builder
+exits non-zero rather than recording a hash of nothing. `docs/evidence` is now 39 files and
+`scripts/test.ps1` runs 512 contract tests + 106 training tests; claims stand at 48/48.

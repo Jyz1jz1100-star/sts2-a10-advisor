@@ -1782,6 +1782,54 @@ def claim_promotion_gate_refuses_unrecorded_inputs():
     }
 
 
+def claim_emulator_source_provenance():
+    """Every ``*.cs:line`` citation in the report still points at the code it was read out of.
+
+    The campaign's engine findings cite source lines in a third-party checkout that is not a git
+    repository, so there is no commit to reference; the emulator's own guard only compares the built
+    library's mtime against the newest source, which a preserved timestamp defeats. This recomputes
+    the recorded digests with the builder's own functions: if the engine source moves, or the report
+    gains a citation nobody hashed, the affected line stops resolving here rather than silently
+    re-pointing at different code.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "build_emulator_provenance", ROOT / "scripts/build_emulator_provenance.py")
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+
+    payload = json.loads((ROOT / "docs/evidence/emulator_source_provenance_20260920.json")
+                         .read_text(encoding="utf-8"))
+    emulator = builder.DEFAULT_EMULATOR.resolve()
+    report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
+    live = {(name, int(first), int(last or first))
+            for name, first, last in builder.CITATION.findall(report)}
+    recorded = {(c["file"], c["first_line"], c["last_line"]) for c in payload["citations"]}
+    library = emulator / "out" / "Sts2Emulator.dll"
+    sources = builder.source_files(emulator)
+    by_name = {f["file"]: emulator / f["path"] for f in payload["cited_files"]}
+    return {
+        "the_report_and_the_snapshot_agree_on_every_citation": live == recorded,
+        "every_citation_resolves_in_the_recorded_build": (
+            payload["aggregates"]["citations_resolved"]
+            == payload["aggregates"]["citation_mentions"] == len(payload["citations"])),
+        "cited_files_match_their_recorded_digests": bool(by_name) and all(
+            path.is_file() and builder.digest_file(path) == f["sha256"]
+            for f in payload["cited_files"] for path in [by_name[f["file"]]]),
+        "cited_lines_still_hold_the_recorded_text": all(
+            hashlib.sha256(builder.cited_text(
+                by_name[c["file"]], c["first_line"], c["last_line"]).encode("utf-8")).hexdigest()
+            == c["text_sha256"] for c in payload["citations"] if c["file"] in by_name),
+        "engine_source_tree_digest_recomputes": bool(sources) and (
+            builder.tree_digest(emulator, sources) == payload["source_tree_digest"]
+            and len(sources) == payload["aggregates"]["engine_source_files_hashed"]),
+        "native_library_digest_recomputes": (
+            library.is_file() == payload["native_api"]["library"]["present"]
+            and builder.digest_file(library) == payload["native_api"]["library"]["sha256"]),
+    }
+
+
 def claim_objective_clause_audit():
     """Keep the clause-by-clause audit honest: nine clauses, and the failing one stays failing.
 
@@ -2075,6 +2123,9 @@ CLAIMS = {
     "promotion_gate_refuses_unrecorded_inputs": (
         claim_promotion_gate_refuses_unrecorded_inputs,
         "a gate clause is refused when its input was never measured, not scored on a default"),
+    "emulator_source_provenance": (
+        claim_emulator_source_provenance,
+        "every *.cs:line citation still points at the hashed engine build it was read from"),
     "upgrade_step_attribution": (claim_upgrade_step_attribution,
                                  "every upgraded card, attributed to the step that made it"),
     "upgrade_source_accounting": (claim_upgrade_source_accounting,

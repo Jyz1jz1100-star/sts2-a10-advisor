@@ -471,5 +471,13 @@
     "the_default_is_never_printed_as_a_number": true,
     "dropping_a_field_the_gate_never_reads_changes_nothing": true,
     "what_the_evaluator_writes_today_has_nothing_absent": true
+  },
+  "emulator_source_provenance": {
+    "the_report_and_the_snapshot_agree_on_every_citation": true,
+    "every_citation_resolves_in_the_recorded_build": true,
+    "cited_files_match_their_recorded_digests": true,
+    "cited_lines_still_hold_the_recorded_text": true,
+    "engine_source_tree_digest_recomputes": true,
+    "native_library_digest_recomputes": true
   }
 }

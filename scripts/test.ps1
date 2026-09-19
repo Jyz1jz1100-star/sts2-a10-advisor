@@ -26,6 +26,7 @@ $smallOnly = @(
     "tests.test_convert_traces",
     "tests.test_evidence_manifest",
     "tests.test_event_upgrade_parser",
+    "tests.test_emulator_provenance",
     "tests.test_compare_route_policies",
     "tests.test_route_planner",
     "tests.test_core",
