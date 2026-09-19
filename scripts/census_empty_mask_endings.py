@@ -48,6 +48,10 @@ DEAD_END_KEY = "simulator_dead_end"
 SHORT_CIRCUIT_KEY = "synthetic_sentinel_action"
 METRICS_GLOBS = ("runs/**/metrics/*.json", "runtime/**/metrics/*.json")
 WINDOW_LIMITS = (50, 100, 200, 500, 1000, 10000)
+# The campaign's `no unclassified dead end` clause is about every truncation class the evaluator can
+# name, not only the empty-mask one, so the census rolls any file that recorded either. The headline
+# aggregates below stay keyed on `empty_action_mask`; `truncations_*` keys cover the rest.
+TARGET_LABELS = ("empty_action_mask", "step_cap")
 
 
 def file_sha256(path: Path) -> str:
@@ -136,7 +140,8 @@ def build_plan(args, windows) -> list[dict]:
                 continue
             reasons = payload.get("dead_end_reasons") or {}
             recorded = int(reasons.get("empty_action_mask", 0) or 0)
-            if not recorded:
+            recorded_named = sum(int(reasons.get(label, 0) or 0) for label in TARGET_LABELS)
+            if not recorded_named:
                 continue
             stage = str(payload.get("stage") or args.stage)
             digest = str(payload.get("seed_sha256") or "")
@@ -152,6 +157,7 @@ def build_plan(args, windows) -> list[dict]:
                 "episodes": int(payload.get("episodes") or 0),
                 "metrics_file": key,
                 "recorded_empty_action_mask": recorded,
+                "recorded_named_truncations": recorded_named,
                 "recorded_ends": dict(sorted(
                     {k: int(v) for k, v in reasons.items() if int(v) > 0}.items())),
                 "seed_digest": digest,
@@ -308,16 +314,25 @@ def summarise(entries, shard_rows, merged) -> dict:
     anomalies = [row for row in shard_rows if row["outcome"] not in ("death", "win")
                  and row["outcome"] != "empty_action_mask"]
     by_file = collections.Counter(row["origin"] for row in located)
+    named_by_file = collections.Counter(
+        row["origin"] for row in shard_rows if row["outcome"] in TARGET_LABELS)
     rolled = {entry["metrics_file"] for entry in entries}
     per_file = []
     for entry in entries:
         if entry["metrics_file"] not in rolled:
             continue
         reproduced = by_file.get(entry["metrics_file"], 0)
+        reproduced_named = named_by_file.get(entry["metrics_file"], 0)
         per_file.append({
             "metrics_file": entry["metrics_file"],
+            "named_truncations_match": reproduced_named
+                                       == entry.get("recorded_named_truncations",
+                                                    entry["recorded_empty_action_mask"]),
             "recorded_empty_action_mask": entry["recorded_empty_action_mask"],
+            "recorded_named_truncations": entry.get("recorded_named_truncations",
+                                                    entry["recorded_empty_action_mask"]),
             "reproduced_empty_action_mask": reproduced,
+            "reproduced_named_truncations": reproduced_named,
             "reproduced_equals_recorded": reproduced == entry["recorded_empty_action_mask"],
             "episodes": entry["episodes"],
         })
@@ -344,6 +359,16 @@ def summarise(entries, shard_rows, merged) -> dict:
             "episodes_rolled": len(shard_rows),
             "files_rolled": len(rolled),
             "labelling_layers_observed": dict(sorted(layers.items())),
+            "named_truncation_located_total": sum(
+                1 for row in shard_rows if row["outcome"] in TARGET_LABELS),
+            "named_truncation_located_by_outcome": dict(sorted(collections.Counter(
+                row["outcome"] for row in shard_rows
+                if row["outcome"] in TARGET_LABELS).items())),
+            "named_truncation_mismatch_count": sum(
+                1 for row in per_file if not row["named_truncations_match"]),
+            "named_truncation_recorded_in_rolled_files": sum(
+                entry.get("recorded_named_truncations", entry["recorded_empty_action_mask"])
+                for entry in entries if entry["metrics_file"] in rolled),
             "per_file_closure_mismatches": [row for row in per_file
                                             if not row["reproduced_equals_recorded"]],
             "per_file_mismatch_count": sum(1 for row in per_file

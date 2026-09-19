@@ -1981,3 +1981,15 @@ assumption: committed metrics never store their own `max_episode_steps`, so the 
 `horizon_used_here` (1,600 from the current config for all 35 files) beside
 `horizon_used_by_the_recording` ("not recorded in the metrics file") and says in `not_established` why
 that leaves the empty-mask verdict untouched but a step-cap count non-comparable.
+
+## 2026-09-20 -- the census now covers every named truncation class, and the step_cap endings are not boss stalls
+
+Widening the plan from "files that recorded `empty_action_mask`" to "files that recorded any named
+truncation" added two files and 600 episodes. Closure held: **53 named truncations recorded across 37
+files, 53 located, zero per-file disagreements** -- 50 `empty_action_mask` plus all **3** repo-wide
+`step_cap` endings, which matches the dead-end vocabulary independently. Per seed, those three are
+`combat` phase at floors 6, 6 and 8, each at exactly the 1,600-step horizon: mid-run fights that stop
+making progress, *not* the floor-17 boss stall the report had implicitly grouped them with. Two of the
+37 files resolved only through their own `plan.json` partitions, so the previous turn's lesson is now
+part of the instrument rather than a note about it. The `native_rejection` class (861 endings, all
+previous-schema) remains outside this census by design and says so.

@@ -518,7 +518,9 @@
     "no_ending_was_dropped_to_make_the_finding_clean": true,
     "the_instrument_reports_its_own_health": true,
     "every_ending_the_campaign_ever_recorded_was_located": true,
-    "the_former_coverage_gap_was_an_instrument_limit": true
+    "the_former_coverage_gap_was_an_instrument_limit": true,
+    "every_named_truncation_in_the_rolled_files_is_located": true,
+    "the_step_cap_endings_are_stalls_in_a_fight_not_at_a_boss": true
   },
   "reward_fork_on_census_seeds": {
     "the_forked_seeds_are_ones_the_census_located": true,

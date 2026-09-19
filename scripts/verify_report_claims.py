@@ -1929,7 +1929,7 @@ def claim_empty_mask_endings():
         "every_ending_the_campaign_ever_recorded_was_located": (
             agg["empty_action_mask_total"] == agg["recorded_total_in_rolled_files"]
             == vocab["vocabulary"]["empty_action_mask"] == 50
-            and agg["per_file_mismatch_count"] == 0 and agg["files_rolled"] == 35
+            and agg["per_file_mismatch_count"] == 0 and agg["files_rolled"] == 37
             and len(dead) == 50),
         # This file first reported 49 of 50 with one window "unresolvable"; that gap was the
         # census reading digests only against the current config. Resolving each run against its own
@@ -1938,11 +1938,11 @@ def claim_empty_mask_endings():
         "the_former_coverage_gap_was_an_instrument_limit": (
             data["coverage_exclusions"] == []
             and sum(1 for entry in data["plan"]
-                    if entry["window_source"] == "the run's own plan.json seed_partitions") == 1
+                    if entry["window_source"] == "the run's own plan.json seed_partitions") == 2
             and sum(e["recorded_empty_action_mask"] for e in data["plan"])
             == vocab["vocabulary"]["empty_action_mask"]),
         "every_episode_is_counted_once": (
-            sum(endings.values()) == agg["episodes_rolled"] == 12300),
+            sum(endings.values()) == agg["episodes_rolled"] == 12900),
         "the_engine_offered_no_action_at_any_located_ending": (
             agg["dead_ends_with_no_engine_legal_basis"] == 50
             and all(row["engine_legal_bases"] == [] for row in dead)),
@@ -1974,6 +1974,20 @@ def claim_empty_mask_endings():
         "the_instrument_reports_its_own_health": (
             data["close_failures"] == []
             and "native_reset_raised" not in endings),
+        # The census is not only about the empty-mask class: any truncation the evaluator can name
+        # is rolled for, so `no unclassified dead end` is checked against every named class at once.
+        "every_named_truncation_in_the_rolled_files_is_located": (
+            agg["named_truncation_located_total"]
+            == agg["named_truncation_recorded_in_rolled_files"] == 53
+            and agg["named_truncation_mismatch_count"] == 0
+            and agg["named_truncation_located_by_outcome"]
+            == {"empty_action_mask": 50, "step_cap": 3}),
+        "the_step_cap_endings_are_stalls_in_a_fight_not_at_a_boss": (
+            len([row for row in data["anomaly_rows"] if row["outcome"] == "step_cap"]) == 3
+            and all(row["phase"] == "combat" and row["steps"] == 1600
+                    for row in data["anomaly_rows"] if row["outcome"] == "step_cap")
+            and {row["floor"] for row in data["anomaly_rows"]
+                 if row["outcome"] == "step_cap"} == {6, 8}),
     }
 
 
