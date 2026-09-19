@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "1250311ec74cf3b36f56460f9a522a86047aa62658142456b8b0d69609cc9e4a",
+  "bundle_root": "f2852b40037b1ed7ab1dd153ea8d268b2eca5fc3434703cd02e8e1b97f56860d",
   "evidence_file_count": 32,
-  "generated_at": "2026-09-19T13:11:52+00:00",
-  "git_head_at_generation": "4e0c71a",
+  "generated_at": "2026-09-19T13:32:02+00:00",
+  "git_head_at_generation": "12476c9",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2260,8 +2260,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "8b8f13a4a76776b057a498b72aef1421597fb0e5615072b27ec8b22fc77976f7",
-      "bytes": 13886
+      "sha256": "25402bf8b1ca192b5008931622b0870f3dcbdcbb69c251498575e1054fc7f307",
+      "bytes": 13942
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2375,8 +2375,8 @@
     },
     {
       "file": "reward_upgrade_availability_20260919.json",
-      "sha256": "8770fae18a5550332bd96f4e11a7733be866afbb96952d36ee62d520ff6db600",
-      "bytes": 3443023
+      "sha256": "e65339b3e3ebd83a4cb10a3b03bd6a8f6b265b379d9fe641e639d48771994923",
+      "bytes": 3907132
     },
     {
       "file": "solver_inventory_drift_20260919.json",

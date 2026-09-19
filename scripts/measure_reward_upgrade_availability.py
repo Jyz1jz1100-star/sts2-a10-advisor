@@ -57,6 +57,12 @@ sys.path.insert(0, str(ROOT))
 
 REWARD_SKIP = 3  # RunConstants.RewardSkipAction
 
+# ApplyRetainedTraceCardReward (RunRewardGenerator.cs:806 onward) hands out fixed card triples when
+# the run state matches these guards. Only the floor-3 branch also requires the demo string seed;
+# these five are guarded on mutable values alone, so an ordinary seed that passes through them is
+# served scripted content. {floor: (player_hp, gold)}.
+SCRIPTED_GUARDS = {4: (69, 111), 5: (74, 120), 6: (80, 129), 7: (60, 138), 9: (56, 168)}
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -112,9 +118,16 @@ def main() -> int:
                 # action is the option index, and anything outside 0..2 is the skip button.
                 chosen = action if 0 <= action <= 2 else REWARD_SKIP
                 took_upgraded = chosen <= 2 and bool(flags[chosen])
+                # hp and gold are recorded because the scripted reward branches in
+                # ApplyRetainedTraceCardReward are guarded on (Floor, PlayerHp, Gold) -- those
+                # three values, not the offered card ids, are what identifies a scripted screen.
+                # (``pending_rewards`` was tried as a source of the offered ids and is not them:
+                # it reads like reward *counters*, e.g. [9,0,0,0] where the engine held
+                # RewardCards = 20/508/238.)
                 events.append({"seed": int(seed), "floor": int(state["floor"]),
-                               "offered_upgraded": list(flags), "chosen": chosen,
-                               "took_upgraded": took_upgraded,
+                               "hp": int(state["player_hp"]), "gold": int(state["gold"]),
+                               "offered_upgraded": list(flags),
+                               "chosen": chosen, "took_upgraded": took_upgraded,
                                "upgraded_options": [i for i, flag in enumerate(flags) if flag]})
                 rewards_seen += 1
                 taken_upgraded += int(took_upgraded)
@@ -132,6 +145,14 @@ def main() -> int:
         env.close()
 
     offered = [event for event in events if any(event["offered_upgraded"])]
+    guard_states = {(floor, hp, gold) for floor, (hp, gold) in SCRIPTED_GUARDS.items()}
+    offered_on_guard = sum(1 for event in offered
+                           if (event["floor"], event["hp"], event["gold"]) in guard_states)
+    all_offers_explained = offered_on_guard == len(offered)
+    scripted_hits = {floor: [event for event in events
+                             if event["floor"] == floor
+                             and (event["hp"], event["gold"]) == guard]
+                     for floor, guard in SCRIPTED_GUARDS.items()}
     upgrade_hist = dict(sorted(collections.Counter(
         row["upgraded_in_final_deck"] for row in per_seed).items()))
     payload = {
@@ -154,13 +175,28 @@ def main() -> int:
             "final_deck_upgrade_histogram": upgrade_hist,
         },
         "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
-        "established": [
-            "every card-reward decision in this population was offered an all-plain hand, which "
-            "is what RollCardUpgrade returning false unconditionally predicts",
+        "scripted_reward_screens": {
+            "guards": {str(floor): {"hp": hp, "gold": gold}
+                       for floor, (hp, gold) in SCRIPTED_GUARDS.items()},
+            "hits_by_floor": {str(floor): len(hits) for floor, hits in scripted_hits.items()},
+            "total_hits": sum(len(hits) for hits in scripted_hits.values()),
+            "share_of_reward_decisions": round(
+                sum(len(hits) for hits in scripted_hits.values()) / len(events), 6) if events else None,
+            "hit_events": [event for hits in scripted_hits.values() for event in hits],
+            "reading": ("a hit means this reward screen was served from the hard-coded table "
+                        "rather than drawn from the Ironclad reward pool -- and the guard is "
+                        "(floor, hp, gold) only, so these are ordinary seeds, not the demo seed"),
+        },
+        "established": ([
+            f"the roll produced no upgraded card offer anywhere in this population: "
+            f"{offered_on_guard} of {len(events)} card-reward decisions had one and all "
+            f"{len(offered)} such decisions sit on a (floor, hp, gold) state that the hard-coded "
+            f"reward table guards -- consistent with RollCardUpgrade returning false always",
             "the upgrades a run does end with are therefore not coming from combat rewards",
-        ] if not offered else [
-            "NOT as expected: some card rewards did carry an upgraded offer -- see events rows, "
-            "and the stub reading needs revisiting"],
+        ] if all_offers_explained else [
+            "NOT as expected: an upgraded reward appeared at a state the scripted table does not "
+            "guard, which means RollCardUpgrade is not the only source and the stub reading needs "
+            "revisiting"]),
         "events": events,
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "not_established": [
@@ -188,6 +224,10 @@ def main() -> int:
           f"{agg['mean_upgraded_in_final_deck']}, zero-upgrade share "
           f"{agg['share_of_episodes_with_zero_upgrades']}")
     print(f"  upgrade histogram: {upgrade_hist}")
+    print("  scripted reward-table hits (ordinary seeds on a guarded state): "
+          f"{payload['scripted_reward_screens']['hits_by_floor']} "
+          f"total={payload['scripted_reward_screens']['total_hits']} of "
+          f"{agg['card_reward_decisions']} decisions")
     print(f"wrote {args.out}")
     return 0
 

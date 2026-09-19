@@ -322,7 +322,8 @@
     "states_the_engine_was_not_edited": true,
     "six_findings_listed": true,
     "upgrade_stub_numbers_match_the_census": true,
-    "the_two_exceptions_are_the_hardcoded_floor_five_branch": true
+    "the_two_exceptions_are_the_hardcoded_floor_five_branch": true,
+    "the_scripted_leak_is_measured_not_assumed": true
   },
   "refusal_class_generality": {
     "both_classes_reproduce_in_every_run": true,

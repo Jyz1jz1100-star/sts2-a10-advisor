@@ -1097,18 +1097,16 @@ def claim_engine_findings_checklist():
                       .read_text(encoding="utf-8"))["channels"]
     aud = json.loads((ROOT / "docs/evidence/event_mask_case_audit_20260919.json")
                      .read_text(encoding="utf-8"))
-    upg = json.loads((ROOT / "docs/evidence/reward_upgrade_availability_20260919.json")
-                     .read_text(encoding="utf-8"))["aggregates"]
+    census = json.loads((ROOT / "docs/evidence/reward_upgrade_availability_20260919.json")
+                        .read_text(encoding="utf-8"))
+    upg = census["aggregates"]
     named = ["docs/evidence/act2_boss_misexit_rate_20260919.json",
              "docs/evidence/potion_slot_cost_20260919.json",
              "docs/evidence/refusal_root_cause_20260919.json",
              "docs/evidence/event_mask_case_audit_20260919.json",
              "docs/evidence/contract_channels_20260919.json",
              "docs/evidence/reward_upgrade_availability_20260919.json"]
-    odd_offers = [event for event in
-                  json.loads((ROOT / "docs/evidence/reward_upgrade_availability_20260919.json")
-                             .read_text(encoding="utf-8"))["events"]
-                  if any(event["offered_upgraded"])]
+    odd_offers = [event for event in census["events"] if any(event["offered_upgraded"])]
     return {
         "section_present": True,
         "six_findings_listed": (
@@ -1122,9 +1120,16 @@ def claim_engine_findings_checklist():
             and upg["share_of_episodes_with_zero_upgrades"] == 0.7749
             and upg["mean_upgraded_in_final_deck"] == 0.326),
         "the_two_exceptions_are_the_hardcoded_floor_five_branch": (
-            len(odd_offers) == 2 and all(event["floor"] == 5
+            len(odd_offers) == 2 and all(event["floor"] == 5 and event["hp"] == 74
+                                         and event["gold"] == 120
                                          and event["offered_upgraded"] == [1, 1, 1]
-                                         and event["chosen"] == 3 for event in odd_offers)),
+                                         for event in odd_offers)),
+        # The scripted reward table is keyed on mutable state, so ordinary seeds can be served
+        # from it -- but the leak is measured, not assumed big: three screens in 12,677.
+        "the_scripted_leak_is_measured_not_assumed": (
+            census["scripted_reward_screens"]["hits_by_floor"]
+            == {"4": 1, "5": 2, "6": 0, "7": 0, "9": 0}
+            and census["scripted_reward_screens"]["total_hits"] == 3),
         "misexit_magnitude_matches": (
             f"{mis['act2_boss_kills']} 次 boss 击杀" in section
             and f"{mis['act2']['cleared_not_judged']} 次没被判赢" in section

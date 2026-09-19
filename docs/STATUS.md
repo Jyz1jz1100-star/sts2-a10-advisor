@@ -1492,7 +1492,12 @@ upgraded**, which is the branch `ApplyRetainedTraceCardReward` wrote for the dem
 `state.Floor == 5 && state.PlayerHp == 74 && state.Gold == 120`, i.e. by mutable run values and
 **not** by the seed string. Any ordinary seed that passes through those numbers is handed a
 three-upgraded-card reward the unmodified engine would never offer. (The policy skipped both, n=2,
-recorded as anecdote not result.)
+recorded as anecdote not result.) The leak was then sized rather than assumed: five of the scripted
+branches are guarded on mutable values alone (floors 4/5/6/7/9), and across these 3,500 runs they
+fire **3 times in 12,677 reward decisions (0.024%)** -- one at floor 4, two at floor 5, none at
+6/7/9. So the mechanism is real and unprotected by the seed string, while its effect on any rate
+quoted in the campaign is fourth-decimal. Re-running the whole census reproduced every count
+bit-for-bit, which is a determinism check on the evaluation path that came free.
 
 Why this matters for the objective: it is a ceiling, not a misjudgement. Nothing trained inside this
 simulator can learn or be measured on "preferring upgraded cards", so deck strength reachable here
