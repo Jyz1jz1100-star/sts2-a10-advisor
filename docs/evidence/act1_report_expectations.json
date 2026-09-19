@@ -212,5 +212,16 @@
     "empty_action_mask": 50,
     "step_cap": 3,
     "native_rejection": 861
+  },
+  "boss_misexit_rate": {
+    "seeds_enumerated": 10000,
+    "rows_add_up_per_act": true,
+    "windows_sum_to_partition": true,
+    "floor17_completed_wins_match": true,
+    "truncation_seed_list_matches_count": true,
+    "class_confined_to_generated_act2": true,
+    "contract_clean": true,
+    "published_intervals_recompute": [true, true, true, true],
+    "head_tail_heterogeneity_is_real_in_the_data": true
   }
 }

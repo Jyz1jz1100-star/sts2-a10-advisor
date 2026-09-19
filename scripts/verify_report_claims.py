@@ -581,6 +581,57 @@ def claim_dead_end_reason_census():
     }
 
 
+def claim_boss_misexit_rate():
+    """Recompute the whole-partition boss numbers from the census artifact's own counts.
+
+    The report quotes 21/86 and several Wilson intervals next to per-act arrival counts
+    that were assembled from five shards, so the arithmetic is checked rather than
+    trusted: each act's rows must add up to its arrivals, the pooled win counts must
+    equal the per-window sums, the intervals must match their own numerator and
+    denominator, and the class must be confined to generated act 2.
+    """
+    from training.wilson import wilson_interval
+
+    data = json.loads((ROOT / "docs/evidence/act2_boss_misexit_rate_20260919.json")
+                      .read_text(encoding="utf-8"))
+    whole = data["whole_partition"]
+    windows = data["per_window"]
+    acts = (whole["act1"], whole["act2"])
+    adds_up = all(row["arrivals_at_floor_17"] == row["boss_win"]
+                  + row["cleared_not_judged"] + row["died_in_fight"] for row in acts)
+    pooled = {key: sum(windows[name][key]["arrivals_at_floor_17"] for name in windows)
+              for key in ("act1", "act2")}
+    kills = whole["act2"]["boss_win"] + whole["act2"]["cleared_not_judged"]
+    mis_low, mis_high = wilson_interval(whole["act2"]["cleared_not_judged"], kills)
+    kill_low, kill_high = wilson_interval(kills, whole["act2"]["arrivals_at_floor_17"])
+    win_low, win_high = wilson_interval(whole["act2"]["boss_win"],
+                                        whole["act2"]["arrivals_at_floor_17"])
+    a1_low, a1_high = wilson_interval(whole["act1"]["boss_win"],
+                                      whole["act1"]["arrivals_at_floor_17"])
+    return {
+        "seeds_enumerated": whole["seeds"],
+        "rows_add_up_per_act": adds_up,
+        "windows_sum_to_partition": pooled == {
+            "act1": whole["act1"]["arrivals_at_floor_17"],
+            "act2": whole["act2"]["arrivals_at_floor_17"]},
+        "floor17_completed_wins_match": whole["floor17_completed_wins"] ==
+                                        whole["act1"]["boss_win"] + whole["act2"]["boss_win"],
+        "truncation_seed_list_matches_count": len(data["truncation_seeds"]) ==
+                                              whole["act2"]["cleared_not_judged"],
+        "class_confined_to_generated_act2": whole["act1"]["cleared_not_judged"] == 0,
+        "contract_clean": data["contract"]["illegal_actions_total"] == 0
+                          and data["contract"]["unclassified_dead_ends_total"] == 0,
+        "published_intervals_recompute": [
+            [round(mis_low, 4), round(mis_high, 4)] == whole["wilson_mis_exit_share_of_act2_kills"],
+            [round(kill_low, 4), round(kill_high, 4)] == whole["act2"]["wilson_killed_boss_given_arrival"],
+            [round(win_low, 4), round(win_high, 4)] == whole["act2"]["wilson_judged_win_given_arrival"],
+            [round(a1_low, 4), round(a1_high, 4)] == whole["act1"]["wilson_win_given_arrival"]],
+        "head_tail_heterogeneity_is_real_in_the_data": (
+            windows["head_seeds_130010000_130013499"]["act2"]["cleared_not_judged"] == 1
+            and windows["tail_seeds_130013500_130019999"]["act2"]["cleared_not_judged"] == 20),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -629,6 +680,8 @@ CLAIMS = {
                              "a cleared act-2 boss is judged a win only on the relic-reward exit"),
     "dead_end_reason_census": (claim_dead_end_reason_census,
                                "what the campaign actually records about why runs end"),
+    "boss_misexit_rate": (claim_boss_misexit_rate,
+                          "whole-partition boss kills, judged wins, and the ones the engine lost"),
 }
 
 

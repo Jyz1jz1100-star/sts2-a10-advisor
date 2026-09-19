@@ -1184,9 +1184,17 @@ every legal action (`scripts/probe_boss_reward_order.py`,
 card-reward screen is the negative control (all 4 actions identical). Consequences,
 bounded: that run is a **false negative** in the win ledger, so "34 named clears"
 reads as a floor rather than a count; and act 1 is **structurally immune** (both
-exits complete at floor 17), so this cannot explain the 0/83 conversion deficit.
-Not measured: how often claim order flips an act-2 arrival campaign-wide -- the
-per-file `dead_end_reasons` counters carry no per-run floor or node type. An
+exits complete at floor 17), so this cannot explain the Act-1 conversion deficit.
+**The rate is now measured for this checkpoint** (`docs/evidence/
+act2_boss_misexit_rate_20260919.json`, the full 10,000-seed promotion partition swept
+in disjoint shards): generated act 2 kills the boss in 86/241 arrivals (35.7%) but is
+judged a win only 65 times, so **21/86 = 24.4% [16.6,34.5] of act-2 boss kills are lost
+to that exit**; generated act 1 loses zero of its 248 arrivals that way, and 245 of them
+die inside the fight. One thing that did **not** resolve: the 21 are not spread evenly --
+1 in seeds 130010000-130013499 versus 20 in 130013500-130019999, and determinism checks
+(3,500 head seeds re-measured with zero category or step differences, 3 tail truncations
+re-run sequentially, shard counts 1/2/4/5) rule out measurement noise. Unexplained
+window heterogeneity, so quote the split rather than only the pooled figure. An
 engine-side fix is the operator's call, and note it would change how runs end, so
 every campaign figure in this file would need re-measuring under it.
 

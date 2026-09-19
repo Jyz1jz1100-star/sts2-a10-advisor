@@ -138,6 +138,13 @@ def main() -> int:
             "generated_act": acts[int(seed)],
             "final_hp_fraction": metrics.get("mean_final_hp_fraction"),
             "final_floor_histogram": metrics.get("final_floor_histogram"),
+            # A truncation at the boss floor is two different findings depending on
+            # why it stopped: step_cap means the fight never ended, empty_action_mask
+            # means the run had nothing left to do.  Only the second can be a boss
+            # already cleared and never judged a win (see docs/evidence/
+            # act2_boss_completion_fork_20260919.json), and that distinction is lost
+            # if the census records the category alone.
+            "dead_end_reasons": metrics.get("dead_end_reasons"),
         })
         if index % 50 == 0 or index == len(window):
             print(f"{index}/{len(window)} {counts}", flush=True)

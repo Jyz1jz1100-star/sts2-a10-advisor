@@ -120,10 +120,19 @@ terminal category: `boss_win`, `win_earlier`, `boss_truncation`, `mid_run_trunca
 `boss_truncation_seeds`, so the next step is a command rather than an archaeology
 exercise. It writes no metrics files and changes no schema.
 
+Each row also carries the run's `dead_end_reasons`, which is what splits a
+`boss_truncation` into two different findings: `step_cap` means the boss fight never
+ended, `empty_action_mask` means the run had nothing left to do -- and in a generated
+Act 2 the latter is the signature of a boss already cleared and never judged a win
+(`docs/evidence/act2_boss_completion_fork_20260919.json`). A category count alone
+cannot make that distinction.
+
 Two things to keep straight when using it:
 
 - it costs one full rollout per seed, so `--limit` and `--start-offset` exist to
-  shard it across processes;
+  shard it across processes. Record the offsets: every rate this emits is
+  window-scoped, and two shards of the same partition are only comparable when
+  their windows are disjoint;
 - it inherits the stage's **configured** `max_episode_steps` (1600 for `act1`) unless
   `--max-steps` overrides it. The step cap is what makes a truncation a truncation,
   so comparing an override run against campaign metrics is comparing two different
