@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "d61c9a03ad68a929fc28c9f38045844b6b71f3c011a25d177774fea10a4bed15",
-  "evidence_file_count": 30,
-  "generated_at": "2026-09-19T12:24:32+00:00",
-  "git_head_at_generation": "a3d7ef7",
+  "bundle_root": "1f343975d1b51d4c1c2ec2378b2308cc6f88a30df589eeab57f96b662fbf7fab",
+  "evidence_file_count": 31,
+  "generated_at": "2026-09-19T12:44:21+00:00",
+  "git_head_at_generation": "b90b474",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 653
+    "total_64_hex_strings_seen": 654
   },
   "resolved_checkpoints": [
     {
@@ -1449,6 +1449,7 @@
         "act2_boss_misexit_signature_verified_20260919.json",
         "act2_boss_node_comparison_20260919.json",
         "act2_terminal_check_20260919.json",
+        "arrival_state_at_boss_20260919.json",
         "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json",
         "refusal_root_cause_20260919.json",
@@ -2258,8 +2259,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "c6704acf4719ffa35d54c29a02bee3a43417e1b2a80061091ede743511b18ced",
-      "bytes": 13353
+      "sha256": "faeeb4348a22fc0a1816578e915de2659e19b68ea7f799c135900afa08bca4e1",
+      "bytes": 13714
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2295,6 +2296,11 @@
       "file": "act2_terminal_check_20260919.json",
       "sha256": "e84e1ac4065cc7dee8883ae02cbdfbfe4d11ffa6b872e367bbdf211ec596df48",
       "bytes": 3474
+    },
+    {
+      "file": "arrival_state_at_boss_20260919.json",
+      "sha256": "685d6652f4aaa29e08c4d63913eef595d5539c26f6d437a5c33aa9891c8cc28c",
+      "bytes": 857713
     },
     {
       "file": "boss_generality_20260919.json",

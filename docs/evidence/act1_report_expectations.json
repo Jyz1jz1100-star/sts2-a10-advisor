@@ -351,7 +351,7 @@
     "artifact_and_disk_agree_on_step_cap_files": true
   },
   "report_exec_table_citations": {
-    "row_count_is_the_expected_fourteen": true,
+    "row_count_is_the_expected_fifteen": true,
     "every_row_has_a_verifiable_citation": true,
     "unbacked_rows": [],
     "table_precedes_the_body": true,
@@ -401,5 +401,13 @@
     "an_unrunnable_claim_is_tallied_separately_in_this_code": true,
     "evidence_file_count_matches_the_manifest": true,
     "no_literal_bundle_root_survives_in_the_prose": true
+  },
+  "arrival_state_equivalence": {
+    "reproduction_of_the_committed_census_holds": true,
+    "every_arrival_row_carries_every_resource": true,
+    "the_seven_cross_act_differences_recompute": true,
+    "no_resource_favours_act_two": true,
+    "act_two_has_the_power_act_one_lacks": true,
+    "arrival_resources_predict_nothing_within_act_two": true
   }
 }

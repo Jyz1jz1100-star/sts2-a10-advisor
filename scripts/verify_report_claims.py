@@ -1319,7 +1319,7 @@ def claim_report_exec_table_citations():
             head = cells[0][:22] if cells else "?"
             unbacked.append(f"row {index + 1} ({head}): citation {citation[:52]!r}")
     return {
-        "row_count_is_the_expected_fourteen": len(rows) == 14,
+        "row_count_is_the_expected_fifteen": len(rows) == 15,
         "every_row_has_a_verifiable_citation": not unbacked,
         "unbacked_rows": unbacked,
         "table_precedes_the_body": report.index("| 问题 | 判定 | 出处 |") < report.index("## 结论"),
@@ -1401,6 +1401,54 @@ def claim_harness_self_description():
                 encoding="utf-8")),
         "evidence_file_count_matches_the_manifest": file_quotes == {manifest["evidence_file_count"]},
         "no_literal_bundle_root_survives_in_the_prose": not literal_roots,
+    }
+
+
+def claim_arrival_state_equivalence():
+    """The cross-act comparison in the report assumes the two acts' arrivals are comparable runs.
+
+    That was measured, not assumed: recomputed here from the committed per-seed rows are the
+    reproduction counts (the same 83/79 arrivals and 25 clears as the earlier census), the seven
+    cross-act resource differences with their intervals, and the within-Act-2 winner/loser
+    comparison that has the statistical power Act 1 cannot have.
+
+    """
+    payload = json.loads((ROOT / "docs/evidence/arrival_state_at_boss_20260919.json")
+                         .read_text(encoding="utf-8"))
+    rows = payload["rows"]
+    arrivals = [row for row in rows if row["arrived"]]
+    resources = ("deck_size", "relic_count", "gold", "player_hp", "player_max_hp",
+                 "potions_at_boss", "shops_visited")
+    cross = payload["cross_act_arrival_state"]
+    win_loss = payload["act2_win_vs_loss"]
+    groups = payload["groups"]
+
+    def mean(key, sample):
+        values = [row[key] for row in sample]
+        return sum(values) / len(values) if values else None
+
+    recomputed_ok = all(
+        abs(cross[key]["diff"] - (mean(key, [r for r in arrivals if r["act"] == 1])
+                                  - mean(key, [r for r in arrivals if r["act"] == 2]))) < 0.002
+        for key in resources)
+    return {
+        "reproduction_of_the_committed_census_holds": (
+            payload["reproduction_check"]["matches"] is True
+            and payload["aggregates"]["arrivals_by_generated_act"]
+            == {"act1_overgrowth": 83, "act2_underdocks": 79}
+            and payload["aggregates"]["cleared_by_generated_act"] == {"act2_underdocks": 25}),
+        "every_arrival_row_carries_every_resource": all(
+            all(key in row and row[key] is not None for key in resources) for row in arrivals),
+        "the_seven_cross_act_differences_recompute": recomputed_ok,
+        "no_resource_favours_act_two": all(
+            block["bootstrap_ci_95"][0] <= 0 <= block["bootstrap_ci_95"][1]
+            for block in cross.values()),
+        "act_two_has_the_power_act_one_lacks": (
+            groups["act2_underdocks|win"]["n"] == 25 and groups["act1_overgrowth|win"]["n"] == 0
+            and payload["readable"]["threshold_met_20_arrivals_per_act_and_10_act2_wins"]),
+        "arrival_resources_predict_nothing_within_act_two": all(
+            block["bootstrap_ci_95"][0] <= 0 <= block["bootstrap_ci_95"][1]
+            for block in win_loss.values()),
     }
 
 
@@ -1650,6 +1698,8 @@ CLAIMS = {
                                   "the multi-arm overnight run, from committed files only"),
     "harness_self_description": (claim_harness_self_description,
                                  "the report's own numbers about this harness, re-derived"),
+    "arrival_state_equivalence": (claim_arrival_state_equivalence,
+                                  "the two acts' boss arrivals are comparable runs"),
 }
 
 

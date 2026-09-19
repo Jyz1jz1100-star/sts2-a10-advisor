@@ -1420,8 +1420,38 @@ mutation-tested (re-introducing each stale value flips the matching check to fal
 `retraction_ledger_integrity` gained a matching check that its closing paragraph's count equals the
 row count, and the ledger grew to 15 rows -- this is the first entry that is not about the game.
 
-Registry after the change: **41 claims, all matching the disk (exit 0)**; `scripts/test.ps1`
+Registry after that change: **41 claims, all matching the disk (exit 0)**; `scripts/test.ps1`
 497 contract + 106 training-environment tests, OK. The attestation gap that the campaign report
 described as "13 arms" was recounted from `fanout_attestation_20260919.json` and is **19 of 21**
 arm runs lacking a `warm_start` block (17 act1-stage + 2 floor3→floor6 ladder arms); the two 09-19
 A/B arms carry both attestation mechanisms.
+
+## 2026-09-19 (late) -- "Act 2 is winnable because those runs grew longer" is now measured, and false
+
+The report's line "arrival rates are the same, the whole difference is the boss fight" compares
+two acts' win rates and had never checked that the two groups of arrivals are comparable runs.
+`scripts/measure_arrival_state_at_boss.py` (one checkpoint `a1ada27a…`, the first 3,500 promotion
+seeds, seven 500-seed shards) reads the run state at the first floor-17 boss decision;
+`scripts/build_arrival_state_evidence.py` merges the shards and **refuses** to publish unless the
+arrival/clear counts reproduce `potion_slot_cost_20260919.json` (162 arrivals, 83 Act-1 / 79
+Act-2, 25 clears all Act-2 -- they do).
+
+* All seven arrival resources are indistinguishable across acts (deck 18.33 vs 18.08,
+  relics 3.24 vs 3.33, gold 96 vs 92, max HP 83.7 vs 82.2, usable potions 1.40 vs 1.22,
+  shops 1.33 vs 1.32): every bootstrap CI covers zero, every permutation p >= 0.077, and every
+  point estimate except relics favours **Act 1**. Structurally there is no extra growth to
+  accumulate -- the generated map is 17 floors in *each* act and both acts offer three bosses.
+* The stronger test uses the act that actually wins: within Act 2 (25 clears vs 54 losses) no
+  arrival resource separates winners from losers either (all seven CIs cover zero, p >= 0.47).
+  Power bound stated with the result: 25 vs 54 only excludes effects above ~0.45 relics /
+  ~0.75 cards.
+* Not addressed, and recorded in `not_established`: **card quality**. `state_info()` exposes
+  counts, not strengths, so "equal deck size" is not "equal deck". Act-1-specific prediction is
+  also untestable in this window (zero Act-1 clears among the 83 arrivals).
+
+Consequence for the goal: the Act-1 wall is not an arrival-resource problem, which is the
+cheapest thing a reader would have blamed, so the remaining candidates stay where the earlier
+sections put them -- longevity in the boss fight itself. Registry is now 42 claims, all matching
+the disk. `potion_slot_cost_20260919.json` was assembled by a merger that kept only per-shard
+`aggregates`, so it carries no top-level `checkpoint_sha256`; the new merge records the digest and
+the encounters, which is why the reproduction check could be run at all.
