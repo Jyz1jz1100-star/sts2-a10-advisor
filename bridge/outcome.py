@@ -5,8 +5,29 @@ without importing the polling loop (which needs ``yaml`` and a live config).
 """
 from __future__ import annotations
 
-_WIN_WORDS = ("victor", "triumph", " win", "won", "ascend", "cleared", "complete", "escape")
-_LOSS_WORDS = ("died", "death", "defeat", "lost", "slain", "fell", "perish")
+import re
+
+#: Matched as stems anchored at a word start. Two reasons, both learned the hard
+#: way: a plain substring test read ``"incomplete"`` as a victory (it contains
+#: ``"complete"``), while a whole-word test stopped reading ``"Victory"`` as one at
+#: all because ``\bvictor\b`` cannot match it. Anchoring at the word start keeps
+#: every inflection (victory/victors, triumphed, cleared, perish/ished) and still
+#: refuses ``incomplete``, whose ``complet`` is not at a word boundary.
+#: The vocabulary is deliberately not enlarged: these live message strings have
+#: never been observed here (the game is not running), and every speculative word
+#: adds false-positive surface to the one claim that must not be wrong.
+_WIN_STEMS = ("victor", "triumph", "won", "win", "ascend", "clear", "complet",
+              "escap")
+#: Death wording only, as originally scoped. "abandon" and "fail" are deliberately
+#: absent: quitting a run mid-Act is not evidence that the player lost, and the
+#: test for "Run abandoned" pins that case to undetermined on purpose.
+_LOSS_STEMS = ("die", "death", "defeat", "lost", "slain", "fell", "fall", "peris")
+#: Downgrade a victory reading -- never a defeat reading -- when the message says
+#: the run is still going or that the clear is partial.
+_AMBIGUOUS_MARKERS = ("incomplete", "not cleared", "run continues", "but the")
+
+_WIN_RE = tuple(re.compile(rf"\b{re.escape(stem)}") for stem in _WIN_STEMS)
+_LOSS_RE = tuple(re.compile(rf"\b{re.escape(stem)}") for stem in _LOSS_STEMS)
 
 
 def run_outcome(state: dict) -> bool | None:
@@ -17,12 +38,26 @@ def run_outcome(state: dict) -> bool | None:
     not treated as a victory: abandoning a run mid-Act also ends alive, and an
     inferred "cleared A10" is exactly the false claim this project cannot take
     back.
+
+    Win wording is considered before loss wording, as it was originally: a message
+    like "you won, but were defeated at the end" should not be read as a clean
+    victory by ordering alone, so a message carrying *both* polarities is reported
+    as undetermined rather than being resolved by precedence. Same for a victory
+    reading that the message then walks back. A final act with two bosses makes
+    this load-bearing: an intermediate act-clear screen must not be promoted into
+    a run clear.
     """
 
     message = str(((state.get("game_over") or {}).get("message")) or "").lower()
-    if any(word in message for word in _WIN_WORDS):
+    if not message:
+        return None
+    win_hit = any(pattern.search(message) for pattern in _WIN_RE)
+    loss_hit = any(pattern.search(message) for pattern in _LOSS_RE)
+    if win_hit and (loss_hit or any(m in message for m in _AMBIGUOUS_MARKERS)):
+        return None
+    if win_hit:
         return True
-    if any(word in message for word in _LOSS_WORDS):
+    if loss_hit:
         return False
     return None
 
