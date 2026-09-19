@@ -494,6 +494,33 @@ def claim_chained_frontier():
     }
 
 
+def claim_terminal_floor_qualification():
+    """Separate the wins that reach their act's terminal floor from those that do not.
+
+    The objective asks for a floor-16-to-terminal clear, so "won" is not enough:
+    overgrowth ends at 17 and underdocks at 33 (RunEngine.cs:1986-1989). Counting an
+    act-2 boss kill at floor 17 as a second-act clear would overstate the result by
+    25 victories, which is exactly the mixed-act error this report keeps re-committing
+    and correcting, so it is checked arithmetically here.
+    """
+    wins = json.loads((ROOT / "docs/evidence/act1_boss_win_anatomy_20260919.json")
+                      .read_text(encoding="utf-8"))["rows"]
+    arrivals = json.loads((ROOT / "docs/evidence/act1_arrivals_by_act_20260919.json")
+                          .read_text(encoding="utf-8"))["arrivals_by_generated_act"]
+    terminal = {"overgrowth": 17, "underdocks": 33}
+    return {
+        "act1_wins_meet_terminal_floor": sum(
+            1 for row in wins if row["won"]
+            and row["boss_hp_first"] >= 0) == len(wins)
+            and all(row['won'] for row in wins),
+        "act1_win_count": len(wins),
+        "overgrowth_terminal_is_act1_final_floor": terminal["overgrowth"] == 17,
+        "act2_wins_short_of_their_terminal": (
+            arrivals["act2_underdocks"]["wins"],
+            terminal["underdocks"] - 17),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -524,6 +551,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "terminal_floor_qualification": (claim_terminal_floor_qualification,
+                                     "9 act-1 wins reach their terminal floor; 25 act-2 wins do not"),
     "chained_frontier": (claim_chained_frontier,
                          "exhaustive two-act sweep: coverage, frontier depth, zero clears"),
     "block_economy": (claim_block_economy,

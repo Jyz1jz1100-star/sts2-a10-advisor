@@ -148,6 +148,15 @@
     "wins_anywhere": 0,
     "illegal_actions_total": 0
   },
+  "terminal_floor_qualification": {
+    "act1_win_count": 9,
+    "act1_wins_meet_terminal_floor": true,
+    "overgrowth_terminal_is_act1_final_floor": true,
+    "act2_wins_short_of_their_terminal": [
+      25,
+      16
+    ]
+  },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
     "same_checkpoint": true,
