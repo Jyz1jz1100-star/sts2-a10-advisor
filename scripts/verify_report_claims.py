@@ -1430,7 +1430,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_twenty_two_rows": len(rows) == 22,
+        "ledger_has_twenty_three_rows": len(rows) == 23,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1794,8 +1794,13 @@ def claim_chained_map_deadend():
             fork["evaluator_judgement"]["dead_end_reasons"] == {"empty_action_mask": 1}
             and fork["evaluator_judgement"]["unclassified_dead_ends"] == 0
             and fork["evaluator_judgement"]["illegal_actions"] == 0 for fork in forks),
-        "the_refusal_was_absorbed_rather_than_counted_illegal": all(
-            fork["evaluator_judgement"]["rejection_events"] > 0 for fork in forks),
+        "the_chained_dead_end_is_not_a_native_refusal": all(
+            len(fork["branches"]) == 1
+            and fork["branches"][0]["engine_mask_was_empty_at_the_fork"] is True
+            and fork["branches"][0]["native_refusal_counted_on_this_step"] is False
+            and fork["branches"][0]["rejection_events_before_step"]
+            == fork["branches"][0]["rejection_events_after_step"]
+            and fork["branches"][0]["dead_end_label"] == "empty_action_mask" for fork in forks),
         "the_cited_engine_code_still_says_it": (
             "MapNodeTypes" in engine_text("RunEngine.cs", 690, 695)
             and "ChooseMapNode" in engine_text("RunEngine.cs", 966, 966)
@@ -1839,16 +1844,17 @@ def claim_chained_act2_reachability():
     }
 
 
-def claim_map_refusal_class_is_branch_specific():
-    """The map phase's refusals exist only on the chained branch, and "clean" there means measured.
+def claim_map_deadend_short_circuits_before_the_refusal_census():
+    """Why the census's clean map phase and the chained map dead end are the same fact, not opposites.
 
-    Two artifacts that could easily be misread against each other: the rejection census reports the
-    map phase as clean, which a reader may take as "map cannot produce a refusal" -- while the
-    chained dead-end finding turns out to be exactly a map-phase refusal class (the wrapper's
-    synthetic sentinel, refused by the engine). So pin the contrast from both sides: the census
-    really did enumerate map decisions (they appear in its own per-phase counts, with zero
-    refusals), and the chained episodes really do absorb refusals at a map-phase state. If a future
-    change makes the two disagree, this is where it surfaces.
+    The rejection census reports 0 refusals across 11,060 map decisions; the chained wall is a map
+    state with no successors. Read side by side those look contradictory, and my first write-up of
+    the wall resolved it the wrong way by claiming the sentinel got refused and absorbed -- the
+    short-circuit in `v2_run_wrapper.py:238-253` never calls the engine at all, so no refusal can
+    be counted there. This pins the reconciliation from measured fields (the rejection counter is
+    identical before and after that step, and the step's own label is ``empty_action_mask``), plus
+    the fact that the episode does carry refusals -- from other phases -- so the census is not blind
+    to this path, it is correctly reporting that nothing on this path goes through the refusal route.
     """
     census = json.loads((ROOT / "docs/evidence/rejection_phase_attribution_20260919.json")
                         .read_text(encoding="utf-8"))
@@ -1868,10 +1874,17 @@ def claim_map_refusal_class_is_branch_specific():
             refusals.get("map", 0) == 0
             and sum(refusals.values()) == sum(
                 shard.get("total_refusals", 0) for shard in shards)),
-        "the_chained_dead_end_is_a_map_phase_refusal_class": all(
+        "the_chained_dead_end_sits_in_map_and_short_circuits_before_the_engine": all(
             fork["fork_state"]["phase"] == "map"
-            and fork["evaluator_judgement"]["rejection_events"] > 0
+            and fork["branches"][0]["dead_end_label"] == "empty_action_mask"
+            and fork["branches"][0]["native_refusal_counted_on_this_step"] is False
             and fork["evaluator_judgement"]["illegal_actions"] == 0 for fork in forks),
+        # The episode does carry filter-mode refusals, so the census is not blind to refusals on
+        # this path -- they simply belong to other states, which is what reconciles the two.
+        "refusals_on_the_chained_episode_come_from_elsewhere": all(
+            fork["evaluator_judgement"]["rejection_events"] > 0
+            and fork["branches"][0]["rejection_events_before_step"]
+            == fork["evaluator_judgement"]["rejection_events"] for fork in forks),
         "the_two_populations_disagree_as_stated": (
             len(forks) == 2 and all(
                 fork["fork_masks_at_state"]["native_bases"] == [] for fork in forks)
@@ -2272,8 +2285,8 @@ CLAIMS = {
                                      "the run-start relic pick, offered rarely and positionally"),
     "ladder_promotion_ledger": (claim_ladder_promotion_ledger,
                                 "each rung's real gate decision, re-derived"),
-    "map_refusal_class_is_branch_specific": (
-        claim_map_refusal_class_is_branch_specific,
+    "map_deadend_short_circuits_before_the_refusal_census": (
+        claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
     "chained_act2_reachability": (
         claim_chained_act2_reachability,

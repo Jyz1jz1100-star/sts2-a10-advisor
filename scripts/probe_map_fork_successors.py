@@ -114,16 +114,21 @@ def main() -> int:
         branch_env.reset(seed=seed)
         for action in actions[:fork_at]:
             branch_env.step(action)
-        # Re-derive the mask at the fork in the replayed environment: if the replay is faithful the
-        # option is legal there too, and a disagreement would be the finding, not a detail.
         replay_flat_mask = branch_env.action_masks()
-        replay_native_mask = branch_env.unwrapped.base_action_mask()
+        replay_native_mask = branch_env.base_action_mask() \
+            if hasattr(branch_env, "base_action_mask") else branch_env.unwrapped.base_action_mask()
         advertised = bool(replay_flat_mask[flat])
+        # Filter-mode refusals are reported cumulatively on every step's info, so the delta across
+        # this one step says whether the engine was actually asked -- the wrapper short-circuits an
+        # empty engine mask (v2_run_wrapper.py:238-253) and would otherwise be indistinguishable
+        # from a refusal here.
+        rejections_before = int((info or {}).get("rejection_events", 0) or 0)
         _o, _r, terminal, truncated, binfo = branch_env.step(flat)
+        rejections_after = int((binfo or {}).get("rejection_events", rejections_before) or 0)
         deepest = (binfo.get("act"), binfo.get("floor"))
         steps_after = 0
-        # The wrapper drops the episode as soon as the engine refuses the map option, so
-        # asking for a mask on a finished episode is not possible -- that itself is the signal.
+        # An episode finished by the wrapper's empty-mask short-circuit cannot be asked for a
+        # mask any more, which is why emptiness is sampled before each step rather than after.
         stalled = not (terminal or truncated) and not any(
             bool(value) for value in branch_env.action_masks())
         while not (terminal or truncated) and steps_after < args.lookahead:
@@ -152,6 +157,12 @@ def main() -> int:
                         else "stopped_at_lookahead" if steps_after >= args.lookahead
                         else "ended_elsewhere"),
             "hp_after": binfo.get("player_hp"),
+            "rejection_events_before_step": rejections_before,
+            "rejection_events_after_step": rejections_after,
+            "native_refusal_counted_on_this_step": rejections_after > rejections_before,
+            "dead_end_label": binfo.get("simulator_dead_end"),
+            "engine_mask_was_empty_at_the_fork": not any(
+                bool(value) for value in replay_native_mask),
             "lookahead_steps": steps_after,
             "deepest_act_floor": list(deepest),
         })

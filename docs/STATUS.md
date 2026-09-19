@@ -1799,3 +1799,20 @@ enumerated map decisions and found none; the chained forks sit in `map` with
 `rejection_events > 0` and `illegal_actions == 0`; and the ordinary population's refusal classes
 remain exactly `{shop, event}`. So "map is clean" is stated as a measured zero over ordinary seeds,
 not as a claim that the class cannot exist. 51/51 claims match the disk.
+## 2026-09-20 -- the map dead end never reaches the refusal counter, so the census zero was right
+
+An hour ago I wrote that the chained wall was "a map-phase refusal class absorbed by filter mode,
+six refusals per episode". Measured, that is wrong: `v2_run_wrapper.py:238-253` short-circuits when
+the **engine** mask is empty -- `step()` returns truncated with `simulator_dead_end =
+empty_action_mask` and `synthetic_sentinel_action`, without calling the engine at all. The decisive
+field is now recorded per branch: rejection events before the fork step `6`, after it `6`,
+`native_refusal_counted_on_this_step: false`. The episode's six refusals are real but belong to
+other phases, which is precisely why the phase census legitimately shows 0 refusals across 11,060
+map decisions *and* map can hold a state with no successors. The two artifacts are reconciled by
+`map_deadend_short_circuits_before_the_refusal_census` (renamed from a name that asserted the wrong
+mechanism), with two injections checked. Retraction ledger row 23 records the error.
+
+The reusable lesson, and the reason this is worth a row: I applied a true general rule ("filter mode
+absorbs refusals and re-asks") to a branch that does not pass through the filter, and the counter-
+evidence -- a per-step delta -- was already one field away in the artifact I had just written. When
+explaining a counter, read the code that owns it, not the family it resembles.

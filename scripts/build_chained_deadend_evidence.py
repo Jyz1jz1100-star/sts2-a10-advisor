@@ -72,10 +72,16 @@ def main() -> int:
             "not policy strength and not the step budget: the native mask lists no map option at "
             "all, so no choice was available to make better"),
         "contract_behaviour_explaining_the_counters": (
-            "an empty engine mask gets one synthetic action (the sentinel) from "
-            "V2RunEnvWrapper.action_masks(), which is why these episodes record absorbed "
-            "rejections and 0 illegal actions, and are still classified empty_action_mask by "
-            "training/evaluation.py rather than left unclassified"),
+            "when the engine mask is empty, V2RunEnvWrapper.action_masks() advertises one synthetic "
+            "sentinel action so the policy always has something legal to play (hence 0 illegal "
+            "actions), and step() then short-circuits without asking the engine at all: it returns "
+            "truncated with simulator_dead_end=empty_action_mask and "
+            "synthetic_sentinel_action=<that action> (v2_run_wrapper.py:238-253). So this state "
+            "produces NO native refusal -- verified per branch by "
+            "rejection_events_before_step == rejection_events_after_step with "
+            "native_refusal_counted_on_this_step False -- which is exactly why the rejection-phase "
+            "census can report 0 refusals across 11,060 map decisions and still be consistent with "
+            "map states that have no successors."),
         "engine_citations": [
             "RunEngine.cs:690-695 (map mask: one bit per non-NodeNone MapNodeTypes entry)",
             "RunEngine.cs:966 (`StepMap` returns -1 when `ChooseMapNode` and the scripted "

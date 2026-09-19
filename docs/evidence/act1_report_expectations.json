@@ -391,7 +391,7 @@
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_twenty_two_rows": true
+    "ledger_has_twenty_three_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -488,8 +488,8 @@
     "the_engine_offered_no_map_option_at_any_fork": true,
     "only_the_contracts_synthetic_action_was_advertised": true,
     "the_evaluator_still_classifies_the_ending": true,
-    "the_refusal_was_absorbed_rather_than_counted_illegal": true,
-    "the_cited_engine_code_still_says_it": true
+    "the_cited_engine_code_still_says_it": true,
+    "the_chained_dead_end_is_not_a_native_refusal": true
   },
   "chained_act2_reachability": {
     "every_chain_in_the_frontier_was_searched": true,
@@ -499,10 +499,11 @@
     "replay_was_faithful": true,
     "every_route_ended_in_a_real_terminal_state": true
   },
-  "map_refusal_class_is_branch_specific": {
+  "map_deadend_short_circuits_before_the_refusal_census": {
     "the_census_counted_map_decisions_rather_than_omitting_them": true,
     "no_map_refusals_on_the_ordinary_promotion_population": true,
-    "the_chained_dead_end_is_a_map_phase_refusal_class": true,
+    "the_chained_dead_end_sits_in_map_and_short_circuits_before_the_engine": true,
+    "refusals_on_the_chained_episode_come_from_elsewhere": true,
     "the_two_populations_disagree_as_stated": true,
     "shop_and_event_remain_the_only_ordinary_classes": true
   }
