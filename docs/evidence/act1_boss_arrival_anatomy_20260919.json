@@ -4,14 +4,797 @@
     "split by the act the seed generated. Recorded per seed with",
     "scripts/probe_chained_act_flow.py --watch-floor 17 under the stage cap (1600 steps).",
     "entry HP is the player HP at the first boss decision; boss HP removed is measured to",
-    "the last recorded decision, so for losses it is partial damage, not a projection."
+    "the last recorded decision, so for losses it is partial damage, not a projection.",
+    "act1_arrivals_per_seed added so the entry-HP refutation is recomputable, not just asserted."
+  ],
+  "act1_arrivals_per_seed": [
+    {
+      "boss_decisions": 19,
+      "boss_hp_left_last": 188,
+      "boss_hp_tier": 262,
+      "entry_hp": 34,
+      "max_hp": 87,
+      "seed": 130010028,
+      "won": false
+    },
+    {
+      "boss_decisions": 18,
+      "boss_hp_left_last": 181,
+      "boss_hp_tier": 262,
+      "entry_hp": 58,
+      "max_hp": 101,
+      "seed": 130010040,
+      "won": false
+    },
+    {
+      "boss_decisions": 30,
+      "boss_hp_left_last": 107,
+      "boss_hp_tier": 183,
+      "entry_hp": 74,
+      "max_hp": 80,
+      "seed": 130010044,
+      "won": false
+    },
+    {
+      "boss_decisions": 14,
+      "boss_hp_left_last": 175,
+      "boss_hp_tier": 183,
+      "entry_hp": 32,
+      "max_hp": 80,
+      "seed": 130010062,
+      "won": false
+    },
+    {
+      "boss_decisions": 29,
+      "boss_hp_left_last": 85,
+      "boss_hp_tier": 183,
+      "entry_hp": 70,
+      "max_hp": 84,
+      "seed": 130010200,
+      "won": false
+    },
+    {
+      "boss_decisions": 22,
+      "boss_hp_left_last": 183,
+      "boss_hp_tier": 324,
+      "entry_hp": 81,
+      "max_hp": 97,
+      "seed": 130010252,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 189,
+      "boss_hp_tier": 262,
+      "entry_hp": 56,
+      "max_hp": 84,
+      "seed": 130010368,
+      "won": false
+    },
+    {
+      "boss_decisions": 19,
+      "boss_hp_left_last": 159,
+      "boss_hp_tier": 262,
+      "entry_hp": 69,
+      "max_hp": 80,
+      "seed": 130010385,
+      "won": false
+    },
+    {
+      "boss_decisions": 19,
+      "boss_hp_left_last": 240,
+      "boss_hp_tier": 324,
+      "entry_hp": 64,
+      "max_hp": 80,
+      "seed": 130010393,
+      "won": false
+    },
+    {
+      "boss_decisions": 25,
+      "boss_hp_left_last": 245,
+      "boss_hp_tier": 324,
+      "entry_hp": 94,
+      "max_hp": 94,
+      "seed": 130010419,
+      "won": false
+    },
+    {
+      "boss_decisions": 33,
+      "boss_hp_left_last": 133,
+      "boss_hp_tier": 262,
+      "entry_hp": 78,
+      "max_hp": 80,
+      "seed": 130010482,
+      "won": false
+    },
+    {
+      "boss_decisions": 9,
+      "boss_hp_left_last": 286,
+      "boss_hp_tier": 324,
+      "entry_hp": 34,
+      "max_hp": 87,
+      "seed": 130011503,
+      "won": false
+    },
+    {
+      "boss_decisions": 42,
+      "boss_hp_left_last": 78,
+      "boss_hp_tier": 183,
+      "entry_hp": 87,
+      "max_hp": 87,
+      "seed": 130011559,
+      "won": false
+    },
+    {
+      "boss_decisions": 26,
+      "boss_hp_left_last": 151,
+      "boss_hp_tier": 183,
+      "entry_hp": 59,
+      "max_hp": 87,
+      "seed": 130011571,
+      "won": false
+    },
+    {
+      "boss_decisions": 11,
+      "boss_hp_left_last": 178,
+      "boss_hp_tier": 183,
+      "entry_hp": 35,
+      "max_hp": 80,
+      "seed": 130011635,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 148,
+      "boss_hp_tier": 262,
+      "entry_hp": 50,
+      "max_hp": 80,
+      "seed": 130011774,
+      "won": false
+    },
+    {
+      "boss_decisions": 22,
+      "boss_hp_left_last": 245,
+      "boss_hp_tier": 324,
+      "entry_hp": 59,
+      "max_hp": 80,
+      "seed": 130011804,
+      "won": false
+    },
+    {
+      "boss_decisions": 42,
+      "boss_hp_left_last": 18,
+      "boss_hp_tier": 183,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130011833,
+      "won": false
+    },
+    {
+      "boss_decisions": 15,
+      "boss_hp_left_last": 197,
+      "boss_hp_tier": 262,
+      "entry_hp": 49,
+      "max_hp": 85,
+      "seed": 130011939,
+      "won": false
+    },
+    {
+      "boss_decisions": 24,
+      "boss_hp_left_last": 161,
+      "boss_hp_tier": 262,
+      "entry_hp": 65,
+      "max_hp": 80,
+      "seed": 130011952,
+      "won": false
+    },
+    {
+      "boss_decisions": 24,
+      "boss_hp_left_last": 86,
+      "boss_hp_tier": 262,
+      "entry_hp": 59,
+      "max_hp": 91,
+      "seed": 130012052,
+      "won": false
+    },
+    {
+      "boss_decisions": 18,
+      "boss_hp_left_last": 208,
+      "boss_hp_tier": 262,
+      "entry_hp": 64,
+      "max_hp": 80,
+      "seed": 130012072,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 224,
+      "boss_hp_tier": 324,
+      "entry_hp": 45,
+      "max_hp": 85,
+      "seed": 130012152,
+      "won": false
+    },
+    {
+      "boss_decisions": 23,
+      "boss_hp_left_last": 213,
+      "boss_hp_tier": 324,
+      "entry_hp": 71,
+      "max_hp": 80,
+      "seed": 130012154,
+      "won": false
+    },
+    {
+      "boss_decisions": 22,
+      "boss_hp_left_last": 189,
+      "boss_hp_tier": 324,
+      "entry_hp": 89,
+      "max_hp": 96,
+      "seed": 130012159,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 212,
+      "boss_hp_tier": 262,
+      "entry_hp": 40,
+      "max_hp": 80,
+      "seed": 130012170,
+      "won": false
+    },
+    {
+      "boss_decisions": 28,
+      "boss_hp_left_last": 157,
+      "boss_hp_tier": 262,
+      "entry_hp": 68,
+      "max_hp": 91,
+      "seed": 130012198,
+      "won": false
+    },
+    {
+      "boss_decisions": 12,
+      "boss_hp_left_last": 268,
+      "boss_hp_tier": 324,
+      "entry_hp": 36,
+      "max_hp": 94,
+      "seed": 130012214,
+      "won": false
+    },
+    {
+      "boss_decisions": 22,
+      "boss_hp_left_last": 248,
+      "boss_hp_tier": 324,
+      "entry_hp": 45,
+      "max_hp": 92,
+      "seed": 130012389,
+      "won": false
+    },
+    {
+      "boss_decisions": 17,
+      "boss_hp_left_last": 261,
+      "boss_hp_tier": 324,
+      "entry_hp": 56,
+      "max_hp": 91,
+      "seed": 130012403,
+      "won": false
+    },
+    {
+      "boss_decisions": 32,
+      "boss_hp_left_last": 113,
+      "boss_hp_tier": 183,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130012415,
+      "won": false
+    },
+    {
+      "boss_decisions": 27,
+      "boss_hp_left_last": 105,
+      "boss_hp_tier": 183,
+      "entry_hp": 63,
+      "max_hp": 79,
+      "seed": 130012435,
+      "won": false
+    },
+    {
+      "boss_decisions": 14,
+      "boss_hp_left_last": 213,
+      "boss_hp_tier": 262,
+      "entry_hp": 38,
+      "max_hp": 80,
+      "seed": 130012470,
+      "won": false
+    },
+    {
+      "boss_decisions": 20,
+      "boss_hp_left_last": 223,
+      "boss_hp_tier": 324,
+      "entry_hp": 65,
+      "max_hp": 87,
+      "seed": 130012535,
+      "won": false
+    },
+    {
+      "boss_decisions": 10,
+      "boss_hp_left_last": 251,
+      "boss_hp_tier": 324,
+      "entry_hp": 37,
+      "max_hp": 80,
+      "seed": 130012576,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 251,
+      "boss_hp_tier": 324,
+      "entry_hp": 51,
+      "max_hp": 85,
+      "seed": 130012638,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 276,
+      "boss_hp_tier": 324,
+      "entry_hp": 26,
+      "max_hp": 80,
+      "seed": 130012715,
+      "won": false
+    },
+    {
+      "boss_decisions": 25,
+      "boss_hp_left_last": 150,
+      "boss_hp_tier": 262,
+      "entry_hp": 60,
+      "max_hp": 87,
+      "seed": 130012771,
+      "won": false
+    },
+    {
+      "boss_decisions": 43,
+      "boss_hp_left_last": 36,
+      "boss_hp_tier": 183,
+      "entry_hp": 77,
+      "max_hp": 77,
+      "seed": 130012795,
+      "won": false
+    },
+    {
+      "boss_decisions": 25,
+      "boss_hp_left_last": 190,
+      "boss_hp_tier": 324,
+      "entry_hp": 76,
+      "max_hp": 80,
+      "seed": 130012833,
+      "won": false
+    },
+    {
+      "boss_decisions": 21,
+      "boss_hp_left_last": 246,
+      "boss_hp_tier": 324,
+      "entry_hp": 61,
+      "max_hp": 80,
+      "seed": 130012885,
+      "won": false
+    },
+    {
+      "boss_decisions": 28,
+      "boss_hp_left_last": 123,
+      "boss_hp_tier": 183,
+      "entry_hp": 57,
+      "max_hp": 80,
+      "seed": 130013013,
+      "won": false
+    },
+    {
+      "boss_decisions": 19,
+      "boss_hp_left_last": 244,
+      "boss_hp_tier": 324,
+      "entry_hp": 68,
+      "max_hp": 80,
+      "seed": 130013031,
+      "won": false
+    },
+    {
+      "boss_decisions": 52,
+      "boss_hp_left_last": 89,
+      "boss_hp_tier": 183,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130013063,
+      "won": false
+    },
+    {
+      "boss_decisions": 20,
+      "boss_hp_left_last": 168,
+      "boss_hp_tier": 183,
+      "entry_hp": 48,
+      "max_hp": 80,
+      "seed": 130013070,
+      "won": false
+    },
+    {
+      "boss_decisions": 31,
+      "boss_hp_left_last": 138,
+      "boss_hp_tier": 183,
+      "entry_hp": 51,
+      "max_hp": 80,
+      "seed": 130013105,
+      "won": false
+    },
+    {
+      "boss_decisions": 12,
+      "boss_hp_left_last": 291,
+      "boss_hp_tier": 324,
+      "entry_hp": 35,
+      "max_hp": 80,
+      "seed": 130013110,
+      "won": false
+    },
+    {
+      "boss_decisions": 21,
+      "boss_hp_left_last": 241,
+      "boss_hp_tier": 324,
+      "entry_hp": 51,
+      "max_hp": 80,
+      "seed": 130013150,
+      "won": false
+    },
+    {
+      "boss_decisions": 19,
+      "boss_hp_left_last": 205,
+      "boss_hp_tier": 262,
+      "entry_hp": 51,
+      "max_hp": 87,
+      "seed": 130013160,
+      "won": false
+    },
+    {
+      "boss_decisions": 23,
+      "boss_hp_left_last": 163,
+      "boss_hp_tier": 262,
+      "entry_hp": 50,
+      "max_hp": 80,
+      "seed": 130013249,
+      "won": false
+    },
+    {
+      "boss_decisions": 26,
+      "boss_hp_left_last": 142,
+      "boss_hp_tier": 262,
+      "entry_hp": 61,
+      "max_hp": 80,
+      "seed": 130013259,
+      "won": false
+    },
+    {
+      "boss_decisions": 38,
+      "boss_hp_left_last": 120,
+      "boss_hp_tier": 183,
+      "entry_hp": 64,
+      "max_hp": 87,
+      "seed": 130013282,
+      "won": false
+    },
+    {
+      "boss_decisions": 24,
+      "boss_hp_left_last": 160,
+      "boss_hp_tier": 262,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130013328,
+      "won": false
+    },
+    {
+      "boss_decisions": 28,
+      "boss_hp_left_last": 115,
+      "boss_hp_tier": 183,
+      "entry_hp": 55,
+      "max_hp": 80,
+      "seed": 130013351,
+      "won": false
+    },
+    {
+      "boss_decisions": 24,
+      "boss_hp_left_last": 153,
+      "boss_hp_tier": 183,
+      "entry_hp": 57,
+      "max_hp": 80,
+      "seed": 130013399,
+      "won": false
+    },
+    {
+      "boss_decisions": 10,
+      "boss_hp_left_last": 281,
+      "boss_hp_tier": 324,
+      "entry_hp": 35,
+      "max_hp": 80,
+      "seed": 130013417,
+      "won": false
+    },
+    {
+      "boss_decisions": 25,
+      "boss_hp_left_last": 188,
+      "boss_hp_tier": 262,
+      "entry_hp": 75,
+      "max_hp": 91,
+      "seed": 130013476,
+      "won": false
+    },
+    {
+      "boss_decisions": 30,
+      "boss_hp_left_last": 107,
+      "boss_hp_tier": 183,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130010526,
+      "won": false
+    },
+    {
+      "boss_decisions": 31,
+      "boss_hp_left_last": 100,
+      "boss_hp_tier": 262,
+      "entry_hp": 85,
+      "max_hp": 85,
+      "seed": 130010544,
+      "won": false
+    },
+    {
+      "boss_decisions": 24,
+      "boss_hp_left_last": 190,
+      "boss_hp_tier": 262,
+      "entry_hp": 72,
+      "max_hp": 80,
+      "seed": 130010622,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 185,
+      "boss_hp_tier": 262,
+      "entry_hp": 49,
+      "max_hp": 80,
+      "seed": 130010647,
+      "won": false
+    },
+    {
+      "boss_decisions": 14,
+      "boss_hp_left_last": 264,
+      "boss_hp_tier": 324,
+      "entry_hp": 40,
+      "max_hp": 80,
+      "seed": 130010661,
+      "won": false
+    },
+    {
+      "boss_decisions": 16,
+      "boss_hp_left_last": 265,
+      "boss_hp_tier": 324,
+      "entry_hp": 48,
+      "max_hp": 80,
+      "seed": 130010669,
+      "won": false
+    },
+    {
+      "boss_decisions": 13,
+      "boss_hp_left_last": 207,
+      "boss_hp_tier": 262,
+      "entry_hp": 42,
+      "max_hp": 80,
+      "seed": 130010671,
+      "won": false
+    },
+    {
+      "boss_decisions": 21,
+      "boss_hp_left_last": 239,
+      "boss_hp_tier": 262,
+      "entry_hp": 34,
+      "max_hp": 80,
+      "seed": 130010706,
+      "won": false
+    },
+    {
+      "boss_decisions": 43,
+      "boss_hp_left_last": 109,
+      "boss_hp_tier": 183,
+      "entry_hp": 101,
+      "max_hp": 101,
+      "seed": 130010710,
+      "won": false
+    },
+    {
+      "boss_decisions": 18,
+      "boss_hp_left_last": 172,
+      "boss_hp_tier": 262,
+      "entry_hp": 45,
+      "max_hp": 90,
+      "seed": 130010719,
+      "won": false
+    },
+    {
+      "boss_decisions": 21,
+      "boss_hp_left_last": 214,
+      "boss_hp_tier": 324,
+      "entry_hp": 63,
+      "max_hp": 83,
+      "seed": 130010735,
+      "won": false
+    },
+    {
+      "boss_decisions": 47,
+      "boss_hp_left_last": 130,
+      "boss_hp_tier": 324,
+      "entry_hp": 94,
+      "max_hp": 94,
+      "seed": 130010799,
+      "won": false
+    },
+    {
+      "boss_decisions": 23,
+      "boss_hp_left_last": 250,
+      "boss_hp_tier": 324,
+      "entry_hp": 79,
+      "max_hp": 80,
+      "seed": 130010915,
+      "won": false
+    },
+    {
+      "boss_decisions": 30,
+      "boss_hp_left_last": 174,
+      "boss_hp_tier": 324,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130010980,
+      "won": false
+    },
+    {
+      "boss_decisions": 18,
+      "boss_hp_left_last": 220,
+      "boss_hp_tier": 324,
+      "entry_hp": 64,
+      "max_hp": 85,
+      "seed": 130010999,
+      "won": false
+    },
+    {
+      "boss_decisions": 18,
+      "boss_hp_left_last": 187,
+      "boss_hp_tier": 262,
+      "entry_hp": 61,
+      "max_hp": 101,
+      "seed": 130011033,
+      "won": false
+    },
+    {
+      "boss_decisions": 30,
+      "boss_hp_left_last": 105,
+      "boss_hp_tier": 183,
+      "entry_hp": 68,
+      "max_hp": 80,
+      "seed": 130011097,
+      "won": false
+    },
+    {
+      "boss_decisions": 15,
+      "boss_hp_left_last": 189,
+      "boss_hp_tier": 262,
+      "entry_hp": 56,
+      "max_hp": 80,
+      "seed": 130011138,
+      "won": false
+    },
+    {
+      "boss_decisions": 30,
+      "boss_hp_left_last": 118,
+      "boss_hp_tier": 183,
+      "entry_hp": 55,
+      "max_hp": 80,
+      "seed": 130011166,
+      "won": false
+    },
+    {
+      "boss_decisions": 44,
+      "boss_hp_left_last": 129,
+      "boss_hp_tier": 183,
+      "entry_hp": 77,
+      "max_hp": 80,
+      "seed": 130011224,
+      "won": false
+    },
+    {
+      "boss_decisions": 26,
+      "boss_hp_left_last": 109,
+      "boss_hp_tier": 183,
+      "entry_hp": 72,
+      "max_hp": 92,
+      "seed": 130011234,
+      "won": false
+    },
+    {
+      "boss_decisions": 40,
+      "boss_hp_left_last": 87,
+      "boss_hp_tier": 183,
+      "entry_hp": 80,
+      "max_hp": 80,
+      "seed": 130011251,
+      "won": false
+    },
+    {
+      "boss_decisions": 20,
+      "boss_hp_left_last": 140,
+      "boss_hp_tier": 262,
+      "entry_hp": 66,
+      "max_hp": 87,
+      "seed": 130011275,
+      "won": false
+    },
+    {
+      "boss_decisions": 19,
+      "boss_hp_left_last": 89,
+      "boss_hp_tier": 262,
+      "entry_hp": 32,
+      "max_hp": 80,
+      "seed": 130011284,
+      "won": false
+    },
+    {
+      "boss_decisions": 25,
+      "boss_hp_left_last": 182,
+      "boss_hp_tier": 262,
+      "entry_hp": 77,
+      "max_hp": 77,
+      "seed": 130011335,
+      "won": false
+    },
+    {
+      "boss_decisions": 17,
+      "boss_hp_left_last": 139,
+      "boss_hp_tier": 183,
+      "entry_hp": 45,
+      "max_hp": 80,
+      "seed": 130011472,
+      "won": false
+    }
   ],
   "act1_boss_hp_at_entry_counts": {
     "183": 25,
     "262": 30,
     "324": 28
   },
+  "boss_tier_split_within_act1": {
+    "183": {
+      "arrivals": 25,
+      "decisions_median": 30,
+      "entry_hp_median": 68,
+      "wins_in_this_window": 0
+    },
+    "262": {
+      "arrivals": 30,
+      "decisions_median": 19.0,
+      "entry_hp_median": 58.5,
+      "wins_in_this_window": 0
+    },
+    "324": {
+      "arrivals": 28,
+      "decisions_median": 19.5,
+      "entry_hp_median": 60.0,
+      "wins_in_this_window": 0
+    }
+  },
   "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+  "entry_hp_test": {
+    "corr_entry_hp_vs_decisions": 0.74,
+    "decisions_median_when_entry_ge80": 31.5,
+    "decisions_median_when_entry_lt70": 19,
+    "loser_count": 83,
+    "losers_entering_at_or_above_80": 14,
+    "note": "Written to check the entry-HP condition I published minutes earlier. It did not survive: entering at >=80 HP does not predict winning, it predicts lasting longer.",
+    "share": 0.1687,
+    "winners_decision_range": [
+      33,
+      63
+    ]
+  },
   "generated_at": "2026-09-19T04:35:30Z",
   "groups": {
     "act1_loss": {

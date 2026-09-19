@@ -112,6 +112,13 @@
     "no_wound_hands": true,
     "passivity_matches_generality_run": true
   },
+  "entry_hp_refutation": {
+    "losers_at_winners_hp": 14,
+    "entry_hp_not_predictive_of_wins": true,
+    "high_hp_losers_still_short": true,
+    "correlation_matches": true,
+    "tier_arrivals_sum_to_arrivals": true
+  },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
     "same_checkpoint": true,

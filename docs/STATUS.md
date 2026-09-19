@@ -1135,12 +1135,15 @@ not attrition before it, which is a different and much cheaper thing to aim at t
 `act1_boss_win_anatomy_20260919.json`): damage per decision barely separates a lost Act 1
 fight from a won Act 2 one (3.45 vs 3.79), so "deal more damage" is not the lever.
 What separates them is surviving the boss node -- Act 2 winners last 66 boss decisions,
-losers 37, and Act 1 arrivals only 22 against bosses of 183 to 324 HP. Re-measuring the
-nine Act 1 victories added a second condition the arrival-only sample could not see:
-those winners enter the boss at a median 80 HP where Act 1 losers enter at 61, and they
-survive ~51 decisions. So Act 1 needs both arriving near full health and outlasting the
-boss, which is why deepening Act 1 alone and raising damage alone each failed to move
-the win rate. The act-1 wall is also not one enemy: arrivals face three boss tiers
+losers 37, and Act 1 arrivals only 22 against bosses of 183 to 324 HP. Act 1 winners enter the
+boss at a median 80 HP versus 61 for losers, which looked like a second condition --
+but that comparison used winners selected for winning, and testing it against the 83
+losers' own records refuted it: 14 of 83 losers also entered at >=80 HP, so arrival
+health does not predict victory. What it predicts is longevity (correlation 0.74;
+high-HP losers last 31 boss decisions against 19 for low-HP ones), and winners need
+33-63. So the model is one condition, not two: **outlast the boss fight**, with arrival
+health as an upstream contributor. That is also why deepening Act 1 alone and raising
+damage alone each failed to move the win rate. The act-1 wall is also not one enemy: arrivals face three boss tiers
 (183x25, 262x30, 324x28), so Vantom -- the Wound-dealing boss dissected earlier -- is
 25 of 83 arrivals, and no Wound hand appeared in any of the nine winning fights. The nine ledgered Act 1 victories are unaffected: all nine seeds were
 re-censused as overgrowth-generating, and this checkpoint's three of them simply sit

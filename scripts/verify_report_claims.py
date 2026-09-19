@@ -386,6 +386,40 @@ def claim_boss_win_anatomy():
     }
 
 
+def claim_entry_hp_refutation():
+    """Recompute the refutation of my own "arriving near full HP is a win condition".
+
+    The claim being checked is a negative one, so it is worth its own computation:
+    how many losers entered at the winners' HP, and whether entry health tracks
+    survived decisions instead of victory. Recomputed from per-seed rows rather than
+    from the summary, because the summary is what I wrote the wrong conclusion into.
+    """
+    import statistics
+
+    data = json.loads((ROOT / "docs/evidence/act1_boss_arrival_anatomy_20260919.json")
+                      .read_text(encoding="utf-8"))
+    rows = data["act1_arrivals_per_seed"]
+    losers = [row for row in rows if not row["won"]]
+    high_losers = [row for row in losers if row["entry_hp"] >= 80]
+    xs = [row["entry_hp"] for row in rows]
+    ys = [row["boss_decisions"] for row in rows]
+    denom = (len(rows) - 1) * statistics.pstdev(xs) * statistics.pstdev(ys)
+    corr = sum((a - statistics.mean(xs)) * (b - statistics.mean(ys))
+               for a, b in zip(xs, ys)) / denom
+    stored = data["entry_hp_test"]
+    return {
+        "losers_at_winners_hp": len(high_losers),
+        "entry_hp_not_predictive_of_wins": len(high_losers) > 0,
+        "high_hp_losers_still_short": (
+            statistics.median([row["boss_decisions"] for row in high_losers])
+            < stored["winners_decision_range"][0]),
+        "correlation_matches": abs(corr - stored["corr_entry_hp_vs_decisions"]) < 0.005,
+        "tier_arrivals_sum_to_arrivals": sum(
+            tier["arrivals"] for tier in data["boss_tier_split_within_act1"].values())
+            == len(rows),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -416,6 +450,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "entry_hp_refutation": (claim_entry_hp_refutation,
+                            "arriving at full HP does not predict winning; it predicts lasting"),
     "boss_win_anatomy": (claim_boss_win_anatomy,
                          "the nine Act 1 wins: entered near full HP, survived ~51 boss decisions"),
     "boss_anatomy": (claim_boss_anatomy,
