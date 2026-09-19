@@ -551,5 +551,13 @@
     "no_win_was_bought_with_a_contract_violation": true,
     "the_partition_is_covered_once": true,
     "the_bound_declares_that_it_is_a_bound": true
+  },
+  "boss_reward_rule_generality": {
+    "both_groups_reproduce_their_recorded_win_baseline": true,
+    "both_groups_convert_exactly_their_recorded_seeds": true,
+    "the_two_groups_are_different_policies": true,
+    "neither_group_costs_a_win": true,
+    "no_win_was_bought_with_a_contract_violation": true,
+    "the_groups_compared_are_the_pre_registered_ones": true
   }
 }

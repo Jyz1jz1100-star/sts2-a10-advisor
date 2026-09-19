@@ -23,11 +23,29 @@ ROOT = Path(__file__).resolve().parents[1]
 BACKSLASH = chr(92)
 
 
+def recorded_for(misexit: dict, group: str) -> tuple[list[int], int]:
+    """The seed list and judged-win baseline a committed measurement recorded for one group.
+
+    Every group is a pre-registration: it names the seeds it lost and the wins it counted before
+    this script was written, so comparing against it is a test rather than a fit.
+    """
+
+    holder = misexit if group == "whole_partition_promotion" else misexit[group]
+    partition = holder["whole_partition"] if group == "whole_partition_promotion" else holder
+    return (sorted(int(seed) for seed in holder["truncation_seeds"]),
+            int(partition["act1"]["boss_win"]) + int(partition["act2"]["boss_win"]))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--slices", default="runtime/census_scratch/pop/slice_*.json")
     parser.add_argument("--misexit", type=Path,
                         default=ROOT / "docs/evidence/act2_boss_misexit_rate_20260919.json")
+    parser.add_argument("--compare-group", default="whole_partition_promotion",
+                        choices=("whole_partition_promotion",
+                                 "independent_window_checkpoint_split",
+                                 "second_checkpoint_generality"))
+    parser.add_argument("--label", default=None, help="free-text note carried into the artefact")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
@@ -40,9 +58,7 @@ def main() -> int:
         raise SystemExit("two slices rolled the same seed; the partition would be double counted")
 
     misexit = json.loads(args.misexit.read_text(encoding="utf-8"))
-    recorded_losses = sorted(int(seed) for seed in misexit["truncation_seeds"])
-    baseline = (int(misexit["whole_partition"]["act1"]["boss_win"])
-                + int(misexit["whole_partition"]["act2"]["boss_win"]))
+    recorded_losses, baseline = recorded_for(misexit, args.compare_group)
     converted = sorted({seed for data in slices
                         for seed in data["win_seed_join"]["converted_seeds"]})
     lost = sorted({seed for data in slices for seed in data["win_seed_join"]["lost_seeds"]})
@@ -74,9 +90,14 @@ def main() -> int:
             lambda d: d["aggregates"]["unclassified_dead_ends_plain"]),
     }
     payload = {
+        "compare_group": args.compare_group,
+        "label": args.label,
         "_assembled_by": [
-            "scripts/probe_boss_reward_rule.py --checkpoint <checkpoint below> --start-offset "
-            "<0,1250,...,8750> --limit 1250 --rule highest_legal --out <slice> (x8)",
+            f"scripts/probe_boss_reward_rule.py --checkpoint <checkpoint below> --start-offset "
+            f"<{'|'.join(str(index * slices[0]['aggregates']['episodes'])
+                         for index in range(len(slices)))}> "
+            f"--limit {slices[0]['aggregates']['episodes']} --rule highest_legal --out <slice> "
+            f"(x{len(slices)})",
             "scripts/merge_reward_rule_slices.py joins them; every seed of the declared partition "
             "appears in exactly one slice, which this script checks before summing"],
         "aggregates": agg,

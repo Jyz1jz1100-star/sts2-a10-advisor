@@ -1925,3 +1925,15 @@ independently listed as cleared-but-not-judged -- which is the reason to believe
 than treat it as a bigger measurement of something else. Claim `boss_reward_rule_population`; the
 hand-written rule stays labelled as an upper bound in `not_established`, and an Act-2 judged win is
 still not the objective's three-act flow. 56/56 claims match the disk, 50 evidence files.
+
+## 2026-09-20 -- the rule transfers: two other checkpoints convert exactly their pre-recorded seeds
+
+The population artefact admitted it had only tested one arm's policy. Fixed by measuring the other two
+groups the Act-2 mis-exit measurement had already written down -- same 3,500-seed checkpoint-partition
+window, at the checkpoint that recorded each group's losses. Both reproduce the recorded judged-win
+baseline (21) exactly; the rule then converts 6 and 7 seeds, and in each case the converted set *is*
+the set that measurement listed before this ran. Neither group loses a single already-judged win, and
+illegal actions and unclassified dead ends are 0 in every pass. Claims `boss_reward_rule_generality`
+(one expectation in it was a check that could not fail -- replaced with a real one before committing).
+Two boundaries survive: the rule is hand-written, so this is an upper bound on one decision, and a
+judged Act-2 win is still not the three-act flow the objective names. 57/57 claims, 52 evidence files.

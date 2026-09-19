@@ -2132,6 +2132,53 @@ def claim_boss_reward_rule_population():
     }
 
 
+def claim_boss_reward_rule_generality():
+    """Does the one-screen rule hold for a different policy? Two checkpoints, checked seed by seed.
+
+    The promotion-partition result could have been an accident of one arm's policy, and the artefact
+    said so. These are the other two groups the mis-exit measurement pre-registered -- the same
+    3,500-seed checkpoint-partition window at the first checkpoint, and at a different arm's
+    checkpoint -- each judged against the seed list and win count that measurement wrote down before
+    this ran. Both reproduce the baseline exactly, convert exactly the seeds that measurement listed
+    (6 and 7), and lose none.
+    """
+    here = ROOT / "docs/evidence"
+    cp1 = json.loads((here / "boss_reward_rule_generality_cp1_20260920.json")
+                     .read_text(encoding="utf-8"))
+    cp2 = json.loads((here / "boss_reward_rule_generality_cp2_20260920.json")
+                     .read_text(encoding="utf-8"))
+    groups = []
+    for data in (cp1, cp2):
+        agg = data["aggregates"]
+        groups.append({
+            "baseline": agg["plain_win_matches_the_recorded_baseline"]
+                        and agg["plain_win_count"] == agg["recorded_baseline_win_count"],
+            "converted": agg["converted_seeds_equal_the_recorded_losses"]
+                         and data["converted_seeds"] == sorted(
+                             data["recorded_losses_for_comparison"]),
+            "count": agg["converted_seed_count"],
+            "clean": (agg["illegal_actions_plain"] == agg["illegal_actions_after_rule"] == 0
+                      and agg["unclassified_dead_ends_plain"] == 0
+                      and agg["unclassified_dead_ends_after_rule"] == 0),
+            "lost": agg["lost_win_count"],
+        })
+    return {
+        "both_groups_reproduce_their_recorded_win_baseline": all(g["baseline"] for g in groups),
+        "both_groups_convert_exactly_their_recorded_seeds": all(g["converted"] for g in groups),
+        "the_two_groups_are_different_policies": (
+            cp1["checkpoint"] != cp2["checkpoint"]
+            and cp1["compare_group"] != cp2["compare_group"]
+            and [g["count"] for g in groups] == [6, 7]),
+        "neither_group_costs_a_win": all(g["lost"] == 0 for g in groups),
+        "no_win_was_bought_with_a_contract_violation": all(g["clean"] for g in groups),
+        "the_groups_compared_are_the_pre_registered_ones": (
+            cp1["compare_group"] == "independent_window_checkpoint_split"
+            and cp2["compare_group"] == "second_checkpoint_generality"
+            and bool(cp1["label"]) and bool(cp2["label"])
+            and cp1["aggregates"]["episodes"] == cp2["aggregates"]["episodes"] == 3500),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2526,6 +2573,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "boss_reward_rule_generality": (
+        claim_boss_reward_rule_generality,
+        "the same rule at two other checkpoints, against pre-recorded seed lists"),
     "boss_reward_rule_population": (
         claim_boss_reward_rule_population,
         "the whole promotion partition, checked against the recorded baseline seed for seed"),

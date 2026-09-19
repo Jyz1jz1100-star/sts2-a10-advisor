@@ -1,0 +1,121 @@
+{
+  "_assembled_by": [
+    "scripts/probe_boss_reward_rule.py --checkpoint <checkpoint below> --start-offset <0|875|1750|2625> --limit 875 --rule highest_legal --out <slice> (x4)",
+    "scripts/merge_reward_rule_slices.py joins them; every seed of the declared partition appears in exactly one slice, which this script checks before summing"
+  ],
+  "aggregates": {
+    "converted_seed_count": 7,
+    "converted_seeds_equal_the_recorded_losses": true,
+    "episodes": 3500,
+    "illegal_actions_after_rule": 0,
+    "illegal_actions_plain": 0,
+    "kept_win_count": 21,
+    "lost_win_count": 0,
+    "matched_boss_relic_screens": 28,
+    "plain_win_count": 21,
+    "plain_win_matches_the_recorded_baseline": true,
+    "recorded_baseline_win_count": 21,
+    "rule_win_count": 28,
+    "slices": 4,
+    "truncations_after_rule": 1,
+    "truncations_plain": 8,
+    "unclassified_dead_ends_after_rule": 0,
+    "unclassified_dead_ends_plain": 0
+  },
+  "checkpoint": "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip",
+  "compare_group": "second_checkpoint_generality",
+  "converted_seeds": [
+    130001110,
+    130001157,
+    130001220,
+    130001533,
+    130001859,
+    130003061,
+    130003427
+  ],
+  "established": [
+    "the plain pass over 3500 promotion seeds reproduces the 21 judged wins the committed mis-exit measurement recorded, so the two instruments are looking at the same population",
+    "the rule adds 7 judged wins, removes 0, and the added seeds are exactly the runs recorded as cleared-the-boss-but-not-judged",
+    "truncations fall 8 -> 1 while illegal actions and unclassified dead ends stay 0 in both passes"
+  ],
+  "generated_at": "2026-09-19T19:47:21+00:00",
+  "kept_win_seeds": [
+    130000155,
+    130000286,
+    130000296,
+    130000346,
+    130000357,
+    130000423,
+    130000780,
+    130000919,
+    130000953,
+    130001027,
+    130001045,
+    130001522,
+    130001612,
+    130001756,
+    130001879,
+    130001982,
+    130002112,
+    130002885,
+    130003078,
+    130003128,
+    130003241
+  ],
+  "label": "another arm's checkpoint, same window",
+  "lost_win_seeds": [],
+  "not_established": [
+    "that a trained policy would find this rule: it is hand-written and applied at one screen, so the number bounds what that one decision is worth, not what training gets",
+    "anything about Act 3 or the shipped game -- an Act-2 judged win is still two acts, not the three-act flow the objective names",
+    "that the +7 transfers to other checkpoints or policies: this is one checkpoint's promotion partition, and the rule only pays where a run reaches the screen"
+  ],
+  "recorded_losses_for_comparison": [
+    130001110,
+    130001157,
+    130001220,
+    130001533,
+    130001859,
+    130003061,
+    130003427
+  ],
+  "rule": {
+    "argmax_elsewhere": true,
+    "chosen": "highest_legal",
+    "screen": "relic_reward at current_node_type=6"
+  },
+  "scope": "every seed of the act1 promotion partition at one checkpoint, argmax everywhere except a stated action at the boss relic_reward screen, judged by training/evaluation.py",
+  "slice_detail": [
+    {
+      "converted": 0,
+      "episodes": 875,
+      "lost": 0,
+      "plain_wins": 7,
+      "ruled_wins": 7,
+      "seed_source": "act1/checkpoint partition slice [0:875] of 10000"
+    },
+    {
+      "converted": 4,
+      "episodes": 875,
+      "lost": 0,
+      "plain_wins": 6,
+      "ruled_wins": 10,
+      "seed_source": "act1/checkpoint partition slice [875:1750] of 10000"
+    },
+    {
+      "converted": 1,
+      "episodes": 875,
+      "lost": 0,
+      "plain_wins": 4,
+      "ruled_wins": 5,
+      "seed_source": "act1/checkpoint partition slice [1750:2625] of 10000"
+    },
+    {
+      "converted": 2,
+      "episodes": 875,
+      "lost": 0,
+      "plain_wins": 4,
+      "ruled_wins": 6,
+      "seed_source": "act1/checkpoint partition slice [2625:3500] of 10000"
+    }
+  ]
+}
