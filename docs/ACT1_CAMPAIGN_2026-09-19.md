@@ -22,6 +22,14 @@
 
 **含义**：模拟器的可达上限 = "单幕通关"（Act 1 或 Act 2 到 boss 并取胜，floor 17），
 最多加上那条**写死的** 1→2 双幕链。它不含 Act 3，也不含"第三幕两个 boss"。
+
+**层号对齐**（目标原文写的是"16 层到终局"，本文所有读数写的是 17，这两个是同一个东西）：
+`RunConstants.cs:14` 的 `MapBossRow = 16` 是**0 基的地图行号**，而
+`RunEngine.cs:18` 把 `Floor` 从 **1** 起算，所以同一个 boss 节点在 Python 侧就是
+`Floor == 17`。本文判"到终局"的口径是 `final_floor == 17` **且** `won` 为真
+（`training/evaluation.py` 的 `player_won` + `terminated`）；只有 `final_floor == 17`
+不构成通关，见下文"层号含义"与"boss 战僵持"两节。
+
 所以本文给出的所有胜利证据，**最多只能证明目标的前两幕部分**，
 按字面判定目标**未完成**；真正的 Act 1–3 全流程只能走真机路径
 （见 `docs/ACCEPTANCE.md` 与任务"操作员开机后跑真机三幕批次"）。
