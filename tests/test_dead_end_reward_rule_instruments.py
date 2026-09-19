@@ -211,10 +211,12 @@ class TruncationLedgerTests(unittest.TestCase):
         self.assertEqual(agg["current_schema_files_missing_any_identity_field"], 1)
 
     def test_legacy_files_are_split_between_untestable_and_vacuous(self) -> None:
+        # `fields=False` is what makes these legacy: the exclusion is about the key never having
+        # been written, so the fixture has to write that absence rather than a zero.
         rows = [self._row(truncations=10, reasons={}, boundary=0, wins=0, current=False,
-                          file="legacy-a.json"),
+                          fields=False, file="legacy-a.json"),
                 self._row(truncations=0, reasons={}, boundary=0, wins=0, current=False,
-                          file="legacy-b.json")]
+                          fields=False, file="legacy-b.json")]
         agg = self.ledger.summarise(rows)["aggregates"]
         self.assertEqual(agg["legacy_files_excluded"], 2)
         self.assertEqual(agg["legacy_files_missing_the_boundary_field"], 2)
