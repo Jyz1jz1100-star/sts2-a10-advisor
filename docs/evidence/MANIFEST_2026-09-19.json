@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "c9e172699bc6cc41d2b62a09adb668516a9fcc03c40a39cf61e81fb42976955d",
-  "evidence_file_count": 54,
-  "generated_at": "2026-09-19T22:07:45+00:00",
-  "git_head_at_generation": "74d31ff",
+  "bundle_root": "36bc53258c27f89d33b3c2dc10ae63b5dc8f36c5b039c94f870976bce42d6525",
+  "evidence_file_count": 55,
+  "generated_at": "2026-09-19T22:14:09+00:00",
+  "git_head_at_generation": "0dd517b",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1027
+    "total_64_hex_strings_seen": 1028
   },
   "resolved_checkpoints": [
     {
@@ -1511,6 +1511,7 @@
         "act2_boss_completion_fork_20260919.json",
         "act2_boss_misexit_signature_verified_20260919.json",
         "act2_boss_node_comparison_20260919.json",
+        "act2_named_wins_individual_replay_20260920.json",
         "act2_terminal_check_20260919.json",
         "arrival_state_at_boss_20260919.json",
         "boss_reward_rule_on_lost_clears_20260920.json",
@@ -2384,8 +2385,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "10bc2e5c6730267d226950c2f8b0ff1eb8a7096369adab9ef96821003dbfdc10",
-      "bytes": 23441
+      "sha256": "dad93fd964ae11b993e4d4f66b94483e4a20c1be6be82523d8e75d40a2025434",
+      "bytes": 23713
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2421,6 +2422,11 @@
       "file": "act2_boss_node_comparison_20260919.json",
       "sha256": "64eea2b3c98726ecf29db5d89473a32618562896f630ef980a44a1a91a381eaf",
       "bytes": 2479
+    },
+    {
+      "file": "act2_named_wins_individual_replay_20260920.json",
+      "sha256": "7b583223ca47e2f6df0bec7db6bdbbe68404229b4080836ef42d9468bbd6d0e6",
+      "bytes": 10933
     },
     {
       "file": "act2_reward_fork_census_seeds_card_20260920.json",

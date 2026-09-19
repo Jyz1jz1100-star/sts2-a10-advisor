@@ -1,0 +1,454 @@
+{
+  "boss_arrival_seeds_by_act": {
+    "2": [
+      130010053,
+      130010125,
+      130010155,
+      130010199,
+      130010318,
+      130010420,
+      130010613,
+      130011014,
+      130011191,
+      130011328,
+      130011390,
+      130011443,
+      130011512,
+      130011629,
+      130011631,
+      130011801,
+      130012263,
+      130012414,
+      130012525,
+      130012938,
+      130012981,
+      130013292,
+      130013350,
+      130013410,
+      130013451
+    ]
+  },
+  "boss_truncation_seeds": [],
+  "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000002000016.zip",
+  "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+  "counts": {
+    "boss_win": 25
+  },
+  "counts_by_generated_act": {
+    "2": {
+      "boss_win": 25
+    }
+  },
+  "enumerated": 25,
+  "generated_at": "2026-09-19T22:12:06.435427+00:00",
+  "max_steps_per_episode": 1600,
+  "partition_size": 10000,
+  "rows": [
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.6976744186046512,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010053,
+      "steps": 183.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.8125,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010125,
+      "steps": 244.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 1.0,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010155,
+      "steps": 244.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.75,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010199,
+      "steps": 224.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.875,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010318,
+      "steps": 222.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.7625,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010420,
+      "steps": 262.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.35,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130010613,
+      "steps": 194.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 1.0,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011014,
+      "steps": 223.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.4375,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011191,
+      "steps": 248.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.1,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011328,
+      "steps": 214.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.9390243902439024,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011390,
+      "steps": 226.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.1875,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011443,
+      "steps": 237.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.8936170212765957,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011512,
+      "steps": 227.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.6625,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011629,
+      "steps": 255.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.6914893617021277,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011631,
+      "steps": 258.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.475,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130011801,
+      "steps": 252.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.4878048780487805,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130012263,
+      "steps": 271.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.5,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130012414,
+      "steps": 226.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.3875,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130012525,
+      "steps": 233.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.325,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130012938,
+      "steps": 229.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.8875,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130012981,
+      "steps": 214.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.4,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130013292,
+      "steps": 195.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.65,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130013350,
+      "steps": 257.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.9425287356321839,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130013410,
+      "steps": 207.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    },
+    {
+      "category": "boss_win",
+      "dead_end_reasons": {},
+      "final_floor": 17.0,
+      "final_floor_histogram": {
+        "17": 1
+      },
+      "final_hp_fraction": 0.675,
+      "generated_act": 2,
+      "illegal_actions": 0,
+      "seed": 130013451,
+      "steps": 187.0,
+      "truncations": 0,
+      "unclassified_dead_ends": 0,
+      "wins": 1
+    }
+  ],
+  "scope": "simulator_act1",
+  "seed_source": "explicit --seeds list (25 seeds)",
+  "seeds_outside_the_declared_partition": [],
+  "split": "promotion",
+  "stage": "act1",
+  "start_offset": 0
+}

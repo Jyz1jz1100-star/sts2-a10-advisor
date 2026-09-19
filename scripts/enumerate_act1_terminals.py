@@ -65,6 +65,14 @@ def main() -> int:
     parser.add_argument("--max-steps", type=int, default=None,
                         help="override the stage's episode cap; default keeps campaign "
                              "semantics so truncations mean the same thing they do in metrics")
+    # Replaying a named list instead of a partition slice. The campaign's "N wins" rows were
+    # enumerated by this script, so the honest re-check of "they still win" is this same code path over
+    # exactly those seeds -- which until now needed a hand-assembled loop, i.e. the thing that cannot
+    # be re-run is the sentence, not the number.
+    parser.add_argument("--seeds", default=None,
+                        help="comma list of seeds to roll instead of a partition slice")
+    parser.add_argument("--expect-checkpoint-sha256", default=None,
+                        help="refuse to roll unless the checkpoint bytes hash to this digest")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -86,7 +94,17 @@ def main() -> int:
     seeds = config.partition(stage.name, args.split).seeds()
     if not seeds:
         raise SystemExit(f"stage {stage.name} has no '{args.split}' seeds")
-    window = seeds[args.start_offset:args.start_offset + args.limit]
+    if args.seeds:
+        window = [int(token) for token in args.seeds.split(",") if token.strip()]
+        if len(window) != len(set(window)):
+            raise SystemExit("the --seeds list repeats a seed; a win could be counted twice")
+        seed_source = f"explicit --seeds list ({len(window)} seeds)"
+        outside = [seed for seed in window if seed not in set(seeds)]
+    else:
+        window = seeds[args.start_offset:args.start_offset + args.limit]
+        seed_source = f"{stage.name}/{args.split} partition slice " \
+                      f"[{args.start_offset}:{args.start_offset + len(window)}] of {len(seeds)}"
+        outside = []
     if not window:
         raise SystemExit(
             f"--start-offset {args.start_offset} is past the end of the "
@@ -94,6 +112,12 @@ def main() -> int:
         )
 
     checkpoint = args.checkpoint.resolve()
+    checkpoint_digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    if args.expect_checkpoint_sha256 and checkpoint_digest != args.expect_checkpoint_sha256:
+        raise SystemExit(
+            f"refusing to roll: {checkpoint} hashes to {checkpoint_digest[:16]}..., not the "
+            f"{args.expect_checkpoint_sha256[:16]}... the named-seed list was enumerated from"
+        )
     max_steps = args.max_steps or stage.max_episode_steps
     factory = _environment_factory(config, stage, sts2_gym)
     probe = DummyVecEnv([lambda: factory(window[0])])
@@ -153,9 +177,11 @@ def main() -> int:
         "generated_at": datetime.now(UTC).isoformat(),
         "scope": "simulator_act1",
         "checkpoint": str(checkpoint),
-        "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+        "checkpoint_sha256": checkpoint_digest,
         "stage": stage.name,
         "split": args.split,
+        "seed_source": seed_source,
+        "seeds_outside_the_declared_partition": outside,
         "max_steps_per_episode": max_steps,
         "partition_size": len(seeds),
         "enumerated": len(window),

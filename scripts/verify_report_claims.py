@@ -596,6 +596,13 @@ def claim_terminal_floor_qualification():
                         .read_text(encoding="utf-8"))["rows"]
     act2 = json.loads((ROOT / "docs/evidence/act2_terminal_check_20260919.json")
                       .read_text(encoding="utf-8"))
+    arrivals = json.loads((ROOT / "docs/evidence/act1_arrivals_by_act_20260919.json")
+                          .read_text(encoding="utf-8"))
+    replay = json.loads((ROOT / "docs/evidence/act2_named_wins_individual_replay_20260920.json")
+                        .read_text(encoding="utf-8"))
+    listed_act2_wins = [int(seed) for seed in
+                        arrivals["arrivals_by_generated_act"]["act2_underdocks"]["winning_seeds"]]
+    replayed = replay["rows"]
     recorded = [seed for row in ledger for seed in row["per_seed"]]
     return {
         "act1_named_wins": len(recorded),
@@ -606,6 +613,26 @@ def claim_terminal_floor_qualification():
         "act2_wins_all_terminal": (act2["n"] == 6 and act2["all_complete"]
                                    and act2["all_won"] and act2["all_at_floor_17"]
                                    and act2["all_terminated_not_truncated"]),
+        # The 09-19 sentence was "25 act-2 wins, of which six were re-run". Six was the honest count of
+        # what had been replayed by an ad-hoc loop, so nineteen wins rested on the census alone; these
+        # checks cover all 25 through the committed driver, on the weights the census enumerated them
+        # from, and they are what lets the summary table say 25/25 instead of 6/25.
+        "every_listed_act2_win_replays_as_a_terminal_boss_win": (
+            replay["enumerated"] == len(listed_act2_wins) == 25
+            and [int(row["seed"]) for row in replayed] == listed_act2_wins
+            and all(row["category"] == "boss_win" and int(row["wins"]) == 1
+                    and float(row["final_floor"]) == 17.0 and int(row["generated_act"]) == 2
+                    and int(row["illegal_actions"]) == 0
+                    and int(row["unclassified_dead_ends"]) == 0
+                    and int(row["truncations"]) == 0 for row in replayed)),
+        "the_replay_covers_the_six_checked_the_day_before": (
+            {int(row["seed"]) for row in act2["rows"]}
+            <= {int(row["seed"]) for row in replayed}),
+        "the_replay_runs_on_the_weights_the_wins_were_enumerated_from": (
+            replay["checkpoint_sha256"] == arrivals["checkpoint_sha256"] == act2["checkpoint_sha256"]),
+        "no_replayed_seed_lies_outside_the_declared_partition": (
+            replay["seeds_outside_the_declared_partition"] == []
+            and replay["split"] == "promotion"),
         "multi_act_clears_anywhere": 0,
     }
 
@@ -2833,7 +2860,7 @@ CLAIMS = {
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
     "terminal_floor_qualification": (claim_terminal_floor_qualification,
-                                     "9 act-1 wins reach their terminal floor; 25 act-2 wins do not"),
+                                     "9 act-1 wins reach their own terminal floor; the 25 act-2 wins are terminal at floor 17 through the boss exit, not at underdocks terminalFloor 33"),
     "chained_frontier": (claim_chained_frontier,
                          "exhaustive two-act sweep: coverage, frontier depth, zero clears"),
     "block_economy": (claim_block_economy,

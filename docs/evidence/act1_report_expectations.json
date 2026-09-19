@@ -165,7 +165,11 @@
     "act1_wins_all_terminal": true,
     "ledger_rows_reproduced": true,
     "act2_wins_all_terminal": true,
-    "multi_act_clears_anywhere": 0
+    "multi_act_clears_anywhere": 0,
+    "every_listed_act2_win_replays_as_a_terminal_boss_win": true,
+    "the_replay_covers_the_six_checked_the_day_before": true,
+    "the_replay_runs_on_the_weights_the_wins_were_enumerated_from": true,
+    "no_replayed_seed_lies_outside_the_declared_partition": true
   },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
