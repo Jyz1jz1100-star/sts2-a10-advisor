@@ -6,7 +6,7 @@
     "real-game A10 acceptance"
   ],
   "evidences": "two-act flow reachable from the V2 harness",
-  "generated_at": "2026-09-19T03:24:11.365747+00:00",
+  "generated_at": "2026-09-19T03:31:19.714284+00:00",
   "results": [
     {
       "action_window": {
@@ -742,6 +742,22 @@
       "final_phase": "combat",
       "final_player_hp": 6,
       "final_player_max_hp": 77,
+      "final_state_info": {
+        "act": 1,
+        "current_node_type": 6,
+        "deck_size": 20,
+        "encounter_id": 83,
+        "event_id": 2,
+        "floor": 17,
+        "gold": 174,
+        "phase": 0,
+        "phase_name": "combat",
+        "player_hp": 6,
+        "player_max_hp": 77,
+        "player_won": false,
+        "relic_count": 8,
+        "relic_reward": 0
+      },
       "illegal_actions": 0,
       "max_act": 1,
       "max_floor": 17,

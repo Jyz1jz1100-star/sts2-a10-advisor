@@ -226,6 +226,10 @@ def main() -> int:
                 if steps >= args.max_steps:
                     truncated = True
                     dead_end = "step_cap"
+            # Native identity fields the combat block deliberately omits (see
+            # v2_observation.py:19).  Without these, "something adds Wounds" cannot
+            # be attributed to an encounter at all.
+            final_state_info = dict(env.unwrapped.state_info()) if window else None
             won = bool(terminal and info.get("player_won", False))
             kinds = {}
             missed = 0
@@ -299,6 +303,7 @@ def main() -> int:
                 "run_outcome": info.get("run_outcome"),
                 "run_outcome_source": info.get("run_outcome_source"),
                 "action_window": final_window,
+                "final_state_info": final_state_info,
                 # A run can stop without the policy dying: the retained-trace seed
                 # carries an environment-side truncation signal of its own.  Without
                 # these four fields "reached Act 2 then stopped" reads as a death.
