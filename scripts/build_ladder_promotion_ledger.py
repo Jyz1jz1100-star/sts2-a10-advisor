@@ -59,12 +59,18 @@ def decide(record: dict, stage) -> dict:
     """
     fields = {field.name for field in dataclasses.fields(EvaluationMetrics)}
     missing = fields - set(record)
-    metrics = EvaluationMetrics(**{key: value for key, value in record.items() if key in fields})
+    metrics = EvaluationMetrics.from_payload(record)
     decision = decide_promotion(metrics, _promotion_config(stage))
+    assert metrics.absent_metrics == frozenset(missing - {"absent_metrics"}), (
+        f"{record.get('checkpoint')}：the gate and this ledger disagree about which "
+        "keys the record omitted, so the defaults either of them trusted are unknown"
+    )
     return {"promoted": bool(decision.promoted),
             "reasons": list(decision.reasons),
             "observed": decision.observed,
             "required": decision.required,
+            "unrecorded_clauses_the_gate_refused": [
+                reason for reason in decision.reasons if "was not recorded" in reason],
             "fields_absent_from_the_record": sorted(missing)}
 
 
@@ -81,10 +87,20 @@ def main() -> int:
         run_dirs = sorted((ROOT / "runs").glob(f"curriculum_v2*/**/{stage.name}"))
         if not run_dirs:
             rows.append({"stage": stage.name, "run_present": False, "run_dirs": [],
-                         "promotion_evaluations": [], "checkpoint_probes": 0,
-                         "checkpoints": []})
+                         "promotion_evaluations": [], "live_decision": None,
+                         "checkpoint_probes": 0, "checkpoints": []})
             continue
         for run_dir in run_dirs:
+            # Three different populations live under runs/curriculum_v2*: the campaign's ladder,
+            # a run the operator stopped and named ``aborted-...``, and the smoke ladders whose
+            # config asks for 30 episodes at a boundary rate of 0.0.  A smoke promotion is not a
+            # rung of the campaign's ladder, and an aborted run must not decide whether floor6
+            # promoted, so each row is labelled by which of the three it came from.
+            parts = run_dir.relative_to(ROOT).parts
+            lowered = " ".join(part.lower() for part in parts)
+            run_kind = ("aborted" if "abort" in lowered
+                        else "smoke" if "smoke" in lowered
+                        else "campaign")
             metrics = sorted((run_dir / "metrics").glob("*.json"))
             promotions, probes = [], []
             for path in metrics:
@@ -107,9 +123,41 @@ def main() -> int:
                 checkpoints.append({"file": str(zip_path.relative_to(ROOT)),
                                     "sha256": hashlib.sha256(zip_path.read_bytes()).hexdigest(),
                                     "bytes": zip_path.stat().st_size})
+            # The decision the trainer recorded when it ran is a different artifact from the
+            # metrics it ran on, and it carries the thresholds that were in force that day.
+            # Re-judging an old record against today's config answers "would this promote now",
+            # which is not the question "what did the ladder decide then".
+            decision_path = run_dir / "promotion_decision.json"
+            live = None
+            if decision_path.is_file():
+                recorded = json.loads(decision_path.read_text(encoding="utf-8"))
+                then = recorded.get("required") or {}
+                now = {k: v for k, v in dataclasses.asdict(_promotion_config(stage)).items()
+                       if k in {"min_episodes", "min_win_rate", "min_wilson_lower",
+                                "max_truncation_rate", "max_illegal_actions",
+                                "min_boundary_rate", "min_boundary_wilson_lower"}}
+                rejudged = [r["promoted"] for r in promotions
+                            if (r["episodes"] or 0) >= stage.promotion_eval_episodes]
+                live = {
+                    "file": str(decision_path.relative_to(ROOT)),
+                    "promoted_when_it_ran": bool(recorded.get("promoted")),
+                    "reasons_when_it_ran": list(recorded.get("reasons") or []),
+                    "observed_when_it_ran": recorded.get("observed") or {},
+                    "thresholds_in_force_then": then,
+                    "thresholds_that_did_not_exist_then": sorted(set(now) - set(then)),
+                    "thresholds_changed_since": {
+                        key: {"then": value, "now": now.get(key)}
+                        for key, value in then.items()
+                        if key in now and now.get(key) != value},
+                    "rejudged_under_todays_config_promotes": any(rejudged) if rejudged else None,
+                    "the_two_verdicts_agree": (
+                        bool(recorded.get("promoted")) == any(rejudged) if rejudged else None),
+                }
             rows.append({"stage": stage.name, "run_present": True,
                          "run_dir": str(run_dir.relative_to(ROOT)),
+                         "run_kind": run_kind,
                          "promotion_evaluations": promotions,
+                         "live_decision": live,
                          "checkpoint_probes": len(probes),
                          "probe_episode_counts": sorted({p["episodes"] for p in probes}),
                          "checkpoints": checkpoints,
@@ -120,23 +168,44 @@ def main() -> int:
                                              "min_episodes": stage.min_episodes,
                                              "promotion_eval_episodes": stage.promotion_eval_episodes}})
 
+    kept = [row for row in rows if row.get("run_kind") == "campaign"]
+    off_ladder = [row for row in rows if row.get("run_kind", "campaign") != "campaign"]
+    off_ladder_records = collections.Counter(
+        row.get("run_kind", "?") for row in off_ladder
+        for _ in row.get("promotion_evaluations", []))
     payload = {
         "aggregates": {
             "configured_stages": [stage.name for stage in stages],
             "stages_with_no_run_at_all": sorted({row["stage"] for row in rows
                                                  if not row["run_present"]}),
-            "stages_with_a_promotion_decision": sorted({row["stage"] for row in rows
+            "stages_with_a_promotion_decision": sorted({row["stage"] for row in kept
                                                         if row.get("promotion_evaluations")}),
             "promotion_evaluations_total": sum(len(row.get("promotion_evaluations", []))
-                                               for row in rows),
+                                               for row in kept),
             "promotion_evaluations_promoting_total": sum(
-                1 for row in rows for record in row.get("promotion_evaluations", [])
+                1 for row in kept for record in row.get("promotion_evaluations", [])
                 if record["promoted"]),
             "gate_failure_reasons": dict(collections.Counter(
-                reason.split(" ", 1)[0] for row in rows
+                reason.split(" ", 1)[0] for row in kept
                 for record in row.get("promotion_evaluations", [])
                 for reason in record["reasons"])),
+            "promotion_evaluations_excluded_by_run_kind": dict(sorted(off_ladder_records.items())),
             "checkpoints_recorded": sum(len(row.get("checkpoints", [])) for row in rows),
+            "live_decisions_recorded_by_the_trainers": sum(
+                1 for row in kept if row.get("live_decision")),
+            "stages_where_the_live_verdict_was_promoted": sorted(
+                {row["stage"] for row in kept
+                 if (row.get("live_decision") or {}).get("promoted_when_it_ran")}),
+            "stages_where_todays_rejudgement_disagrees_with_the_live_verdict": sorted(
+                {row["stage"] for row in kept
+                 if (row.get("live_decision") or {}).get("the_two_verdicts_agree") is False}),
+            "thresholds_that_changed_under_the_ladder": {
+                key: {row["stage"]: row["live_decision"]["thresholds_changed_since"][key]
+                      for row in kept if key in (row.get("live_decision") or {}).get(
+                          "thresholds_changed_since", {})}
+                for key in sorted({key for row in kept for key in
+                                   (row.get("live_decision") or {}).get(
+                                       "thresholds_changed_since", {})})},
         },
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "not_established": [
@@ -144,10 +213,15 @@ def main() -> int:
             "runs/ is gitignored, so only this ledger's contents travel",
             "the parent of each act-1 arm, which is a separate question handled by "
             "ladder_lineage_20260919.json; a rung can be evaluated and still not be the parent",
+            "that a live verdict and today's re-judgement of the same record are the same fact -- "
+            "they answer 'what did the ladder decide then' and 'would this promote now', and the "
+            "thresholds moved between the two",
             "anything about the shipped game; thresholds come from this repository's own config"],
         "rows": rows,
-        "scope": ("every runs/curriculum_v2*/**/<configured stage> directory, judged against "
-                  "config/training_v2.toml as it reads now"),
+        "scope": ("every runs/curriculum_v2*/**/<configured stage> directory, judged twice: once by "
+                  "the promotion_decision.json the trainer wrote at the time, and once by "
+                  "config/training_v2.toml as it reads now; a directory whose own name says it "
+                  "was aborted is listed and its records counted separately, never in the totals"),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", "utf-8")
@@ -157,7 +231,24 @@ def main() -> int:
           "| with a promotion decision:", agg["stages_with_a_promotion_decision"])
     print(f"promotion evaluations: {agg['promotion_evaluations_total']}, promoting: "
           f"{agg['promotion_evaluations_promoting_total']}, "
+          f"excluded by run kind: "
+          f"{agg['promotion_evaluations_excluded_by_run_kind']}, "
           f"reasons: {agg['gate_failure_reasons']}")
+    print("live decisions recorded:", agg["live_decisions_recorded_by_the_trainers"],
+          "| promoted when they ran:", agg["stages_where_the_live_verdict_was_promoted"],
+          "| today's re-judgement disagrees:",
+          agg["stages_where_todays_rejudgement_disagrees_with_the_live_verdict"])
+    print("thresholds that moved:", json.dumps(
+        agg["thresholds_that_changed_under_the_ladder"], ensure_ascii=False))
+    for row in rows:
+        live = row.get("live_decision")
+        if live:
+            print(f"  {row['stage']:8} LIVE [{row.get('run_kind','?'):10}] "
+                  f"{Path(live['file']).parents[1].name:34} "
+                  f"promoted_when_it_ran={live['promoted_when_it_ran']} "
+                  f"boundary={live['observed_when_it_ran'].get('boundary_rate')} "
+                  f"(required {live['thresholds_in_force_then'].get('min_boundary_rate')}) "
+                  f"rejudged_now={live['rejudged_under_todays_config_promotes']}")
     for row in rows:
         for record in row.get("promotion_evaluations", []):
             print(f"  {row['stage']:8} {Path(record['file']).name[:38]:40} "

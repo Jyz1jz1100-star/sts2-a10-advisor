@@ -109,9 +109,26 @@ class EvaluationMetrics:
     #: be re-checked episode by episode; this list can, and "reproduce one reviewable
     #: win" is the thing the acceptance chain actually asks for.
     winning_seeds: list[int] = field(default_factory=list)
+    #: Names this object's source payload did not carry, so their value here is the
+    #: dataclass default rather than a measurement.  Populated by :meth:`from_payload`
+    #: and deliberately absent from ``to_dict``: which keys a file omits describes that
+    #: file, not the evaluation, so it cannot be round-tripped through the schema.
+    absent_metrics: frozenset[str] = frozenset()
+
+    @classmethod
+    def from_payload(cls, payload: dict) -> EvaluationMetrics:
+        """Build from an on-disk metrics dict, recording which keys it omitted."""
+        known = {key: value for key, value in payload.items()
+                 if key in cls.__dataclass_fields__}
+        absent = frozenset(
+            set(cls.__dataclass_fields__) - set(known) - {"absent_metrics"}
+        )
+        return cls(**known, absent_metrics=absent)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        payload = asdict(self)
+        payload.pop("absent_metrics")
+        return payload
 
 
 def summarize_episodes(

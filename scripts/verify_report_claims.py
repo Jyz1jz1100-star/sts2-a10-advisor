@@ -1373,7 +1373,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_nineteen_rows": len(rows) == 19,
+        "ledger_has_twenty_rows": len(rows) == 20,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1626,6 +1626,11 @@ def claim_ladder_promotion_ledger():
     missing rung and a rejected rung can no longer be reported as the same thing. ``digests_re-
     hashed_here`` is a count on purpose: checkpoints live under gitignored ``runs/``, so on another
     machine it reads 0 and surfaces as drift instead of passing vacuously.
+
+    Two verdicts per rung, deliberately apart. The ``promotion_decision.json`` the trainer wrote says
+    what the ladder decided that day, under the thresholds in force that day; re-judging the metrics
+    says what today's config would say about the same sample. floor6 disagrees between the two, which
+    is a fact about the thresholds moving, not about the policy.
     """
     payload = json.loads((ROOT / "docs/evidence/ladder_promotion_ledger_20260919.json")
                          .read_text(encoding="utf-8"))
@@ -1633,7 +1638,9 @@ def claim_ladder_promotion_ledger():
     by_stage: dict[str, list] = {}
     digests_checked = 0
     for row in payload["rows"]:
-        by_stage.setdefault(row["stage"], []).extend(row.get("promotion_evaluations", []))
+        if row.get("run_kind") == "campaign":
+            # An aborted run and a 30-episode smoke ladder are not rungs of this ladder.
+            by_stage.setdefault(row["stage"], []).extend(row.get("promotion_evaluations", []))
         for checkpoint in row.get("checkpoints", []):
             path = ROOT / checkpoint["file"]
             if path.is_file():
@@ -1641,25 +1648,95 @@ def claim_ladder_promotion_ledger():
                     __import__("hashlib").sha256(path.read_bytes()).hexdigest()
                     == checkpoint["sha256"])
     floor6, floor3, floor10 = by_stage.get("floor6", []), by_stage.get("floor3", []), by_stage.get("floor10", [])
+    live = {row["stage"]: row["live_decision"] for row in payload["rows"]
+            if row.get("run_kind") == "campaign" and row.get("live_decision")}
     return {
         "recomputation_used_the_repos_own_gate": all(
             "reasons" in record and "observed" in record for row in payload["rows"]
             for record in row.get("promotion_evaluations", [])),
-        "eight_evaluations_two_promotions": (
-            agg["promotion_evaluations_total"] == 8
-            and agg["promotion_evaluations_promoting_total"] == 2),
-        "floor3_promoted_and_floor6_never": (
+        "five_campaign_evaluations_two_promotions": (
+            agg["promotion_evaluations_total"] == 5
+            and agg["promotion_evaluations_promoting_total"] == 2
+            and agg["promotion_evaluations_excluded_by_run_kind"] == {"aborted": 3}),
+        "floor3_promoted_and_floor6_never_rejudged": (
             len(floor3) == 2 and all(record["promoted"] for record in floor3)
-            and len(floor6) == 5 and not any(record["promoted"] for record in floor6)),
+            and len(floor6) == 2 and not any(record["promoted"] for record in floor6)),
+        "floor6_promoted_when_it_ran_under_a_lower_bar": (
+            live["floor6"]["promoted_when_it_ran"] is True
+            and live["floor6"]["thresholds_in_force_then"]["min_boundary_rate"] == 0.8
+            and live["floor6"]["observed_when_it_ran"]["boundary_rate"] == 0.86
+            and live["floor6"]["the_two_verdicts_agree"] is False),
+        "no_gate_clause_was_scored_on_an_unrecorded_field": all(
+            "was not recorded" in reason
+            for row in payload["rows"]
+            for record in row.get("promotion_evaluations", [])
+            for reason in record["reasons"]
+            if reason.split(" ", 1)[0] in record["fields_absent_from_the_record"]),
+        "floor3s_live_verdict_still_reproduces": (
+            live["floor3"]["promoted_when_it_ran"] is True
+            and live["floor3"]["the_two_verdicts_agree"] is True),
         "floor6_final_two_missed_only_on_boundary_rate": all(
             record["observed"].get("defect_truncation_rate") == 0.0
-            and any(reason.startswith("boundary") for reason in record["reasons"])
+            and any(reason.startswith("boundary_rate") for reason in record["reasons"])
             for record in floor6[-2:]),
         "floor10_was_evaluated_once_and_rejected": (
             len(floor10) == 1 and floor10[0]["promoted"] is False
             and any("boundary_rate" in reason for reason in floor10[0]["reasons"])),
         "floor13_has_no_run_at_all": "floor13" in agg["stages_with_no_run_at_all"],
         "digests_rehashed_here": digests_checked,
+    }
+
+
+def claim_promotion_gate_refuses_unrecorded_inputs():
+    """A gate clause whose input was never measured must be refused, not scored on a default.
+
+    Every promotion record the campaign wrote predates ``boundary_wilson_95_low``, so rehydrating one
+    and comparing the field against the stage's threshold turns an absent key into a rejection that
+    reads as a measurement -- ``boundary_wilson_95_low 0.0000 < required 0.9000`` appeared in five
+    reasons for a number nobody ever computed.  The mirror case is worse: an absent
+    ``defect_truncation_rate`` defaults to 0.0, which is a *pass* against the truncation cap.  These
+    checks run the gate, rather than reading its source, because the property is about behaviour.
+    """
+    from training.config import PromotionConfig
+    from training.metrics import EvaluationMetrics
+    from training.promotion import DEFAULTED_GATE_INPUTS, decide_promotion
+
+    ledger = json.loads((ROOT / "docs/evidence/ladder_promotion_ledger_20260919.json")
+                        .read_text(encoding="utf-8"))
+    failing = next(json.loads((ROOT / entry["file"]).read_text(encoding="utf-8"))
+                   for row in ledger["rows"] for entry in row.get("promotion_evaluations", [])
+                   if entry["observed"].get("defect_truncation_rate", 0) > 0.2)
+    gate = PromotionConfig(min_episodes=500, min_win_rate=0.0, min_wilson_lower=0.0,
+                           max_truncation_rate=0.03, max_illegal_actions=0)
+    without_cap = {key: value for key, value in failing.items()
+                   if key != "defect_truncation_rate"}
+    refused = decide_promotion(EvaluationMetrics.from_payload(without_cap), gate)
+    scored = decide_promotion(EvaluationMetrics.from_payload(dict(failing)), gate)
+    untouched = {key: value for key, value in failing.items() if key != "rejection_events"}
+    inert = decide_promotion(EvaluationMetrics.from_payload(untouched), gate)
+    rehydrated = EvaluationMetrics.from_payload(dict(failing))
+    reread = EvaluationMetrics.from_payload(rehydrated.to_dict())
+    return {
+        "the_gate_names_the_four_clauses_at_risk": sorted(
+            name for name, _ in DEFAULTED_GATE_INPUTS) == [
+            "boundary_rate", "boundary_wilson_95_low", "defect_truncation_rate",
+            "unclassified_dead_ends"],
+        "a_real_record_is_rejected_on_its_measurement": (
+            not scored.promoted and any(
+                reason.startswith("defect_truncation_rate 0.") and "not recorded" not in reason
+                for reason in scored.reasons)),
+        "deleting_that_measurement_cannot_buy_a_pass": (
+            not refused.promoted and any(
+                "defect_truncation_rate" in reason and "was not recorded" in reason
+                for reason in refused.reasons)),
+        "the_default_is_never_printed_as_a_number": not any(
+            "defect_truncation_rate 0.0000 > allowed" in reason
+            for reason in refused.reasons),
+        "dropping_a_field_the_gate_never_reads_changes_nothing": (
+            inert.reasons == scored.reasons and inert.promoted == scored.promoted),
+        "what_the_evaluator_writes_today_has_nothing_absent": (
+            reread.absent_metrics == frozenset()
+            and "absent_metrics" not in rehydrated.to_dict()),
     }
 
 
@@ -1953,6 +2030,9 @@ CLAIMS = {
                                      "the run-start relic pick, offered rarely and positionally"),
     "ladder_promotion_ledger": (claim_ladder_promotion_ledger,
                                 "each rung's real gate decision, re-derived"),
+    "promotion_gate_refuses_unrecorded_inputs": (
+        claim_promotion_gate_refuses_unrecorded_inputs,
+        "a gate clause is refused when its input was never measured, not scored on a default"),
     "upgrade_step_attribution": (claim_upgrade_step_attribution,
                                  "every upgraded card, attributed to the step that made it"),
     "upgrade_source_accounting": (claim_upgrade_source_accounting,

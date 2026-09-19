@@ -321,12 +321,7 @@ def _metrics_from_payload(payload: dict[str, Any]):
 
     from .metrics import EvaluationMetrics
 
-    fields = {
-        key: value
-        for key, value in payload.items()
-        if key in EvaluationMetrics.__dataclass_fields__
-    }
-    return EvaluationMetrics(**fields)
+    return EvaluationMetrics.from_payload(payload)
 
 
 def _train_stage(

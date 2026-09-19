@@ -14,7 +14,7 @@
 | 采样评估能救 boss 僵持吗？ | **不能**：8 次采样全部第 4–8 层阵亡，连 boss 都到不了；僵持是 59930 个不重复状态的僵局，不是循环 | `chained_frontier_full_20260919.json`、"僵持的机制"一节 |
 | "'0 非法动作'这句话有多强？" | **比字面弱，且是半结构性的（但已定位到阶段：拒绝全部在 shop 641/2,866=22.4% 与 event 112/4,305=2.6%；combat 130,993 个决策、relic_reward 17,698、card_reward 5,459 全为 0）**：契约有三条通道，策略侧越界确实是 0，但同一批 39,891 局里引擎拒绝了 **18,160 次掩码内动作**（act1 每局 0.53 次）。默认 `rejection_mode="filter"` 会把被拒动作摘掉后**把决策交回策略重选**，所以"0 非法"里混着"被拦下后改选"——本文所有"策略在某状态选了 X"都指**过滤后实际执行**的那一步。旧 schema 另把 861 局记成 `native_rejection` 结束，与现行 schema 的 0 局并不矛盾 | `contract_channels_20260919.json`、`census_contract_channels.py`、`rejection_phase_attribution_20260919.json`、`census_rejection_phases.py` |
 | 报告里的哈希可信吗 | **可核对，而且整套产物现在被一个根哈希绑住**：38 个证据文件各有 sha256 + 字节数，排序拼接取 sha256 得 `bundle_root`（清单不给自己算哈希）；产物里在 checkpoint 语义键下出现的 **218 个摘要在本机全部对得上真实文件、逐个重算 0 处不符**。另有 379 条历史文件摘要 369 条一致、0 条不符（10 条指向未重写的历史副本绝对路径），9 个胜局台账每行同时记"重算摘要"与"矩阵记录摘要"且逐行相等。**清单本身不是可信来源**：声明 `evidence_bundle_integrity` 独立重算它的每一项，`tests/test_evidence_manifest.py` 证明改一个字节就会让 `bundle_root` 变 | `MANIFEST_2026-09-19.json`、`scripts/build_evidence_manifest.py`、"哈希链证据"一节、台账 |
-| 目标要求的"逐阶段 warm-start 阶梯"做到了吗？ | **只做了一半，而且现在说得清卡在哪一格**：warm-start 是真的且被代码强制（无父即 raise）；配的 5 级里 floor3 **确实晋升过**（两次 500 局晋升评估都被 `decide_promotion` 判为通过），**floor6 五次评估无一通过**——最早三次死在缺陷截断率 0.33~0.45（限 0.03）与 boundary_rate 0.44~0.54（要求 ≥0.93），最后两次截断率已经 0，却以 **0.86 对 0.93** 这一档 boundary 差 7 个点被拒；floor10 有一次 500 局评估且未通过（boundary_rate 0.238 < 0.70，本节先前写"无晋升判定"是错的，见账目第 19 行）；**floor13 盘上无任何目录**。所以 act1 那批臂不是晋升来的，而是配置直接开起来的结果；09-18 那批共 **19 个臂运行两种自证（`plan.json` 的 `warm_start`、逐阶段 `origin.json`）都没有**——17 个 act1 阶段臂 + 2 个 floor3→floor6 阶梯臂（`fanout_attestation_20260919.json` 逐臂数出来的；本节先前写 13，是只数了 `runtime/fanout` 一部分的旧口径），只有启动脚本背书。**09-19 的两个 A/B 臂则两条都有且互相印证、父级摘要可从文件重算**——缺口按窗口收窄，但那条边只是同阶段跨臂，跳级本身没变好 | 文末"目标要求 3 实测"一节、`ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` |
+| 目标要求的"逐阶段 warm-start 阶梯"做到了吗？ | **前两级接上了，后两级没跑**：warm-start 是真的且被代码强制（无父即 raise）；配的 5 级里 floor3 **晋升过**（两次 500 局评估都判通过），floor6 也**晋升过**——训练器当天写下的 `promotion_decision.json` 记着 boundary 0.86 对**当时的门槛 0.80**；**用今天的配置复算同一批记录则不通过**（要求已抬到 0.93，还新增 Wilson 下界 0.90），所以"复现当年阶梯"与"按现配置跑阶梯"是两个实验（本节先前写"floor6 五次评估无一通过"是拿今天的门槛去答昨天的问题，见账目第 20 行；那五次里还有三次属于目录名自称 `aborted-…` 的被中止运行）。floor10 有一次 500 局评估且未通过（boundary_rate 0.238 < 0.70，本节先前写"无晋升判定"是错的，见账目第 19 行）；**floor13 盘上无任何目录**。所以 act1 那批臂跨了 floor10/floor13 两级；09-18 那批共 **19 个臂运行两种自证（`plan.json` 的 `warm_start`、逐阶段 `origin.json`）都没有**——17 个 act1 阶段臂 + 2 个 floor3→floor6 阶梯臂（`fanout_attestation_20260919.json` 逐臂数出来的；本节先前写 13，是只数了 `runtime/fanout` 一部分的旧口径），只有启动脚本背书。**09-19 的两个 A/B 臂则两条都有且互相印证、父级摘要可从文件重算**——缺口按窗口收窄，但那条边只是同阶段跨臂，跳级本身没变好 | 文末"目标要求 3 实测"一节、`ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` |
 | 瓶颈到底在哪一层？ | **普查给到了逐种子、逐幕的精度**：3,500 个非脚本种子里 4.63% 走到 boss；**到达率两幕几乎相同（83 对 79），差别全在 boss 战**——Act 2 boss 斩杀率 **31.6% [22.5,42.6]**，Act 1 boss **83 次到达 0 胜 [0,4.4%]**。所以对第一幕而言墙就是 boss 战本身，不是"走不到"。
    （**这两个数是头部 3,500 种子的**；分区扫到 10,000 后：Act 1 到达 248 局、胜 3 局 = **1.2% [0.4,3.5]**，
    Act 2 到达 241 局、打死 boss 86 局 = 35.7%，其中被判赢 65 局 = **27.0% [21.8,32.9]**。
@@ -58,10 +58,11 @@
 | "遗物那条路对本批次的贡献是 0"（引擎清单第 6 条的补测里我这样写的） | `measure_opening_choice.py` 发现这两件遗物确实被拿到了 304 次——**只是发放点在开局那一屏（`ancient`），而我只看了 `relic_reward` 屏** | 正确的范围是"遗物不会在 `relic_reward` 屏上带来升级"；升级型遗物经由开局三选一发放，共 463 张。**教训：一个否定结论的适用范围等于你 instrument 的适用范围**，说"这条路贡献 0"之前要先说清是哪一屏 |
 | "floor10 无晋升判定，实际是 floor6→act1 跳级"（warm-start 阶梯那两行的说法） | `build_ladder_promotion_ledger.py` 把盘上的 500 局评估记录交给仓库自己的 `decide_promotion` 复核：floor10 **有**一次晋升评估并且是**未通过**（boundary_rate 0.238 < 0.70）；真正的卡点在 floor6——五次评估全否，最后两次只差 boundary_rate 0.86 对 0.93 | 阶梯断裂点从"floor6 直接跳到 act1"改成"floor3 晋升成功、floor6 起没有任何一次晋升通过"。**教训：说某一格没有判定之前先列一遍该格的 metrics 目录**；同一趟里我还先用错了字段（拿 `truncation_rate` 比 3% 门槛，于是 8/8 全"失败"，而门槛实际读的是 `defect_truncation_rate`，见 `training/promotion.py:39-48`）——两处都是把"我没找对地方"写成了"它不存在" |
 | "卡牌质量测不了——`state_info()` 只给 `deck_size`/`relic_count` 这种数量"（"两幕的到达局可比吗"一节初稿写的第①条限制） | 顺着奖励领取路径读编码才发现卡表是**带符号**的：`CombatFactory.cs:243` 用 `new CardInstance(Math.Abs(id), id < 0)` 建卡，而 `_core.state_lists()["deck"]` 原样返回这些带符号 id（`RunRewardGenerator.cs:800` 的 `RewardUpgraded` 也在同一批列表里） | 质量已经用两项代理测出来了（升级 0.63 对 0.70、不同卡名 11.15 对 10.61），**真正没测的只是"接卡牌数值表算强度"**。教训：**断言"这台仪器看不到 X"之前先去看 X 是怎么编码的**——我这次把某一个访问器的字段表当成了整个观测面的边界，而绕开它的那条路一直在同一份代码里 |
+| "floor6 从未晋升，所以 act1 的臂是从没过门槛的 rung 起跑的"（本文第 19 行刚写下的结论，也进了执行表和目标条款对账） | 同一个 ledger 补读训练器当天写的 `promotion_decision.json`：floor6 **晋升过**，观察 boundary_rate 0.86 对**当时**的门槛 `min_boundary_rate = 0.8`；今天的 0.93 + 新增 `min_boundary_wilson_lower = 0.90` 是**跑完之后抬上去的**。另外那"五次评估"里有三次属于目录名自称 `aborted-…` 的被中止运行，且 `curriculum_v2*` 通配把 30 局的冒烟阶梯也扫了进来（分开标注后 campaign 只有 5 次评估、2 次晋升） | 阶梯按**当天的门槛**是 floor3✅→floor6✅→（floor10 起再无晋升、floor13 无目录）→act1 跨两级；"用今天的门槛复算"是另一个问题的答案。**教训：复算历史判定要连同当时的阈值一起复算**——`decide_promotion` 只看配置，配置会漂，而 `promotion_decision.json` 里的 `required` 才是那天真正生效的那一份。同一趟还查出旧记录缺 `boundary_wilson_95_low` 会被读成实测 0.0000（5 次假拒绝），反向缺 `defect_truncation_rate` 则是一次白送的通过，门控已改成"字段没记就拒绝评分"（`promotion_gate_refuses_unrecorded_inputs`） |
 
 一个共同点值得记住：前六条都是**从聚合数或桶结构推断**出来的，第七条是
 **没跑过负责判定的代码**就下了结论，第九条是**读源码只读了一条出口**——一个判断
-写在两个函数里时，只读其中一个就能得出"两幕一样"这种错结论。这 19 条里没有任何一条
+写在两个函数里时，只读其中一个就能得出"两幕一样"这种错结论。这 20 条里没有任何一条
 是靠"再想清楚一点"翻正的，全部是多测了一层。第八条特别值得留意：它是**在纠正一个
 错标签时把另一个对的标签一起撤了**，也就是说撤回本身也要证据。第十条则是另一种：
 结论没错，**窗口太小**——同一句"只有 1 例"在 3,500 个种子上是真的，在 10,000 个种子上
@@ -1299,7 +1300,7 @@ digest mismatches: 0
 **两幕到场资源是否可比**（七个资源的差与区间从逐种子行重算，并要求到达/判赢数复现已提交普查的 162/83/79/25）。
 **升级逐卡归到发生的那一步**（开局新增 + 各通道增量 − 删卡必须等于终局总数，余量必须为 0，并与营地普查的 29 逐位对齐））、
 **升级来源逐路归账**（三台仪器对同一平均数 0.326 必须相等，事件/营地两笔贡献从逐次到访行重算，营地那 1,883 次机会的合法性与 29 次取用也从行重算，余量 599 写成一个数而不是含糊过去）。
-当前 **46/46 计分声明与盘上一致**（退出码 0）；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验：`harness_self_description` 这条就是从正文里把这个数字抠出来、和注册表实际大小对账。）期望值是**照本文正文手抄**的，
+当前 **47/47 计分声明与盘上一致**（退出码 0）；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验：`harness_self_description` 这条就是从正文里把这个数字抠出来、和注册表实际大小对账。）期望值是**照本文正文手抄**的，
 不是从脚本输出复制的，所以盘上一变就会报 DRIFT 而不是悄悄把期望改成实测。
 
 **跑这个脚本要用对解释器。** 本晚踩到的是同一句话的反方向：用项目的"契约解释器"
@@ -1362,6 +1363,38 @@ digest mismatches: 0
 而不是目标里说的那条五级阶梯。这和"Act 1 平均深度停在 ~8 层"
 （floor6 边界 0.86、平均层 5.852）是自洽的：中间那两级门槛本来要解决的正是
 9–13 层的推进，它们没跑完，深度就卡在那儿。
+
+**这两份判定要分开读，因为门槛在跑完之后被抬高过。** 本晚补的
+`build_ladder_promotion_ledger.py` 一开始只读 metrics 记录、拿**今天**的
+`config/training_v2.toml` 去复算，于是把 floor6 报成"五次评估全否"，我照着写了
+一行撤回记录（第 19 行）。那是把"今天会不会晋升"当成了"当时晋升没晋升"。
+把训练器当天写下的 `promotion_decision.json` 读进来之后：
+
+| 格 | 当天判定（自带门槛） | 今天的门槛复算同一份样本 |
+|----|----|----|
+| floor3 | **晋升**：boundary 1.00，要求 0.90 | 仍晋升（两条一致） |
+| floor6 | **晋升**：boundary 0.86，要求 **0.80** | **不晋升**：要求已抬到 0.93，且新增 `min_boundary_wilson_lower = 0.90` |
+| floor10 | 无当天判定文件 | 一次 500 局评估，boundary 0.238 < 0.70 |
+| floor13 | 无目录 | 无目录 |
+
+所以阶梯的真身是：**floor3 与 floor6 都晋升过，warm-start 链条按当天的门槛是完整的；
+floor10 起再无晋升，act1 的臂因此跨了 floor10/floor13 两级**。同时要说清楚另一面：
+**用今天的门槛复算，当年让 floor6 过线的那条边界从 0.80 抬到了 0.93**，
+所以"复现当年那条阶梯"和"按现在的配置跑一条阶梯"是两个实验，别把前者的绿灯当后者的。
+
+同一趟还查出一个我自己的口径错：**"五次评估"里有三次来自一个目录名自称
+`aborted-pre-filter-floor6-…` 的被中止运行**，另外它把 `curriculum_v2_smoke` 的 30 局
+冒烟阶梯也扫了进来。现在这三类按 `run_kind`（campaign / aborted / smoke）分开，
+汇总只算 campaign：**5 次晋升评估、2 次晋升**，被排除的中止运行 3 条记录单列。
+
+**顺带堵掉一条门控自身的漏洞**（`training/promotion.py`）。这批 2026-09-01 的记录写成时
+还没有 `boundary_wilson_95_low` 这个字段，而 `EvaluationMetrics` 是带默认值的 dataclass：
+把旧记录重水化后去比 0.90 门槛，读到的默认 0.0 会被打印成
+"boundary_wilson_95_low 0.0000 < required 0.9000"——一条**没人测过的数字造成的拒绝理由**，
+8 条记录里出现 5 次。反方向更危险：缺 `defect_truncation_rate` 会读成 0.0，
+对着 `max_truncation_rate` 就是一次**白送的通过**。现在门控先问"这个字段当时记了没有"，
+没记就报"该条无法评分"并且不再拿默认值比大小；`to_dict()` 不落这个簿记字段，
+因为"缺哪个键"描述的是那个文件，不是那次评估。八条格子的最终判定一条没变。
 
 ### 但 warm-start 本身是真的，而且是**结构强制**的，不是叙述
 
@@ -2338,9 +2371,9 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 | **0 非法动作** | **达成，但一半是结构性的** | 策略侧越界在 39,891 局里为 0；同一批局里 rejection_events 18,160。默认 filter 模式使 illegal_actions 不可能非零。753 次拒绝的根因已逐行重放到引擎判据（药水容量 641、事件 112），跨 4 个检查点 2 个阶段复现，且 0 次牵涉本仓库的掩码展开 | `contract_channels_20260919.json`、`rejection_phase_attribution_20260919.json`、`refusal_root_cause_20260919.json`、`refusal_class_generality_20260919.json` | `contract_channels`、`rejection_phase_attribution`、`refusal_root_cause`、`refusal_class_generality` |
 | **无未分类死局** | **达成** | unclassified_dead_ends 在 8,853 个截断上恒为 0；死因词表普查为三项（empty_action_mask 50、step_cap 3、native_rejection 861），跨幕路径上也是 0 | `dead_end_vocabulary_20260919.json`、`chained_terminal_gates_20260919.json` | `dead_end_vocabulary`、`dead_end_reason_census`、`chained_terminal_gates` |
 | 用 **V2 契约栈** | **达成** | OBS_SIZE 1739 / FLAT_SIZE 225 / TARGET_SLOTS 7，全部按代码重算而非引用 | —（由声明直接对代码重算） | `v2_contract_sizes` |
-| **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise），但配置里的 5 级：floor3 两次晋升评估**通过**、floor6 五次评估**全部不通过**（最后两次缺陷截断率已为 0，但 boundary_rate 0.86 < 要求 0.93）、floor10 一次评估不通过（boundary_rate 0.238 < 0.70）、floor13 盘上无目录；所以 act1 的臂不是晋升来的。逐条判定见 `ladder_promotion_ledger_20260919.json`（用仓库自己的 `decide_promotion` 复核，不是手写阈值）。09-18 那批 19 个臂运行缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests` |
+| **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise）。配置里的 5 级，按**当天生效的门槛**判定：floor3 晋升、floor6 晋升（boundary 0.86 对当时要求的 0.80）、floor10 起再无晋升、floor13 盘上无目录——所以 act1 的臂跨了 floor10/floor13 两级，而链条前两级是接上的。**门槛后来被抬过**：拿今天的配置复算同一批记录，floor6 不再通过（要求 0.93，且新增 Wilson 下界 0.90），因此"复现当年那条阶梯"和"按现在的配置跑一条阶梯"是两个实验。口径细节：campaign 的 500 局晋升评估共 5 次、晋升 2 次，另有 3 条属于目录名自称 `aborted-…` 的被中止运行、以及 30 局的冒烟阶梯，三类按 `run_kind` 分列不混算。逐条判定见 `ladder_promotion_ledger_20260919.json`（训练器当天写的 `promotion_decision.json` 与仓库自己的 `decide_promotion` 并列，不是手写阈值；缺字段的门槛条款现在拒绝评分而不是拿默认值比大小）。09-18 那批 19 个臂运行缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests`、`ladder_promotion_ledger`、`promotion_gate_refuses_unrecorded_inputs` |
 | 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | 落盘不靠回忆计数，且**已提交成索引**（`fanout_attestation_20260919.json`）：21 个带 plan.json 的臂运行（19 个 act1 阶段 + 2 个 floor3→floor6 阶梯臂），活动窗口从 2026-09-18T17:35Z 到 2026-09-19T01:24Z（约 7.8 小时，跨夜），190 对可能重叠里有 110 对窗口气重叠⇒并发；它们产出的 118 份指标文件**全部**出现在已提交的指标索引里。两条限定：并发是从文件 mtime 窗口推的（plan.json 不记时间戳），且 21 个 plan 里只有 2 个带 `warm_start` 块——其余早于该字段，其父级仍只有启动脚本文本可查。吞吐另测：单臂约 370-885 fps 视阶段而定、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
 | 产出**含哈希链证据**的评估报告 | **达成** | 38 个证据文件由 bundle_root 绑定；218 个被引用的检查点摘要在本机全部对上真实文件并重算相符（这个数字从 14 涨到 218，是因为指标索引把每个指标文件引用的检查点摘要也带进了清单）；声明逐条与盘核对。282 份指标原件在 gitignore 里，故已提交一份逐文件哈希+字段的索引，使门面数字在任何机器上都能重算（`metrics_index_reviewability` 不读任何被 ignore 的文件）。清单与索引都不是可信来源——它们自己也被独立重算 | `MANIFEST_2026-09-19.json` | `evidence_bundle_integrity`、`engine_findings_checklist` |
-| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 5 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂、战斗卡奖永不 roll 升级），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 19 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json`、`reward_upgrade_availability_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
+| **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 5 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂、战斗卡奖永不 roll 升级），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 20 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json`、`reward_upgrade_availability_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
 
 **审计结论（不美化）**：九项里七项达成或达成但带明确限定；第一项（Act 1-3 全流程胜利）**没达成，也不是「再努力一点」的问题**——模拟器没有第三幕，跨幕只有一条演示种子门控的分支，84 个检查点穷举后 0 次走完两幕。因此本目标不能标记为完成；剩下的路不在这台模拟器里，而在真机三幕那条当前被模组清单门卡住的路上。

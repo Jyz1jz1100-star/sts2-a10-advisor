@@ -1610,3 +1610,47 @@ Two mistakes were made and fixed on the way here, both recorded in the campaign'
 the gate instead of `defect_truncation_rate` -- the field `training/promotion.py:39-48` actually
 reads -- which reported a clean 8/8 failure that was entirely the tool's own error. The number to
 look at first if the freeze is ever lifted is floor6's 0.86-versus-0.93 boundary rate, not truncation.
+## 2026-09-19 (later still) -- the previous section's ladder verdict was answering the wrong question
+
+**Supersedes the last three paragraphs of "what the ladder's own gate records say, rung by rung"
+below it.** That section reported eight promotion evaluations and said floor6 never promoted. Both
+were re-computations of the metrics under `config/training_v2.toml` **as it reads today**, and the
+campaign's own decisions say something else: `promotion_decision.json` -- the artifact the trainer
+writes when it promotes, which carries the thresholds that were in force that day -- exists for
+exactly two campaign rungs, and both say `promoted: true`:
+
+| rung | decided then | required then | observed | re-judged under today's config |
+|------|----|----|----|----|
+| floor3 | promoted | `min_boundary_rate` 0.90 | boundary 1.00 | still promotes (agree) |
+| floor6 | **promoted** | `min_boundary_rate` **0.80** | boundary 0.86 | **rejects**: 0.93 now, plus a new `min_boundary_wilson_lower` 0.90 |
+| floor10 | no decision file | -- | boundary 0.238 | rejects at 0.70 |
+| floor13 | no directory | -- | -- | -- |
+
+So the warm-start chain was intact for its first two rungs and the campaign skipped floor10/floor13;
+the ladder's break is not at floor6. What floor6 does show is **threshold drift**: the bar that let it
+promote has since been raised by 13 points and gained a Wilson-bound clause, so "reproduce that
+ladder" and "run a ladder under today's config" are two different experiments. The ledger now reports
+both verdicts per rung side by side (`live_decision`, `the_two_verdicts_agree`,
+`thresholds_that_changed_under_the_ladder`).
+
+Two population errors in the same artifact, both mine, both found while writing this:
+`curriculum_v2*` matched the 30-episode smoke ladders, and three of the "five floor6 evaluations"
+came from `runs/curriculum_v2/aborted-pre-filter-floor6-095635Z` -- a run the operator stopped and
+named. Rows now carry `run_kind` (campaign / aborted / smoke) and the totals count campaign only:
+**five promotion evaluations, two promotions**, with the aborted run's three records listed and
+excluded.
+
+**And a gate defect worth more than the ladder finding.** Every promotion record the campaign wrote
+predates `boundary_wilson_95_low`, and `EvaluationMetrics` is a dataclass with defaults, so
+rehydrating an old record and comparing that field to the stage's threshold produced
+`boundary_wilson_95_low 0.0000 < required 0.9000` -- a rejection quoting a number nobody ever
+computed, five times over. The mirror case is the dangerous one: an absent `defect_truncation_rate`
+reads as 0.0, which is a free pass against the 3% truncation cap. `training/promotion.py` now
+refuses any clause whose input was not recorded (reason: "was not recorded in these metrics, so its
+clause cannot be scored") and skips the numeric comparison for it;
+`EvaluationMetrics.from_payload` records which keys a file omitted, and `to_dict()` deliberately drops
+that bookkeeping because which keys a file omits describes the file, not the evaluation. **All eight
+rung verdicts are unchanged** -- the fix removes fabricated reasons, it never flips a decision, and it
+can only ever add a rejection, never remove one. Tests in
+`tests/test_promotion_gate_absent_inputs.py` (5), claim `promotion_gate_refuses_unrecorded_inputs` (6
+checks), and retraction ledger row 20 in the campaign report.

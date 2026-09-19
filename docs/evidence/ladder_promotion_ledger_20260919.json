@@ -16,19 +16,38 @@
       "floor3",
       "floor6"
     ],
-    "promotion_evaluations_total": 8,
+    "promotion_evaluations_total": 5,
     "promotion_evaluations_promoting_total": 2,
     "gate_failure_reasons": {
-      "defect_truncation_rate": 3,
-      "boundary_rate": 6,
-      "boundary_wilson_95_low": 5
+      "boundary_wilson_95_low": 2,
+      "boundary_rate": 3
     },
-    "checkpoints_recorded": 34
+    "promotion_evaluations_excluded_by_run_kind": {
+      "aborted": 3
+    },
+    "checkpoints_recorded": 34,
+    "live_decisions_recorded_by_the_trainers": 2,
+    "stages_where_the_live_verdict_was_promoted": [
+      "floor3",
+      "floor6"
+    ],
+    "stages_where_todays_rejudgement_disagrees_with_the_live_verdict": [
+      "floor6"
+    ],
+    "thresholds_that_changed_under_the_ladder": {
+      "min_boundary_rate": {
+        "floor6": {
+          "then": 0.8,
+          "now": 0.93
+        }
+      }
+    }
   },
-  "generated_at": "2026-09-19T15:48:45+00:00",
+  "generated_at": "2026-09-19T16:09:53+00:00",
   "not_established": [
     "that any of these decisions is still reachable by a reviewer on another machine -- runs/ is gitignored, so only this ledger's contents travel",
     "the parent of each act-1 arm, which is a separate question handled by ladder_lineage_20260919.json; a rung can be evaluated and still not be the parent",
+    "that a live verdict and today's re-judgement of the same record are the same fact -- they answer 'what did the ladder decide then' and 'would this promote now', and the thresholds moved between the two",
     "anything about the shipped game; thresholds come from this repository's own config"
   ],
   "rows": [
@@ -36,6 +55,7 @@
       "stage": "floor3",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3",
+      "run_kind": "campaign",
       "promotion_evaluations": [
         {
           "file": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\metrics\\early-promotion-0m.json",
@@ -72,7 +92,9 @@
             "min_boundary_rate": 0.9,
             "min_boundary_wilson_lower": null
           },
+          "unrecorded_clauses_the_gate_refused": [],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -118,7 +140,9 @@
             "min_boundary_rate": 0.9,
             "min_boundary_wilson_lower": null
           },
+          "unrecorded_clauses_the_gate_refused": [],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -130,6 +154,37 @@
           ]
         }
       ],
+      "live_decision": {
+        "file": "runs\\curriculum_v2\\v2curriculum-20260901T091856Z\\floor3\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 1.0,
+          "defect_truncation_rate": 0.0,
+          "episodes": 500,
+          "illegal_actions": 0,
+          "mean_final_floor": 3.0,
+          "truncation_rate": 1.0,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 4.336808689942018e-19,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 0.03,
+          "min_boundary_rate": 0.9,
+          "min_episodes": 500,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [
+          "min_boundary_wilson_lower"
+        ],
+        "thresholds_changed_since": {},
+        "rejudged_under_todays_config_promotes": true,
+        "the_two_verdicts_agree": true
+      },
       "checkpoint_probes": 2,
       "probe_episode_counts": [
         100
@@ -159,7 +214,52 @@
       "stage": "floor3",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor3",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor3\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.9666666666666667,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 2.966666666666667,
+          "truncation_rate": 0.9666666666666667,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [
+          "min_boundary_wilson_lower"
+        ],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 3,
       "probe_episode_counts": [
         20,
@@ -195,7 +295,53 @@
       "stage": "floor3",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor3",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor3\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.9666666666666667,
+          "boundary_wilson_95_low": 0.8332960900859082,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 2.966666666666667,
+          "mean_final_hp_fraction": 0.5550183150183151,
+          "truncation_rate": 0.9666666666666667,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_boundary_wilson_lower": null,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 3,
       "probe_episode_counts": [
         20,
@@ -231,7 +377,53 @@
       "stage": "floor3",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor3",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor3\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 1.0,
+          "boundary_wilson_95_low": 0.8864866068260312,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 3.0,
+          "mean_final_hp_fraction": 0.6014056776556777,
+          "truncation_rate": 1.0,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_boundary_wilson_lower": null,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 3,
       "probe_episode_counts": [
         20,
@@ -267,7 +459,53 @@
       "stage": "floor3",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor3",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor3\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 1.0,
+          "boundary_wilson_95_low": 0.8864866068260312,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 3.0,
+          "mean_final_hp_fraction": 0.6472939560439561,
+          "truncation_rate": 1.0,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_boundary_wilson_lower": null,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 3,
       "probe_episode_counts": [
         20,
@@ -303,6 +541,7 @@
       "stage": "floor6",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6",
+      "run_kind": "aborted",
       "promotion_evaluations": [
         {
           "file": "runs\\curriculum_v2\\aborted-pre-filter-floor6-095635Z\\floor6\\metrics\\early-promotion-step_000001000008.json",
@@ -316,9 +555,9 @@
           "steps": null,
           "promoted": false,
           "reasons": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored",
             "defect_truncation_rate 0.4340 > allowed 0.0300",
-            "boundary_rate 0.4380 < required 0.9300",
-            "boundary_wilson_95_low 0.0000 < required 0.9000"
+            "boundary_rate 0.4380 < required 0.9300"
           ],
           "observed": {
             "episodes": 500,
@@ -343,7 +582,11 @@
             "min_boundary_rate": 0.93,
             "min_boundary_wilson_lower": 0.9
           },
+          "unrecorded_clauses_the_gate_refused": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored"
+          ],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -366,9 +609,9 @@
           "steps": null,
           "promoted": false,
           "reasons": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored",
             "defect_truncation_rate 0.3280 > allowed 0.0300",
-            "boundary_rate 0.5420 < required 0.9300",
-            "boundary_wilson_95_low 0.0000 < required 0.9000"
+            "boundary_rate 0.5420 < required 0.9300"
           ],
           "observed": {
             "episodes": 500,
@@ -393,7 +636,11 @@
             "min_boundary_rate": 0.93,
             "min_boundary_wilson_lower": 0.9
           },
+          "unrecorded_clauses_the_gate_refused": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored"
+          ],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -416,9 +663,9 @@
           "steps": null,
           "promoted": false,
           "reasons": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored",
             "defect_truncation_rate 0.4480 > allowed 0.0300",
-            "boundary_rate 0.4620 < required 0.9300",
-            "boundary_wilson_95_low 0.0000 < required 0.9000"
+            "boundary_rate 0.4620 < required 0.9300"
           ],
           "observed": {
             "episodes": 500,
@@ -443,7 +690,11 @@
             "min_boundary_rate": 0.93,
             "min_boundary_wilson_lower": 0.9
           },
+          "unrecorded_clauses_the_gate_refused": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored"
+          ],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -455,6 +706,7 @@
           ]
         }
       ],
+      "live_decision": null,
       "checkpoint_probes": 6,
       "probe_episode_counts": [
         100
@@ -504,6 +756,7 @@
       "stage": "floor6",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6",
+      "run_kind": "campaign",
       "promotion_evaluations": [
         {
           "file": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\metrics\\early-promotion-step_000001000008.json",
@@ -517,8 +770,8 @@
           "steps": null,
           "promoted": false,
           "reasons": [
-            "boundary_rate 0.8600 < required 0.9300",
-            "boundary_wilson_95_low 0.0000 < required 0.9000"
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored",
+            "boundary_rate 0.8600 < required 0.9300"
           ],
           "observed": {
             "episodes": 500,
@@ -543,7 +796,11 @@
             "min_boundary_rate": 0.93,
             "min_boundary_wilson_lower": 0.9
           },
+          "unrecorded_clauses_the_gate_refused": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored"
+          ],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -565,8 +822,8 @@
           "steps": null,
           "promoted": false,
           "reasons": [
-            "boundary_rate 0.8600 < required 0.9300",
-            "boundary_wilson_95_low 0.0000 < required 0.9000"
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored",
+            "boundary_rate 0.8600 < required 0.9300"
           ],
           "observed": {
             "episodes": 500,
@@ -591,7 +848,11 @@
             "min_boundary_rate": 0.93,
             "min_boundary_wilson_lower": 0.9
           },
+          "unrecorded_clauses_the_gate_refused": [
+            "boundary_wilson_95_low was not recorded in these metrics, so its clause cannot be scored"
+          ],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -602,6 +863,42 @@
           ]
         }
       ],
+      "live_decision": {
+        "file": "runs\\curriculum_v2\\v2curriculum-20260901T115142Z\\floor6\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.86,
+          "defect_truncation_rate": 0.0,
+          "episodes": 500,
+          "illegal_actions": 0,
+          "mean_final_floor": 5.852,
+          "truncation_rate": 0.86,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 4.336808689942018e-19,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 0.03,
+          "min_boundary_rate": 0.8,
+          "min_episodes": 500,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [
+          "min_boundary_wilson_lower"
+        ],
+        "thresholds_changed_since": {
+          "min_boundary_rate": {
+            "then": 0.8,
+            "now": 0.93
+          }
+        },
+        "rejudged_under_todays_config_promotes": false,
+        "the_two_verdicts_agree": false
+      },
       "checkpoint_probes": 2,
       "probe_episode_counts": [
         100
@@ -631,7 +928,52 @@
       "stage": "floor6",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor6",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260901T050230Z\\floor6\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.5666666666666667,
+          "defect_truncation_rate": 0.23333333333333334,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 5.233333333333333,
+          "truncation_rate": 0.8,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [
+          "min_boundary_wilson_lower"
+        ],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.93
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 2,
       "probe_episode_counts": [
         20,
@@ -662,7 +1004,57 @@
       "stage": "floor6",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor6",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T165120Z\\floor6\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.4666666666666667,
+          "boundary_wilson_95_low": 0.30232388907699753,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 5.033333333333333,
+          "mean_final_hp_fraction": 0.18578488372093022,
+          "truncation_rate": 0.4666666666666667,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_boundary_wilson_lower": null,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.93
+          },
+          "min_boundary_wilson_lower": {
+            "then": null,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 2,
       "probe_episode_counts": [
         20,
@@ -693,7 +1085,57 @@
       "stage": "floor6",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor6",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T232900Z\\floor6\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.7333333333333333,
+          "boundary_wilson_95_low": 0.555520383048111,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 5.533333333333333,
+          "mean_final_hp_fraction": 0.2633842627960275,
+          "truncation_rate": 0.7333333333333333,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_boundary_wilson_lower": null,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.93
+          },
+          "min_boundary_wilson_lower": {
+            "then": null,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 2,
       "probe_episode_counts": [
         20,
@@ -724,7 +1166,57 @@
       "stage": "floor6",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor6",
+      "run_kind": "smoke",
       "promotion_evaluations": [],
+      "live_decision": {
+        "file": "runs\\curriculum_v2_smoke\\v2curriculum-20260918T233201Z\\floor6\\promotion_decision.json",
+        "promoted_when_it_ran": true,
+        "reasons_when_it_ran": [],
+        "observed_when_it_ran": {
+          "boundary_rate": 0.6666666666666666,
+          "boundary_wilson_95_low": 0.4878005164454384,
+          "defect_truncation_rate": 0.0,
+          "episodes": 30,
+          "illegal_actions": 0,
+          "mean_final_floor": 5.6,
+          "mean_final_hp_fraction": 0.23638297872340427,
+          "truncation_rate": 0.6666666666666666,
+          "unclassified_dead_ends": 0,
+          "wilson_95_low": 0.0,
+          "win_rate": 0.0
+        },
+        "thresholds_in_force_then": {
+          "max_illegal_actions": 0,
+          "max_truncation_rate": 1.0,
+          "min_boundary_rate": 0.0,
+          "min_boundary_wilson_lower": null,
+          "min_episodes": 30,
+          "min_mean_floor": null,
+          "min_wilson_lower": 0.0,
+          "min_win_rate": 0.0
+        },
+        "thresholds_that_did_not_exist_then": [],
+        "thresholds_changed_since": {
+          "max_truncation_rate": {
+            "then": 1.0,
+            "now": 0.03
+          },
+          "min_boundary_rate": {
+            "then": 0.0,
+            "now": 0.93
+          },
+          "min_boundary_wilson_lower": {
+            "then": null,
+            "now": 0.9
+          },
+          "min_episodes": {
+            "then": 30,
+            "now": 500
+          }
+        },
+        "rejudged_under_todays_config_promotes": null,
+        "the_two_verdicts_agree": null
+      },
       "checkpoint_probes": 2,
       "probe_episode_counts": [
         20,
@@ -755,6 +1247,7 @@
       "stage": "floor10",
       "run_present": true,
       "run_dir": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10",
+      "run_kind": "campaign",
       "promotion_evaluations": [
         {
           "file": "runs\\curriculum_v2\\v2curriculum-20260901T122903Z\\floor10\\metrics\\early-promotion-step_000002000016.json",
@@ -793,7 +1286,9 @@
             "min_boundary_rate": 0.7,
             "min_boundary_wilson_lower": null
           },
+          "unrecorded_clauses_the_gate_refused": [],
           "fields_absent_from_the_record": [
+            "absent_metrics",
             "boundary_hits",
             "boundary_wilson_95_high",
             "boundary_wilson_95_low",
@@ -804,6 +1299,7 @@
           ]
         }
       ],
+      "live_decision": null,
       "checkpoint_probes": 4,
       "probe_episode_counts": [
         100
@@ -844,6 +1340,7 @@
       "run_present": false,
       "run_dirs": [],
       "promotion_evaluations": [],
+      "live_decision": null,
       "checkpoint_probes": 0,
       "checkpoints": []
     },
@@ -852,9 +1349,10 @@
       "run_present": false,
       "run_dirs": [],
       "promotion_evaluations": [],
+      "live_decision": null,
       "checkpoint_probes": 0,
       "checkpoints": []
     }
   ],
-  "scope": "every runs/curriculum_v2*/**/<configured stage> directory, judged against config/training_v2.toml as it reads now"
+  "scope": "every runs/curriculum_v2*/**/<configured stage> directory, judged twice: once by the promotion_decision.json the trainer wrote at the time, and once by config/training_v2.toml as it reads now; a directory whose own name says it was aborted is listed and its records counted separately, never in the totals"
 }
