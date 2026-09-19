@@ -884,3 +884,23 @@ scripts/compare_act1_seed_filter_arms.py --config runtime/act1_ab/a1filt.toml \
 对目标的直接含义：**模拟器内 Act 1 层面能给的证据已经给到 9 个可复核终局胜利**，
 但目标要求的 Act 1–**3** 全流程在模拟器里无法表示（见文首天花板一节），
 而且这些单幕胜利按上面的分布看**不能外推成"稳定能赢"**。
+
+### 胜局台账：9 个具名胜局已全量重验，且哈希链自洽
+
+新增 `scripts/act1_win_ledger.py`：读取上面的证据矩阵，对**每一个**具名获胜种子
+按其原检查点、原分区配置重跑一局，产出 `docs/evidence/act1_win_ledger_20260919.json`
+（已入库，02:30 UTC）。结果：
+
+```
+wins reproduced: 9  failed: 0  rows: 5
+digest mismatches: 0
+```
+
+- **9/9 全部复现**，每一局都是 `won=True`、`floor=17`、`illegal=0`、`unclassified=0`；
+  其中 `b_terminal-1` 的三个种子是本文最早那批胜利，这次是**在当前状态上重验**，
+  不是引用早先的记录。
+- 台账每行同时记 `checkpoint_sha256`（重算）与 `matrix_checkpoint_sha256`
+  （矩阵里记的），两者逐行相等，所以"报告里的哈希"与"被复现的那个文件"
+  之间是**可核对的**，不是各说各话。
+- 复现失败时脚本以非零退出，且把失败行留在台账里——**不允许**把不再复现的胜局
+  悄悄改掉。任何人跑一次 `python scripts/act1_win_ledger.py` 就能重做这条检查。

@@ -1,0 +1,164 @@
+{
+  "generated_at": "2026-09-19T02:30:05.370542+00:00",
+  "how_to_recheck": "python scripts/act1_win_ledger.py --matrix docs/evidence/act1_evidence_20260919.json",
+  "not_scope": "real-machine A10 acceptance; the emulator defines two acts and has no Act 3, so no row here evidences an Act 1-3 clear",
+  "rows": [
+    {
+      "all_reproduced": true,
+      "arm": "b_terminal-1 step_2M x promotion",
+      "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000002000016.zip",
+      "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "config": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1.toml",
+      "matrix_checkpoint_sha256": "A1ADA27AD997A425E6AD10D33C13D11F5A2F2C3A67003732A68F27CF73E57C1E",
+      "per_seed": [
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130015189,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        },
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130017978,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        },
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130019400,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        }
+      ],
+      "seed_sha256": "2809f59c15298051bf09d4d986b38fdde996a3dd597508035a2a3c9d9aa9b655",
+      "seeds": [
+        130015189,
+        130017978,
+        130019400
+      ],
+      "split": "promotion"
+    },
+    {
+      "all_reproduced": true,
+      "arm": "b_terminal-1 step_4M x checkpoint",
+      "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+      "checkpoint_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+      "config": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1.toml",
+      "matrix_checkpoint_sha256": "F514FFA3FFBE62C06C4BF469668516E6000C939B40C7F9D8F8152FC0AF8A8B4E",
+      "per_seed": [
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130008177,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        }
+      ],
+      "seed_sha256": "ba9ff5d74402cac45f9374875bba0070181121e80a38b56338e20271854399d9",
+      "seeds": [
+        130008177
+      ],
+      "split": "checkpoint"
+    },
+    {
+      "all_reproduced": true,
+      "arm": "b_terminal-0 step_4M x promotion",
+      "checkpoint": "runtime\\fanout\\b_terminal-0\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+      "checkpoint_sha256": "3193b87dbe004d1bcafb9d677d684b18c88621451991f71f27204cf2236e9931",
+      "config": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-0.toml",
+      "matrix_checkpoint_sha256": "3193B87DBE004D1BCAFB9D677D684B18C88621451991F71F27204CF2236E9931",
+      "per_seed": [
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130015199,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        },
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130016374,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        }
+      ],
+      "seed_sha256": "44390c3ac232f2c0cbe14069b2d2ef2bd9ef1be9ae516c28ea4f06a83e006a4c",
+      "seeds": [
+        130015199,
+        130016374
+      ],
+      "split": "promotion"
+    },
+    {
+      "all_reproduced": true,
+      "arm": "b_terminal-1 step_2M x checkpoint",
+      "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000002000016.zip",
+      "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "config": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1.toml",
+      "matrix_checkpoint_sha256": "A1ADA27AD997A425E6AD10D33C13D11F5A2F2C3A67003732A68F27CF73E57C1E",
+      "per_seed": [
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130008774,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        }
+      ],
+      "seed_sha256": "22ee8606c941146fe7eabb8c8b8ecc3ece42bf62e383a96aa37eef9ed8173a8f",
+      "seeds": [
+        130008774
+      ],
+      "split": "checkpoint"
+    },
+    {
+      "all_reproduced": true,
+      "arm": "b_terminal-0 step_1M x promotion",
+      "checkpoint": "runtime\\fanout\\b_terminal-0\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "8b06d38e33541fce636c7abdda23d58e6fe3807a181ce4c7cd92d2ac288b58b5",
+      "config": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-0.toml",
+      "matrix_checkpoint_sha256": "8B06D38E33541FCE636C7ABDDA23D58E6FE3807A181CE4C7CD92D2AC288B58B5",
+      "per_seed": [
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130011349,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        },
+        {
+          "final_floor": 17,
+          "illegal_actions": 0,
+          "seed": 130017492,
+          "truncations": 0,
+          "unclassified_dead_ends": 0,
+          "won": true
+        }
+      ],
+      "seed_sha256": "55f5bf37e0fcba3cf05d48566150e4bdf68eb7c7ba381a6c2f8c9752d67a6064",
+      "seeds": [
+        130011349,
+        130017492
+      ],
+      "split": "promotion"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "simulator_act1_terminal_victories_individual_reproduction",
+  "source_matrix": "G:\\qoder\\sts2-a10-advisor\\docs\\evidence\\act1_evidence_20260919.json",
+  "win_rows": 5,
+  "wins_failed_to_reproduce": 0,
+  "wins_reproduced": 9
+}
