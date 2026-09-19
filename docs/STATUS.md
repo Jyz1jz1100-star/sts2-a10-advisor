@@ -1068,6 +1068,20 @@ about the operator's three-act target, and found one failure class worth naming.
    schema 1 records neither act nor raw seeds, and its own file carries
    `illegal_actions = 1`.
 
+6. **The headline table's last unreproduced row is now reproduced**, so all five
+   records in it are independently re-run (`a_base`, checkpoint @1M, 1/100:
+   checkpoint hash, seed hash, `win_rate 0.01`, `illegal 0`, `unclassified 0`,
+   `max_final_floor 17` all matched — `runtime/a_base_reeval.log`). The "four
+   records" count in the session-5 section above is that moment's state and was
+   left as written; the current count is five.
+7. **The act-filtered A/B is running** (`runtime/act1_ab/`, arms `a1filt` /
+   `a1mix`, both warm-started from `b_terminal-1` act1 step 4M over the same
+   80,000-seed window). The premise is now runtime-measured rather than inferred:
+   12 workers x 6 starts give 31 Act-1 / 41 Act-2 on the control and 72/72 Act-1
+   on the filtered arm; the window's census holds 40,010 Act-1 seeds (50.01%).
+   The decisive metric was fixed in advance to `mean_final_floor` over 504 shared
+   Act-1 seeds, with win counts declared non-decisive.
+
 Live side unchanged: `127.0.0.1:15526/health` refused at 23:42 with no game
 process, so the three-act real-game batch remains an operator action
 (`scripts/supervise_solver_batch.py --mode observational --allow-actions

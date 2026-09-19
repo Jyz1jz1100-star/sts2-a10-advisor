@@ -37,11 +37,13 @@ V2 契约栈**第一次记录到 Act 1 终局胜利**，且证据可复核（检
 | `b_terminal-1`（fan-out） | promotion（未见种子） | 500 | 0.012（6 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `c_explore-0`（fan-out） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 | `b_terminal-0`（fan-out） | checkpoint @1M | 100 | 0.020（2 胜） | 17 | 0 | 0 | 一致 | **已复现** |
-| `a_base`（手工臂） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | 待复现 |
+| `a_base`（手工臂） | checkpoint @1M | 100 | 0.010（1 胜） | 17 | 0 | 0 | 一致 | **已复现** |
 
 战役总览（`python scripts/report_act1_campaign.py --root runtime/act1_overnight
 --root runtime/fanout --root runtime/act1_overnight/fan_cont`，2026-09-19 05:58 本地
-时间，**战役已结束**：无残留训练进程）：**20 个臂、110 份评估文件、61 份记录到非零胜局**
+时间复核过一次、00:34 再跑一遍结果相同；**这批战役臂本身已结束**——文首那 20 个臂
+无残留训练进程。00:31 起另有两臂在跑，但它们在 `runtime/act1_ab/` 下，
+不在上面三个 `--root` 里，所以不影响这些数字）：**20 个臂、110 份评估文件、61 份记录到非零胜局**
 ——其中 **41 份来自 500 局的未见 promotion 分区**。这 61 份**全部**满足
 `illegal_actions=0`、`unclassified_dead_ends=0`、`checkpoint_verified=True`、
 `max_final_floor=17`；最高 `win_rate = 0.02`（100 局臂），未见 500 局分区上最高
