@@ -105,6 +105,35 @@ permuted without replacement; exhaustion is a hard error. Evaluation always
 records a SHA-256 digest of the ordered seed list. Do not tune a policy after
 examining the final split.
 
+### A count is not a category
+
+Metrics summarize: `episodes` is a number and `truncations` is a number, so
+"51 truncations at floor 17" names a class nobody can replay. That gap matters for
+the "no unclassified dead ends" gate — a class you cannot enumerate cannot be
+audited, and a truncation at a boss is a different fact from a truncation at floor 6.
+
+`scripts/enumerate_act1_terminals.py` walks a partition one seed at a time through
+`evaluate_policy` (the same entry point the campaign numbers came from — it does not
+reimplement rollout, win, illegal or dead-end semantics) and records each seed's
+terminal category: `boss_win`, `win_earlier`, `boss_truncation`, `mid_run_truncation`,
+`death`, `illegal_action`, `unclassified_dead_end`. Output includes
+`boss_truncation_seeds`, so the next step is a command rather than an archaeology
+exercise. It writes no metrics files and changes no schema.
+
+Two things to keep straight when using it:
+
+- it costs one full rollout per seed, so `--limit` and `--start-offset` exist to
+  shard it across processes;
+- it inherits the stage's **configured** `max_episode_steps` (1600 for `act1`) unless
+  `--max-steps` overrides it. The step cap is what makes a truncation a truncation,
+  so comparing an override run against campaign metrics is comparing two different
+  questions — say which one you measured.
+
+```
+scripts/enumerate_act1_terminals.py --checkpoint <zip> --split promotion \
+  --limit 500 --out <file.json>
+```
+
 ### A range is not an act
 
 `train_seeds_file` on a stage replaces that stage's *training* seeds with an
