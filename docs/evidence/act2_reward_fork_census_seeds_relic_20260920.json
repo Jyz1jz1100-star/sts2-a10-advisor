@@ -1,0 +1,568 @@
+{
+  "_comment": [
+    "Counterfactual at the floor-17 relic_reward decision: the real action prefix is replayed, then every legal action at that one state is substituted and the rest of the run is driven by the same argmax policy. Only the resulting engine phase is of interest; the fight is already over."
+  ],
+  "fork_floor": 17,
+  "fork_phase": "relic_reward",
+  "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\c_explore-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000002000016.zip",
+  "generated_at": "2026-09-19T18:51:29+00:00",
+  "phase_offsets": {
+    "combat_obs_size": 164
+  },
+  "seeds": [
+    {
+      "seed": 130010026,
+      "as_played": {
+        "steps": 198,
+        "terminal": false,
+        "truncated": true,
+        "run_won": false,
+        "dead_end": null,
+        "illegal": 0,
+        "final_phase": "map",
+        "final_floor": 17,
+        "final_state_info": {
+          "phase": 2,
+          "floor": 17,
+          "act": 2,
+          "deck_size": 20,
+          "gold": 137,
+          "player_hp": 10,
+          "player_max_hp": 91,
+          "relic_count": 3,
+          "current_node_type": 6,
+          "event_id": 0,
+          "relic_reward": 0,
+          "player_won": true,
+          "encounter_id": 79,
+          "phase_name": "map",
+          "simulator_dead_end": "empty_action_mask"
+        },
+        "trace_tail": [
+          {
+            "act": 2,
+            "floor": 16,
+            "phase": "rest"
+          },
+          {
+            "act": 2,
+            "floor": 16,
+            "phase": "map"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "combat"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "relic_reward"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "card_reward"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "map"
+          }
+        ]
+      },
+      "fork_found": true,
+      "fork_step": 193,
+      "fork_state_info": {
+        "phase": 5,
+        "floor": 17,
+        "act": 2,
+        "deck_size": 19,
+        "gold": 37,
+        "player_hp": 10,
+        "player_max_hp": 91,
+        "relic_count": 2,
+        "current_node_type": 6,
+        "event_id": 0,
+        "relic_reward": 23,
+        "player_won": true,
+        "encounter_id": 79,
+        "phase_name": "relic_reward"
+      },
+      "legal_actions": [
+        0,
+        7,
+        14,
+        21
+      ],
+      "policy_chosen": 0,
+      "variants": [
+        {
+          "action": 0,
+          "is_policy_choice": true,
+          "outcome": {
+            "final_phase": "map",
+            "run_won": false,
+            "truncated": true,
+            "terminal": false,
+            "dead_end": null,
+            "steps": 198,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "map"
+            }
+          ],
+          "diverged": false
+        },
+        {
+          "action": 7,
+          "is_policy_choice": false,
+          "outcome": {
+            "final_phase": "map",
+            "run_won": false,
+            "truncated": true,
+            "terminal": false,
+            "dead_end": null,
+            "steps": 198,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "map"
+            }
+          ],
+          "diverged": false
+        },
+        {
+          "action": 14,
+          "is_policy_choice": false,
+          "outcome": {
+            "final_phase": "complete",
+            "run_won": true,
+            "truncated": false,
+            "terminal": true,
+            "dead_end": null,
+            "steps": 198,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            }
+          ],
+          "diverged": false
+        },
+        {
+          "action": 21,
+          "is_policy_choice": false,
+          "outcome": {
+            "final_phase": "complete",
+            "run_won": true,
+            "truncated": false,
+            "terminal": true,
+            "dead_end": null,
+            "steps": 194,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 15,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 15,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            }
+          ],
+          "diverged": false
+        }
+      ]
+    },
+    {
+      "seed": 130010104,
+      "as_played": {
+        "steps": 288,
+        "terminal": false,
+        "truncated": true,
+        "run_won": false,
+        "dead_end": null,
+        "illegal": 0,
+        "final_phase": "map",
+        "final_floor": 17,
+        "final_state_info": {
+          "phase": 2,
+          "floor": 17,
+          "act": 2,
+          "deck_size": 22,
+          "gold": 108,
+          "player_hp": 80,
+          "player_max_hp": 80,
+          "relic_count": 4,
+          "current_node_type": 6,
+          "event_id": 0,
+          "relic_reward": 0,
+          "player_won": true,
+          "encounter_id": 84,
+          "phase_name": "map",
+          "simulator_dead_end": "empty_action_mask"
+        },
+        "trace_tail": [
+          {
+            "act": 2,
+            "floor": 16,
+            "phase": "rest"
+          },
+          {
+            "act": 2,
+            "floor": 16,
+            "phase": "map"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "combat"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "relic_reward"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "card_reward"
+          },
+          {
+            "act": 2,
+            "floor": 17,
+            "phase": "map"
+          }
+        ]
+      },
+      "fork_found": true,
+      "fork_step": 282,
+      "fork_state_info": {
+        "phase": 5,
+        "floor": 17,
+        "act": 2,
+        "deck_size": 21,
+        "gold": 8,
+        "player_hp": 80,
+        "player_max_hp": 80,
+        "relic_count": 3,
+        "current_node_type": 6,
+        "event_id": 0,
+        "relic_reward": 149,
+        "player_won": true,
+        "encounter_id": 84,
+        "phase_name": "relic_reward"
+      },
+      "legal_actions": [
+        0,
+        7,
+        14,
+        21
+      ],
+      "policy_chosen": 0,
+      "variants": [
+        {
+          "action": 0,
+          "is_policy_choice": true,
+          "outcome": {
+            "final_phase": "map",
+            "run_won": false,
+            "truncated": true,
+            "terminal": false,
+            "dead_end": null,
+            "steps": 288,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "map"
+            }
+          ],
+          "diverged": false
+        },
+        {
+          "action": 7,
+          "is_policy_choice": false,
+          "outcome": {
+            "final_phase": "map",
+            "run_won": false,
+            "truncated": true,
+            "terminal": false,
+            "dead_end": null,
+            "steps": 288,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "map"
+            }
+          ],
+          "diverged": false
+        },
+        {
+          "action": 14,
+          "is_policy_choice": false,
+          "outcome": {
+            "final_phase": "map",
+            "run_won": false,
+            "truncated": true,
+            "terminal": false,
+            "dead_end": null,
+            "steps": 288,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "map"
+            }
+          ],
+          "diverged": false
+        },
+        {
+          "action": 21,
+          "is_policy_choice": false,
+          "outcome": {
+            "final_phase": "complete",
+            "run_won": true,
+            "truncated": false,
+            "terminal": true,
+            "dead_end": null,
+            "steps": 283,
+            "final_floor": 17,
+            "current_node_type": 6
+          },
+          "trace_tail": [
+            {
+              "act": 2,
+              "floor": 15,
+              "phase": "card_reward"
+            },
+            {
+              "act": 2,
+              "floor": 15,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "rest"
+            },
+            {
+              "act": 2,
+              "floor": 16,
+              "phase": "map"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "combat"
+            },
+            {
+              "act": 2,
+              "floor": 17,
+              "phase": "relic_reward"
+            }
+          ],
+          "diverged": false
+        }
+      ]
+    }
+  ]
+}

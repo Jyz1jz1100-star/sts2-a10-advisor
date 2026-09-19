@@ -1862,3 +1862,16 @@ handles -- the same window in 60-episode pieces was clean -- and reporting it as
 would have been exactly the error the paragraph above is about. Each episode now closes in a
 `finally`, `report()` prints the instrument's health next to the finding, and `not_established`
 states that a nonzero reset-failure count is not an engine fact. 52/52 claims match the disk.
+
+## 2026-09-20 -- part of that wall is one click wide, and it is the relic screen
+
+Forked the floor-17 reward decisions on two seeds the census itself located (`130010026`,
+`130010104`, one checkpoint, same argmax, boss already dead): at `relic_reward` two and one legal
+actions respectively end the run `complete / won=True`, while the `card_reward` screen one step
+later returns `map` for all eight substitutions. So the located endings are accurately described at
+two levels: the deciding state genuinely offers nothing (that is what 48 rows measure), and that
+state was reached by a choice made one screen earlier, where a winning action was in the mask. The
+mechanism was already known from `130012038`; what is new is that it holds on census seeds, which
+makes "reward-screen action choice" the cheapest capability to target after any unfreeze -- not
+model scale. Artifacts `act2_reward_fork_census_seeds_{relic,card}_20260920.json`, claim
+`reward_fork_on_census_seeds`. 53/53 claims match the disk.

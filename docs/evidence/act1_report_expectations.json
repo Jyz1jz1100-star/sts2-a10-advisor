@@ -519,5 +519,13 @@
     "the_explained_walls_are_a_boss_cleared_into_an_empty_map": true,
     "no_ending_was_dropped_to_make_the_finding_clean": true,
     "the_instrument_reports_its_own_health": true
+  },
+  "reward_fork_on_census_seeds": {
+    "the_forked_seeds_are_ones_the_census_located": true,
+    "the_fork_was_found_on_every_seed": true,
+    "the_relic_screen_has_a_winning_action_for_every_seed": true,
+    "the_card_screen_is_the_control_that_does_not": true,
+    "both_artifacts_fork_the_phase_they_claim": true,
+    "every_variant_substituted_a_legal_action_only": true
   }
 }

@@ -1972,6 +1972,50 @@ def claim_empty_mask_endings():
     }
 
 
+def claim_reward_fork_on_census_seeds():
+    """Some of the located empty-mask endings had a winning action one click away.
+
+    The census said 48 of 49 endings are Act 2 floor 17 map with the engine offering nothing. That is
+    true *of the state the run arrived at*; the boss-completion fork happens one screen earlier, at the
+    relic reward. Forking that screen on two seeds the census itself located -- not only the anecdote
+    seed the mechanism was first measured on -- says which of these endings were recoverable victories,
+    and the card-reward control says the decision is screen-specific rather than "anything at floor 17".
+    """
+    paths = ("docs/evidence/act2_reward_fork_census_seeds_relic_20260920.json",
+             "docs/evidence/act2_reward_fork_census_seeds_card_20260920.json")
+    relic, card = (json.loads((ROOT / path).read_text(encoding="utf-8")) for path in paths)
+    census = json.loads((ROOT / "docs/evidence/empty_mask_endings_20260920.json")
+                        .read_text(encoding="utf-8"))
+    located = {int(row["seed"]) for row in census["dead_ends"]}
+
+    def winners(data):
+        return {row["seed"]: sorted(variant["action"] for variant in row["variants"]
+                                    if variant["outcome"]["final_phase"] == "complete"
+                                    and variant["outcome"]["run_won"])
+                for row in data["seeds"]}
+
+    def illegal_variants(data):
+        return [variant["action"] for row in data["seeds"] for variant in row["variants"]
+                if variant["action"] not in row["legal_actions"]]
+
+    relic_wins, card_wins = winners(relic), winners(card)
+    return {
+        "the_forked_seeds_are_ones_the_census_located": (
+            set(relic_wins) == set(card_wins) <= located and len(relic_wins) == 2),
+        "the_fork_was_found_on_every_seed": all(
+            row["fork_found"] for data in (relic, card) for row in data["seeds"]),
+        "the_relic_screen_has_a_winning_action_for_every_seed": all(
+            relic_wins[seed] for seed in relic_wins),
+        "the_card_screen_is_the_control_that_does_not": all(
+            not card_wins[seed] for seed in card_wins),
+        "both_artifacts_fork_the_phase_they_claim": (
+            relic["fork_phase"] == "relic_reward" and card["fork_phase"] == "card_reward"
+            and relic["fork_floor"] == card["fork_floor"] == 17),
+        "every_variant_substituted_a_legal_action_only": (
+            not illegal_variants(relic) and not illegal_variants(card)),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2366,6 +2410,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "reward_fork_on_census_seeds": (
+        claim_reward_fork_on_census_seeds,
+        "whether the located endings had a winning action available one screen earlier"),
     "empty_mask_endings": (
         claim_empty_mask_endings,
         "where every recorded empty_action_mask ending sits, and what the engine was showing there"),

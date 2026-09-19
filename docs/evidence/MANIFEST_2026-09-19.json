@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "755d6a2e91071907d7135f14f118040dbf04191a3a38914987f77bc280f7289c",
-  "evidence_file_count": 43,
-  "generated_at": "2026-09-19T18:45:57+00:00",
-  "git_head_at_generation": "aa1576d",
+  "bundle_root": "0e94fd8ba050a6ac1e389a2d2c098d0c20c58ff69a871f05b9a61b7e513de18d",
+  "evidence_file_count": 45,
+  "generated_at": "2026-09-19T18:53:21+00:00",
+  "git_head_at_generation": "53fc859",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2381,8 +2381,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "6d8f479de70ead4a6bbd7cc85eaab448e63fa23a52ec06455fc2bba1be588480",
-      "bytes": 19224
+      "sha256": "2d43c7dd9f799c0b4f31f3bbb3910c138e9587027c00f42573f5439d55db5cbd",
+      "bytes": 19612
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2413,6 +2413,16 @@
       "file": "act2_boss_node_comparison_20260919.json",
       "sha256": "64eea2b3c98726ecf29db5d89473a32618562896f630ef980a44a1a91a381eaf",
       "bytes": 2479
+    },
+    {
+      "file": "act2_reward_fork_census_seeds_card_20260920.json",
+      "sha256": "8d825f8a7c40397617cdcf8990952fc7f694c2f20d947d308757c79b6bc2d689",
+      "bytes": 13992
+    },
+    {
+      "file": "act2_reward_fork_census_seeds_relic_20260920.json",
+      "sha256": "972f9357ca710547cd671cb86889eade6c552af0e305d876ba062d0e756e9fa0",
+      "bytes": 14017
     },
     {
       "file": "act2_terminal_check_20260919.json",

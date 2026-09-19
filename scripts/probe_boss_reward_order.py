@@ -133,11 +133,13 @@ def main() -> int:
 
     payload = {
         "_comment": [
-            "Counterfactual at the floor-17 card_reward decision: the real action",
-            "prefix is replayed, then every legal action at that one state is",
-            "substituted and the rest of the run is driven by the same argmax policy.",
-            "Only the resulting engine phase is of interest; the fight is already over.",
+            f"Counterfactual at the floor-{args.fork_floor} {args.fork_phase} decision: the real "
+            "action prefix is replayed, then every legal action at that one state is substituted "
+            "and the rest of the run is driven by the same argmax policy. Only the resulting "
+            "engine phase is of interest; the fight is already over.",
         ],
+        "fork_floor": args.fork_floor,
+        "fork_phase": args.fork_phase,
         "checkpoint": str(checkpoint),
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "phase_offsets": {"combat_obs_size": COMBAT_OBS_SIZE},
