@@ -299,5 +299,16 @@
     "observed_events_are_all_inside_the_static_exposure": true,
     "static_audit_counts_are_internally_consistent": true,
     "cross_checks_the_phase_census": true
+  },
+  "potion_slot_cost": {
+    "rows_back_the_aggregates": true,
+    "instrument_reproduces_the_terminal_census": true,
+    "every_clear_is_act2_generated": true,
+    "phantom_slot_is_never_filled": true,
+    "complete_alone_would_overstate_clears": true,
+    "exposure_selects_for_potions_not_against_them": true,
+    "all_four_cells_are_populated": true,
+    "arrival_rate_gap_is_a_selection_marker": true,
+    "shard_windows_cover_the_partition_without_overlap": true
   }
 }

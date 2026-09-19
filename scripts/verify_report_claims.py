@@ -1004,6 +1004,70 @@ def claim_refusal_root_cause():
     }
 
 
+def claim_potion_slot_cost():
+    """Check the phantom-slot study, including the two things that make it self-limiting.
+
+    The artifact is honest that its own comparison is confounded, so the claim verifies the
+    honesty rather than just the numbers: the exposure group must really carry more potions
+    (that direction is the selection signature), and the raw Complete-phase count must really
+    overstate clears, since the engine sets that phase on a loss as well.  The instrument is
+    also required to reproduce the committed census by an independent path -- 162 arrivals,
+    the 83/79 act split and 25 clears -- otherwise this script's boss detection is wrong and
+    nothing else in the file can be trusted.
+    """
+    data = json.loads((ROOT / "docs/evidence/potion_slot_cost_20260919.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    groups = data["groups"]
+    rows = data["rows"]
+    census = json.loads((ROOT / "docs/evidence/act1_terminal_census_3500_20260919.json")
+                        .read_text(encoding="utf-8"))
+    acts = json.loads((ROOT / "docs/evidence/act1_arrivals_by_act_20260919.json")
+                      .read_text(encoding="utf-8"))["arrivals_by_generated_act"]
+    cleared = lambda r: int(r["terminal_engine_phase"]) == 6 and bool(r["player_won"])  # noqa: E731
+    arrivals = [r for r in rows if r["boss_seen"]]
+    return {
+        "rows_back_the_aggregates": (
+            len(rows) == agg["episodes"] == 3500 and len(arrivals) == agg["arrivals"]),
+        "instrument_reproduces_the_terminal_census": (
+            agg["arrivals"] == census["reached_floor_17"] == 162
+            and agg["cleared_arrivals"] == census["boss_win"] == 25
+            and agg["arrivals_by_generated_act"]["act1_overgrowth"]
+            == acts["act1_overgrowth"]["arrivals"] == 83
+            and agg["arrivals_by_generated_act"]["act2_underdocks"]
+            == acts["act2_underdocks"]["arrivals"] == 79
+            and acts["act1_overgrowth"]["wins"] == 0
+            and acts["act2_underdocks"]["wins"] == 25),
+        "every_clear_is_act2_generated": (
+            agg["cleared_by_generated_act"] == {"act2_underdocks": 25}
+            and sum(1 for r in arrivals if cleared(r) and r["act_at_boss"] == 1) == 0),
+        "phantom_slot_is_never_filled": (
+            agg["phantom_third_slot_occupied_at_boss"] == 0
+            and all(not r["phantom_at_boss"] for r in arrivals)
+            and sum(1 for r in arrivals if r["potions_at_boss"] == 2) > 0),
+        "complete_alone_would_overstate_clears": (
+            agg["arrivals_ending_in_engine_phase_complete"] > 3 * agg["cleared_arrivals"]
+            and sum(1 for r in arrivals
+                    if int(r["terminal_engine_phase"]) == 6) ==
+            agg["arrivals_ending_in_engine_phase_complete"]),
+        "exposure_selects_for_potions_not_against_them": all(
+            groups[f"{act}|refused_before_boss"]["mean_potions_at_boss"]
+            > groups[f"{act}|no_refusal_before_boss"]["mean_potions_at_boss"]
+            for act in ("act1_overgrowth", "act2_underdocks")),
+        "all_four_cells_are_populated": all(
+            block["n"] >= 30 for block in groups.values()) and len(groups) == 4,
+        "arrival_rate_gap_is_a_selection_marker": (
+            data["arrival_rate_by_exposure"]["refused_before_boss"]
+            > 3 * data["arrival_rate_by_exposure"]["no_refusal_before_boss"]
+            and round(sum(1 for r in rows if r["refusals_before_boss"] > 0 and r["boss_seen"])
+                      / sum(1 for r in rows if r["refusals_before_boss"] > 0), 4)
+            == data["arrival_rate_by_exposure"]["refused_before_boss"]),
+        "shard_windows_cover_the_partition_without_overlap": (
+            sorted(int(k) for k in data["shards"]) == list(range(0, 3500, 500))
+            and all(s["seed_window"]["limit"] == 500 for s in data["shards"].values())),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1066,6 +1130,8 @@ CLAIMS = {
                                     "which phases the hidden refusals land in, rebuilt from its shards"),
     "refusal_root_cause": (claim_refusal_root_cause,
                            "why each refusal happens, re-classified row by row against the engine"),
+    "potion_slot_cost": (claim_potion_slot_cost,
+                         "the phantom potion slot, and why this study cannot price it"),
 }
 
 

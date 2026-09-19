@@ -51,12 +51,12 @@
   "generated_at": "2026-09-19T09:21:00Z",
   "not_established": [
     "that shop/event behaviour is identical on other checkpoints; this is one checkpoint, though it is the one every census figure in the report uses",
-    "how much the shop refusals shift deck strength, and therefore how much of the act-1 deficit is entangled with them",
     "anything about potion_reward: the phase never occurs in these 1,500 episodes, so it is unobserved here, not measured clean -- 'reward screens are clean' covers relic_reward and card_reward only"
   ],
   "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/census_rejection_phases.py --checkpoint <zip> --limit 500 --start-offset <0|500|1000> --out <file.json>",
   "resolved_since_written": [
-    "why the shop and event masks advertise actions their own step refuses: answered by refusal_root_cause_20260919.json -- 641 of 753 are one potion-capacity inconsistency (RunEngine.cs:727 vs RunRewardGenerator.cs:1015) and the rest are the unconditioned default event mask arm; affordability was the wrong guess (every refused shop action was affordable)"
+    "why the shop and event masks advertise actions their own step refuses: answered by refusal_root_cause_20260919.json -- 641 of 753 are one potion-capacity inconsistency (RunEngine.cs:727 vs RunRewardGenerator.cs:1015) and the rest are the unconditioned default event mask arm; affordability was the wrong guess (every refused shop action was affordable)",
+    "how much the shop refusals shift deck strength: attempted in potion_slot_cost_20260919.json and left UNANSWERED -- the exposure variable (a potion-capacity refusal) can only fire while both usable slots are already full, so it is close to a restatement of the outcome; the design is confounded by construction and the deck-strength question stays open"
   ],
   "scope": "simulator_act1 label, mixed-act population, argmax, one checkpoint, 1,500 seeds",
   "seed_windows": "act1 promotion partition, offsets 0-499 / 500-999 / 1000-1499 of config.partition('act1','promotion').seeds()",
