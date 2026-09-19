@@ -411,7 +411,9 @@
     "index_backs_the_contract_channel_numbers": true,
     "index_backs_the_dead_end_vocabulary": true,
     "every_row_names_a_committed_relative_path": true,
-    "files_rehashed_here": 282
+    "files_rehashed_here": 282,
+    "index_covers_this_machines_corpus_exactly": true,
+    "metrics_files_on_disk_here": 282
   },
   "fanout_overnight_attestation": {
     "planned_arm_runs_are_twenty_one": true,

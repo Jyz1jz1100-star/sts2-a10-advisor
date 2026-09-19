@@ -2786,6 +2786,13 @@ def claim_metrics_index_reviewability():
                               if (ROOT / row["path"]).is_file()
                               and hashlib.sha256((ROOT / row["path"]).read_bytes()).hexdigest()
                               == row["sha256"])
+    indexed_paths = {row["path"].replace("\\", "/") for row in rows}
+    # ROOT.glob yields absolute paths while the index stores repo-relative ones; comparing those two
+    # directly would never be equal, which is exactly how a set check can look like a finding.
+    disk_paths = {(path.relative_to(ROOT).as_posix() if path.is_relative_to(ROOT)
+                   else path.as_posix())
+                  for pattern in ("runs/**/metrics/*.json", "runtime/**/metrics/*.json")
+                  for path in ROOT.glob(pattern)}
     return {
         "index_aggregates_are_self_consistent": recomputed == {
             key: aggregates[key] for key in recomputed},
@@ -2806,6 +2813,13 @@ def claim_metrics_index_reviewability():
         "every_row_names_a_committed_relative_path": all(
             not Path(row["path"]).is_absolute() and ".." not in Path(row["path"]).parts
             for row in rows),
+        # Everything else in this claim reads *from* the index, so a corpus that grew after the index
+        # was written would keep every number self-consistent while quietly describing fewer files
+        # than exist -- the same failure mode as a checkpoint population that was never recounted.
+        # Set equality, so an added file and a deleted one both surface; on a clean clone the disk
+        # side is empty and this reads as drift rather than as a pass, matching files_rehashed_here.
+        "index_covers_this_machines_corpus_exactly": indexed_paths == disk_paths,
+        "metrics_files_on_disk_here": len(disk_paths),
         "files_rehashed_here": files_rehashed_here,
     }
 
