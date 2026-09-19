@@ -1050,6 +1050,16 @@ about the operator's three-act target, and found one failure class worth naming.
    identical Act 2 traces, so Act-2 depth on this seed measures the retained trace,
    not the policy. Combined-rate arithmetic (~0.04 x 0.013) puts one expected
    two-act sweep at ~2000 checkpoints; this is not a brute-force target.
+   `scripts/audit_chained_terminal.py` then checked this path against the objective's own
+   two gate clauses, on the 3 checkpoints that chain: `evaluate_policy` reports
+   **0 illegal actions and 0 unclassified dead ends**, the two alive truncations carry
+   `dead_end_reasons={empty_action_mask:1}`, and their terminal states advertise **zero**
+   successor nodes at floor 19 (`docs/evidence/chained_terminal_gates_20260919.json`).
+   That corrects a guess recorded here earlier: those two are *not* the boss-exit family --
+   the chained Act-2 map simply runs out of nodes past row 18, whereas the boss-exit class
+   dead-ends at floor 17 immediately after clearing a NodeBoss node. Same label, two
+   mechanisms; why the chained Act-2 map stops at row 18 is still unexplained, as is whether
+   a chained run has any Act-2 terminal at all (floor 33 was never reached).
 3. **A third outcome exists at floor 17: boss stalemate.** One checkpoint spent
    60000 steps in the Act 1 boss fight without dying or winning — every action
    mask-legal, HP pinned at 6/77, flat reward, and **59930 distinct combat

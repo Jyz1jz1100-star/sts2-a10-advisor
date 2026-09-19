@@ -232,7 +232,12 @@
     "second_checkpoint_share_in_pooled_ci": true,
     "gate_math_uses_the_live_config": true,
     "contract_clean": true,
-    "published_intervals_recompute": [true, true, true, true],
+    "published_intervals_recompute": [
+      true,
+      true,
+      true,
+      true
+    ],
     "head_tail_heterogeneity_is_real_in_the_data": true
   },
   "boss_misexit_signature": {
@@ -242,6 +247,13 @@
     "none_was_judged_a_win": true,
     "zero_illegal_across_sampled_runs": true,
     "second_boss_encounter_also_affected": true,
+    "checkpoint_digests_match_the_files": true
+  },
+  "chained_terminal_gates": {
+    "gates_clean_on_multi_act_path": true,
+    "truncations_classified_and_map_exhausted": true,
+    "no_chained_win": true,
+    "depth_agrees_with_the_frontier_sweep": true,
     "checkpoint_digests_match_the_files": true
   }
 }

@@ -67,7 +67,7 @@
   "max_steps_per_run": 4000,
   "open_questions": [
     "what node is Act 2 terminal for a chained run: the chain resets Floor to 17 (RunEngine.cs:1909-1914) and content is observed up to floor 22, but the assumed floor-33 boss was never reached or verified",
-    "why two chained runs truncate on the Act 2 map at floor 19 with 37/77 HP and ~230 steps, far below the 4000 cap -- same empty-mask family as seed 130012038",
+    "ANSWERED by chained_terminal_gates_20260919.json: the two floor-19 truncations are map exhaustion, not the boss-exit family -- evaluate_policy classifies them empty_action_mask and their terminal states advertise zero successor nodes at floor 19 (37/77 HP). Same reason string, different cause: the boss-exit class ends at floor 17 right after clearing a NodeBoss node. ",
     "whether the demo seed is representative: only 3 of 74 checkpoints cleared its Act 1 boss, while named Act 1 victories exist on ordinary seeds"
   ],
   "rolled": 74,

@@ -1,0 +1,159 @@
+{
+  "_comment": [
+    "Audit of the only multi-act path in the emulator, against the two gate clauses the",
+    "objective states. Every earlier 0-illegal / 0-unclassified figure was measured on",
+    "single-act populations; this is the chained Act 1 -> Act 2 route (retained-trace seed).",
+    "Two independent reads per run: evaluate_policy (the function that owns the",
+    "'unclassified dead end' judgement) and the decoded native terminal state.",
+    "map_option_node_types holds the four successor slots the engine advertises at the map",
+    "phase; all zero means the map genuinely has no next node.",
+    "This evidences the harness path only. The seed's Act 1 is scripted, so nothing here",
+    "says anything about policy generalisation across acts."
+  ],
+  "answers_open_question_from": "chained_frontier_full_20260919.json open_questions[1]",
+  "checkpoints_rolled": 3,
+  "established": [
+    "on the multi-act path too: 0 illegal actions and 0 unclassified dead ends in all 3 runs",
+    "the two Act-2 map truncations are classified empty_action_mask by evaluate_policy, and their terminal states really do advertise zero successor nodes at floor 19 -- so they are map exhaustion, not a mask/map disagreement",
+    "that makes them a DIFFERENT mechanism from the act-2 boss-exit family: same reason string, different cause (post-chain map runs out at floor 19 with 37/77 HP, versus the boss node handing the run back to Map at floor 17)",
+    "the deepest chained run (Act 2 floor 22) ends as a death inside combat at 0 HP, not as a dead end, so the frontier depth is not itself an engine dead end"
+  ],
+  "generated_at": "2026-09-19T08:06:43+00:00",
+  "max_steps_per_run": 4000,
+  "not_established": [
+    "why the chained Act-2 map stops offering successors after row 18: this shows that it does, not what generates it",
+    "what the Act-2 terminal node of a chained run is supposed to be -- the floor-33 arithmetic in AdvanceAfterNode was still never reached"
+  ],
+  "rows": [
+    {
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
+      "evaluation_path": {
+        "wins": 0,
+        "truncations": 1,
+        "illegal_actions": 0,
+        "unclassified_dead_ends": 0,
+        "dead_end_reasons": {
+          "empty_action_mask": 1
+        },
+        "mean_final_floor": 19.0,
+        "max_final_floor": 19,
+        "mean_final_hp_fraction": 0.4805194805194805,
+        "defect_truncation_rate": 1.0,
+        "steps": null
+      },
+      "state_path": {
+        "steps": 244,
+        "stop": null,
+        "phase": "map",
+        "phase_is_map": true,
+        "floor": 19,
+        "act": 2,
+        "current_node_type": 1,
+        "encounter_id": 33,
+        "event_id": 0,
+        "player_hp": 37,
+        "player_max_hp": 77,
+        "player_won_flag": true,
+        "map_option_node_types": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "map_options_available": 0
+      }
+    },
+    {
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
+      "evaluation_path": {
+        "wins": 0,
+        "truncations": 1,
+        "illegal_actions": 0,
+        "unclassified_dead_ends": 0,
+        "dead_end_reasons": {
+          "empty_action_mask": 1
+        },
+        "mean_final_floor": 19.0,
+        "max_final_floor": 19,
+        "mean_final_hp_fraction": 0.4805194805194805,
+        "defect_truncation_rate": 1.0,
+        "steps": null
+      },
+      "state_path": {
+        "steps": 221,
+        "stop": null,
+        "phase": "map",
+        "phase_is_map": true,
+        "floor": 19,
+        "act": 2,
+        "current_node_type": 1,
+        "encounter_id": 33,
+        "event_id": 0,
+        "player_hp": 37,
+        "player_max_hp": 77,
+        "player_won_flag": true,
+        "map_option_node_types": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "map_options_available": 0
+      }
+    },
+    {
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\c_explore-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000002000016.zip",
+      "checkpoint_sha256": "7867df360a4fdf38f84643d6ab6db0b8b13debd022d0e13a834b6ebc0384e1cc",
+      "evaluation_path": {
+        "wins": 0,
+        "truncations": 0,
+        "illegal_actions": 0,
+        "unclassified_dead_ends": 0,
+        "dead_end_reasons": {},
+        "mean_final_floor": 22.0,
+        "max_final_floor": 22,
+        "mean_final_hp_fraction": 0.0,
+        "defect_truncation_rate": 0.0,
+        "steps": null
+      },
+      "state_path": {
+        "steps": 283,
+        "stop": null,
+        "phase": "complete",
+        "phase_is_map": false,
+        "floor": 22,
+        "act": 2,
+        "current_node_type": 1,
+        "encounter_id": 4,
+        "event_id": 0,
+        "player_hp": 0,
+        "player_max_hp": 77,
+        "player_won_flag": false,
+        "map_option_node_types": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "map_options_available": 3
+      }
+    }
+  ],
+  "scope": "simulator_chained_demo (retained-trace seed; evidences the harness path, not policy generalisation)",
+  "seed": "7MS1YN8NWB",
+  "summary": {
+    "illegal_actions_total": 0,
+    "unclassified_dead_ends_total": 0,
+    "truncated_runs": 2,
+    "truncated_all_classified_empty_mask": true,
+    "truncated_all_zero_map_options": true,
+    "truncated_all_at_floor": [
+      19
+    ],
+    "death_runs": 1,
+    "death_deepest_floor": 22,
+    "wins": 0
+  }
+}

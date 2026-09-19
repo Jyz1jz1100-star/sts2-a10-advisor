@@ -744,6 +744,40 @@ def claim_boss_misexit_signature():
     }
 
 
+def claim_chained_terminal_gates():
+    """Check the objective's two gate clauses on the multi-act path, not just single-act.
+
+    The campaign's "0 illegal / 0 unclassified" figures were all measured on generated
+    single-act runs, while the objective's end state is a chained run. This re-reads the
+    chained audit and also cross-checks its deepest floor against the exhaustive frontier
+    artifact, so the two cannot silently disagree about how far the chain goes.
+    """
+    data = json.loads((ROOT / "docs/evidence/chained_terminal_gates_20260919.json")
+                      .read_text(encoding="utf-8"))
+    frontier = json.loads((ROOT / "docs/evidence/chained_frontier_full_20260919.json")
+                          .read_text(encoding="utf-8"))
+    summary = data["summary"]
+    rows = data["rows"]
+    return {
+        "gates_clean_on_multi_act_path": summary["illegal_actions_total"] == 0
+                                         and summary["unclassified_dead_ends_total"] == 0,
+        "truncations_classified_and_map_exhausted": (
+            summary["truncated_runs"] == 2
+            and summary["truncated_all_classified_empty_mask"]
+            and summary["truncated_all_zero_map_options"]
+            and summary["truncated_all_at_floor"] == [19]),
+        "no_chained_win": summary["wins"] == 0,
+        "depth_agrees_with_the_frontier_sweep": (
+            max(row["state_path"]["floor"] for row in rows)
+            == max(run["max_floor"] for run in frontier["chained_runs"])),
+        "checkpoint_digests_match_the_files": all(
+            (ROOT / row["checkpoint"]).is_file()
+            and hashlib.sha256((ROOT / row["checkpoint"]).read_bytes()).hexdigest()
+            == row["checkpoint_sha256"]
+            for row in rows),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -796,6 +830,8 @@ CLAIMS = {
                           "whole-partition boss kills, judged wins, and the ones the engine lost"),
     "boss_misexit_signature": (claim_boss_misexit_signature,
                                "every seed behind that rate really ends at a cleared boss node"),
+    "chained_terminal_gates": (claim_chained_terminal_gates,
+                               "the objective's two gate clauses, checked on the multi-act path"),
 }
 
 
