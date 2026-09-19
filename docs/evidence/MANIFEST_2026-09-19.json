@@ -8,23 +8,164 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "5ba423b189b12a778238641edbcf96a118d53b35658d91b8af69ba0eed2dc9f2",
-  "evidence_file_count": 28,
-  "generated_at": "2026-09-19T11:53:22+00:00",
-  "git_head_at_generation": "6398128",
-  "checkpoint_digests_cited": 14,
+  "bundle_root": "20205efef9607c4fa9e7a84e51d3bab1d578b9d63792804cab6f81c3a73e57ce",
+  "evidence_file_count": 29,
+  "generated_at": "2026-09-19T11:59:59+00:00",
+  "git_head_at_generation": "ffc7fd8",
+  "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 59
+    "total_64_hex_strings_seen": 611
   },
   "resolved_checkpoints": [
     {
+      "sha256": "02669b366c62f06b9ee69c540778b832bdb2cd6d938d8172488fe3c6d651bc71",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "02a772d1c04e4ca66944fe340cc7ad5f61829ca33682424d6a5da9f1f93f21b3",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000012000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "032a009f4196b7e640f616500c65bd78c3cb0fd1df4a32e14029fb2ebad1955f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T233201Z/floor3/checkpoints/step_000000002048.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "03796b5624925e20d36b86ce65d5fca0ced75002e4f937177c9786856810cfac",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "03d0dec250dc107f120a7639f060dafb7bd937cd9d06ff4d0648e496a15c0801",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91002/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0481258bc1d3c437202c5553dc9d589c953fb67fb6aeaea379ca389ce01ac421",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91002/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0512b3af1d93726134790334f8259fb9be916c1aef31d028ba86f31d4ed21327",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum-smoke/curriculum-20260831T135922Z/combat/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "05bdfdaa3d90fbb17eeccf1de20944824e7ddc776c6f9b7c07043108aad8d802",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91002/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "07ec858bbeca9ccc6b61913851bd2ed5f0e3bae7f89acf0eea037e0995a4df4e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3/checkpoints/step_000000250008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0831580397b235007aa9f6b11cdaedbd821a863b738324efb214828c25717d4d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91001/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "090ce23e83d06beb3d4bff3dd35df98f862d97742a99b9e1fe40b6a0e325f8ec",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0a1236ec60621fa9961dbd13b1daa121fcd4b26e3c8fda1e08dbfb88facdcfb5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_4/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0a2356de86db2e7e019c44643b33ddfdf42af0723fe4ea6af9fbe6ebdb879997",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91001/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0adab322e1c281aeda0cb7949dca6360b10caef3184c63587fb46a6feb329156",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
       "cited_by": [
-        "chained_terminal_gates_20260919.json"
+        "chained_terminal_gates_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip"
@@ -32,8 +173,419 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "0b8926efe8377304cc9cac2519d2a6c897a55668ba90ac1614150438a50716f3",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0bc8ccb197e44dec1dc02dd56fe3e6f216266231aa7465aa06b018a6a640d43c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000006000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0ca14efe5aca4ef43020e66fd92231a08e22385307a80fcc9f2df960dcc93c14",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0ca9e265fa3b1dd78c5428e54cb662df2dc580ee152250d3c29843b1c6be4e56",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0cf120265cfc0440f486e0fc102ec4c8cfe8cc502a0658a4d1d9f672dd5690bb",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0d62f1acf618e08ce6f26f66e497de526f444764b713f405c23fa3fd820fed0c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91001/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0e7d2ebbf078035b65572832335092eb59ae79ed741290fe395049c42a92e29d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0ee588ac69abf6282c2d7e795a94e2512a8396d543bc4f7f29b2a1966ec2433c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T165120Z/floor3/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "0fdf7181deeb60eabb694846f3720e38bef018f7560bd1520fa526b88e3ba24e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/par2/v2curriculum-20260918T171948Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "103b59626860543e2df98fef8db024e40380060ce0e81085afb85341d3b71219",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_11/v2curriculum-20260918T172645Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "103baac52ec7cc6789f70281a8623446e0684c3dbf6d65cf0f1eb4930e2ceeb8",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000016000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "11adcdef40763f7ddd788a281ffd95f1fa0cfdab2ff452a23028ccda1ce840c5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_4/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "11f3433ebf9c551d5a6c0170bacbf3c2f48139d2b35da64601ab1fe751787d42",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "127172aee47c7078c19a08e7047b9ff403e72e3f2a380ef5193b103dfdd0f38d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_8/v2curriculum-20260918T172645Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "1359365d7ca313219cdc5676dfe3e0e9f51b0c64d92c26787b104fd31a2dc08b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "1429fb4dffd4c03209bbaa17a1af3301c0b400d44775b02561aeec3636044061",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "158d6e5d57a696afcb2151b0696b65b6604ff6e72f807dabf438669dfc99f126",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "164e07836f148100d48706d45b1b2a5fba3825cebb8bfa764568677b18ed3b26",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_0/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "18e8581be1422a5adc2d174a0f190995cabd40a092b8bf434ca969b7d3d2f67e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T165120Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "19c3024b805c52dbeda3d52a2421fc589110e0e187100136ebab7ec74d51139d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "1ba2032442ed1e7a0515b2bd2f6fc9ad170d7e35063cecc1a78ad022cf5f24b5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T140450Z/combat/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "1cd94369f14ee1fc13ddf0e367138de4c10f8dfad9c0b48e4ad031eb51c6c5d4",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91003/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "1e18aae64c2ea6731d17eec75a701af16d9321fdf8cabd164523ddba423eb033",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T183227Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "1ed3f3db1ea5da76ddf1a6bdcd36f1fbab9f79fae2f1ce7f474fd44e740a5e52",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "205186459f75bd813bbcdbe2f5c1ae9038ee269f6f4a948845e738981f747345",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000006000012.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "21a6b6683f04acc10795b8e8b87c382e89794d8e21c304145a7c4daa0e73e355",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2325983054b4cc19f14f9f3bb4f514d5c99c8146a02e6d22c546fd92a378e38d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91001/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "232b27dc9801447d7e62913ac2d8754e144d77d488cd262b81a6e442139a5e31",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "235e7de87d84fc36789257b332ec2922e91c3c0749af3e139c1be3dce7090344",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "239e20ab4c48512f3a18bbae922328bb941601fa2761082c028ad571bcf5bb8c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T122903Z/floor10/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "247da84cc235b92bb5a7127870fad2fa0bddf2d125466c1744f13ada3f8ccf9a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91003/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "24d378cb356737cf96670620c98d000eda58090bda4d4249e833a3c23ac93112",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91003/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2b0057fb220a7463226227b7678a5c2622dba745c1423cdf4afbed0b36960066",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91003/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2c4ef7dc2442025d8bb94997299afbaa986011ddb531ed73f5f54842cda6ca76",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2cd3e8cf193e3a7dadf97becd96787eee15ff44254a91409b6e9acd8baf248b4",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_5/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2d112dafa790543c0daf778f71781be6c3fc94f6aabb0a2ae40f994759b45731",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T122903Z/floor10/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2dd24acaeaa33f9b1973bac2d80ccc6613a3f6ddf6a38a969807f1d54af94d01",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91001/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "2fd1a8ec333aa236b5193ffa286771264388ba5bc7299866cda751ce9216cfa8",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_6/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "302e98adde459733f038c1485b9a2bf7973c70c2eeebe724eab52cf4935d1455",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3091b78ac3331c8bcffdb921589b85faf4f11b3d54bf50a584d1af20dd02ae25",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T233201Z/floor6/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "310f71b4c0097939fdf89df3489fdf82dd8baa9f1029f05692b26b715e9a496a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "318c1c800e54c90da5eb35a8214281b615b5a6fc69ab4b4c3ee458ea2b4c760c",
       "cited_by": [
+        "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json"
       ],
       "paths": [
@@ -44,7 +596,8 @@
     {
       "sha256": "3193b87dbe004d1bcafb9d677d684b18c88621451991f71f27204cf2236e9931",
       "cited_by": [
-        "act1_win_ledger_20260919.json"
+        "act1_win_ledger_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
@@ -52,8 +605,369 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "331b024fe3fc1b83f1b7e72087ed555fb22d017e0fe34ce0be5191cf729f769b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "343e803c45b729fa897664e2a1c821da385d5e5a9ee094063bac17fc720c5d36",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3538a76015c9327ec6d016e2a5f5b9d5d72ed1c90de8abfbc5fdd8c346a59589",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91002/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "36b9c8243beaddbab24ae8586e9986050682c898851332f7a928e06206a3ee79",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91003/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "38e8e5fd7447b06a07325679de0741b1135c4412573c4726df5353d71b61b2b3",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91001/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "39b2244a89b20ed6455cd4c6b4cbe7e3f47f234f168cb6101edf80e42a1a4e38",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91003/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3ad38463d4ceb388dbdaa8fd6099a49385716a7a16af506566126e5fe0f1458a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000018000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3b3f755c8e0332a59e9853787360c730049737956d2f5c7f5b51a8fd39b03f05",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3bd7f09969843ba231b9a4d00dd3188512120c99afdee6d0830b95ce622397a4",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3be549739945b0d46d9d4d8250d80249ba477acdea58eae3b2374e1ed5d9e0a2",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000010000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3c4dc5d75c61210659bafbf143a719b22f69d7172e8e703d26c4891602f0fd5b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000010000020.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3d52dc02bd473a913daffac6e8bcdfca9ed45b56a520d8f39c4877314427aa9c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6/checkpoints/step_000002500020.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "42c3bd881cec188c1c25ec8d83defe3d8ee69abfd2715fad1ccb1da8501569a6",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91002/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "4314e74c684397d2de30e6c1aecc486a7cb2ce8a3caf516fefa6d35d843adff5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "43939862f0f84a8ffe97bb7465d755f82db17e75836da884f83132ae084f35f2",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91001/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "46e16c82235a58c5386b41ebda5552b2e40388210d25395c0e27b20835886178",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91002/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "484b7a2913a5749dcb80d55d5d6606f5d050874530aac84c9105a901d23267c8",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "497be94fd412735add6c24e741e50825d501b91b68917913063a998987a1d016",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "538fbac62458b36bf4f461ae5c92ec39739720611041037388feb0fbbf8af10c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T122903Z/floor10/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "53f60b84539832605638463f09fc595383f21f4ff8810d8c7084134113553e02",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "560e60f907b374cebddcb0b7540880fad2c665adb7fb6a7ff0dc604034848821",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/e12-0/v2curriculum-20260918T173528Z/floor6/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5659512bdfbf2e9747451a51fa7acf41dd6976fee1dca1862a8c66a9d7d7f868",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000016000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5734979460d4aad5f23a222da21e5833134ac5ca876dcb0ee3dddcfbc87a33d6",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T232900Z/floor3/checkpoints/step_000000002048.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "57d31bd18aaabf2d4d1e99bebf856be00e4fffd831f1b7e05b1cca22ce839842",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T140450Z/combat/checkpoints/step_000001500012.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5ab007e392f2ad22c76b1a31fab58d70168301fad36c223055cb356d7fa4575a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5b3ef0d7b2876d20ed839f22bf73deebb42dfba4fe6a20a6e3a0455475f06657",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/par1/v2curriculum-20260918T171948Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5cadce4d142c0f809f018eb69df031c8acd3326bf88e49e2fc8e18ae0d83d754",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/par0/v2curriculum-20260918T171948Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5d866fb705158f1e8e412f0ff3cacc8a2bd2e35f4dcbdd7ba4d6fb5a9c1d601e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T232900Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5dd8bb03047f3f037a072d5a09b6a3a4d2a6cf49c0694a29f53ab7cff4aadd12",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/par3/v2curriculum-20260918T171948Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5e389cd4bd2569323560cf171cf2a55333debb882793c54b114b690707be49dc",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "5ee7128d0c12ffe36deba7fc7cc19c67956f85f95aefc320268700b03418f8ad",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91001/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "63f62dbc72555b01b849498d70719ae2ef4c2e50343cd91db832b778e0c489e3",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T122903Z/floor10/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "64a38ba34878e8ebd00ef6b5f0b2cf2e8dbcb64083c422f932bb2b83eb3bee3b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T233201Z/floor3/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "66ebf062fb728c8a6167eaccaf60116a2212f6a9318c123e937c84c1d25ba1bb",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91003/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "68dfc5bfdd50e2e7f079ed7b6b169f757351c32412ebb1ed38cd3136dd2d0e98",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "694a77abf78f2c45cc84fc2d2bb065f64e3fa9278636ab42f4e3db72f8736f2e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000012000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "69b16f533e89537df9f3988accf7940a58f49f1dd9fb4456d9c54804edb3175f",
       "cited_by": [
+        "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json"
       ],
       "paths": [
@@ -62,9 +976,140 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "69c6c32d693f51be14e78e549b3892ee22747d84338fdb58b7cfd0449a0528db",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3/checkpoints/step_000000500016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "6a72f81255a2eab98756aa08b145507c417f779bcfbb72e306776fa09bef35e2",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_10/v2curriculum-20260918T172645Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "6b1d1e862618d0126a20aa023c9de0c57f2395cc02919b862e4c0d8feab6886f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "6b67c378f46573da853252498a0b37bd64e5a35a0c7c6059a46d34a27ffe7827",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "6ba5c201e3ed3db02c2da985fbac00ce2a9562403285802c393f2c22a29373a5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_ab/a1filt/v2curriculum-20260919T003139Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "6dee1739b043284361b6b5c47edc0a1e50e73fe7f18fd843200457a645fbd326",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91003/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "6f23d49ecbc92a2910b4bffa175b445e6f223bb13010cd6acf5618783864d252",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91002/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7146a45990bf75497ad44404794e0ca939b9cffd2181d751b81bebc594ef25a0",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "71ac97d8c0976008888275d1b01ac48547d3576c3d9515f3847dd2c011553df0",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T165120Z/floor3/checkpoints/step_000000002048.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "71f7732d3872b344510a5f12a01a04c84d954b78168db06751302cff38aa6c9b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91003/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7424a6776b5374e87a22758ce586c4e0f1799f052dd01290480c5108541f461f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/e12-1/v2curriculum-20260918T173528Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "75eb4b1209a8496bb9ce5037f0e5101a3901031c9be355a85fbec557484e303d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91002/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "76d4089c60e310fa52f4eb781a8b250bba89424937dd5d6ed599682de9c15510",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T233201Z/floor6/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "7867df360a4fdf38f84643d6ab6db0b8b13debd022d0e13a834b6ebc0384e1cc",
       "cited_by": [
-        "chained_terminal_gates_20260919.json"
+        "chained_terminal_gates_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
@@ -72,8 +1117,19 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "7940e6076f89b3dca0f86f395b003ec65f5b89dbcec73e9d695bf800b5b46ec9",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "7a242d1e36bba2e9e606d2279af59b97de123b14984040ee9329d35a8a077c7b",
       "cited_by": [
+        "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json"
       ],
       "paths": [
@@ -82,12 +1138,303 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "7ab37acef7995f94d0f3f932587dac3dbdfe78fb71e850a98c07e54ef803d59f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91001/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7b1d52ee95a75e95441ddbf851f321f85943081062623976a2c533af3764e14d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7b5c3e6a49fa6b6a05a701d40e8ab7b1759e3c2de08f13cd0c1d1cfe453b0ad5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T140450Z/combat/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7e047d63fe2079ccd2ab7fff2a7f509d4edc80d9f20f3558ecc78b6b9d8478eb",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91001/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "808589d8ea25b2ef578b30d649283dfdf7f205f9b04e7ab1ff08ed909ee505e4",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "82f57200db64c72eadab19e916eaa00eacd5cab9d6c95534a3756847ac4f46d7",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91003/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "84a56a91dd0927e94a95f642e116937c41070cf2c35776eebfc60744f1477a20",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_2/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8663517fb0b9dafb3396b731f7fef44542ea803e4c5538ebb5b044ea5f1e298c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_7/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8a004c625b370fffbf9b0f3ec97ea31a2fd4f42ce878b936a6614c186b1412e6",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91001/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8a4002c4a30f8b9c2e072130f5653e627fbbeae66b33c14380ccade3544c495b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91001/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8a84bacac37fbc8a4c6ebd48ceeb0b243c733924d4ae1dbe2cfdaf18d1c3a480",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T232900Z/floor6/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8ac6ce756cb20a3202085e60fc99ae5a8e71827c34cedfc48254c14cfd4b6dd7",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "8b06d38e33541fce636c7abdda23d58e6fe3807a181ce4c7cd92d2ac288b58b5",
       "cited_by": [
-        "act1_win_ledger_20260919.json"
+        "act1_win_ledger_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8cf52b408e9e25d4c58def81a3beaf294f95ae637a504b339f08d67de239d70f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000014000004.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8d5300773be4a8479f834f43b0f1b100cc93d628459668e56472147a2a421df0",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91003/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8d90b3c0863cac508b6ff3e7ec60eff75711b8aca9f5f099a56008c9163da87a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum-smoke/curriculum-20260831T135922Z/combat/checkpoints/step_000000000128.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "900102ada5e5d6d192dca141d8d16a1d0bbaa1bf8140e8573a93b34f9ac46309",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "908b3ed8debc562a451bb516b534e1980bbcde445888430f3af1c4f2b7a9c325",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000004000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "91b45795e94704444094ec628ba061626af1bdc548fbf90fea9a272797f16bd4",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor3/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "95795b0db0fc16686ebd577faeb48aec6c013564a61064e2b2f2d18824867a25",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_0/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "98817be0ae0247a73cf8f7a413df05128591fafed593367694e5e81e00d0e807",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91001/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9943d69550a88730b41e6050599522882c1d1c27e7ff7502e347b73c1d85fa18",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91003/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9a426c3201f390905ab73bd4734f54e365d1678c6f7f0c2a8c537b0e022cc64d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91003/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9b928bd662fb5c4961b2b6ff6453b7269d43c54a4ae69b4da05a15085a4fd8f5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/e12-0/v2curriculum-20260918T173528Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9c404e9eeaf4a00e9b65f4f00db3533e53a800fdd7147d9ba54ffacd44a5e11c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9d0d8c294412eebe45518c1698b15f2d6ab4a3e8c56e217e5037a78058ca51ad",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/v2curriculum-20260918T165722Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9dda45ca9c2f13b8eb195a2012ebdcdebfe38c448b0abb5d2e729d25b8acf98d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6/checkpoints/step_000000500004.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "9e06b2c5ba09e00f5224d36622f40f2b77f2b518bfa8ff09e58afbac6cf4d141",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_ab/a1mix/v2curriculum-20260919T003139Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "a1088807588cebbf7d8ecd651422256c4a8d6f3a6317f8dd0f79eca051a277da",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_3/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "a13229c3b300d4aeeec0c35912b48656592030cbf47e350a99456a36e277b09d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_9/v2curriculum-20260918T172645Z/floor3/checkpoints/final.zip"
       ],
       "recomputed_matches": true
     },
@@ -102,6 +1449,7 @@
         "act2_boss_misexit_signature_verified_20260919.json",
         "act2_boss_node_comparison_20260919.json",
         "act2_terminal_check_20260919.json",
+        "metrics_index_20260919.json",
         "refusal_class_generality_20260919.json",
         "refusal_root_cause_20260919.json",
         "rejection_phase_attribution_20260919.json"
@@ -112,9 +1460,60 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "a41ab0d403fb06841a8b6e98527279844da22d9f92f15b7f1dbd1e489cac2d16",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "a46bef03dccf1f95e12e4ed1c9380bd75fd2fb6c6c5f3c9e898114b0a5c5eb50",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91002/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "a566b8a84dc8895fc5075e6903cc1fcd7c0813b84a02b5b1694ec8b62f2f1809",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_3/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "a78e6850428a815b37cd5bb08bea688274cc3a112ecd9e13b37d22e20bc1116a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_5/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ac4f43dabd1ac687cb97c5296976bf317bedd4971d2607909402840ae71fcb79",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/v2curriculum-20260918T165806Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "ad6d597ad37d3031b736991b9e3f4b8a9a5562378810dd17d17476acf5425db9",
       "cited_by": [
-        "ladder_lineage_20260919.json"
+        "ladder_lineage_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runs/curriculum_v2_smoke/v2curriculum-20260918T233201Z/floor3/checkpoints/final.zip"
@@ -122,9 +1521,40 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "adf16573bb2e62e12b046afee5ff2f3ff7adc028b29184030af0589137c441f2",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "afaccb842eaf37d0719ec38231d0fdec96a997a01c921a5655d6c6c0b64f1b3d",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91002/checkpoints/step_000000062508.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "b2f442464e959b4778e87781a6839666ceea96d04f44ba9e071d2ea330819b51",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000002000004.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
       "cited_by": [
-        "act2_boss_misexit_signature_verified_20260919.json"
+        "act2_boss_misexit_signature_verified_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip"
@@ -132,9 +1562,50 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "b4f97515d851e6bfb8e779fcfeea60afda47d71890bc896e589174b150c86f4c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91001/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "b6693141ff4e71478136a8244b7d1c63bbd63e9b92621462a772ce9d62730f69",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6/checkpoints/step_000001500012.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "b7801a091ecc7a4f4953c0c2ad317a801a82ac34822a7fd2345f1ef7a6f140d5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000008000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "b7f003a82d9d49ffb4e1d851afc427b7614d2fbccb221464b94c598dbc8efb8b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-2/v2curriculum-20260918T190009Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "b8deab061798daeb65bb681eebece3d54a53229bb7e6767f22c71e082e355ce4",
       "cited_by": [
-        "ladder_lineage_20260919.json"
+        "ladder_lineage_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runs/curriculum_v2/v2curriculum-20260901T115142Z/floor6/checkpoints/step_000001000008.zip"
@@ -142,8 +1613,479 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "b8e063ac536d5d694c169872aad5af4c37db5027fd76c3e518c92f67f3126f1a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91002/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "bab84bd50a9a73bd60136c2866e2b231749fdeea36c997c7205d63250ec49f4f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor3/checkpoints/step_000000002048.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "bae6bdfa8a69c1c92219b4656c9aa7ffa76c2c504149f906efcf352eae3099fd",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91002/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c18bde833f15c73580d4ac9f75a6bc520df48fceb45bc04aa9a74a6c1cdb4917",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c347a3ed52d67e3693954bc2eaf49b10894ae8c5c89af0663c5a8c8af979bdff",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91002/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c44cdc52ebfb8b0b053bbdddafca4b564f83fa1283a852858b6c86214e25e7dd",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c4fb20b1b44588c604a5330c49f902197c1397a9d8e7554cc965d1f36b40f82e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c62dfdaac93bb8210940571c0728e7a5358097f0ae274263eb263e7c28542576",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T205351Z/act1/checkpoints/step_000004000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c66d6c6e23b9b3e048a3795b29702d38397ce98a9db8f0fe96e9f317aca727be",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000002000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c69995523a1f010b17cb63d88864fc93be8b39b2c93ad2fd7dbf0444fc0c9923",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c6f3afda3a8ba18a3f32236f70bcde34b43c4bc8d6bd52c09c15d28a9548037a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/c_explore/v2curriculum-20260918T175708Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c73a8cf21f1e0f89bcbc392796515e9f498c623f4f53ba46e9c1b598a5aa3f97",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c7648f04cf70565146513b9a9da4e8ee7ff7edee9c0e6d2e68f4fc184f295925",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "c8de0adfb779aa34789e85a2b0623e1903aaf8fc17743787aecec6a834199151",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91001/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ca0f2ba265d2553bb57a7ad02557317dec61001a4bea9314a646531a3268e3a3",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/e12-1/v2curriculum-20260918T173528Z/floor6/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "cbb4cf13f7f1590de14914a646145b5cf4bc4a78e82b1a7fda37f0e1e0823f73",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/C_seed91002/checkpoints/step_000000250032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "cc09d17b57cc020be358ba8015a4bd27e1c589912d6571db373ba46f7ad3143a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T165120Z/floor6/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "cc1fe8afebf65ac2709aaa244bd88ce9ae4686f68961939a63274cbb0dd589c5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000008000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "cd55a326ee86fac1f135eef7af89d8908c8677d9c731cbd41963bae8c41854da",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_1/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ce35c0f9bdbb5e0c5046d6eeaf76b334d8285c2525431e27cf3af2d9d20da5d0",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T232900Z/floor6/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ce7417ee8ef24030b9dd6192e4a33215e97c17783a40e7a39478f3b28afa8bc8",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "cf9abc96bf717c6bb3e17ab06d5f5084e5ea9fa4248205f72ebda95de1d57fcf",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91003/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "d307cb69bc2ed7db2c7327c4d673f029c53d725bb6902b9fdea7de72b9ec8bae",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T165120Z/floor6/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "d4c6bb43b629eb0ad5cd800491ee5647d68052b438ca7a238947d010c2bf825e",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "d6bbf66f0cc0107e4fb00b37ff82aff397987acf57af6abd5cf77e08cabfb7ca",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_6/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "d853ae64347dc5d2d24ffd912d6c31e91b4f3f7787cf5c99ee589547b328346c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "da18bbb6b8044927fb22e678ac6244824d64cabd9e049e3f349bfdcbcbb041b1",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "da79cfb2ec1f676c85082bd3816246dda11ada28c86849a882a987110e347fed",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_7/v2curriculum-20260918T172645Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "db104b5286b850c73f8f171aef688282805bf37c8a9ad3a688fe0cf602e1304c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000014000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "dbac8b37040431665ce83ef79aa8d1425ab2fdec31dcf6cdcb577e4ebf5e6bf0",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "dcbef208b448e7c10dda337cbaf46765434cd6f342dffe3e7b22534b61bb564a",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-2/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "dcd49069cbfd7ee5f03dc9daa8e9d81c19da0b2f3226964905944bfd7e342cd5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "df5b88c684858596be24a751fc145e58236bd5cfcf16d9003403b74ea01669bb",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor6/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "dfdef63b438c33c9735c0ed83dd8b2264bd5d85ac268a9711c41c0799fbe78d1",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e10659a576717238b94965cebe3ea4a3c6956eb146eccfb3fc0875dbb3b5646c",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e18df6cef3966b7149518740c4964b522507c09e5a6a65ff607722c729c93903",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/v2curriculum-20260918T165744Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e21348eebed24414d818bb4ad4b21630455846353a0655795be1e78536fe186b",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T232900Z/floor3/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e3b8548c8356fdf2a9e1beee6db9b114b2d7e2a12dce8f03e317dbb293b8b815",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/a_base/v2curriculum-20260918T175708Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e3bfba59adaa89ea3a872f36f11177309e7d27242a20a6fad7d3ad22b2965827",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e469bd2367fa21092bd1cb33585cb92ddb4da95f2235531983fef64c9866eb93",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/bulk_training/act1-pretrained-r3-bulk-20260903T0640Z/act1/checkpoints/step_000020000000.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e4f45b232f84ffd668db9d7a26d531da2375a019d33188b9a619b63a398c7c6f",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p8_2/v2curriculum-20260918T172407Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e54dc5204edd9e0ff98d3117509d1c85d4fb594252e07ad08e1929ea0f3e3ab8",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e7bb6974389c7f6f18b8bb97a72e16d41704d450619afe96f65946897f387518",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-2/v2curriculum-20260918T182051Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e914f5fc637d70032d01c175ba1ef7b876351e30fbf06b3c0407012c4cb1ecce",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/checkpoints/step_000003000024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "e94d2578634e8e634b9323998d6876e8fe686c34f5ee28fe7f8fcd3bc75bbf38",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260901T050230Z/floor6/checkpoints/step_000000001024.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ec02f66be925f819316d13fb8475b3031b28cccd703125b8cd947bc17f6741d1",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/B_seed91003/checkpoints/step_000000187524.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ed43b4beea547699d1a050fe9dfcbc33a3bae75fe98c53a27795e89b78a2a083",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "eff8c5c51e9b897d05bb90eeb9ca524ee34512c357fef9373fef02a10bd0eb10",
       "cited_by": [
+        "metrics_index_20260919.json",
         "stalemate_mechanics_60k_20260919.json",
         "stalemate_tail_20k_20260919.json"
       ],
@@ -153,10 +2095,51 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "f05403ec643f215965b49b57c24f5d3cce7e5934df984a3bcd748ba802804a99",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f1eeef2b6041d74cc99746412d9d238410d641943ec991ae2e89327418f0a9c8",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f325559d44f9c7431d30d17e31ec1dfaee102d3e2b79d755b534dd74f2f3e1c3",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T115142Z/floor6/checkpoints/step_000000500004.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f369a02bfc1cc2494995769ffb7617e79cd0ef6b71987687a9a5fe60adf305b4",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/ablations/floor6-20260901-review/A_seed91002/checkpoints/step_000000125016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
       "cited_by": [
         "act1_win_ledger_20260919.json",
-        "ladder_lineage_20260919.json"
+        "ladder_lineage_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
@@ -164,12 +2147,83 @@
       "recomputed_matches": true
     },
     {
+      "sha256": "f5fd6c33d29622e745a59ee77b89f691c5cd489c725086db2e32e3349108a473",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-1/v2curriculum-20260918T190009Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f71d5cf7382bd832d5dfc75ebc87b20b39261668d64557e761ef16463e7cd685",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/fan_cont/b_terminal-0/v2curriculum-20260918T190009Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
       "sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
       "cited_by": [
-        "chained_terminal_gates_20260919.json"
+        "chained_terminal_gates_20260919.json",
+        "metrics_index_20260919.json"
       ],
       "paths": [
         "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f851b42bb2962d92e44245cf5b08ea343fd0738ee6aa9eac03031714b729a684",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum/curriculum-20260831T140450Z/combat/checkpoints/step_000000500004.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "fa8403699660e0fc83b8c15cb0cd482651f4eb49f0fcf7efc333ce984a56fa26",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum-smoke/curriculum-20260831T135922Z/combat/checkpoints/step_000000000256.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "fb82c97f02a8d84d64ab071da6e701ad0c8a3abd7c6300e94ad2ddd5f9d7bcb6",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runtime/fps_probe/p12_1/v2curriculum-20260918T172644Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "fce8104147402b15cec466c06e67749516e86ed07d84afc8dd298c820e8c9bd5",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ff3c867b1a8fda075007104ce7921b0a0360fc05fc27ff4bac857f0130e25352",
+      "cited_by": [
+        "metrics_index_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6/checkpoints/step_000003000024.zip"
       ],
       "recomputed_matches": true
     }
@@ -204,8 +2258,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "ad28b12d6e898b08f2b46ba006ccaa644a3839635b90cc78c0dcf7f6d82a4ff2",
-      "bytes": 12120
+      "sha256": "9647301326bfe89438827524b198982d60530235730c2911eb9dd1e99a509482",
+      "bytes": 12383
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -276,6 +2330,11 @@
       "file": "ladder_lineage_20260919.json",
       "sha256": "b4263080028eb1ecbe8f223862a397bcc39985f61656e257cf78ce5065b5dc58",
       "bytes": 9996
+    },
+    {
+      "file": "metrics_index_20260919.json",
+      "sha256": "7a4319c21055d5761993b975c85e4eefe5eba1e227e33b2451d39fa6c41390ca",
+      "bytes": 221901
     },
     {
       "file": "modpin_drift_20260919.json",

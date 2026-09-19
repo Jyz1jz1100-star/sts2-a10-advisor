@@ -336,7 +336,7 @@
     "digests_and_sizes_recompute": true,
     "bundle_root_recomputes": true,
     "manifest_excludes_itself": true,
-    "cited_checkpoint_files_hash_to_their_recorded_digest": true,
+    "checkpoint_files_rehashed_here": 218,
     "every_citation_is_accounted_for": true,
     "no_citation_is_loose": true
   },
@@ -374,5 +374,12 @@
     "no_row_is_a_bare_restatement": true,
     "prose_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true
+  },
+  "metrics_index_reviewability": {
+    "index_aggregates_are_self_consistent": true,
+    "index_backs_the_contract_channel_numbers": true,
+    "index_backs_the_dead_end_vocabulary": true,
+    "every_row_names_a_committed_relative_path": true,
+    "files_rehashed_here": 282
   }
 }

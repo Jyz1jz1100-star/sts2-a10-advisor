@@ -1211,10 +1211,13 @@ def claim_evidence_bundle_integrity():
         "digests_and_sizes_recompute": digest_ok and len(manifest["files"]) == len(on_disk),
         "bundle_root_recomputes": root == manifest["bundle_root"],
         "manifest_excludes_itself": "MANIFEST_2026-09-19.json" not in listed,
-        "cited_checkpoint_files_hash_to_their_recorded_digest": all(
-            all(hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == record["sha256"]
-                for path in record["paths"])
-            for record in checkpoints),
+        # A count, not a boolean: the checkpoint zips live under gitignored runs/ and runtime/,
+        # so on a machine without them this reads 0 and surfaces as drift instead of raising or
+        # passing vacuously.
+        "checkpoint_files_rehashed_here": sum(
+            1 for record in checkpoints for path in record["paths"]
+            if (ROOT / path).is_file()
+            and hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == record["sha256"]),
         "every_citation_is_accounted_for": (
             manifest["checkpoint_digests_cited"]
             == len(checkpoints) + len(manifest["unresolved_on_this_machine"])),
@@ -1400,6 +1403,72 @@ def claim_objective_clause_audit():
     }
 
 
+def claim_metrics_index_reviewability():
+    """Whether the campaign's headline counts can be re-derived from committed content alone.
+
+    The raw evaluation dumps live under ``runs/`` and ``runtime/``, which are gitignored, so the
+    claims that walk them are only reproducible on the machine that ran the campaign. This claim is
+    the portable half: it recomputes the aggregates *from the committed index*, then checks them
+    against the evidence artifacts that quote them -- no gitignored file is read at all, so a fresh
+    clone gets the same answer here.
+
+    The companion fact, ``files_rehashed_here``, is deliberately a number rather than a boolean:
+    on the campaign machine it equals the row count, and on a clean clone it reads 0 and shows up
+    as drift, which is the honest signal ("that check needs the originals") rather than a vacuous
+    pass.
+    """
+    index = json.loads((ROOT / "docs/evidence/metrics_index_20260919.json")
+                       .read_text(encoding="utf-8"))
+    rows = index["rows"]
+    aggregates = index["aggregates"]
+    current = [row for row in rows if row["has_rejection_events_field"]]
+    recomputed = {
+        "episodes_current_schema": sum(int(row["episodes"] or 0) for row in current),
+        "illegal_actions_current_schema": sum(
+            int(row["illegal_actions"] or 0) for row in current),
+        "metrics_files": len(rows),
+        "metrics_files_current_schema": len(current),
+        "metrics_files_legacy_schema": len(rows) - len(current),
+        "rejection_events_current_schema": sum(
+            int(row["rejection_events"] or 0) for row in current),
+        "unclassified_dead_ends_total": sum(
+            int(row["unclassified_dead_ends"] or 0) for row in rows),
+    }
+    vocabulary: collections.Counter = collections.Counter()
+    for row in rows:
+        vocabulary.update({k: int(v) for k, v in row["dead_end_reasons"].items()})
+    channels = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
+                          .read_text(encoding="utf-8"))["channels"]
+    dead_end = json.loads((ROOT / "docs/evidence/dead_end_vocabulary_20260919.json")
+                          .read_text(encoding="utf-8"))
+    files_rehashed_here = sum(1 for row in rows
+                              if (ROOT / row["path"]).is_file()
+                              and hashlib.sha256((ROOT / row["path"]).read_bytes()).hexdigest()
+                              == row["sha256"])
+    return {
+        "index_aggregates_are_self_consistent": recomputed == {
+            key: aggregates[key] for key in recomputed},
+        "index_backs_the_contract_channel_numbers": (
+            aggregates["episodes_current_schema"]
+            == channels["episodes_current_schema"] == 39891
+            and aggregates["rejection_events_current_schema"]
+            == channels["rejection_events_total_current_schema"] == 18160
+            and aggregates["illegal_actions_current_schema"]
+            == channels["illegal_actions_total_current_schema"] == 0
+            and aggregates["metrics_files_current_schema"]
+            == channels["metrics_files_current_schema"]
+            and aggregates["metrics_files_legacy_schema"] == channels["metrics_files_legacy_schema"]
+            and aggregates["unclassified_dead_ends_total"] == 0),
+        "index_backs_the_dead_end_vocabulary": (
+            dict(vocabulary) == dead_end["vocabulary"]
+            == aggregates["dead_end_vocabulary"]),
+        "every_row_names_a_committed_relative_path": all(
+            not Path(row["path"]).is_absolute() and ".." not in Path(row["path"]).parts
+            for row in rows),
+        "files_rehashed_here": files_rehashed_here,
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1478,6 +1547,8 @@ CLAIMS = {
                               "the goal clause by clause, with the failing clause still failing"),
     "retraction_ledger_integrity": (claim_retraction_ledger_integrity,
                                  "the self-retraction ledger, counted and consistent with the prose"),
+    "metrics_index_reviewability": (claim_metrics_index_reviewability,
+                                 "headline counts recomputed from committed content alone"),
 }
 
 
