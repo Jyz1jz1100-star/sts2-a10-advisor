@@ -409,6 +409,19 @@ VERDICT: reproduced        (exit code 0)
 `tests/test_evidence_manifest.py`（5 项）反过来验证这份敏感性：往某个产物末尾加一个空格、
 或往目录里多塞一个未登记的产物，都会改变 `bundle_root`。
 
+**要把这套证据自己跑一遍，只有三条命令**（都要用模拟器那个 venv，见下一小节）：
+
+1. `scripts/verify_report_claims.py` —— 正文的每条声明与盘面对账（条数以它自己那一行为准，
+   正文不抄：注册表加一条就会让抄下来的数字过期）。
+   其中引用 `runs/`、`runtime/` 的那几条在**没有那两个目录的机器上会报 False 或报"未能评分"**，
+   而不会假装通过。
+2. `scripts/act1_win_ledger.py --keep_run_history` —— 把 9 个具名第一幕胜局逐个重跑，
+   并把这一行的哈希历史并入台账（行内容进历史、时间戳不进）。
+3. `scripts/build_emulator_provenance.py --out <tmp>.json` —— 用**你自己那份**模拟器源码重算
+   引擎侧证明，再和 `emulator_source_provenance_20260920.json` 比。这一条与其他两条不同：
+   它不需要任何 gitignored 的运行文件，只需要那棵 `third_party` 源码树，
+   所以"我这台机器的引擎是不是文中那个引擎"这件事，任何拿到同一份模拟器的人都能自己判定。
+
 **可复核的边界（这条此前没有写清）。**本文多数声明要读 `runs/` 与 `runtime/` 下的评估文件，
 而这两个目录都在 gitignore 里——所以在别的机器上克隆仓库，那些声明是**重算不动**的。为了让
 "可复核"不只等于"在这台机器上可复核"，`scripts/build_metrics_index.py` 把 282 份指标文件
