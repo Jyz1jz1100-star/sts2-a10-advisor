@@ -1,0 +1,170 @@
+{
+  "_comment": [
+    "The objective asks for a stage-by-stage warm-start ladder with hash-chained evidence.",
+    "This separates three things the campaign report had been stating as one: the configured rungs,",
+    "which runs exist at all, and which parent links are attestable from the run's own files.",
+    "Attestable here means: plan.json's warm_start digest and the per-stage origin.json digest both",
+    "equal the SHA-256 recomputed from the parent checkpoint file on disk, and the two agree on path.",
+    "runtime/ is gitignored, so these rows re-verify only on the machine that ran them; the digests",
+    "themselves are what a reviewer would re-check against an archived checkpoint.",
+    "run_rungs_present_on_disk maps each committed curriculum run to the stage directories it actually wrote checkpoints for; the configured ladder is floor3/floor6/floor10/floor13/act1."
+  ],
+  "attested_arms": [
+    {
+      "arm": "a1filt",
+      "run": "v2curriculum-20260919T003139Z",
+      "plan_json_warm_start": {
+        "exists": true,
+        "initial_checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+        "initial_checkpoint_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e"
+      },
+      "stage_origin_json": {
+        "from_command_line_warm_start": true,
+        "initialized_from": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+        "initialized_from_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+        "initialized_from_stage": null,
+        "stage": "act1"
+      },
+      "parent_on_disk": true,
+      "parent_sha256_recomputed": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+      "plan_digest_matches_file": true,
+      "origin_digest_matches_plan": true,
+      "origin_path_matches_plan": true
+    },
+    {
+      "arm": "a1mix",
+      "run": "v2curriculum-20260919T003139Z",
+      "plan_json_warm_start": {
+        "exists": true,
+        "initial_checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+        "initial_checkpoint_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e"
+      },
+      "stage_origin_json": {
+        "from_command_line_warm_start": true,
+        "initialized_from": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+        "initialized_from_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+        "initialized_from_stage": null,
+        "stage": "act1"
+      },
+      "parent_on_disk": true,
+      "parent_sha256_recomputed": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+      "plan_digest_matches_file": true,
+      "origin_digest_matches_plan": true,
+      "origin_path_matches_plan": true
+    }
+  ],
+  "campaign_arms_without_attestation": {
+    "count": 13,
+    "of_total": 13,
+    "reason": "the fan-out campaign launched 2026-09-18 17:57Z, before the launcher recorded warm_start into plan.json and before per-stage origin.json existed; their parent is attested only by launcher text",
+    "glob": "runtime/fanout/*/v2curriculum-*/plan.json",
+    "arms": [
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      },
+      {
+        "arm": "runtime",
+        "run": "fanout",
+        "has_warm_start": false,
+        "has_origin_json": false
+      }
+    ]
+  },
+  "configured_stages_in_order": [
+    "floor3",
+    "floor6",
+    "floor10",
+    "floor13",
+    "act1"
+  ],
+  "established": [
+    "the 2026-09-19 A/B arms are chain-attested end to end: each records its parent checkpoint and both digests recompute to the file on disk",
+    "the attestation is consistent across the two independent mechanisms the code writes (plan.json warm_start and act1/origin.json), not a single self-report",
+    "both parents are another arm's act1 checkpoint, so the link is honest about being a jump: floor13 never ran and floor10 has no promotion decision"
+  ],
+  "generated_at": "2026-09-19T08:51:20+00:00",
+  "not_established": [
+    "that the 09-18 campaign arms really descended from the promoted floor6 checkpoint -- plausible, launcher-stated, and now shown to be unattestable from their own run directories"
+  ],
+  "run_rungs_present_on_disk": {
+    "v2curriculum-20260901T091856Z": [
+      "floor3"
+    ],
+    "v2curriculum-20260901T115142Z": [
+      "floor6"
+    ],
+    "v2curriculum-20260901T122903Z": [
+      "floor10"
+    ]
+  },
+  "scope": "warm-start ladder attestation, V2 curriculum stack"
+}

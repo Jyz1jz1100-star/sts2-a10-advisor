@@ -778,6 +778,51 @@ def claim_chained_terminal_gates():
     }
 
 
+def claim_ladder_lineage():
+    """Separate 'a ladder was configured' from 'a parent link is attestable'.
+
+    The objective asks for a stage-by-stage warm-start ladder with hash-chained evidence, and
+    the campaign report had been collapsing that into one sentence about narrative-only lineage.
+    This re-reads the run's own files: both attestation mechanisms must agree with each other
+    and with a SHA-256 recomputed from the parent checkpoint, and the rung census must be read
+    from the live config rather than remembered.
+    """
+    import tomllib
+
+    data = json.loads((ROOT / "docs/evidence/ladder_lineage_20260919.json")
+                      .read_text(encoding="utf-8"))
+    cfg = tomllib.loads((ROOT / "config/training_v2.toml").read_text(encoding="utf-8"))
+    stages = cfg["stages"]
+    configured = list(stages) if isinstance(stages, dict) else [s["name"] for s in stages]
+    arms = data["attested_arms"]
+    present = {stage for run in data["run_rungs_present_on_disk"].values() for stage in run}
+    return {
+        "attested_arms_are_mutually_consistent": all(
+            a["plan_digest_matches_file"] and a["origin_digest_matches_plan"]
+            and a["origin_path_matches_plan"] and a["parent_on_disk"] for a in arms),
+        # Do not take the artifact's word for it: re-hash the parent checkpoints.
+        "parent_digests_recompute": all(
+            Path(a["plan_json_warm_start"]["initial_checkpoint"]).is_file()
+            and hashlib.sha256(
+                Path(a["plan_json_warm_start"]["initial_checkpoint"]).read_bytes()).hexdigest()
+            == a["plan_json_warm_start"]["initial_checkpoint_sha256"]
+            == a["stage_origin_json"]["initialized_from_sha256"]
+            for a in arms),
+        "attested_arms_count": len(arms) == 2,
+        "configured_rungs_match_the_live_config": data["configured_stages_in_order"] == configured,
+        "committed_rungs_are_a_subset_without_floor13": (
+            present <= set(configured) and "floor13" not in present
+            and {"floor3", "floor6", "floor10"} <= present),
+        "campaign_arms_lack_attestation": (
+            [row for row in data["campaign_arms_without_attestation"]["arms"]]
+            and not any(row["has_warm_start"] or row["has_origin_json"]
+                        for row in data["campaign_arms_without_attestation"]["arms"])
+            and data["campaign_arms_without_attestation"]["count"]
+            == len(data["campaign_arms_without_attestation"]["arms"])
+            == data["campaign_arms_without_attestation"]["of_total"]),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -832,6 +877,8 @@ CLAIMS = {
                                "every seed behind that rate really ends at a cleared boss node"),
     "chained_terminal_gates": (claim_chained_terminal_gates,
                                "the objective's two gate clauses, checked on the multi-act path"),
+    "ladder_lineage": (claim_ladder_lineage,
+                        "which warm-start parent links are attestable from a run's own files"),
 }
 
 

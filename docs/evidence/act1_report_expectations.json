@@ -255,5 +255,13 @@
     "no_chained_win": true,
     "depth_agrees_with_the_frontier_sweep": true,
     "checkpoint_digests_match_the_files": true
+  },
+  "ladder_lineage": {
+    "attested_arms_are_mutually_consistent": true,
+    "parent_digests_recompute": true,
+    "attested_arms_count": true,
+    "configured_rungs_match_the_live_config": true,
+    "committed_rungs_are_a_subset_without_floor13": true,
+    "campaign_arms_lack_attestation": true
   }
 }

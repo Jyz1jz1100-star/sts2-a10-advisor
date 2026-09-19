@@ -1095,6 +1095,15 @@ about the operator's three-act target, and found one failure class worth naming.
    on the filtered arm; the window's census holds 40,010 Act-1 seeds (50.01%).
    The decisive metric was fixed in advance to `mean_final_floor` over 504 shared
    Act-1 seeds, with win counts declared non-decisive.
+   Their parent link is attestable, unlike the 2026-09-18 campaign arms: both
+   `plan.json`'s `warm_start` block and `act1/origin.json` name the same parent
+   checkpoint, and its SHA-256 recomputes from the file on disk
+   (`docs/evidence/ladder_lineage_20260919.json`, claim `ladder_lineage`). Of the 13
+   campaign arms, 0 have either mechanism -- they were launched before the launcher
+   recorded a parent -- so "warm-start lineage is narrative" is true for the 09-18
+   campaign and false for these two. Note what the attestation does *not* fix: the
+   parent is another arm's act1 checkpoint, so floor13 still never ran and the
+   floor6 -> act1 jump is still a jump.
 
 Live side unchanged: `127.0.0.1:15526/health` refused at 23:42 with no game
 process, so the three-act real-game batch remains an operator action
