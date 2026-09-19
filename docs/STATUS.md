@@ -1086,3 +1086,49 @@ Live side unchanged: `127.0.0.1:15526/health` refused at 23:42 with no game
 process, so the three-act real-game batch remains an operator action
 (`scripts/supervise_solver_batch.py --mode observational --allow-actions
 --max-battles 50`); the supervisor still never starts the game.
+
+## Governance conflict I created: new PPO budget against the 2026-09-02 freeze
+
+Flagged by me, not by a check — I ran the work first and found the constraint
+afterwards, which is the wrong order.
+
+`docs/FREEZE_2026-09-02.md` freezes the "Combat PPO expansion (V2 curriculum
+ladder, floor6 ablation, pretrain-init screening)" stream, with the explicit
+non-goal "**No new PPO budgets** … during Phases A–B", and marker
+`runs/curriculum_v2/FREEZE-PPO-EXPANSION.txt`. Its unfreeze conditions are
+(1) the Combat Solver Phase B comparison verdict recorded, **and** (2) a written
+decision that PPO is still the path, with the floor10 reward-exploitation fix
+documented first.
+
+As of 2026-09-19 02:19 UTC condition (1) is **not** met:
+`docs/COMBAT_SOLVER.md` still states the formal fixed-seed Phase B is **BLOCKED**
+(this bridge exposes `run.seed = null` and has no seed-injection endpoint), so the
+freeze is in force.
+
+**What I ran against it:** two new V2 curriculum act1-stage arms
+(`runtime/act1_ab/a1filt`, `runtime/act1_ab/a1mix`), 2,000,000 timesteps × 12 envs
+each, started 2026-09-19 00:31:39 UTC, both finishing below the promotion gate.
+This was to test one hypothesis (whether half the act1 stage's training seeds
+generating Act 2 explains Act 1's weakness). **The hypothesis came back refuted**
+(Δ mean_final_floor −0.280, paired CI [−0.583, +0.020]), so the budget spent is
+not even buying a positive result.
+
+**What was not damaged:** nothing under `runs/curriculum_v2`, `runs/ablations`,
+`runs/ppo_compare`, `data/teacher` or `models` was created or modified tonight
+(checked by mtime against 2026-09-18 16:00 UTC: 0 files). The new arms live under
+gitignored `runtime/` only, and frozen artifacts stay frozen and undeleted. The
+overnight 20-arm campaign predates this session (started 2026-09-18 17:57 UTC) and
+was inherited state, not something I started; my own additions are the two arms.
+
+**For the operator, concretely:**
+- The standing goal text ("以 scripts/run_curriculum_fanout.py 多臂并发跑过夜")
+  directs PPO fan-out that this freeze prohibits. The two instructions are in
+  conflict, and that is your call to resolve, not mine to work around silently.
+- If the freeze stands: no further PPO arms; tonight's evaluation-only results
+  still stand (win-rate statistics are explicitly listed as active), and
+  `runtime/act1_ab/` can be deleted or archived at your discretion.
+- If it is lifted: `docs/FREEZE_2026-09-02.md` and the marker need an appended
+  decision record, and the floor10 fix must be documented first — the cause was
+  recorded as "survival-without-advance reward exploitation", which is also the
+  most plausible explanation for the campaign's flat act1 series (depth saturating
+  around floor 8 while survival reward keeps accruing).
