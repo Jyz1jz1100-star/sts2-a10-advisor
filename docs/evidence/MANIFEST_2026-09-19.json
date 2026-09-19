@@ -1,0 +1,311 @@
+{
+  "_comment": [
+    "One hash binding for the campaign evidence bundle. bundle_root is sha256 over the sorted",
+    "'<filename>  <sha256>' lines of every other file in docs/evidence, so it changes if any",
+    "artifact changes or one is added without being manifested. resolved_checkpoints walks the",
+    "chain to its end: the digest an artifact cites, the local file that hashes to it, and a",
+    "fresh recompute of that file. Only digests appearing under a checkpoint-ish key are",
+    "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
+    "hashes) are counted, not chased."
+  ],
+  "bundle_root": "92b44e931366c221578b0007e1d888fbc86b6f1473a14b88870eb62158dbc2de",
+  "evidence_file_count": 26,
+  "generated_at": "2026-09-19T11:02:08+00:00",
+  "git_head_at_generation": "7b8af6c",
+  "checkpoint_digests_cited": 14,
+  "not_established": [
+    "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
+    "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
+  ],
+  "other_hex64_occurrences": {
+    "total_64_hex_strings_seen": 59
+  },
+  "resolved_checkpoints": [
+    {
+      "sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
+      "cited_by": [
+        "chained_terminal_gates_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "318c1c800e54c90da5eb35a8214281b615b5a6fc69ab4b4c3ee458ea2b4c760c",
+      "cited_by": [
+        "refusal_class_generality_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "3193b87dbe004d1bcafb9d677d684b18c88621451991f71f27204cf2236e9931",
+      "cited_by": [
+        "act1_win_ledger_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "69b16f533e89537df9f3988accf7940a58f49f1dd9fb4456d9c54804edb3175f",
+      "cited_by": [
+        "refusal_class_generality_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7867df360a4fdf38f84643d6ab6db0b8b13debd022d0e13a834b6ebc0384e1cc",
+      "cited_by": [
+        "chained_terminal_gates_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/c_explore-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "7a242d1e36bba2e9e606d2279af59b97de123b14984040ee9329d35a8a077c7b",
+      "cited_by": [
+        "refusal_class_generality_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/aborted-pre-filter-floor6-095635Z/floor6/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "8b06d38e33541fce636c7abdda23d58e6fe3807a181ce4c7cd92d2ac288b58b5",
+      "cited_by": [
+        "act1_win_ledger_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182830Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "cited_by": [
+        "act1_arrivals_by_act_20260919.json",
+        "act1_boss_arrival_anatomy_20260919.json",
+        "act1_terminal_census_3500_20260919.json",
+        "act1_win_ledger_20260919.json",
+        "act2_boss_completion_fork_20260919.json",
+        "act2_boss_misexit_signature_verified_20260919.json",
+        "act2_boss_node_comparison_20260919.json",
+        "act2_terminal_check_20260919.json",
+        "refusal_class_generality_20260919.json",
+        "refusal_root_cause_20260919.json",
+        "rejection_phase_attribution_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "ad6d597ad37d3031b736991b9e3f4b8a9a5562378810dd17d17476acf5425db9",
+      "cited_by": [
+        "ladder_lineage_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2_smoke/v2curriculum-20260918T233201Z/floor3/checkpoints/final.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "b39ea4ba9a9883cc118bcfdec9ecc15dc4bce0533241e84ac5a26b4b0c197117",
+      "cited_by": [
+        "act2_boss_misexit_signature_verified_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-0/v2curriculum-20260918T182051Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "b8deab061798daeb65bb681eebece3d54a53229bb7e6767f22c71e082e355ce4",
+      "cited_by": [
+        "ladder_lineage_20260919.json"
+      ],
+      "paths": [
+        "runs/curriculum_v2/v2curriculum-20260901T115142Z/floor6/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "eff8c5c51e9b897d05bb90eeb9ca524ee34512c357fef9373fef02a10bd0eb10",
+      "cited_by": [
+        "stalemate_mechanics_60k_20260919.json",
+        "stalemate_tail_20k_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000002000016.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+      "cited_by": [
+        "act1_win_ledger_20260919.json",
+        "ladder_lineage_20260919.json"
+      ],
+      "paths": [
+        "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
+      ],
+      "recomputed_matches": true
+    },
+    {
+      "sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
+      "cited_by": [
+        "chained_terminal_gates_20260919.json"
+      ],
+      "paths": [
+        "runtime/act1_overnight/b_terminal/v2curriculum-20260918T175708Z/act1/checkpoints/step_000001000008.zip"
+      ],
+      "recomputed_matches": true
+    }
+  ],
+  "scope": "docs/evidence bundle for the 2026-09-19 act1 campaign and its follow-ups",
+  "unresolved_on_this_machine": [],
+  "files": [
+    {
+      "file": "act1_arrivals_by_act_20260919.json",
+      "sha256": "e8a73d3141fc9f62bbd657f126ecf98517700d485fcbd3589e467768a1f02365",
+      "bytes": 2172
+    },
+    {
+      "file": "act1_boss_arrival_anatomy_20260919.json",
+      "sha256": "6b6e26ad8c8c196ad0d08d2470582df04c55aeb98cfa729981d11a2e01ea8490",
+      "bytes": 28410
+    },
+    {
+      "file": "act1_boss_block_economy_20260919.json",
+      "sha256": "a704b8e12b35d026e068e00b05bbc98dbadffc7f737ec71f795d017d4a57b154",
+      "bytes": 22872
+    },
+    {
+      "file": "act1_boss_win_anatomy_20260919.json",
+      "sha256": "351fc18969a874b83a3dff17166f28849d213fc9487c284da4d52f5c5fe9d40e",
+      "bytes": 5050
+    },
+    {
+      "file": "act1_evidence_20260919.json",
+      "sha256": "14362ad23526fbac006d708671a7f5d2ae9bdeab85d061be89f7ceb42f453424",
+      "bytes": 6533
+    },
+    {
+      "file": "act1_report_expectations.json",
+      "sha256": "5bf6b7626dfa5f21130761eae569b0e8b949f6194b322eacc7dc448c64bfec26",
+      "bytes": 10698
+    },
+    {
+      "file": "act1_terminal_census_3500_20260919.json",
+      "sha256": "9f4d00ef89d315366a05a96cd7b66508b2a17442b6a274c468392357ccc7b01a",
+      "bytes": 2068
+    },
+    {
+      "file": "act1_win_ledger_20260919.json",
+      "sha256": "178f7f64ef4e76e84c39a5e6fd5f14b919d39f55ce8f8e6bcb9223c4b6c3ad81",
+      "bytes": 6056
+    },
+    {
+      "file": "act2_boss_completion_fork_20260919.json",
+      "sha256": "cfcf1b3c2db3cc8ceb7b5abd5a3b9b4216aa73288443d1961d7cc27287745731",
+      "bytes": 11988
+    },
+    {
+      "file": "act2_boss_misexit_rate_20260919.json",
+      "sha256": "d22b435329ed03170328b49709881598b73cc8e567fda28003e669d27556ee6b",
+      "bytes": 10892
+    },
+    {
+      "file": "act2_boss_misexit_signature_verified_20260919.json",
+      "sha256": "ed13665f3c683c15202a472a37644bcb171cc2667080b9204f96905de7164762",
+      "bytes": 30720
+    },
+    {
+      "file": "act2_boss_node_comparison_20260919.json",
+      "sha256": "64eea2b3c98726ecf29db5d89473a32618562896f630ef980a44a1a91a381eaf",
+      "bytes": 2479
+    },
+    {
+      "file": "act2_terminal_check_20260919.json",
+      "sha256": "e84e1ac4065cc7dee8883ae02cbdfbfe4d11ffa6b872e367bbdf211ec596df48",
+      "bytes": 3474
+    },
+    {
+      "file": "boss_generality_20260919.json",
+      "sha256": "ebe134358875f69a452867deeebc263b18fdea89c661dc11815919b0cb3ca62a",
+      "bytes": 6278
+    },
+    {
+      "file": "chained_frontier_full_20260919.json",
+      "sha256": "802618c733baf88a8e503f90cf9e6f54f0b73016270bb3cbdfe8e8f595cf7a4d",
+      "bytes": 4155
+    },
+    {
+      "file": "chained_terminal_gates_20260919.json",
+      "sha256": "5c89c235a9fdd266cb8806ce509ac1b0b3ef8d2ce03f501c6b02c3a93d302b6f",
+      "bytes": 5978
+    },
+    {
+      "file": "contract_channels_20260919.json",
+      "sha256": "2af1f66f26347dad162fc379551b8e4703a71ab389f9960555e6883a29703b00",
+      "bytes": 4373
+    },
+    {
+      "file": "event_mask_case_audit_20260919.json",
+      "sha256": "1b05244d5fec54b8a0704288361c0c2a3d4ec560c8a2a197d151d28c7b10011e",
+      "bytes": 13739
+    },
+    {
+      "file": "ladder_lineage_20260919.json",
+      "sha256": "b4263080028eb1ecbe8f223862a397bcc39985f61656e257cf78ce5065b5dc58",
+      "bytes": 9996
+    },
+    {
+      "file": "modpin_drift_20260919.json",
+      "sha256": "4aef589525d8968bbe2deb48248e74e3aafb48e650aa8068864f24b2bee655c5",
+      "bytes": 3088
+    },
+    {
+      "file": "potion_slot_cost_20260919.json",
+      "sha256": "e661d8e3a577a28df817fa3aeb5d42d14fbe695d99e02bf6c9e011125f413b58",
+      "bytes": 1634824
+    },
+    {
+      "file": "refusal_class_generality_20260919.json",
+      "sha256": "2af40f8729583814b551c9b5a3bcb60e4a5b170984c65ede95461b9154bbbe3a",
+      "bytes": 7630
+    },
+    {
+      "file": "refusal_root_cause_20260919.json",
+      "sha256": "16f68e7973e156bacee9a5c2059ed64f1cfcff6fe99ee6402a9b926f8791defb",
+      "bytes": 108277
+    },
+    {
+      "file": "rejection_phase_attribution_20260919.json",
+      "sha256": "bca9239280e80fcce9c34da5885ec6e5b6debbc7ece395cb4a057ef66e8ca69f",
+      "bytes": 7204
+    },
+    {
+      "file": "stalemate_mechanics_60k_20260919.json",
+      "sha256": "6112f7e6a663baa7ce34617078719e26a1d219790447c243964c7be623f4752f",
+      "bytes": 16268
+    },
+    {
+      "file": "stalemate_tail_20k_20260919.json",
+      "sha256": "60b77212ee29b6638dad33ecf547237cb5355e24652457ae2f0da4b122cf1bfe",
+      "bytes": 21722
+    }
+  ]
+}

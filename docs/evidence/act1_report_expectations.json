@@ -330,5 +330,14 @@
     "mix_is_not_stable": true,
     "event_7_is_the_same_capacity_bug_in_a_handled_event": true,
     "capacity_pattern_site_count_matches_the_source": true
+  },
+  "evidence_bundle_integrity": {
+    "listing_matches_disk": true,
+    "digests_and_sizes_recompute": true,
+    "bundle_root_recomputes": true,
+    "manifest_excludes_itself": true,
+    "cited_checkpoint_files_hash_to_their_recorded_digest": true,
+    "every_citation_is_accounted_for": true,
+    "no_citation_is_loose": true
   }
 }

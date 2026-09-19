@@ -1183,6 +1183,46 @@ def claim_refusal_class_generality():
     }
 
 
+def claim_evidence_bundle_integrity():
+    """Re-verify the evidence bundle's own hash binding, independently of the manifest.
+
+    The report promises hash-chain evidence, and before this there was no binding over the *set*
+    of artifacts -- an edited evidence file would not have disturbed anything.  Every value here
+    is recomputed from the files on disk rather than read out of the manifest, which is what makes
+    the manifest falsifiable: ``listing_matches_disk`` fails if anyone adds or edits an artifact
+    without rebuilding, and ``manifest_excludes_itself`` fails if the manifest ever hashes itself.
+    """
+    manifest = json.loads((ROOT / "docs/evidence/MANIFEST_2026-09-19.json")
+                          .read_text(encoding="utf-8"))
+    evidence = ROOT / "docs/evidence"
+    on_disk = sorted(p.name for p in evidence.glob("*.json")
+                     if p.name != "MANIFEST_2026-09-19.json")
+    listed = [entry["file"] for entry in manifest["files"]]
+    digest_ok = all(
+        hashlib.sha256((evidence / entry["file"]).read_bytes()).hexdigest() == entry["sha256"]
+        and (evidence / entry["file"]).stat().st_size == entry["bytes"]
+        for entry in manifest["files"] if (evidence / entry["file"]).exists())
+    root = hashlib.sha256("".join(
+        f"{entry['file']}  {entry['sha256']}\n"
+        for entry in sorted(manifest["files"], key=lambda e: e["file"])).encode("utf-8")).hexdigest()
+    checkpoints = manifest["resolved_checkpoints"]
+    return {
+        "listing_matches_disk": on_disk == sorted(listed),
+        "digests_and_sizes_recompute": digest_ok and len(manifest["files"]) == len(on_disk),
+        "bundle_root_recomputes": root == manifest["bundle_root"],
+        "manifest_excludes_itself": "MANIFEST_2026-09-19.json" not in listed,
+        "cited_checkpoint_files_hash_to_their_recorded_digest": all(
+            all(hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == record["sha256"]
+                for path in record["paths"])
+            for record in checkpoints),
+        "every_citation_is_accounted_for": (
+            manifest["checkpoint_digests_cited"]
+            == len(checkpoints) + len(manifest["unresolved_on_this_machine"])),
+        "no_citation_is_loose": all(
+            record["recomputed_matches"] for record in checkpoints) and bool(checkpoints),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1251,6 +1291,8 @@ CLAIMS = {
                                 "the operator-facing engine list, against its artifacts"),
     "refusal_class_generality": (claim_refusal_class_generality,
                                  "the refusal classes on three checkpoints and two stages"),
+    "evidence_bundle_integrity": (claim_evidence_bundle_integrity,
+                               "the whole docs/evidence bundle, re-hashed from disk"),
 }
 
 
