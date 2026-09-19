@@ -1267,6 +1267,67 @@ def claim_dead_end_vocabulary():
     }
 
 
+def claim_report_exec_table_citations():
+    """Every row the decision-maker reads must cite something that exists.
+
+    The one-page table is the part of the report that actually gets read, and it drifted twice
+    this session in ways the body did not: a row kept asserting a labelling gap the vocabulary
+    census had just refuted, and another said "no checkpoint ever walked the cross-act branch"
+    while the frontier recorded three. Claims cannot catch a stale *sentence*, but they can
+    enforce the weaker invariant that keeps a row checkable at all -- each row names an evidence
+    file or a section title that is really there.
+    """
+    report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
+    start = report.index("| 问题 | 判定 | 出处 |")
+    table = report[start:start + report[start:].index("\n\n")]
+    # A row may wrap: continuation lines are indented, carry no leading pipe, and the citation
+    # cell of such a row closes it on its LAST physical line. Joining them first is what makes
+    # "every row cites a file" mean one row per judgement rather than one per source line.
+    rows: list[str] = []
+    for line in table.splitlines():
+        if line.startswith("|"):
+            rows.append(line)
+        elif line.strip() and rows:
+            rows[-1] = rows[-1] + " " + line.strip()
+    rows = [row for row in rows if "---" not in row and "| 问题 |" not in row]
+    headings = [re.sub(r"[*\s]+", "", heading)
+                for heading in re.findall(r"^#+\s*(.+)$", report, re.M)]
+    doc_stems = {path.stem for path in (ROOT / "docs").glob("*.md")}
+
+    def cited_file_exists(name: str) -> bool:
+        clean = name.strip("`").split("/")[-1]
+        return any((ROOT / base / clean).exists()
+                   for base in ("", "docs", "docs/evidence", "scripts"))
+
+    unbacked = []
+    for index, row in enumerate(rows):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        citation = cells[-1] if len(cells) >= 3 else ""
+        quoted = [re.sub(r"[*\s]+", "", name)
+                  for name in re.findall(r"[“\"]([^”\"]{2,})[”\"]", citation)]
+        other_tokens = [token.strip("`") for token in re.findall(r"`([^`]+)`", citation)
+                        if not token.endswith((".json", ".py", ".md"))]
+        backed = (any(cited_file_exists(name)
+                      for name in re.findall(r"`([^`]+\.(?:json|py|md))`", citation))
+                  or any(needle in heading for needle in quoted for heading in headings)
+                  or any(token in doc_stems for token in other_tokens))
+        if not backed:
+            head = cells[0][:22] if cells else "?"
+            unbacked.append(f"row {index + 1} ({head}): citation {citation[:52]!r}")
+    return {
+        "row_count_is_the_expected_fourteen": len(rows) == 14,
+        "every_row_has_a_verifiable_citation": not unbacked,
+        "unbacked_rows": unbacked,
+        "table_precedes_the_body": report.index("| 问题 | 判定 | 出处 |") < report.index("## 结论"),
+        "the_two_rows_that_drifted_once_now_cite_files": (
+            "chained_frontier_full_20260919.json" in rows[0]
+            and "dead_end_vocabulary_20260919.json" in rows[5]
+            and "solver_inventory_drift_20260919.json" in rows[-1]),
+        "no_row_still_claims_the_refuted_labelling_gap": (
+            "缺的是标签可分辨性，不是门槛" not in report),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1339,6 +1400,8 @@ CLAIMS = {
                                "the whole docs/evidence bundle, re-hashed from disk"),
     "dead_end_vocabulary": (claim_dead_end_vocabulary,
                              "every dead-end label the metrics have ever produced"),
+    "report_exec_table_citations": (claim_report_exec_table_citations,
+                                   "each decision-table row cites something that exists"),
 }
 
 

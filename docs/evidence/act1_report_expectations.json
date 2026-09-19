@@ -349,5 +349,13 @@
     "step_cap_is_act1_stage_only": true,
     "legacy_and_current_native_rejection_still_split": true,
     "artifact_and_disk_agree_on_step_cap_files": true
+  },
+  "report_exec_table_citations": {
+    "row_count_is_the_expected_fourteen": true,
+    "every_row_has_a_verifiable_citation": true,
+    "unbacked_rows": [],
+    "table_precedes_the_body": true,
+    "the_two_rows_that_drifted_once_now_cite_files": true,
+    "no_row_still_claims_the_refuted_labelling_gap": true
   }
 }
