@@ -2009,3 +2009,14 @@ truncations while `boundary_hits` is pinned at 0, which is what an unrecorded fi
 recording because my first pass at this audit produced "3,464 truncations unexplained" -- the same
 mistake the campaign has now caught three times, reading a field that was never written as a
 measurement that came out low. Claim `truncation_ledger` (5 checks); 58/58 claims match the disk.
+
+### One process mistake worth recording
+
+The first commit of the ledger tests went in with a failing test. `scripts/test.ps1 | grep -E "^Ran "`
+exits with grep's status, not the suite's, so the `&& git commit` gate I had relied on all session
+silently became a pass -- the assertion that failed was in the fixture I had just written (legacy rows
+built with `boundary_hits` present, which is the opposite of the exclusion being tested), and it
+surfaced only when I re-read the output. Fixed in `eb4c135`, and the rule now is to capture the suite
+output and refuse to commit when it contains `FAILED`/`ERROR`, rather than chaining on exit status
+through a filter. Same lesson as the measurements: check what the pipeline returns, not what you meant
+it to return. Current state: 512 + 120 tests OK, 58/58 claims match disk.
