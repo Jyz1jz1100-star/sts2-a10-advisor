@@ -132,6 +132,21 @@ measured at ~18.7 seeds/s per process.) Constraints the loader enforces:
 - `plan.json` records the list's digest, count and per-worker budget, and
   exhaustion of a filtered list is still a hard error rather than a re-use.
 
+A filtered stage cannot be launched through `scripts/run_curriculum_fanout.py`
+with a rewritten `--seed-base`: that tool exists to give each job a *disjoint*
+train range, and re-basing the range makes the census-derived list fall outside
+it, so the loader refuses it. That refusal is the intended behaviour — it is the
+same guarantee expressed the other way. Running such an arm directly
+(`python -m training.v2_curriculum --only-stage act1 --initial-checkpoint …`)
+is the only way to get a shared seed window, **and it bypasses the fan-out tool's
+cross-arm guards, so treat it as a gate rather than a convenience**: a direct run
+still validates that a config's own four partitions don't overlap, but it checks
+nothing against *other* arms' ranges and none of the teacher-reserved-range rules
+— those live only in `run_curriculum_fanout.py`. Before starting any direct arm,
+also confirm the Combat PPO freeze (`docs/FREEZE_2026-09-02.md`) has been lifted
+by a recorded decision; `--seed-base` disjointness is not the only constraint that
+applies to a new run.
+
 ## Outputs
 
 Each curriculum run creates:
