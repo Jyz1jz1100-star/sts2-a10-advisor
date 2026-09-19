@@ -43,7 +43,7 @@
       }
     }
   },
-  "generated_at": "2026-09-19T16:09:53+00:00",
+  "generated_at": "2026-09-19T16:25:27+00:00",
   "not_established": [
     "that any of these decisions is still reachable by a reviewer on another machine -- runs/ is gitignored, so only this ledger's contents travel",
     "the parent of each act-1 arm, which is a separate question handled by ladder_lineage_20260919.json; a rung can be evaluated and still not be the parent",
@@ -169,6 +169,7 @@
           "wilson_95_low": 4.336808689942018e-19,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-01T09:46:53+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 0.03,
@@ -231,6 +232,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-01T05:02:46+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -314,6 +316,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-18T16:51:40+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -396,6 +399,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-18T23:29:21+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -478,6 +482,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-18T23:32:20+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -878,6 +883,7 @@
           "wilson_95_low": 4.336808689942018e-19,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-01T12:25:09+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 0.03,
@@ -945,6 +951,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-01T05:02:56+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -1023,6 +1030,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-18T16:51:52+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -1104,6 +1112,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-18T23:29:33+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,
@@ -1185,6 +1194,7 @@
           "wilson_95_low": 0.0,
           "win_rate": 0.0
         },
+        "decided_at_file_mtime_utc": "2026-09-18T23:32:32+00:00",
         "thresholds_in_force_then": {
           "max_illegal_actions": 0,
           "max_truncation_rate": 1.0,

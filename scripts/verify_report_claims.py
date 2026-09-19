@@ -1665,8 +1665,11 @@ def claim_ladder_promotion_ledger():
                     __import__("hashlib").sha256(path.read_bytes()).hexdigest()
                     == checkpoint["sha256"])
     floor6, floor3, floor10 = by_stage.get("floor6", []), by_stage.get("floor3", []), by_stage.get("floor10", [])
-    live = {row["stage"]: row["live_decision"] for row in payload["rows"]
+    # runs/ is gitignored, so on a machine without it these come out False -- a visible failure,
+    # which is what a claim about local run artifacts should do rather than raising.
+    live = {row["stage"]: (row.get("live_decision") or {}) for row in payload["rows"]
             if row.get("run_kind") == "campaign" and row.get("live_decision")}
+    f6, f3 = live.get("floor6") or {}, live.get("floor3") or {}
     return {
         "recomputation_used_the_repos_own_gate": all(
             "reasons" in record and "observed" in record for row in payload["rows"]
@@ -1679,10 +1682,15 @@ def claim_ladder_promotion_ledger():
             len(floor3) == 2 and all(record["promoted"] for record in floor3)
             and len(floor6) == 2 and not any(record["promoted"] for record in floor6)),
         "floor6_promoted_when_it_ran_under_a_lower_bar": (
-            live["floor6"]["promoted_when_it_ran"] is True
-            and live["floor6"]["thresholds_in_force_then"]["min_boundary_rate"] == 0.8
-            and live["floor6"]["observed_when_it_ran"]["boundary_rate"] == 0.86
-            and live["floor6"]["the_two_verdicts_agree"] is False),
+            f6.get("promoted_when_it_ran") is True
+            and (f6.get("thresholds_in_force_then") or {}).get("min_boundary_rate") == 0.8
+            and (f6.get("observed_when_it_ran") or {}).get("boundary_rate") == 0.86
+            and f6.get("the_two_verdicts_agree") is False),
+        # 2026-09-01T20:32:23+08:00, commit e195e9b, which raised min_boundary_rate 0.80 -> 0.90
+        # and whose own message records the floor6 promotion it was reacting to.
+        "the_promotion_predates_the_raise_that_now_rejects_it": (
+            f6.get("decided_at_file_mtime_utc") == "2026-09-01T12:25:09+00:00"
+            and f6.get("decided_at_file_mtime_utc", "") < "2026-09-01T12:32:23+00:00"),
         "no_gate_clause_was_scored_on_an_unrecorded_field": all(
             "was not recorded" in reason
             for row in payload["rows"]
@@ -1690,8 +1698,8 @@ def claim_ladder_promotion_ledger():
             for reason in record["reasons"]
             if reason.split(" ", 1)[0] in record["fields_absent_from_the_record"]),
         "floor3s_live_verdict_still_reproduces": (
-            live["floor3"]["promoted_when_it_ran"] is True
-            and live["floor3"]["the_two_verdicts_agree"] is True),
+            f3.get("promoted_when_it_ran") is True
+            and f3.get("the_two_verdicts_agree") is True),
         "floor6_final_two_missed_only_on_boundary_rate": all(
             record["observed"].get("defect_truncation_rate") == 0.0
             and any(reason.startswith("boundary_rate") for reason in record["reasons"])

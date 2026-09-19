@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "96b1f76b890f5872f9295768f488feb7191bd5d6863302b83e9171a2ba79f622",
+  "bundle_root": "3a649350cd73c0b577e171d44aea9960977f7c8c9b25a2125dccd5e67cd116e5",
   "evidence_file_count": 38,
-  "generated_at": "2026-09-19T16:22:45+00:00",
-  "git_head_at_generation": "33b6e4d",
+  "generated_at": "2026-09-19T16:26:39+00:00",
+  "git_head_at_generation": "cfae20d",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2265,8 +2265,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "d11ab8cef4a5c811f5f8d572388550293cd3aeb3e96a3b289d1d63ec1ab4722f",
-      "bytes": 16658
+      "sha256": "b3ca09fa5db7438a0a3f7e2d3dec20b49327af3d9699dad5d74014520af96eda",
+      "bytes": 16725
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2355,8 +2355,8 @@
     },
     {
       "file": "ladder_promotion_ledger_20260919.json",
-      "sha256": "52193c3c35d6096272ed8c7c2d468a056ae51dd4cfdd32158471dd49b47ef073",
-      "bytes": 49634
+      "sha256": "a8c7f668c5f97df4c4504f8ea914a55198029d5808e08ae08f0b78b8f98dacad",
+      "bytes": 50304
     },
     {
       "file": "metrics_index_20260919.json",

@@ -1663,3 +1663,13 @@ decisions at the stage's promotion scale, and a new per-stage
 `promotion_recorded_only_below_scale` says out loud when a rung's only "promotion" came from a probe.
 After the filter floor3 and floor6 still pass and act1 still fails, so no published verdict moved;
 what moved is the number of ways a future reader can mistake a 1-episode probe for a rung.
+
+**The drift is dated, from git, and it explains itself.** `floor6/promotion_decision.json` has file
+mtime **2026-09-01T12:25:09Z**; commit `e195e9b` (2026-09-01 20:32:23 +08:00, i.e. 12:32:23Z -- seven
+minutes later) raised `min_boundary_rate` 0.80 -> 0.90 and its own message reads "floor6 PROMOTED at
+1M probe (boundary 0.86/500 seeds ...); raise ladder gate 0.80->0.90 from the thin-margin evidence".
+Commit `348127d` (2026-09-02 01:33 +08:00) took 0.90 -> 0.93 and added `min_boundary_wilson_lower`
+0.90. So the bar was raised *because* that promotion cleared it by 0.06, which is the correct
+reaction and also the reason today's re-judgement must not be reported as yesterday's verdict.
+Claim `ladder_promotion_ledger` pins the ordering (`the_promotion_predates_the_raise_that_now_rejects_it`),
+and injecting a later timestamp into the committed artifact was confirmed to flip that check alone.

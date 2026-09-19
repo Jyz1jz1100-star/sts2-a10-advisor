@@ -143,6 +143,10 @@ def main() -> int:
                     "promoted_when_it_ran": bool(recorded.get("promoted")),
                     "reasons_when_it_ran": list(recorded.get("reasons") or []),
                     "observed_when_it_ran": recorded.get("observed") or {},
+                    # File mtime, not a hash-chained timestamp: it is the only ordering evidence
+                    # these pre-dated commits carry, so it travels labelled as such.
+                    "decided_at_file_mtime_utc": datetime.fromtimestamp(
+                        decision_path.stat().st_mtime, UTC).isoformat(timespec="seconds"),
                     "thresholds_in_force_then": then,
                     "thresholds_that_did_not_exist_then": sorted(set(now) - set(then)),
                     "thresholds_changed_since": {

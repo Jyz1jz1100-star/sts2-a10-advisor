@@ -454,6 +454,7 @@
     "five_campaign_evaluations_two_promotions": true,
     "floor3_promoted_and_floor6_never_rejudged": true,
     "floor6_promoted_when_it_ran_under_a_lower_bar": true,
+    "the_promotion_predates_the_raise_that_now_rejects_it": true,
     "no_gate_clause_was_scored_on_an_unrecorded_field": true,
     "floor3s_live_verdict_still_reproduces": true,
     "floor6_final_two_missed_only_on_boundary_rate": true,
