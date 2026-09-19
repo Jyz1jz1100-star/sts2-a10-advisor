@@ -358,6 +358,34 @@ def claim_boss_anatomy():
     return out
 
 
+def claim_boss_win_anatomy():
+    """Verify the two-condition Act 1 win model against the recorded winners.
+
+    Selection bias is acknowledged in the artifact -- these nine are known wins -- so
+    what is checked here is not a rate but internal consistency: all nine really were
+    Act 1 seeds, all really won, the boss really reached zero in every one, and the
+    passivity count matches the independent generality measurement of the same seeds.
+    """
+    data = json.loads((ROOT / "docs/evidence/act1_boss_win_anatomy_20260919.json")
+                      .read_text(encoding="utf-8"))
+    generality = json.loads((ROOT / "docs/evidence/boss_generality_20260919.json")
+                            .read_text(encoding="utf-8"))
+    return {
+        "nine_won": data["all_nine_won_again"] and data["boss_hp_all_reduced_to_zero"],
+        "all_act1_seeds": data["all_nine_started_in_act_1"],
+        "illegal_actions_total": data["illegal_actions_total"],
+        "entry_hp_median": data["entry_hp_median"],
+        "boss_decisions_median": data["boss_decisions_median"],
+        "no_wound_hands": data["wound_hands_seen"] == 0,
+        # Same nine seeds, two independent instruments; the field names differ
+        # between the artifacts, so map them explicitly rather than trusting a typo.
+        "passivity_matches_generality_run":
+            data["end_turns_with_a_playable_card"]
+            == generality["end_turn_with_a_playable_card_total"]
+            and data["end_turns_total"] == generality["end_turns_total"],
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -388,6 +416,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "boss_win_anatomy": (claim_boss_win_anatomy,
+                         "the nine Act 1 wins: entered near full HP, survived ~51 boss decisions"),
     "boss_anatomy": (claim_boss_anatomy,
                      "inside the boss node: survived decisions, not damage, separate win from loss"),
 }

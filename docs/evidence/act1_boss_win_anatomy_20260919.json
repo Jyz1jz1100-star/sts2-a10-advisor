@@ -1,0 +1,225 @@
+{
+  "_comment": [
+    "The nine ledgered Act 1 victories, recorded decision-by-decision inside the",
+    "boss node with scripts/probe_chained_act_flow.py --allow-non-chained. This is a second",
+    "independent path to the same nine wins: the ledger re-runs them through evaluate_policy,",
+    "these rows come from the probe s copied semantics, and both agree."
+  ],
+  "all_nine_started_in_act_1": true,
+  "all_nine_won_again": true,
+  "boss_decisions_median": 51,
+  "boss_decisions_range": [
+    33,
+    63
+  ],
+  "boss_hp_all_reduced_to_zero": true,
+  "boss_hp_at_entry_tiers": [
+    183,
+    183,
+    183,
+    183,
+    183,
+    183,
+    183,
+    183,
+    324
+  ],
+  "end_turns_total": 92,
+  "end_turns_with_a_playable_card": 4,
+  "entry_hp_median": 80,
+  "generated_at": "2026-09-19T04:44:30Z",
+  "illegal_actions_total": 0,
+  "rows": [
+    {
+      "boss_decisions": 46,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 80,
+      "final_hp": 17,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 9,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 32
+      },
+      "max_hp": 80,
+      "seed": 130011349,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 46,
+      "boss_hp_first": 324,
+      "boss_hp_last": 0,
+      "entry_hp": 82,
+      "final_hp": 25,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 9,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 31,
+        "potion": 1
+      },
+      "max_hp": 98,
+      "seed": 130017492,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 56,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 90,
+      "final_hp": 7,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 10,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 39,
+        "potion": 2
+      },
+      "max_hp": 90,
+      "seed": 130015199,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 63,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 80,
+      "final_hp": 16,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 13,
+        "phase1": 1,
+        "phase5": 5,
+        "play_card": 43,
+        "potion": 1
+      },
+      "max_hp": 80,
+      "seed": 130016374,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 63,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 77,
+      "final_hp": 9,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 13,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 45
+      },
+      "max_hp": 77,
+      "seed": 130008774,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 57,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 68,
+      "final_hp": 7,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 13,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 38,
+        "potion": 1
+      },
+      "max_hp": 80,
+      "seed": 130015189,
+      "started_in_act": 1,
+      "turtle": 1,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 51,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 72,
+      "final_hp": 24,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 10,
+        "phase1": 1,
+        "phase5": 5,
+        "play_card": 35
+      },
+      "max_hp": 80,
+      "seed": 130017978,
+      "started_in_act": 1,
+      "turtle": 3,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 48,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 87,
+      "final_hp": 16,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 9,
+        "phase1": 1,
+        "phase5": 5,
+        "play_card": 33
+      },
+      "max_hp": 87,
+      "seed": 130019400,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 33,
+      "boss_hp_first": 183,
+      "boss_hp_last": 0,
+      "entry_hp": 65,
+      "final_hp": 7,
+      "illegal": 0,
+      "kinds": {
+        "end_turn": 6,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 20,
+        "potion": 2
+      },
+      "max_hp": 87,
+      "seed": 130008177,
+      "started_in_act": 1,
+      "turtle": 0,
+      "won": true,
+      "wound_in_tail_hand": false
+    }
+  ],
+  "scope": "simulator_act1, act recorded per seed",
+  "survivor_hp_range": [
+    7,
+    25
+  ],
+  "wound_hands_seen": 0
+}
