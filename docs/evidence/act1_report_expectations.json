@@ -43,6 +43,13 @@
     "act1": {"ran": true, "decision_recorded": true, "gate_passed": false}
   },
   "promoted_checkpoint_digests": {"floor3": "ok", "floor6": "ok"},
+  "arrivals_by_generated_act": {
+    "arrivals_add_up": true,
+    "same_checkpoint": true,
+    "illegal_actions": 0,
+    "act1_overgrowth": "ok",
+    "act2_underdocks": "ok"
+  },
   "terminal_census": {
     "enumerated": 3500,
     "arrivals_plus_below": true,

@@ -299,6 +299,36 @@ def claim_terminal_census():
     }
 
 
+def claim_arrivals_by_generated_act():
+    """Check the per-act split that relocates the Act-1 deficit onto the boss fight.
+
+    Two things are verified rather than echoed: each act's win rate and interval are
+    recomputed from its own arrival/win counts, and the act arrivals must add back up
+    to the census total they were split from -- otherwise a filtered subset would pass
+    while silently dropping seeds.
+    """
+    from training.wilson import wilson_interval
+
+    data = json.loads((ROOT / "docs/evidence/act1_arrivals_by_act_20260919.json")
+                      .read_text(encoding="utf-8"))
+    census = json.loads((ROOT / "docs/evidence/act1_terminal_census_3500_20260919.json")
+                        .read_text(encoding="utf-8"))
+    acts = data["arrivals_by_generated_act"]
+    out = {"arrivals_add_up": sum(a["arrivals"] for a in acts.values())
+                           == census["reached_floor_17"],
+           "same_checkpoint": data["checkpoint_sha256"] == census["checkpoint_sha256"],
+           "illegal_actions": sum(a["illegal_actions"] for a in acts.values())}
+    for name, entry in acts.items():
+        low, high = wilson_interval(entry["wins"], entry["arrivals"])
+        stored = entry["wilson_95"]
+        rate_ok = abs(entry["wins"] / entry["arrivals"] - entry["win_rate_of_arrivals"]) < 1e-9
+        ci_ok = abs(low - stored[0]) < 0.0002 and abs(high - stored[1]) < 0.0002
+        out[name] = ("ok" if rate_ok and ci_ok
+                     else f"DRIFT rate_ok={rate_ok} stored={stored} "
+                          f"recomputed={[round(low, 4), round(high, 4)]}")
+    return out
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -327,6 +357,8 @@ CLAIMS = {
                         "the same measurement on non-scripted seeds: won, unlocked, rarely passive"),
     "terminal_census": (claim_terminal_census,
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
+    "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
+                                  "boss arrivals split by the act the seed generated"),
 }
 
 
