@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "b7f7ec8f4eec6717ac8501f68d80f0aa89db7f0c8fe39128b9f36d7287dd362f",
-  "evidence_file_count": 34,
-  "generated_at": "2026-09-19T14:23:45+00:00",
-  "git_head_at_generation": "9eaac49",
+  "bundle_root": "202a0cb008154c3ca15138cb6a5e0a4cfec4ec8f3d01d7e192adb540f4c173db",
+  "evidence_file_count": 35,
+  "generated_at": "2026-09-19T14:53:24+00:00",
+  "git_head_at_generation": "fdc7914",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 657
+    "total_64_hex_strings_seen": 658
   },
   "resolved_checkpoints": [
     {
@@ -1455,6 +1455,7 @@
         "refusal_class_generality_20260919.json",
         "refusal_root_cause_20260919.json",
         "rejection_phase_attribution_20260919.json",
+        "relic_pickup_upgrades_20260919.json",
         "rest_site_choice_20260919.json",
         "reward_upgrade_availability_20260919.json"
       ],
@@ -2262,8 +2263,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "e15980232dcb09845d31f58b266858631157176abb6274ccf8b390f3cad3e862",
-      "bytes": 14320
+      "sha256": "056b3bdc8fc78537f536c86a9a0e0dbd6552bfa40a3a15b4370f647744d57bf7",
+      "bytes": 14397
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2379,6 +2380,11 @@
       "file": "rejection_phase_attribution_20260919.json",
       "sha256": "bca9239280e80fcce9c34da5885ec6e5b6debbc7ece395cb4a057ef66e8ca69f",
       "bytes": 7204
+    },
+    {
+      "file": "relic_pickup_upgrades_20260919.json",
+      "sha256": "e1a26a8b92f04d98826de0cf583f65bea2dd2de83e2c4d841832acd91f0f64f4",
+      "bytes": 4167824
     },
     {
       "file": "rest_site_choice_20260919.json",

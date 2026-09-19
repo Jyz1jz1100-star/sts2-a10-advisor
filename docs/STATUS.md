@@ -1539,3 +1539,19 @@ per run. Also retracted in place: engine checklist finding 6 had generalised "th
 improvement is unmeasurable and unlearnable here" from the one blocked path; it is now scoped to
 reward granting. Registry 43 claims, all matching the disk; 504 contract + 106 training-environment
 tests OK.
+
+**One follow-up turn later: the named candidate for that residual was measured and does not hold.**
+`scripts/measure_relic_pickup_upgrades.py` censused relic screens
+(`relic_pickup_upgrades_20260919.json`): of 12,417 decisions in the `relic_reward` phase only **193
+actually offered a relic** -- the phase is shared with other reward picks, so counting screens
+overstates the opportunity set by ~60x, and the correct filter is the offered-relic field. Across
+24 distinct offered relics in 180 of 3,500 runs, **zero screens produced a deck upgrade**, and the
+two relics that would have done it (`RelicPomander = 201`, `RelicNeowsTalisman = 162`) were never
+offered nor acquired at all -- so for this population the relic route contributes exactly nothing,
+which is "the route did not exist here", not "the effect does not work". Attribution on the subset
+that does exist is sound: 36 of 36 acquired relics matched the id the screen had advertised.
+
+That leaves the 599-card residual unexplained and sharpens where to look next: all three censuses
+read `event`, `rest` and `relic_reward` phases and **none of them instrumented the opening screen**
+(phase `ancient`, Neow), and a once-per-run effect is the right order of magnitude for 599/3,500.
+Recorded as the next candidate, not as a result.

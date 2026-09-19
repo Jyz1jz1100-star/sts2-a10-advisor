@@ -420,6 +420,7 @@
     "campfire_contribution_recomputes_from_rows": true,
     "the_upgrade_option_was_never_missing_at_a_campfire": true,
     "the_residual_is_named_not_hidden": true,
-    "the_conditional_events_never_occurred": true
+    "the_conditional_events_never_occurred": true,
+    "the_relic_candidate_measures_zero_because_it_was_never_offered": true
   }
 }

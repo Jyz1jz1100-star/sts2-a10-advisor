@@ -1522,6 +1522,20 @@ def claim_upgrade_source_accounting():
         "the_conditional_events_never_occurred": (
             rest["aggregates"]["episodes"] == 3500
             and events["aggregates"]["conditional_event_visits"] == 0),
+        # The relic route was the named candidate for the residual and is now measured instead:
+        # filter on the offered relic, because the relic_reward phase is shared with other reward
+        # picks and counting screens overstates the opportunity set sixtyfold.
+        "the_relic_candidate_measures_zero_because_it_was_never_offered": (
+            (relic := json.loads(
+                (ROOT / "docs/evidence/relic_pickup_upgrades_20260919.json")
+                .read_text(encoding="utf-8")))["aggregates"]["mean_upgraded_in_final_deck"]
+            == 0.326
+            and len(offers := [pick for pick in relic["pickups"] if pick["offered_relic"]]) == 193
+            and sum(1 for pick in offers if (pick.get("upgrade_delta") or 0) > 0) == 0
+            and 201 not in {pick["offered_relic"] for pick in offers}
+            and 162 not in {pick["offered_relic"] for pick in offers}
+            and sum(1 for pick in offers if pick["chosen"] == 0
+                    and pick["offered_relic"] in (pick.get("new_relics") or [])) == 36),
     }
 
 
