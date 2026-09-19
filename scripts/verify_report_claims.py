@@ -1430,7 +1430,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_twenty_one_rows": len(rows) == 21,
+        "ledger_has_twenty_two_rows": len(rows) == 22,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1749,6 +1749,57 @@ def claim_ladder_promotion_ledger():
             and any("boundary_rate" in reason for reason in floor10[0]["reasons"])),
         "floor13_has_no_run_at_all": "floor13" in agg["stages_with_no_run_at_all"],
         "digests_rehashed_here": digests_checked,
+    }
+
+
+def claim_chained_map_deadend():
+    """Why the only expressible two-act flow stops at Act 2 floor 19 with the player alive.
+
+    The frontier sweep's label "lost map successors" was ambiguous between two very different
+    ceilings: a policy that picked a dead-ending node, or an engine state that offers no node at
+    all. The fork probe answers it by replaying to the last map decision and reading the masks, and
+    these checks pin that answer -- including that the finding still stands on the engine source it
+    cites, re-read through the provenance builder rather than quoted from prose.
+    """
+    import importlib.util
+
+    data = json.loads((ROOT / "docs/evidence/chained_map_deadend_fork_20260920.json")
+                      .read_text(encoding="utf-8"))
+    forks = data["forks"]
+    spec = importlib.util.spec_from_file_location(
+        "build_emulator_provenance", ROOT / "scripts/build_emulator_provenance.py")
+    provenance = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(provenance)
+    emulator = provenance.DEFAULT_EMULATOR.resolve()
+
+    def engine_text(file_name: str, first: int, last: int) -> str:
+        found = next((path for path in (emulator / "src").rglob(file_name)
+                      if "bin" not in path.parts and "obj" not in path.parts), None)
+        return provenance.cited_text(found, first, last) if found else ""
+
+    return {
+        "two_alive_chains_were_forked": (
+            data["aggregates"]["alive_truncated_chains"] == 2
+            and all(fork["frontier_row"]["final_player_hp"] > 0 for fork in forks)),
+        "the_engine_offered_no_map_option_at_any_fork": (
+            data["aggregates"]["forks_where_the_engine_offered_no_map_option"] == len(forks)
+            and all(fork["fork_masks_at_state"]["native_bases"] == [] for fork in forks)),
+        "only_the_contracts_synthetic_action_was_advertised": all(
+            fork["fork_masks_at_state"]["flat_bases"] == [32]
+            and len(fork["branches"]) == 1
+            and fork["branches"][0]["is_sentinel_action"]
+            and fork["branches"][0]["legal_in_native_mask"] is False
+            and fork["branches"][0]["ended_on_the_step_itself"] for fork in forks),
+        "the_evaluator_still_classifies_the_ending": all(
+            fork["evaluator_judgement"]["dead_end_reasons"] == {"empty_action_mask": 1}
+            and fork["evaluator_judgement"]["unclassified_dead_ends"] == 0
+            and fork["evaluator_judgement"]["illegal_actions"] == 0 for fork in forks),
+        "the_refusal_was_absorbed_rather_than_counted_illegal": all(
+            fork["evaluator_judgement"]["rejection_events"] > 0 for fork in forks),
+        "the_cited_engine_code_still_says_it": (
+            "MapNodeTypes" in engine_text("RunEngine.cs", 690, 695)
+            and "ChooseMapNode" in engine_text("RunEngine.cs", 966, 966)
+            and "NodeNone" in engine_text("RunMapGenerator.cs", 1017, 1029)),
     }
 
 
@@ -2143,6 +2194,9 @@ CLAIMS = {
                                      "the run-start relic pick, offered rarely and positionally"),
     "ladder_promotion_ledger": (claim_ladder_promotion_ledger,
                                 "each rung's real gate decision, re-derived"),
+    "chained_map_deadend": (
+        claim_chained_map_deadend,
+        "why the two-act flow ends alive at floor 19: the engine offers no map option there"),
     "promotion_gate_refuses_unrecorded_inputs": (
         claim_promotion_gate_refuses_unrecorded_inputs,
         "a gate clause is refused when its input was never measured, not scored on a default"),

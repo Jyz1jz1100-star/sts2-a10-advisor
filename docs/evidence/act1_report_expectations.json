@@ -391,7 +391,7 @@
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_twenty_one_rows": true
+    "ledger_has_twenty_two_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -482,5 +482,13 @@
     "cited_lines_still_hold_the_recorded_text": true,
     "engine_source_tree_digest_recomputes": true,
     "native_library_digest_recomputes": true
+  },
+  "chained_map_deadend": {
+    "two_alive_chains_were_forked": true,
+    "the_engine_offered_no_map_option_at_any_fork": true,
+    "only_the_contracts_synthetic_action_was_advertised": true,
+    "the_evaluator_still_classifies_the_ending": true,
+    "the_refusal_was_absorbed_rather_than_counted_illegal": true,
+    "the_cited_engine_code_still_says_it": true
   }
 }

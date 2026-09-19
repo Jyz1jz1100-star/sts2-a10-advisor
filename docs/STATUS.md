@@ -1738,3 +1738,28 @@ ledger carries row 21 for the expired "exhaustive" wording. The 09-19 artifact s
 history; `chained_frontier_full_20260920.json` is the live one. Generalisable: **an assertion whose
 content is "all"/"every" must ship the rule that enumerates it**, otherwise it describes the
 directory listing at the moment it was written.
+## 2026-09-20 -- the two-act ceiling is the engine's map, established by forking the label
+
+`chained_frontier_full_20260920.json` says two of the three chained runs ended *truncated while
+alive* at Act 2 floor 19, labelled "lost map successors". That label admits two opposite readings:
+the policy walked into a node with no exit (fixable by choosing differently) or the engine offered no
+node at all (a ceiling no policy can pass). The objective's first clause lives or dies on which, so
+`scripts/probe_map_fork_successors.py` replays the roll deterministically to that last map decision,
+reads the engine's own 32-bit mask and the V2 225-wide expansion, and steps each advertised option.
+
+Both dead-end checkpoints agree: **the native mask has zero legal bases**
+(`RunEngine.cs:690-695` sets a bit only for `MapNodeTypes[i] != NodeNone`; `ChooseMapNode` is false
+for every action at `RunMapGenerator.cs:1017-1029`; `StepMap` returns -1 at `RunEngine.cs:966`), and
+the only legal action in the flat mask is base 32 -- the synthetic sentinel that
+`training/v2_run_wrapper.py:222-230` deliberately advertises when the engine mask is empty. So
+**floor 19 is an engine-side structural ceiling**, not policy weakness and not the step budget.
+
+The same judgement was then re-run through the campaign's own evaluator rather than inferred from the
+trace: per episode `rejection_events = 6`, `illegal_actions = 0`,
+`dead_end_reasons = {empty_action_mask: 1}`, `unclassified_dead_ends = 0`. Two clauses therefore hold
+on this path, but by a mechanism worth naming: the sentinel absorbs six refusals, and the seventh
+look finds the mask genuinely empty. Claim `chained_map_deadend` (6 checks) pins all of it, including
+re-reading the three cited engine ranges from the hashed source; retraction ledger row 22 records the
+label that had to be forked. Not established: whether an earlier node choice avoids the dead end (the
+third checkpoint does get past floor 19, so successors exist elsewhere), and whether the state can be
+reached off the retained-trace seed (only that seed enters Act 2).

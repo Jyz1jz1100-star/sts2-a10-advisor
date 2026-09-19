@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "69e3488194351de2c48f73aafbe0e6415fdf3fa229c2599ba32b31705d96c23b",
-  "evidence_file_count": 40,
-  "generated_at": "2026-09-19T17:01:06+00:00",
-  "git_head_at_generation": "7483c2a",
+  "bundle_root": "1b931926477034de6a40c54937cd0abfcbd27889d85e83ca7f5adb12489eb638",
+  "evidence_file_count": 41,
+  "generated_at": "2026-09-19T17:26:30+00:00",
+  "git_head_at_generation": "9b81db9",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 969
+    "total_64_hex_strings_seen": 974
   },
   "resolved_checkpoints": [
     {
@@ -170,6 +170,7 @@
       "sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
       "cited_by": [
         "chained_frontier_full_20260920.json",
+        "chained_map_deadend_fork_20260920.json",
         "chained_terminal_gates_20260919.json",
         "metrics_index_20260919.json"
       ],
@@ -2287,6 +2288,7 @@
       "sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
       "cited_by": [
         "chained_frontier_full_20260920.json",
+        "chained_map_deadend_fork_20260920.json",
         "chained_terminal_gates_20260919.json",
         "metrics_index_20260919.json"
       ],
@@ -2376,8 +2378,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "b6a1cddc5c165db0cc9020db3ad175e707016785693458b4995ac84d959cc74c",
-      "bytes": 17381
+      "sha256": "6d689294908e240912b25ee9f6ea1a5728d8b5570b8c501e01e45b5f290c8942",
+      "bytes": 17754
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2435,6 +2437,11 @@
       "bytes": 22579
     },
     {
+      "file": "chained_map_deadend_fork_20260920.json",
+      "sha256": "fe5b4a6ad603d2f7816f75cc635acf1e072eb96751256d3be68bb3553b7e5149",
+      "bytes": 6143
+    },
+    {
       "file": "chained_terminal_gates_20260919.json",
       "sha256": "5c89c235a9fdd266cb8806ce509ac1b0b3ef8d2ce03f501c6b02c3a93d302b6f",
       "bytes": 5978
@@ -2451,8 +2458,8 @@
     },
     {
       "file": "emulator_source_provenance_20260920.json",
-      "sha256": "ebe8cea9d79c6d149f15301495adb2d67f554324a994c15a03e8c197679bd1fa",
-      "bytes": 23071
+      "sha256": "8b3191371d9c48f5ec2f0efc1016ca4c99c2c1ced679cacb7a363ce30a8749dd",
+      "bytes": 24034
     },
     {
       "file": "event_mask_case_audit_20260919.json",

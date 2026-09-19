@@ -1,0 +1,173 @@
+{
+  "aggregates": {
+    "alive_truncated_chains": 2,
+    "forks_where_the_engine_offered_no_map_option": 2,
+    "forks_with_identical_mask_signature": true,
+    "options_offered_at_the_fork": [
+      [
+        32
+      ]
+    ]
+  },
+  "conclusion": "the ceiling on the two-act flow is the engine's map structure at that cursor position, not policy strength and not the step budget: the native mask lists no map option at all, so no choice was available to make better",
+  "contract_behaviour_explaining_the_counters": "an empty engine mask gets one synthetic action (the sentinel) from V2RunEnvWrapper.action_masks(), which is why these episodes record absorbed rejections and 0 illegal actions, and are still classified empty_action_mask by training/evaluation.py rather than left unclassified",
+  "engine_citations": [
+    "RunEngine.cs:690-695 (map mask: one bit per non-NodeNone MapNodeTypes entry)",
+    "RunEngine.cs:966 (`StepMap` returns -1 when `ChooseMapNode` and the scripted fallback `TryChooseInstant5RetainedUnknownPath` both fail)",
+    "RunMapGenerator.cs:1017-1029 (ChooseMapNode is false when every MapNodeTypes entry is NodeNone, or an option carries no coordinate)"
+  ],
+  "forks": [
+    {
+      "branches": [
+        {
+          "advertised_by_mask": true,
+          "base_action": 32,
+          "deepest_act_floor": [
+            2,
+            19
+          ],
+          "ended_on_the_step_itself": true,
+          "flat_action": 224,
+          "hp_after": 37,
+          "is_sentinel_action": true,
+          "legal_in_native_mask": false,
+          "lookahead_steps": 0,
+          "outcome": "ended_elsewhere"
+        }
+      ],
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
+      "evaluator_judgement": {
+        "boundary_hits": 0,
+        "boundary_rate": 0.0,
+        "dead_end_reasons": {
+          "empty_action_mask": 1
+        },
+        "defect_truncation_rate": 1.0,
+        "episodes": 1,
+        "illegal_actions": 0,
+        "max_final_floor": 19,
+        "rejection_events": 6,
+        "truncation_rate": 1.0,
+        "truncations": 1,
+        "unclassified_dead_ends": 0,
+        "wins": 0
+      },
+      "fork_at_step": 220,
+      "fork_masks_at_state": {
+        "flat_bases": [
+          32
+        ],
+        "native_bases": []
+      },
+      "fork_state": {
+        "act": 2,
+        "floor": 19,
+        "phase": "map"
+      },
+      "frontier_row": {
+        "final_player_hp": 37,
+        "max_floor": 19,
+        "run_outcome": "truncated",
+        "steps": 221
+      },
+      "lookahead": 600,
+      "not_established": [
+        "that any branch wins the act: the lookahead bounds how far each was rolled",
+        "anything about the shipped game"
+      ],
+      "prefix_length": 220,
+      "roll_outcome_before_forking": {
+        "last_marker": [
+          2,
+          19,
+          "map"
+        ],
+        "markers": 63,
+        "steps": 221
+      },
+      "scope": "the last map decision of one deterministic chained roll on the retained-trace seed",
+      "seed": "7MS1YN8NWB"
+    },
+    {
+      "branches": [
+        {
+          "advertised_by_mask": true,
+          "base_action": 32,
+          "deepest_act_floor": [
+            2,
+            19
+          ],
+          "ended_on_the_step_itself": true,
+          "flat_action": 224,
+          "hp_after": 37,
+          "is_sentinel_action": true,
+          "legal_in_native_mask": false,
+          "lookahead_steps": 0,
+          "outcome": "ended_elsewhere"
+        }
+      ],
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
+      "evaluator_judgement": {
+        "boundary_hits": 0,
+        "boundary_rate": 0.0,
+        "dead_end_reasons": {
+          "empty_action_mask": 1
+        },
+        "defect_truncation_rate": 1.0,
+        "episodes": 1,
+        "illegal_actions": 0,
+        "max_final_floor": 19,
+        "rejection_events": 6,
+        "truncation_rate": 1.0,
+        "truncations": 1,
+        "unclassified_dead_ends": 0,
+        "wins": 0
+      },
+      "fork_at_step": 243,
+      "fork_masks_at_state": {
+        "flat_bases": [
+          32
+        ],
+        "native_bases": []
+      },
+      "fork_state": {
+        "act": 2,
+        "floor": 19,
+        "phase": "map"
+      },
+      "frontier_row": {
+        "final_player_hp": 37,
+        "max_floor": 19,
+        "run_outcome": "truncated",
+        "steps": 244
+      },
+      "lookahead": 600,
+      "not_established": [
+        "that any branch wins the act: the lookahead bounds how far each was rolled",
+        "anything about the shipped game"
+      ],
+      "prefix_length": 243,
+      "roll_outcome_before_forking": {
+        "last_marker": [
+          2,
+          19,
+          "map"
+        ],
+        "markers": 62,
+        "steps": 244
+      },
+      "scope": "the last map decision of one deterministic chained roll on the retained-trace seed",
+      "seed": "7MS1YN8NWB"
+    }
+  ],
+  "frontier_artifact": "docs/evidence/chained_frontier_full_20260920.json",
+  "generated_at": "2026-09-19T17:18:40+00:00",
+  "not_established": [
+    "that the dead end is unavoidable: the third chained checkpoint reached Act 2 floor 22 on the same seed, so successors exist for other cursor positions -- what is not established is whether any policy choice at an earlier node avoids this one",
+    "how often this state is reached outside the retained-trace branch (it needs Act 2 of the scripted seed, which only that seed can enter)",
+    "anything about the shipped game"
+  ],
+  "scope": "the last map decision of each chained Act-2 run that ended alive, per checkpoint"
+}

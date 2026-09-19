@@ -1,7 +1,7 @@
 {
   "aggregates": {
-    "citation_mentions": 61,
-    "citations_resolved": 61,
+    "citation_mentions": 64,
+    "citations_resolved": 64,
     "cited_files": 11,
     "cited_files_unresolved": [],
     "engine_source_files_hashed": 37
@@ -206,6 +206,30 @@
       "resolved": true,
       "snippet": "if (State.StringSeed == \"7MS1YN8NWB\" && State.Floor == 17)",
       "text_sha256": "590afb27f1a2a7c1b10f6f1a5fd559998e14ad24d01beb7f86fff9633c2ad96f"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 690,
+      "last_line": 695,
+      "resolved": true,
+      "snippet": "for (int i = 0; i < State.MapNodeTypes.Length; i++) { if (State.MapNodeTypes[i] != RunCons",
+      "text_sha256": "c8b0e04d0a0455d97ec46210e704aef3ce12bc5cc3f6c02cc1ba7d4ded1ef070"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 1017,
+      "last_line": 1029,
+      "resolved": true,
+      "snippet": "if ( (uint)action >= RunConstants.MapChoices || state.MapNodeTypes[action] == RunConstants",
+      "text_sha256": "d129e305538562ab566713c57eae6ba067b33c58cb53aa75bcaf4b8b02d87b4e"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 966,
+      "last_line": 966,
+      "resolved": true,
+      "snippet": "!RunMapGenerator.ChooseMapNode(State, action, out nodeType, out encounterId)",
+      "text_sha256": "86e3a4a367a59ec3dea9ee87fdf61d079b560b4fbf13ea8805c99fcc7b3a09c6"
     },
     {
       "file": "RunEngine.cs",
@@ -576,7 +600,7 @@
     }
   ],
   "emulator_layout": "src/Sts2Emulator (excludes bin/ and obj/)",
-  "generated_at": "2026-09-19T16:41:24+00:00",
+  "generated_at": "2026-09-19T17:26:12+00:00",
   "native_api": {
     "library": {
       "bytes": 2774528,
