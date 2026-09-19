@@ -9,10 +9,12 @@ the objective's maximum expressible flow.
 This calls `probe_map_fork_successors.py` per dead-end checkpoint and assembles the answer: the
 engine's own map mask has zero legal bases there (`RunEngine.cs:690-695` sets a bit only for
 `MapNodeTypes[i] != NodeNone`, and `ChooseMapNode` returns false for all of them), so the state has
-no successors at all. The V2 contract then advertises one synthetic action for the empty mask
-(`training/v2_run_wrapper.py:222-230`), which is why the episode records rejections and 0 illegal
-actions instead of violating the contract, and why `training/evaluation.py` still classifies it as
-`empty_action_mask` rather than leaving it unclassified.
+no successors at all. The V2 contract then advertises one sentinel action for the empty mask
+(`training/v2_flat_env.py:308-329`) and intercepts it inside the flat env's own `step`
+(`training/v2_flat_env.py:240-250`) before the engine is asked, which is why the episode records
+rejections from *other* states and 0 illegal actions here, and why `training/evaluation.py` still
+classifies it as `empty_action_mask` rather than leaving it unclassified.
+`training/v2_run_wrapper.py:241-253` holds a second, equivalent interception as defence in depth.
 """
 
 from __future__ import annotations
@@ -72,16 +74,23 @@ def main() -> int:
             "not policy strength and not the step budget: the native mask lists no map option at "
             "all, so no choice was available to make better"),
         "contract_behaviour_explaining_the_counters": (
-            "when the engine mask is empty, V2RunEnvWrapper.action_masks() advertises one synthetic "
-            "sentinel action so the policy always has something legal to play (hence 0 illegal "
-            "actions), and step() then short-circuits without asking the engine at all: it returns "
-            "truncated with simulator_dead_end=empty_action_mask and "
-            "synthetic_sentinel_action=<that action> (v2_run_wrapper.py:238-253). So this state "
-            "produces NO native refusal -- verified per branch by "
+            "when the engine mask is empty the flat env advertises its one sentinel action so the "
+            "policy always has something legal to play (hence 0 illegal actions, "
+            "v2_flat_env.py:308-329), and its step() intercepts that action without asking the "
+            "engine: it returns truncated with simulator_dead_end set and classifies the ending "
+            "from the engine's own mask -- empty gives empty_action_mask, a non-empty mask whose "
+            "candidates the filter removed gives rejected_to_exhaustion (v2_flat_env.py:240-250). "
+            "V2RunEnvWrapper.step() short-circuits the same state as defence in depth "
+            "(v2_run_wrapper.py:241-253); `labelling_layers_observed` records which one actually "
+            "fired here, keyed off the sentinel-action field only that wrapper writes. So this "
+            "state produces NO native refusal -- verified per branch by "
             "rejection_events_before_step == rejection_events_after_step with "
             "native_refusal_counted_on_this_step False -- which is exactly why the rejection-phase "
             "census can report 0 refusals across 11,060 map decisions and still be consistent with "
             "map states that have no successors."),
+        "labelling_layers_observed": sorted({
+            branch["which_contract_layer_labelled_it"] for fork in forks
+            for branch in fork["branches"] if branch.get("which_contract_layer_labelled_it")}),
         "engine_citations": [
             "RunEngine.cs:690-695 (map mask: one bit per non-NodeNone MapNodeTypes entry)",
             "RunEngine.cs:966 (`StepMap` returns -1 when `ChooseMapNode` and the scripted "

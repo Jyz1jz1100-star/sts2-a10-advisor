@@ -1430,7 +1430,7 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "ledger_has_twenty_three_rows": len(rows) == 23,
+        "ledger_has_twenty_four_rows": len(rows) == 24,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(
@@ -1850,11 +1850,13 @@ def claim_map_deadend_short_circuits_before_the_refusal_census():
     The rejection census reports 0 refusals across 11,060 map decisions; the chained wall is a map
     state with no successors. Read side by side those look contradictory, and my first write-up of
     the wall resolved it the wrong way by claiming the sentinel got refused and absorbed -- the
-    short-circuit in `v2_run_wrapper.py:238-253` never calls the engine at all, so no refusal can
-    be counted there. This pins the reconciliation from measured fields (the rejection counter is
-    identical before and after that step, and the step's own label is ``empty_action_mask``), plus
-    the fact that the episode does carry refusals -- from other phases -- so the census is not blind
-    to this path, it is correctly reporting that nothing on this path goes through the refusal route.
+    contract intercepts the empty-mask step before the engine is asked at all (`v2_flat_env.py:240-250`
+    takes it when the policy plays the sentinel, and `v2_run_wrapper.py:241-253` holds the same
+    interception in reserve), so no refusal can be counted there. This pins the reconciliation from
+    measured fields (the rejection counter is identical before and after that step, and the step's
+    own label is ``empty_action_mask``), plus the fact that the episode does carry refusals -- from
+    other phases -- so the census is not blind to this path, it is correctly reporting that nothing
+    on this path goes through the refusal route.
     """
     census = json.loads((ROOT / "docs/evidence/rejection_phase_attribution_20260919.json")
                         .read_text(encoding="utf-8"))
@@ -1879,6 +1881,13 @@ def claim_map_deadend_short_circuits_before_the_refusal_census():
             and fork["branches"][0]["dead_end_label"] == "empty_action_mask"
             and fork["branches"][0]["native_refusal_counted_on_this_step"] is False
             and fork["evaluator_judgement"]["illegal_actions"] == 0 for fork in forks),
+        # Which of the two equivalent interceptions fired is now a measured field rather than an
+        # attribution in prose: only the wrapper writes the sentinel-action key, and it wrote none.
+        "the_layer_that_labelled_it_is_the_flat_env": (
+            deadend["labelling_layers_observed"] == ["v2_flat_env_sentinel_step"]
+            and all(branch["which_contract_layer_labelled_it"] == "v2_flat_env_sentinel_step"
+                    for fork in forks for branch in fork["branches"]
+                    if branch["dead_end_label"] == "empty_action_mask")),
         # The episode does carry filter-mode refusals, so the census is not blind to refusals on
         # this path -- they simply belong to other states, which is what reconciles the two.
         "refusals_on_the_chained_episode_come_from_elsewhere": all(
@@ -1891,6 +1900,75 @@ def claim_map_deadend_short_circuits_before_the_refusal_census():
             and refusals.get("map", 0) == 0),
         "shop_and_event_remain_the_only_ordinary_classes": (
             set(refusals) == {"shop", "event"}),
+    }
+
+
+def claim_empty_mask_endings():
+    """Locate every `empty_action_mask` ending the campaign ever recorded, and what it was sitting on.
+
+    The dead-end vocabulary counts 50 of these repo-wide and the report named one instance. They are
+    not in one window -- they sit in 35 metrics files across 35 checkpoints, one to five per file --
+    so a single window roll finds none of them (mine did: 0 in 500 episodes). The census therefore
+    walks the recordings: each file's own seed window is resolved from its `seed_sha256`, its
+    checkpoint must still hash to what the file recorded, and the pair is re-rolled. `per_file` then
+    compares reproduced against recorded, which is what makes `0 mismatches` a closure property
+    rather than a sampling claim. Two things come out of the rows that the report had no basis for
+    either way: the class is one Act-2 floor-17 wall rather than a scatter, and the layer that
+    labels it is the flat env's own interception, not the wrapper's.
+    """
+    data = json.loads((ROOT / "docs/evidence/empty_mask_endings_20260920.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    vocab = json.loads((ROOT / "docs/evidence/dead_end_vocabulary_20260919.json")
+                       .read_text(encoding="utf-8"))
+    dead = data["dead_ends"]
+    traces = data["per_seed_explanations"]
+    walls = data["explained_walls"]
+    endings = agg["endings_across_rolled_episodes"]
+    return {
+        "every_ending_in_a_reproducible_recording_was_located": (
+            agg["empty_action_mask_total"] == agg["recorded_total_in_rolled_files"] == 49
+            and agg["per_file_mismatch_count"] == 0 and agg["files_rolled"] == 34
+            and len(dead) == 49),
+        "the_coverage_gap_is_named_not_smoothed": (
+            len(data["coverage_exclusions"]) == 1
+            and data["coverage_exclusions"][0]["recorded_empty_action_mask"] == 1
+            and sum(e["recorded_empty_action_mask"] for e in data["plan"])
+            + sum(e["recorded_empty_action_mask"] for e in data["coverage_exclusions"])
+            == vocab["vocabulary"]["empty_action_mask"]),
+        "every_episode_is_counted_once": (
+            sum(endings.values()) == agg["episodes_rolled"] == 11800),
+        "the_engine_offered_no_action_at_any_located_ending": (
+            agg["dead_ends_with_no_engine_legal_basis"] == 49
+            and all(row["engine_legal_bases"] == [] for row in dead)),
+        "the_player_was_alive_at_every_one": agg["alive_at_the_dead_end"] == 49,
+        "the_class_is_one_wall_not_a_scatter": (
+            agg["empty_action_mask_by_phase"] == {"map": 49}
+            and agg["empty_action_mask_by_act"] == {"1": 1, "2": 48}
+            and agg["empty_action_mask_by_floor"] == {"17": 48, "3": 1}),
+        # Only V2RunEnvWrapper.step() writes the sentinel-action key, so its absence across every
+        # row says the flat env's interception is the path the campaign's records actually took --
+        # which is the opposite of what this report said before the rows existed.
+        "the_labelling_layer_is_measured_not_assumed": (
+            agg["labelling_layers_observed"] == {"v2_flat_env_sentinel_step": 49}
+            and all(row["short_circuit"] is False for row in dead)),
+        "the_explained_walls_are_a_boss_cleared_into_an_empty_map": (
+            walls["traces"] == 4 and walls["engine_offered_nothing_at_every_explained_wall"]
+            and walls["node_types_at_the_explained_walls"] == {"4": 1, "6": 3}
+            and walls["won_the_last_combat_and_still_not_a_terminal"] == 4
+            and all(trace["observation_at_the_wall"]["map_option_coords"] == [-1] * 8
+                    for trace in traces)
+            and all(trace["observation_at_the_wall"]["phase_onehot_name"] == "map"
+                    for trace in traces)),
+        "no_ending_was_dropped_to_make_the_finding_clean": (
+            agg["roll_anomaly_total"] == len(data["anomaly_rows"])
+            == sum(count for outcome, count in endings.items()
+                   if outcome not in ("death", "win", "empty_action_mask"))
+            and all(row["outcome"] == "step_cap" and row["steps"] == 1600
+                    for row in data["anomaly_rows"])),
+        "the_instrument_reports_its_own_health": (
+            data["close_failures"] == []
+            and "native_reset_raised" not in endings),
     }
 
 
@@ -2288,6 +2366,9 @@ CLAIMS = {
     "map_deadend_short_circuits_before_the_refusal_census": (
         claim_map_deadend_short_circuits_before_the_refusal_census,
         "map refusals belong to the chained branch; on ordinary seeds the phase is measured clean"),
+    "empty_mask_endings": (
+        claim_empty_mask_endings,
+        "where every recorded empty_action_mask ending sits, and what the engine was showing there"),
     "chained_act2_reachability": (
         claim_chained_act2_reachability,
         "whether a different Act-2 map choice escapes the floor-19 dead end (it does not)"),

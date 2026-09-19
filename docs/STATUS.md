@@ -1816,3 +1816,49 @@ The reusable lesson, and the reason this is worth a row: I applied a true genera
 absorbs refusals and re-asks") to a branch that does not pass through the filter, and the counter-
 evidence -- a per-step delta -- was already one field away in the artifact I had just written. When
 explaining a counter, read the code that owns it, not the family it resembles.
+
+## 2026-09-20 -- all 49 locatable `empty_action_mask` endings are one wall, and the section above named the wrong layer
+
+Two things, one of them a correction of the entry directly above.
+
+**The layer.** That entry says the empty engine mask is intercepted by `v2_run_wrapper.py:238-253`. It
+is not, in any record this campaign holds. `V2FlatActionEnv.action_masks()` advertises the sentinel
+itself when the engine mask is empty (`v2_flat_env.py:308-329`), so the wrapper's precondition -- a
+flat mask with no bit on -- is not met, and the interception that fires is the flat env's own
+`step()` (`v2_flat_env.py:240-250`), which classifies from the engine mask: empty gives
+`empty_action_mask`, a non-empty mask emptied by the filter gives `rejected_to_exhaustion`. The
+wrapper's identical short-circuit is defence in depth. This is now measured rather than reasoned
+about: only the wrapper writes `synthetic_sentinel_action`, so `which_contract_layer_labelled_it`
+(the new probe field) and `labelling_layers_observed` (the new census field) say which layer took the
+step. Every one of the 49 located endings and both chained forks report the flat env. The causal
+conclusion the previous entry drew -- the engine is never asked, so no refusal can be counted --
+survives untouched; retraction ledger row 23 stays valid and row 24 adds the layer.
+
+**The census.** `dead_end_vocabulary_20260919.json` counts 50 of these endings repo-wide and the
+report named one. They cannot be found by rolling a window: they sit 1-to-5 deep in 35 metrics files
+across 35 checkpoints, and my first single-window pass (1,500 episodes of one checkpoint) located
+zero. So `scripts/census_empty_mask_endings.py` now walks the recordings instead: it resolves each
+file's own seed window from its `seed_sha256`, refuses to roll a checkpoint whose bytes no longer
+hash to what that file recorded (all 35 do), re-rolls through the same contract stack, and compares
+reproduced against recorded per file. 11,800 episodes over 34 files: **49 of 49 located, 0 files
+disagree**, and the 50th is named as uncovered (a 2026-09-03 bulk run whose window digest predates
+this config) rather than smoothed over.
+
+What the 49 are: every one `map` phase, player **alive**, engine mask with **zero** legal bases,
+labelled by the flat env. 48 of them are Act 2 floor 17 -- and `--explain-seed` traces four of them
+through boss combat (`current_node_type=6`) into `relic_reward`, `card_reward`, then a map whose
+eight option coordinates are all `-1`, with `simulator_player_won` true and `player_won` false. That
+is the boss-completion fork the report already measured on seed `130012038` and priced at 27 pooled
+occurrences, so the finding here is not the wall but the **link**: the campaign's headline
+"environment-side dead end" counter is, almost entirely, runs that cleared Act 2's boss and were
+never reported as wins. It also retires the report's "cannot be determined" note about how many of
+the floor-17 truncations are this class -- for the `empty_action_mask` half of them, now every one is
+located by seed. The single Act 1 floor 3 case is the shop-then-empty-map shape the report had
+already named once, confirmed as a separate shape rather than another copy of the boss wall.
+
+**The instrument bug, so it does not recur.** That first 1,500-episode pass failed 1,244 resets with
+`Sts2Run_GetInfo failed with status -1`. It was my own process holding 1,500 un-closed native
+handles -- the same window in 60-episode pieces was clean -- and reporting it as an engine property
+would have been exactly the error the paragraph above is about. Each episode now closes in a
+`finally`, `report()` prints the instrument's health next to the finding, and `not_established`
+states that a nonzero reset-failure count is not an engine fact. 52/52 claims match the disk.

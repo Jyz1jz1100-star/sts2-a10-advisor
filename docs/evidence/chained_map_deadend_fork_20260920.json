@@ -10,7 +10,7 @@
     ]
   },
   "conclusion": "the ceiling on the two-act flow is the engine's map structure at that cursor position, not policy strength and not the step budget: the native mask lists no map option at all, so no choice was available to make better",
-  "contract_behaviour_explaining_the_counters": "when the engine mask is empty, V2RunEnvWrapper.action_masks() advertises one synthetic sentinel action so the policy always has something legal to play (hence 0 illegal actions), and step() then short-circuits without asking the engine at all: it returns truncated with simulator_dead_end=empty_action_mask and synthetic_sentinel_action=<that action> (v2_run_wrapper.py:238-253). So this state produces NO native refusal -- verified per branch by rejection_events_before_step == rejection_events_after_step with native_refusal_counted_on_this_step False -- which is exactly why the rejection-phase census can report 0 refusals across 11,060 map decisions and still be consistent with map states that have no successors.",
+  "contract_behaviour_explaining_the_counters": "when the engine mask is empty the flat env advertises its one sentinel action so the policy always has something legal to play (hence 0 illegal actions, v2_flat_env.py:308-329), and its step() intercepts that action without asking the engine: it returns truncated with simulator_dead_end set and classifies the ending from the engine's own mask -- empty gives empty_action_mask, a non-empty mask whose candidates the filter removed gives rejected_to_exhaustion (v2_flat_env.py:240-250). V2RunEnvWrapper.step() short-circuits the same state as defence in depth (v2_run_wrapper.py:241-253); `labelling_layers_observed` records which one actually fired here, keyed off the sentinel-action field only that wrapper writes. So this state produces NO native refusal -- verified per branch by rejection_events_before_step == rejection_events_after_step with native_refusal_counted_on_this_step False -- which is exactly why the rejection-phase census can report 0 refusals across 11,060 map decisions and still be consistent with map states that have no successors.",
   "engine_citations": [
     "RunEngine.cs:690-695 (map mask: one bit per non-NodeNone MapNodeTypes entry)",
     "RunEngine.cs:966 (`StepMap` returns -1 when `ChooseMapNode` and the scripted fallback `TryChooseInstant5RetainedUnknownPath` both fail)",
@@ -37,7 +37,8 @@
           "native_refusal_counted_on_this_step": false,
           "outcome": "ended_elsewhere",
           "rejection_events_after_step": 6,
-          "rejection_events_before_step": 6
+          "rejection_events_before_step": 6,
+          "which_contract_layer_labelled_it": "v2_flat_env_sentinel_step"
         }
       ],
       "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000001000008.zip",
@@ -114,7 +115,8 @@
           "native_refusal_counted_on_this_step": false,
           "outcome": "ended_elsewhere",
           "rejection_events_after_step": 6,
-          "rejection_events_before_step": 6
+          "rejection_events_before_step": 6,
+          "which_contract_layer_labelled_it": "v2_flat_env_sentinel_step"
         }
       ],
       "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000001000008.zip",
@@ -173,7 +175,10 @@
     }
   ],
   "frontier_artifact": "docs/evidence/chained_frontier_full_20260920.json",
-  "generated_at": "2026-09-19T17:46:52+00:00",
+  "generated_at": "2026-09-19T18:37:33+00:00",
+  "labelling_layers_observed": [
+    "v2_flat_env_sentinel_step"
+  ],
   "not_established": [
     "that the dead end is unavoidable: the third chained checkpoint reached Act 2 floor 22 on the same seed, so successors exist for other cursor positions -- what is not established is whether any policy choice at an earlier node avoids this one",
     "how often this state is reached outside the retained-trace branch (it needs Act 2 of the scripted seed, which only that seed can enter)",

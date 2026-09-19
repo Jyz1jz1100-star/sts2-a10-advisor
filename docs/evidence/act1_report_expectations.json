@@ -391,7 +391,7 @@
     "prose_count_matches_the_ledger": true,
     "closing_paragraph_count_matches_the_ledger": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true,
-    "ledger_has_twenty_three_rows": true
+    "ledger_has_twenty_four_rows": true
   },
   "metrics_index_reviewability": {
     "index_aggregates_are_self_consistent": true,
@@ -503,8 +503,21 @@
     "the_census_counted_map_decisions_rather_than_omitting_them": true,
     "no_map_refusals_on_the_ordinary_promotion_population": true,
     "the_chained_dead_end_sits_in_map_and_short_circuits_before_the_engine": true,
+    "the_layer_that_labelled_it_is_the_flat_env": true,
     "refusals_on_the_chained_episode_come_from_elsewhere": true,
     "the_two_populations_disagree_as_stated": true,
     "shop_and_event_remain_the_only_ordinary_classes": true
+  },
+  "empty_mask_endings": {
+    "every_ending_in_a_reproducible_recording_was_located": true,
+    "the_coverage_gap_is_named_not_smoothed": true,
+    "every_episode_is_counted_once": true,
+    "the_engine_offered_no_action_at_any_located_ending": true,
+    "the_player_was_alive_at_every_one": true,
+    "the_class_is_one_wall_not_a_scatter": true,
+    "the_labelling_layer_is_measured_not_assumed": true,
+    "the_explained_walls_are_a_boss_cleared_into_an_empty_map": true,
+    "no_ending_was_dropped_to_make_the_finding_clean": true,
+    "the_instrument_reports_its_own_health": true
   }
 }

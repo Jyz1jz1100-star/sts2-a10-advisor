@@ -119,9 +119,12 @@ def main() -> int:
             if hasattr(branch_env, "base_action_mask") else branch_env.unwrapped.base_action_mask()
         advertised = bool(replay_flat_mask[flat])
         # Filter-mode refusals are reported cumulatively on every step's info, so the delta across
-        # this one step says whether the engine was actually asked -- the wrapper short-circuits an
-        # empty engine mask (v2_run_wrapper.py:238-253) and would otherwise be indistinguishable
-        # from a refusal here.
+        # this one step says whether the engine was actually asked. Both contract layers can
+        # intercept an empty-mask step before the engine sees it -- `v2_flat_env.py:240-250` when
+        # the policy plays the sentinel the flat mask advertised, and `v2_run_wrapper.py:241-253`
+        # as defence in depth when the flat mask itself has nothing on -- and either way no
+        # refusal can be counted on that step. `which_contract_layer_labelled_it` below records
+        # which one fired rather than leaving it to be inferred.
         rejections_before = int((info or {}).get("rejection_events", 0) or 0)
         _o, _r, terminal, truncated, binfo = branch_env.step(flat)
         rejections_after = int((binfo or {}).get("rejection_events", rejections_before) or 0)
@@ -161,6 +164,13 @@ def main() -> int:
             "rejection_events_after_step": rejections_after,
             "native_refusal_counted_on_this_step": rejections_after > rejections_before,
             "dead_end_label": binfo.get("simulator_dead_end"),
+            # Only the wrapper's interception adds the sentinel-action key, so its presence says
+            # which layer stopped the step; the flat env's own label arrives without it.
+            "which_contract_layer_labelled_it": (
+                None if not binfo.get("simulator_dead_end")
+                else "v2_run_wrapper_short_circuit"
+                if "synthetic_sentinel_action" in binfo
+                else "v2_flat_env_sentinel_step"),
             "engine_mask_was_empty_at_the_fork": not any(
                 bool(value) for value in replay_native_mask),
             "lookahead_steps": steps_after,
@@ -169,6 +179,7 @@ def main() -> int:
         print(f"base {base}: advertised={advertised} ended_immediately="
               f"{branches[-1]['ended_on_the_step_itself']} -> {branches[-1]['outcome']} "
               f"deepest={deepest} hp={binfo.get('player_hp')}")
+        branch_env.close()
 
     judgement = None
     if args.judge_with_evaluator:

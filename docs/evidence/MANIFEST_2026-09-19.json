@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "8533930223ff8682c6b84fab7102059a344761c3b803c638861836f3ee3dab19",
-  "evidence_file_count": 42,
-  "generated_at": "2026-09-19T17:48:16+00:00",
-  "git_head_at_generation": "11ef1e8",
+  "bundle_root": "755d6a2e91071907d7135f14f118040dbf04191a3a38914987f77bc280f7289c",
+  "evidence_file_count": 43,
+  "generated_at": "2026-09-19T18:45:57+00:00",
+  "git_head_at_generation": "aa1576d",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 977
+    "total_64_hex_strings_seen": 1011
   },
   "resolved_checkpoints": [
     {
@@ -2381,8 +2381,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "0a205d0f536cf0c542085058036e443d2595acd095ba4480aa71cd7acf2ac278",
-      "bytes": 18566
+      "sha256": "6d8f479de70ead4a6bbd7cc85eaab448e63fa23a52ec06455fc2bba1be588480",
+      "bytes": 19224
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2446,8 +2446,8 @@
     },
     {
       "file": "chained_map_deadend_fork_20260920.json",
-      "sha256": "f913152172590254048614bed1e5b5cf11fa4f082968119689fb4ab735e48672",
-      "bytes": 7091
+      "sha256": "adbea09a404fd24bde5a9f97260db30c404b12cbbb72c788ebb571497c1463c8",
+      "bytes": 7654
     },
     {
       "file": "chained_terminal_gates_20260919.json",
@@ -2463,6 +2463,11 @@
       "file": "dead_end_vocabulary_20260919.json",
       "sha256": "8d080a12adcdac6e947762eff96de56f3e43bfed46d7e164d1a01bab528c8251",
       "bytes": 3574
+    },
+    {
+      "file": "empty_mask_endings_20260920.json",
+      "sha256": "3ba23b23fa1e276ffa2e6a0fb29270fed36783d07b14695fe7eacb3d81f3c4c0",
+      "bytes": 85693
     },
     {
       "file": "emulator_source_provenance_20260920.json",
