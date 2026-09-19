@@ -358,6 +358,11 @@ def summarise(entries, shard_rows, merged) -> dict:
         "dead_ends": located,
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "not_established": [
+            "that the step horizon this census rolled with equals the one each recording used: "
+            "committed metrics do not store their own `max_episode_steps`, so `horizon_used_here` "
+            "names the current stage config instead. It does not move the empty-mask verdict, which "
+            "is raised long before any horizon, but it is why a `step_cap` count here is not "
+            "automatically the same measurement as the one in the original file",
             "that these endings are engine defects in the general case -- the phase and floor "
             "distribution is what lets a reader judge that; each row is re-derivable from the "
             "(checkpoint, seed) pair recorded beside it",
@@ -511,6 +516,14 @@ def attach_explanations(args, payload, rows) -> None:
     for entry in payload["plan"]:
         fresh = entries.get(entry["metrics_file"])
         if fresh:
+            stage = next((s for s in config.stages if s.name == entry["stage"]), None)
+            entry["horizon_used_here"] = args.max_steps or (
+                stage.max_episode_steps if stage else None)
+            entry["horizon_used_by_the_recording"] = "not recorded in the metrics file"
+            stage = next((s for s in config.stages if s.name == entry["stage"]), None)
+            entry["horizon_used_here"] = args.max_steps or (
+                stage.max_episode_steps if stage else None)
+            entry["horizon_used_by_the_recording"] = "not recorded in the metrics file"
             entry.update({key: fresh[key] for key in
                           ("window_source", "window_split_resolved", "window_limit")
                           if key in fresh})

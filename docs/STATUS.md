@@ -1968,3 +1968,16 @@ zero per-file disagreements**, and the late arrival is the same shape as the oth
 traced state by state: four on a boss node and one on a shop node, all five with the last combat won
 and no terminal. The lesson is the reusable part -- before writing "cannot be determined", check
 whether the instrument was only looking in one of two places the answer could be.
+
+## 2026-09-20 -- retiring another "cannot be done", and naming an instrument assumption
+
+The same audit that recovered the 50th ending caught a stale sentence: the report still said the
+campaign's floor-17 truncations "cannot be replayed seed by seed" because metrics files store no
+per-seed cause. The census instrument I built this session *is* that replay, and it has already
+located all 50 empty-mask endings seed by seed -- so the sentence now says what is genuinely left
+(`step_cap`, 3 repo-wide, and the legacy-schema `native_rejection`, 861) instead of writing off the
+whole class. Checking whether a re-roll could reproduce `step_cap` counts turned up an unrecorded
+assumption: committed metrics never store their own `max_episode_steps`, so the census now writes
+`horizon_used_here` (1,600 from the current config for all 35 files) beside
+`horizon_used_by_the_recording` ("not recorded in the metrics file") and says in `not_established` why
+that leaves the empty-mask verdict untouched but a step-cap count non-comparable.

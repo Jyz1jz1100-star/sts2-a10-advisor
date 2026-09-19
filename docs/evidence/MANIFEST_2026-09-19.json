@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "b17d208ff296de8fdfbab5d05e9f15970c43dd490d857a7be7a711fcbcb668b6",
+  "bundle_root": "33c9693e0f363abe7a7f4d564f3f01333f2ed292360758d73902dac932cd9471",
   "evidence_file_count": 52,
-  "generated_at": "2026-09-19T20:11:26+00:00",
-  "git_head_at_generation": "b8a1ee5",
+  "generated_at": "2026-09-19T20:20:40+00:00",
+  "git_head_at_generation": "191e478",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2514,8 +2514,8 @@
     },
     {
       "file": "empty_mask_endings_20260920.json",
-      "sha256": "e6de833fb2eb2fa2328a4ace667b3e1681ce87485a34dd04cc73b1f218bc52b4",
-      "bytes": 96754
+      "sha256": "9956a056be2a4dbcb061ca148fa5a9913910f929ecbbf35a34898d21b4ada885",
+      "bytes": 101013
     },
     {
       "file": "emulator_source_provenance_20260920.json",
