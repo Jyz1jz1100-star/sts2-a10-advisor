@@ -33,7 +33,8 @@
     "the three act-1 completions the tail found are exactly the ledger's named seeds for this checkpoint (130015189, 130017978, 130019400), so the census and the win ledger now agree seed by seed rather than only being 'not in conflict'",
     "sharding does not change results: the census is reproducible across 1, 2, 4 and 5 concurrent processes",
     "an independent split reproduces the class at 6/27 act-2 boss kills (22.2%), and generated act 1 again loses 0 of 89 arrivals that way",
-    "pooled over both splits -- 13,500 seeds and 113 act-2 boss kills -- the share cleared but not judged a win is 27/113 = 23.9% [17.0,32.5]"
+    "pooled over both splits -- 13,500 seeds and 113 act-2 boss kills -- the share cleared but not judged a win is 27/113 = 23.9% [17.0,32.5]",
+    "the census's 68 completed floor-17 wins over the 10,000-seed promotion partition (3 act 1 + 65 act 2) reproduce, count for count, the earlier batch act-split of the same checkpoint reported in the same document (scripts/split_win_rate_by_generated_act.py, same seed set) -- two evaluation paths, one VecEnv batch and one seed-at-a-time, agreeing on every win"
   ],
   "generated_at": "2026-09-19T06:40:00Z",
   "not_established": [

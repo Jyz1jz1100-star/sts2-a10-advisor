@@ -1447,6 +1447,11 @@ if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2)
   （overgrowth 的 `terminalFloor` 就是 17，两条出口都结束对局），所以本条改动不了
   第一幕 0 胜/3 胜那道墙。
 - 全分区 10,000 局：`illegal_actions=0`、`unclassified_dead_ends=0`。
+- **两条评估路径对上了**：本文前面用 `scripts/split_win_rate_by_generated_act.py`
+  对**同一枚检查点、同一批 10,000 个种子**做过分幕批量评估，报的是
+  Act 1 胜 3 / Act 2 胜 65（合计 68，幕分布 5014 / 4986）；
+  这次的逐种子 census 独立跑出 **3 + 65 = 68 个 `complete`、幕分布同样 5014 / 4986**。
+  一条是 VecEnv 批量、一条是一种子一滚动，两边逐幕完全一致。
 - 21 局里 20 局的 census 行直接带着 `empty_action_mask`；第 21 局（`130012038`）早于该字段，
   它的原因是先前单独跑 `evaluate_policy` 确认的。**没有把这 21 局当作胜局加进台账**，
   它们至今是"已测量但未被判定"的局。
