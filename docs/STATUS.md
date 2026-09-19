@@ -1105,6 +1105,22 @@ As of 2026-09-19 02:19 UTC condition (1) is **not** met:
 (this bridge exposes `run.seed = null` and has no seed-injection endpoint), so the
 freeze is in force.
 
+**Condition (2) rests on a premise that measurement just contradicted.** It asks for
+"the floor10 reward-exploitation fix documented first", i.e. that the policy learned
+to survive without advancing. Dissecting one boss stalemate decision-by-decision
+(`docs/ACT1_CAMPAIGN_2026-09-19.md`, "僵持的机制") found the opposite: the policy
+passed the turn with a playable card in hand **zero** times out of 59,681 end_turns,
+and end_turn was the *only* legal action in 99.995% of them. The boss in that
+fight is Vantom -- inferred from max HP 183 being unique in the generated enemy table
+(`Enemies.g.cs:110`), since the combat observation deliberately carries no enemy
+identity -- and `EnemyAI.cs:259-263` programs it to deal three unplayable Wounds into
+the player's deck every fourth move, so a 20-card hand saturates by arithmetic. Read literally,
+condition (2) asks for a fix to a behaviour that is not happening. Two things do
+remain worth fixing, and they are different: the contract should treat a persistent
+single-legal-action combat state as terminal rather than a truncation, and the
+trainable objective is to kill before the deck saturates. Recorded for the decision,
+**not acted on** -- the freeze still stands and no new PPO budget was spent.
+
 **What I ran against it:** two new V2 curriculum act1-stage arms
 (`runtime/act1_ab/a1filt`, `runtime/act1_ab/a1mix`), 2,000,000 timesteps × 12 envs
 each, started 2026-09-19 00:31:39 UTC, both finishing below the promotion gate.
