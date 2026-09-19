@@ -1654,3 +1654,12 @@ rung verdicts are unchanged** -- the fix removes fabricated reasons, it never fl
 can only ever add a rejection, never remove one. Tests in
 `tests/test_promotion_gate_absent_inputs.py` (5), claim `promotion_gate_refuses_unrecorded_inputs` (6
 checks), and retraction ledger row 20 in the campaign report.
+
+**Same conflation, one artifact over:** `ladder_rungs` read any `promotion_decision.json` in a
+stage directory as "this rung passed". 69 such files exist under `runs/` and `runtime/`, and **42 say
+`promoted: true`** -- including throughput-probe decisions whose own `required.min_episodes` is **1**
+and smoke-ladder decisions at **30**, against a stage scale of 500. `gate_passed` now counts only
+decisions at the stage's promotion scale, and a new per-stage
+`promotion_recorded_only_below_scale` says out loud when a rung's only "promotion" came from a probe.
+After the filter floor3 and floor6 still pass and act1 still fails, so no published verdict moved;
+what moved is the number of ways a future reader can mistake a 1-episode probe for a rung.

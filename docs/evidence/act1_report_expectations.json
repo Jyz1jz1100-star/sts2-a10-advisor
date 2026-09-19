@@ -64,27 +64,32 @@
     "floor3": {
       "ran": true,
       "decision_recorded": true,
-      "gate_passed": true
+      "gate_passed": true,
+      "promotion_recorded_only_below_scale": false
     },
     "floor6": {
       "ran": true,
       "decision_recorded": true,
-      "gate_passed": true
+      "gate_passed": true,
+      "promotion_recorded_only_below_scale": false
     },
     "floor10": {
       "ran": true,
       "decision_recorded": false,
-      "gate_passed": false
+      "gate_passed": false,
+      "promotion_recorded_only_below_scale": false
     },
     "floor13": {
       "ran": false,
       "decision_recorded": false,
-      "gate_passed": false
+      "gate_passed": false,
+      "promotion_recorded_only_below_scale": false
     },
     "act1": {
       "ran": true,
       "decision_recorded": true,
-      "gate_passed": false
+      "gate_passed": false,
+      "promotion_recorded_only_below_scale": false
     }
   },
   "promoted_checkpoint_digests": {

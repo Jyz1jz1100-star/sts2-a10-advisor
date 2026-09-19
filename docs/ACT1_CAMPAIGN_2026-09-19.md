@@ -1382,6 +1382,12 @@ floor10 起再无晋升，act1 的臂因此跨了 floor10/floor13 两级**。同
 **用今天的门槛复算，当年让 floor6 过线的那条边界从 0.80 抬到了 0.93**，
 所以"复现当年那条阶梯"和"按现在的配置跑一条阶梯"是两个实验，别把前者的绿灯当后者的。
 
+`promotion_decision.json` 这个词本身也不足以说明晋升：盘上 69 份判定文件里有 **42 份写着
+promoted=true**，其中吞吐探针那批的 `required.min_episodes` 是 **1**、冒烟阶梯是 **30**，
+而阶段自己要求 500 局。所以 `ladder_rungs` 现在只认**达到本阶段晋升规模**的判定，
+过滤后 campaign 的 floor3/floor6 仍然是通过、act1 仍然是不通过——规模过滤没有改变任何
+结论，但把"1 局也算晋升"这条路堵住了。
+
 同一趟还查出一个我自己的口径错：**"五次评估"里有三次来自一个目录名自称
 `aborted-pre-filter-floor6-…` 的被中止运行**，另外它把 `curriculum_v2_smoke` 的 30 局
 冒烟阶梯也扫了进来。现在这三类按 `run_kind`（campaign / aborted / smoke）分开，

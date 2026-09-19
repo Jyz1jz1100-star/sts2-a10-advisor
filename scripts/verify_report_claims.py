@@ -157,7 +157,10 @@ def claim_ladder_rungs():
     The report claims a per-stage ladder, so "configured" and "ran" are
     different facts that must not be conflated: a stage with no directory was
     never trained, and a stage without a promotion decision never passed its
-    gate, so no checkpoint legitimately continues from it.
+    gate, so no checkpoint legitimately continues from it.  A decision passing
+    *at one episode* is not that stage's gate either -- ``gate_passed`` only
+    counts decisions whose own ``required.min_episodes`` reaches the stage's
+    promotion scale.
     """
     import tomllib
 
@@ -172,18 +175,32 @@ def claim_ladder_rungs():
                 if p.is_dir() and not SKIP.intersection(p.parts)]
         decisions = [p / "promotion_decision.json" for p in dirs
                      if (p / "promotion_decision.json").exists()]
-        passed = False
+        # A promotion_decision.json is only a promotion at the scale its stage asks for.  42 of
+        # the 69 decision files on disk say promoted=true, and the throughput probes among them
+        # reached that with required.min_episodes = 1 against a 500-episode stage.
+        scale = (raw["stages"][stage].get("promotion_eval_episodes") or 0)
+        at_scale, promoted_below_scale = [], 0
         for path in decisions:
             try:
-                passed = passed or bool(json.loads(path.read_text(encoding="utf-8")).get("promoted"))
+                recorded = json.loads(path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 continue
+            minimum = (recorded.get("required") or {}).get("min_episodes")
+            promoted = bool(recorded.get("promoted"))
+            if minimum is not None and minimum >= scale:
+                at_scale.append(promoted)
+            elif promoted:
+                promoted_below_scale += 1
+        passed = any(at_scale)
         out[stage] = {
             "ran": bool(dirs),
             # three distinct facts that are easy to conflate: a stage can run and
             # never record a decision (floor10), or record one that says "no" (act1)
             "decision_recorded": bool(decisions),
             "gate_passed": passed,
+            # True would mean the only thing standing between this stage and a claimed
+            # promotion is a probe that asked for fewer episodes than the stage requires.
+            "promotion_recorded_only_below_scale": bool(promoted_below_scale) and not passed,
         }
     return out
 
