@@ -23,6 +23,7 @@ claim reports ERROR and the rest still verify::
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -148,6 +149,62 @@ def claim_win_ledger():
             "rows": ledger["win_rows"]}
 
 
+def claim_ladder_rungs():
+    """Which configured warm-start rungs actually exist as artifacts.
+
+    The report claims a per-stage ladder, so "configured" and "ran" are
+    different facts that must not be conflated: a stage with no directory was
+    never trained, and a stage without a promotion decision never passed its
+    gate, so no checkpoint legitimately continues from it.
+    """
+    import tomllib
+
+    with (ROOT / "config/training_v2.toml").open("rb") as handle:
+        raw = tomllib.load(handle)
+    stages = list(raw.get("stages", {}))
+    out = {}
+    for stage in stages:
+        # Booleans, not counts: a count would go stale the moment legitimate new
+        # work lands, which would train the reader to ignore DRIFT.
+        dirs = [p for p in list((ROOT / "runs").rglob(stage)) + list((ROOT / "runtime").rglob(stage))
+                if p.is_dir() and not SKIP.intersection(p.parts)]
+        decisions = [p / "promotion_decision.json" for p in dirs
+                     if (p / "promotion_decision.json").exists()]
+        passed = False
+        for path in decisions:
+            try:
+                passed = passed or bool(json.loads(path.read_text(encoding="utf-8")).get("promoted"))
+            except (json.JSONDecodeError, OSError):
+                continue
+        out[stage] = {
+            "ran": bool(dirs),
+            # three distinct facts that are easy to conflate: a stage can run and
+            # never record a decision (floor10), or record one that says "no" (act1)
+            "decision_recorded": bool(decisions),
+            "gate_passed": passed,
+        }
+    return out
+
+
+def claim_promoted_checkpoint_digests():
+    """The two frozen promoted rungs everyone warm-starts from still match their records."""
+    targets = {
+        "floor3": ("runs/curriculum_v2/v2curriculum-20260901T091856Z/floor3/checkpoints/step_000000500016.zip",
+                   "69c6c32d693f51be"),
+        "floor6": ("runs/curriculum_v2/v2curriculum-20260901T115142Z/floor6/checkpoints/step_000001000008.zip",
+                   "b8deab061798daeb"),
+    }
+    out = {}
+    for rung, (rel, want) in targets.items():
+        path = ROOT / rel
+        if not path.is_file():
+            out[rung] = "MISSING"
+            continue
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        out[rung] = "ok" if actual.startswith(want) else "MISMATCH"
+    return out
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -166,6 +223,10 @@ CLAIMS = {
                                "the committed Act-1 matrix totals"),
     "win_ledger": (claim_win_ledger,
                    "the committed reproduction ledger"),
+    "ladder_rungs": (claim_ladder_rungs,
+                     "configured warm-start rungs vs the ones that actually ran and promoted"),
+    "promoted_checkpoint_digests": (claim_promoted_checkpoint_digests,
+                                    "the frozen floor3/floor6 checkpoints everyone continues from"),
 }
 
 

@@ -34,5 +34,13 @@
     "illegal_actions": 0,
     "unclassified_dead_ends": 0
   },
-  "win_ledger": {"rows": 5, "wins_reproduced": 9, "wins_failed_to_reproduce": 0}
+  "win_ledger": {"rows": 5, "wins_reproduced": 9, "wins_failed_to_reproduce": 0},
+  "ladder_rungs": {
+    "floor3": {"ran": true, "decision_recorded": true, "gate_passed": true},
+    "floor6": {"ran": true, "decision_recorded": true, "gate_passed": true},
+    "floor10": {"ran": true, "decision_recorded": false, "gate_passed": false},
+    "floor13": {"ran": false, "decision_recorded": false, "gate_passed": false},
+    "act1": {"ran": true, "decision_recorded": true, "gate_passed": false}
+  },
+  "promoted_checkpoint_digests": {"floor3": "ok", "floor6": "ok"}
 }
