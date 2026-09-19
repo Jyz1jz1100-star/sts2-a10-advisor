@@ -149,14 +149,11 @@
     "illegal_actions_total": 0
   },
   "terminal_floor_qualification": {
-    "act1_win_count": 9,
-    "act1_wins_meet_terminal_floor": true,
-    "overgrowth_terminal_is_act1_final_floor": true,
-    "act2_wins_short_of_their_terminal": [
-      25,
-      16
-    ],
-    "all_ledger_rows_reproduced": true
+    "act1_named_wins": 9,
+    "act1_wins_all_terminal": true,
+    "ledger_rows_reproduced": true,
+    "act2_wins_all_terminal": true,
+    "multi_act_clears_anywhere": 0
   },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,

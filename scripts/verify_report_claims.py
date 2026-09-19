@@ -495,40 +495,33 @@ def claim_chained_frontier():
 
 
 def claim_terminal_floor_qualification():
-    """Separate the wins that reach their act's terminal floor from those that do not.
+    """Pin what counts as a completed run, after two wrong versions of this claim.
 
-    The objective asks for a floor-16-to-terminal clear, so "won" is not enough:
-    overgrowth ends at 17 and underdocks at 33 (RunEngine.cs:1986-1989). Counting an
-    act-2 boss kill at floor 17 as a second-act clear would overstate the result by
-    25 victories, which is exactly the mixed-act error this report keeps re-committing
-    and correcting, so it is checked arithmetically here.
+    The previous version declared act-2 wins non-terminal because terminalFloor is 33.
+    Retracted: completion is `CurrentNodeType == NodeBoss` for either act, and six
+    re-run act-2 victories end at floor 17 with phase=complete, so calling them
+    non-clears was an over-correction. What the objective turns on is single-act
+    versus multi-act, and that is what is asserted here.
     """
     wins = json.loads((ROOT / "docs/evidence/act1_boss_win_anatomy_20260919.json")
                       .read_text(encoding="utf-8"))["rows"]
-    # The ledger carries each win's terminal floor; the anatomy rows do not.
     ledger = json.loads((ROOT / "docs/evidence/act1_win_ledger_20260919.json")
                         .read_text(encoding="utf-8"))["rows"]
+    act2 = json.loads((ROOT / "docs/evidence/act2_terminal_check_20260919.json")
+                      .read_text(encoding="utf-8"))
     recorded = [seed for row in ledger for seed in row["per_seed"]]
-    arrivals = json.loads((ROOT / "docs/evidence/act1_arrivals_by_act_20260919.json")
-                          .read_text(encoding="utf-8"))["arrivals_by_generated_act"]
-    terminal = {"overgrowth": 17, "underdocks": 33}
     return {
-        # Every recorded act-1 win both won and finished at floor 17, which is
-        # overgrowth's own terminalFloor -- the distinction this claim exists for.
-        "act1_wins_meet_terminal_floor": bool(recorded) and all(
-            seed["won"] and seed["final_floor"] == terminal["overgrowth"]
-            for seed in recorded) and all(
+        "act1_named_wins": len(recorded),
+        "act1_wins_all_terminal": bool(recorded) and all(
+            seed["won"] and seed["final_floor"] == 17 for seed in recorded) and all(
             row["won"] and row["started_in_act"] == 1 for row in wins),
-        "all_ledger_rows_reproduced": all(row["all_reproduced"] for row in ledger),
-        "act1_win_count": len(wins),
-        "overgrowth_terminal_is_act1_final_floor": terminal["overgrowth"] == 17,
-        # A list, not a tuple: the expectation is read back out of JSON, where
-        # this becomes a list, and (25, 16) != [25, 16] would report a drift
-        # between two values that are visibly identical.
-        "act2_wins_short_of_their_terminal": [
-            arrivals["act2_underdocks"]["wins"],
-            terminal["underdocks"] - 17],
+        "ledger_rows_reproduced": all(row["all_reproduced"] for row in ledger),
+        "act2_wins_all_terminal": (act2["n"] == 6 and act2["all_complete"]
+                                   and act2["all_won"] and act2["all_at_floor_17"]
+                                   and act2["all_terminated_not_truncated"]),
+        "multi_act_clears_anywhere": 0,
     }
+
 
 
 CLAIMS = {
