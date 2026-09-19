@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "8cbc7673ed8663d143a42c55b36787ac1ce4f5a2d54c3b37b67639347cec03a1",
+  "bundle_root": "0291bb4827fa908c4d85a9cce9a7746572f0a65450f6350c33e9dc3196720846",
   "evidence_file_count": 54,
-  "generated_at": "2026-09-19T21:56:17+00:00",
-  "git_head_at_generation": "241dbd3",
+  "generated_at": "2026-09-19T22:02:40+00:00",
+  "git_head_at_generation": "c79f0bf",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1026
+    "total_64_hex_strings_seen": 1027
   },
   "resolved_checkpoints": [
     {
@@ -2394,8 +2394,8 @@
     },
     {
       "file": "act1_win_ledger_20260919.json",
-      "sha256": "ef1e5b782f748ba2f319ce8845f62be93c77fcc1a4dde773944ee2a27fb61c5f",
-      "bytes": 6630
+      "sha256": "e486ab81c6d88cd067c310e7ffc2e3186216f4f9126c586ee61b1ffdbf8bde27",
+      "bytes": 6882
     },
     {
       "file": "act2_boss_clear_recoverability_20260920.json",

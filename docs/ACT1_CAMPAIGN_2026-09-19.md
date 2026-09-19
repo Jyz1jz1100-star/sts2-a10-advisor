@@ -429,6 +429,11 @@ VERDICT: reproduced        (exit code 0)
    而不会假装通过。
 2. `scripts/act1_win_ledger.py --keep_run_history` —— 把 9 个具名第一幕胜局逐个重跑，
    并把这一行的哈希历史并入台账（行内容进历史、时间戳不进）。
+   本条也已重跑过：写到临时路径后与提交的台账**除 `generated_at` 外逐键相同**（5 行、9 局全部复现）。
+   一个看着像失败的差别要提前说清：`--keep_run_history` 只在**输出路径已经存在**时才并入历史
+   （`act1_win_ledger.py:168` 判的就是 `out.is_file()`），所以写到新路径时工件里不会有
+   `verification_runs` 与 `rows_identical_across_runs` 两个键——缺键是"这是第一次写这份文件"，
+   不是"逐次运行不一致"。想看到跨次一致性那句话，就得把 `--out` 指回同一份文件再跑一遍。
 3. `scripts/build_emulator_provenance.py --out <tmp>.json` —— 用**你自己那份**模拟器源码重算
    引擎侧证明，再和 `emulator_source_provenance_20260920.json` 比。这一条与其他两条不同：
    它不需要任何 gitignored 的运行文件，只需要那棵 `third_party` 源码树，
@@ -1647,6 +1652,9 @@ digest mismatches: 0
   不需要读者相信正文；声明 `win_ledger` 里对应两条检查
   （`two_runs_recorded_and_their_rows_hash_alike`、
   `the_recorded_rows_match_the_rows_this_file_carries`）会把它钉住。
+  写完上面那条八步清单时又原样重跑了一次并并回同一份台账（第三次，行哈希仍是
+  `9e10f978ff8f…`、`rows_identical_across_runs` 为 true）——那条检查钉的是"至少两次且逐次相同"
+  这个下界，**不是** 恰好两次，所以合法的再跑不会把它变成 DRIFT；这正是当初把它写成下界的原因。
 - 复现失败时脚本以非零退出，且把失败行留在台账里——**不允许**把不再复现的胜局
   悄悄改掉。任何人跑一次 `python scripts/act1_win_ledger.py` 就能重做这条检查。
 - 本文收尾时（03:38 UTC）又整表重跑了一次：**9/9 仍全部复现**，且重生成台账与原提交
