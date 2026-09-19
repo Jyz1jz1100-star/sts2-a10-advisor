@@ -1,0 +1,697 @@
+{
+  "_comment": [
+    "Events whose StepEvent branch can refuse an option that WriteEventActionMask's",
+    "default arm advertises for them. 'neither' lists ids with no branch in either",
+    "switch -- for those the step falls through to its own default, so the advertised",
+    "options are refused outright, not merely un-preconditioned.",
+    "'refusable_option_counts' is a textual count of return -1 in that event's step arm:",
+    "0 means the event's options carry no precondition, so advertising all of them is",
+    "harmless; a nonzero count is the exposure. This is a static bound, not a measured",
+    "refusal rate -- probe_shop_refusals.py supplies the observed one."
+  ],
+  "declared_event_count": 58,
+  "events_with_a_refusable_option": 48,
+  "excluded_state_markers": [
+    "EventResultPending",
+    "EventSkipAction"
+  ],
+  "handled_options_by_step_arm": {
+    "EventByrdonisNest": [
+      0
+    ],
+    "EventDenseVegetation": [
+      0,
+      1
+    ],
+    "EventLuminousChoir": [
+      0,
+      1
+    ],
+    "EventSapphireSeed": [
+      0
+    ],
+    "EventSunkenStatue": [
+      0,
+      1
+    ],
+    "EventTabletOfTruth": [
+      0,
+      1
+    ],
+    "EventWellspring": [
+      0,
+      1
+    ],
+    "EventWhisperingHollow": [
+      0,
+      1
+    ],
+    "EventWoodCarvings": [],
+    "EventAbyssalBaths": [
+      0,
+      1
+    ],
+    "EventDrowningBeacon": [
+      0
+    ],
+    "EventEndlessConveyor": [
+      0,
+      1,
+      2
+    ],
+    "EventPunchOff": [
+      0
+    ],
+    "EventSpiralingWhirlpool": [
+      0,
+      1
+    ],
+    "EventTrashHeap": [
+      0,
+      1
+    ],
+    "EventWaterloggedScriptorium": [
+      0,
+      1,
+      2
+    ],
+    "EventCrystalSphere": [
+      0,
+      1
+    ],
+    "EventDollRoom": [
+      0,
+      1,
+      2
+    ],
+    "EventFakeMerchant": [
+      0
+    ],
+    "EventPotionCourier": [
+      0,
+      1
+    ],
+    "EventRanwidTheElder": [
+      0,
+      1,
+      2
+    ],
+    "EventRelicTrader": [],
+    "EventRoomFullOfCheese": [
+      0,
+      1
+    ],
+    "EventSlipperyBridge": [
+      0,
+      1
+    ],
+    "EventStoneOfAllTime": [
+      0,
+      1
+    ],
+    "EventSymbiote": [
+      0,
+      1
+    ],
+    "EventTeaMaster": [
+      0,
+      1,
+      2
+    ],
+    "EventTheFutureOfPotions": [],
+    "EventThisOrThat": [
+      0,
+      1
+    ],
+    "EventWarHistorianRepy": [
+      0,
+      1
+    ],
+    "EventWelcomeToWongos": [
+      0,
+      1,
+      2
+    ],
+    "EventAmalgamator": [
+      0,
+      1
+    ],
+    "EventBugslayer": [
+      0,
+      1
+    ],
+    "EventColorfulPhilosophers": [
+      2
+    ],
+    "EventColossalFlower": [
+      0,
+      1,
+      2
+    ],
+    "EventFieldOfManSizedHoles": [
+      0,
+      1
+    ],
+    "EventInfestedAutomaton": [
+      0,
+      1
+    ],
+    "EventLostWisp": [
+      0,
+      1
+    ],
+    "EventSpiritGrafter": [
+      0,
+      1
+    ],
+    "EventTheLanternKey": [
+      0,
+      1
+    ],
+    "EventZenWeaver": [
+      0,
+      1,
+      2
+    ],
+    "EventBattlewornDummy": [
+      2
+    ],
+    "EventGraveOfTheForgotten": [
+      0,
+      1
+    ],
+    "EventHungryForMushrooms": [
+      0,
+      1
+    ],
+    "EventReflections": [
+      0,
+      1
+    ],
+    "EventRoundTeaParty": [
+      0,
+      1,
+      2
+    ],
+    "EventTrial": [
+      0,
+      1
+    ],
+    "EventTinkerTime": [
+      0,
+      1,
+      2
+    ]
+  },
+  "refusable_option_counts": {
+    "EventByrdonisNest": 1,
+    "EventDenseVegetation": 1,
+    "EventLuminousChoir": 2,
+    "EventSapphireSeed": 2,
+    "EventSunkenStatue": 1,
+    "EventTabletOfTruth": 2,
+    "EventWellspring": 1,
+    "EventWhisperingHollow": 2,
+    "EventWoodCarvings": 1,
+    "EventAbyssalBaths": 1,
+    "EventDrowningBeacon": 2,
+    "EventEndlessConveyor": 2,
+    "EventPunchOff": 1,
+    "EventSpiralingWhirlpool": 1,
+    "EventTrashHeap": 1,
+    "EventWaterloggedScriptorium": 2,
+    "EventCrystalSphere": 2,
+    "EventDollRoom": 1,
+    "EventFakeMerchant": 1,
+    "EventPotionCourier": 1,
+    "EventRanwidTheElder": 4,
+    "EventRelicTrader": 2,
+    "EventRoomFullOfCheese": 1,
+    "EventSlipperyBridge": 1,
+    "EventStoneOfAllTime": 3,
+    "EventSymbiote": 2,
+    "EventTeaMaster": 3,
+    "EventTheFutureOfPotions": 2,
+    "EventThisOrThat": 1,
+    "EventWarHistorianRepy": 1,
+    "EventWelcomeToWongos": 4,
+    "EventAmalgamator": 1,
+    "EventBugslayer": 1,
+    "EventColorfulPhilosophers": 1,
+    "EventColossalFlower": 1,
+    "EventFieldOfManSizedHoles": 1,
+    "EventInfestedAutomaton": 1,
+    "EventLostWisp": 1,
+    "EventSpiritGrafter": 1,
+    "EventTheLanternKey": 1,
+    "EventZenWeaver": 2,
+    "EventBattlewornDummy": 1,
+    "EventGraveOfTheForgotten": 1,
+    "EventHungryForMushrooms": 1,
+    "EventReflections": 2,
+    "EventRoundTeaParty": 1,
+    "EventTrial": 1,
+    "EventTinkerTime": 4
+  },
+  "source_sha256": {
+    "RunConstants.cs": "e473b323892e86bf5487d8be0b05fe19ca9b0a4c6b639a5182b1a8e89267a4f5",
+    "RunEngine.cs": "aca9d707759066db1d1e4647734eeaac8c54440acaa80a9c46e84982cf467c69"
+  },
+  "events_in_mask_switch": 9,
+  "events_in_step_switch": 57,
+  "generated_at": "2026-09-19T09:48:15+00:00",
+  "over_advertising_events": [
+    {
+      "name": "EventByrdonisNest",
+      "id": 10,
+      "handled_options": [
+        0
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventDenseVegetation",
+      "id": 12,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventLuminousChoir",
+      "id": 13,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventSapphireSeed",
+      "id": 14,
+      "handled_options": [
+        0
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventSunkenStatue",
+      "id": 15,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventTabletOfTruth",
+      "id": 16,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventWellspring",
+      "id": 17,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventWhisperingHollow",
+      "id": 18,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventWoodCarvings",
+      "id": 19,
+      "handled_options": [],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventAbyssalBaths",
+      "id": 20,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventDrowningBeacon",
+      "id": 21,
+      "handled_options": [
+        0
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventEndlessConveyor",
+      "id": 22,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventPunchOff",
+      "id": 23,
+      "handled_options": [
+        0
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventSpiralingWhirlpool",
+      "id": 24,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventTrashHeap",
+      "id": 25,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventWaterloggedScriptorium",
+      "id": 26,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventCrystalSphere",
+      "id": 27,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventDollRoom",
+      "id": 28,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventFakeMerchant",
+      "id": 29,
+      "handled_options": [
+        0
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventPotionCourier",
+      "id": 30,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventRanwidTheElder",
+      "id": 31,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 4
+    },
+    {
+      "name": "EventRelicTrader",
+      "id": 32,
+      "handled_options": [],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventRoomFullOfCheese",
+      "id": 33,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventSlipperyBridge",
+      "id": 34,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventStoneOfAllTime",
+      "id": 35,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 3
+    },
+    {
+      "name": "EventSymbiote",
+      "id": 36,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventTeaMaster",
+      "id": 37,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 3
+    },
+    {
+      "name": "EventTheFutureOfPotions",
+      "id": 38,
+      "handled_options": [],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventThisOrThat",
+      "id": 39,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventWarHistorianRepy",
+      "id": 40,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventWelcomeToWongos",
+      "id": 41,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 4
+    },
+    {
+      "name": "EventAmalgamator",
+      "id": 42,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventBugslayer",
+      "id": 43,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventColorfulPhilosophers",
+      "id": 44,
+      "handled_options": [
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventColossalFlower",
+      "id": 45,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventFieldOfManSizedHoles",
+      "id": 46,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventInfestedAutomaton",
+      "id": 47,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventLostWisp",
+      "id": 48,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventSpiritGrafter",
+      "id": 49,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventTheLanternKey",
+      "id": 50,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventZenWeaver",
+      "id": 51,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventBattlewornDummy",
+      "id": 52,
+      "handled_options": [
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventGraveOfTheForgotten",
+      "id": 53,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventHungryForMushrooms",
+      "id": 54,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventReflections",
+      "id": 55,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 2
+    },
+    {
+      "name": "EventRoundTeaParty",
+      "id": 56,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventTrial",
+      "id": 57,
+      "handled_options": [
+        0,
+        1
+      ],
+      "return_minus_1_in_its_step_arm": 1
+    },
+    {
+      "name": "EventTinkerTime",
+      "id": 58,
+      "handled_options": [
+        0,
+        1,
+        2
+      ],
+      "return_minus_1_in_its_step_arm": 4
+    }
+  ],
+  "unhandled_by_either": [
+    {
+      "name": "EventSimpleReward",
+      "id": 3
+    }
+  ]
+}

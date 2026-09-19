@@ -288,5 +288,16 @@
     "decisions_total_is_the_sum_of_its_phases": true,
     "cross_checks_the_campaign_counter": true,
     "single_checkpoint": true
+  },
+  "refusal_root_cause": {
+    "row_table_backs_the_aggregates": true,
+    "every_shop_refusal_is_the_potion_capacity_case": true,
+    "no_shop_refusal_was_unaffordable": true,
+    "the_engine_disagrees_with_itself_not_with_our_wrapper": true,
+    "event_split_recomputes": true,
+    "the_two_named_clusters_match_their_source_branches": true,
+    "observed_events_are_all_inside_the_static_exposure": true,
+    "static_audit_counts_are_internally_consistent": true,
+    "cross_checks_the_phase_census": true
   }
 }

@@ -952,6 +952,58 @@ def claim_rejection_phase_attribution():
     }
 
 
+def claim_refusal_root_cause():
+    """Re-classify every refusal from the committed row table, against the engine's branches.
+
+    The phase census said where the refusals are; this one says why, and the difference is
+    worth verifying separately because the "why" is what decides whether the caveat touches
+    any interpretation.  Each row is re-classified from its own recorded state rather than
+    taken on trust: a shop row counts as the potion-capacity class only if the potion was
+    offered, affordable, and sitting behind two full slots and one empty third slot.
+    """
+    data = json.loads((ROOT / "docs/evidence/refusal_root_cause_20260919.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    rows = data["row_table"]
+    handled = {int(k): v for k, v in data["event_pairs_handled_options"].items()}
+    shop = [r for r in rows if r[2] == "shop"]
+    event = [r for r in rows if r[2] == "event"]
+    potion_class = [r for r in shop
+                    if r[6] != 0 and r[4] >= r[5] and r[7] != 0 and r[8] != 0 and r[9] == 0]
+    phantom = [r for r in event if r[3] not in handled.get(r[6], [])]
+    precondition = [r for r in event if r[3] in handled.get(r[6], [])]
+    potionless = [r for r in event if r[6] in (31, 35) and r[3] == 0
+                  and all(s == 0 for s in r[7:10])]
+    return {
+        "row_table_backs_the_aggregates": (
+            len(rows) == agg["refusals"] and len(shop) == agg["shop_refusals"]
+            and len(event) == agg["event_refusals"]),
+        "every_shop_refusal_is_the_potion_capacity_case": len(potion_class) == len(shop) > 0,
+        "no_shop_refusal_was_unaffordable": all(r[4] >= r[5] for r in shop),
+        "the_engine_disagrees_with_itself_not_with_our_wrapper": (
+            agg["native_mask_advertised_the_refused_base"] == agg["refusals"]
+            and agg["flat_mask_advertised_a_base_the_native_mask_has_off"] == 0
+            and agg["executed_actions_outside_the_native_mask"] == 0),
+        "event_split_recomputes": (
+            len(phantom) == agg["event_phantom_option_rows"]
+            and len(precondition) == agg["event_precondition_rows"]
+            and len(phantom) + len(precondition) == len(event)),
+        "the_two_named_clusters_match_their_source_branches": (
+            len(potionless) == 58 and all(all(s == 0 for s in r[7:10]) for r in potionless)),
+        "observed_events_are_all_inside_the_static_exposure": set(
+            r[6] for r in event) <= set(handled) and bool(event),
+        "static_audit_counts_are_internally_consistent": (
+            data["static_event_audit"]["exposed_by_default_arm"]
+            == len(json.loads((ROOT / "docs/evidence/event_mask_case_audit_20260919.json")
+                              .read_text(encoding="utf-8"))["over_advertising_events"])
+            and data["static_event_audit"]["declared_event_count"]
+            >= data["static_event_audit"]["events_in_step_switch"]),
+        "cross_checks_the_phase_census": (
+            data["phase_census_cross_check"]["match"] is True
+            and agg["refusals"] == 753 and agg["decisions"] == 176293),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -1012,6 +1064,8 @@ CLAIMS = {
                           "illegal actions vs mask/engine disagreements, recomputed apart"),
     "rejection_phase_attribution": (claim_rejection_phase_attribution,
                                     "which phases the hidden refusals land in, rebuilt from its shards"),
+    "refusal_root_cause": (claim_refusal_root_cause,
+                           "why each refusal happens, re-classified row by row against the engine"),
 }
 
 
