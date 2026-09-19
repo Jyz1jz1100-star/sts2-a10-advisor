@@ -235,6 +235,32 @@ def claim_stalemate_lock():
     }
 
 
+def claim_boss_generality():
+    """Recompute the non-scripted boss comparison from the committed rows.
+
+    The report says three things off this artifact -- every sampled fight was won,
+    none was Wound-locked, and passing the turn with a playable card is rare but
+    not zero.  All three are re-derived from the per-row data instead of trusted
+    from the summary, because the summary is the part a hand-edit would reach first.
+    """
+    data = json.loads((ROOT / "docs/evidence/boss_generality_20260919.json")
+                      .read_text(encoding="utf-8"))
+    rows = data["rows"]
+    decisions = [row["boss_decisions"] for row in rows]
+    return {
+        "fights": len(rows),
+        "won": sum(1 for row in rows if row["won"]),
+        "boss_decision_range": [min(decisions), max(decisions)],
+        "end_turns": sum((row["chosen_action_kinds"] or {}).get("end_turn", 0)
+                         for row in rows),
+        "end_turn_with_a_playable_card":
+            sum(row["end_turn_with_a_playable_card"] or 0 for row in rows),
+        "wound_locked_fights": sum(1 for row in rows if row["wound_in_tail_hand"]),
+        "illegal_actions": sum(row["illegal_actions"] for row in rows),
+        "every_fight_ended_at_floor_17": all(row["final_floor"] == 17 for row in rows),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -259,6 +285,8 @@ CLAIMS = {
                                     "the frozen floor3/floor6 checkpoints everyone continues from"),
     "stalemate_lock": (claim_stalemate_lock,
                        "the boss stalemate is a lockout (unplayable Wound hand), not turtling"),
+    "boss_generality": (claim_boss_generality,
+                        "the same measurement on non-scripted seeds: won, unlocked, rarely passive"),
 }
 
 

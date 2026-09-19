@@ -43,6 +43,16 @@
     "act1": {"ran": true, "decision_recorded": true, "gate_passed": false}
   },
   "promoted_checkpoint_digests": {"floor3": "ok", "floor6": "ok"},
+  "boss_generality": {
+    "fights": 9,
+    "won": 9,
+    "boss_decision_range": [33, 63],
+    "end_turns": 92,
+    "end_turn_with_a_playable_card": 4,
+    "wound_locked_fights": 0,
+    "illegal_actions": 0,
+    "every_fight_ended_at_floor_17": true
+  },
   "stalemate_lock": {
     "end_turn_decisions": 59681,
     "play_card_decisions": 148,

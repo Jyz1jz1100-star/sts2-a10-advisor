@@ -1,0 +1,231 @@
+{
+  "_comment": [
+    "Non-scripted Act 1 boss fights, measured decision-by-decision with",
+    "scripts/probe_chained_act_flow.py --allow-non-chained. Seeds and checkpoints are taken",
+    "from docs/evidence/act1_win_ledger_20260919.json, i.e. the nine named Act 1 wins. SELECTION",
+    "BIAS IS BUILT IN: every one of these fights was won, so this artifact cannot say that",
+    "ordinary seeds never lock -- it can only say what a locked fight does not look like."
+  ],
+  "boss_decisions_max": 63,
+  "boss_decisions_min": 33,
+  "comparison_locked_demo_seed": {
+    "boss_decisions": 59830,
+    "end_turn_with_a_playable_card": 0,
+    "end_turns": 59681
+  },
+  "end_turn_with_a_playable_card_total": 4,
+  "end_turns_total": 92,
+  "generated_at_utc": "2026-09-19T03:46:30Z",
+  "play_cards_total": 316,
+  "rows": [
+    {
+      "boss_decisions": 57,
+      "checkpoint_sha256": "a1ada27ad997a425",
+      "chosen_action_kinds": {
+        "end_turn": 13,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 38,
+        "potion": 1
+      },
+      "end_turn_only_legal_action": 0,
+      "end_turn_with_a_playable_card": 1,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 7,
+      "final_player_max_hp": 80,
+      "illegal_actions": 0,
+      "seed": 130015189,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 51,
+      "checkpoint_sha256": "a1ada27ad997a425",
+      "chosen_action_kinds": {
+        "end_turn": 10,
+        "phase1": 1,
+        "phase5": 5,
+        "play_card": 35
+      },
+      "end_turn_only_legal_action": 7,
+      "end_turn_with_a_playable_card": 3,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 24,
+      "final_player_max_hp": 80,
+      "illegal_actions": 0,
+      "seed": 130017978,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 48,
+      "checkpoint_sha256": "a1ada27ad997a425",
+      "chosen_action_kinds": {
+        "end_turn": 9,
+        "phase1": 1,
+        "phase5": 5,
+        "play_card": 33
+      },
+      "end_turn_only_legal_action": 9,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 16,
+      "final_player_max_hp": 87,
+      "illegal_actions": 0,
+      "seed": 130019400,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 33,
+      "checkpoint_sha256": "f514ffa3ffbe62c0",
+      "chosen_action_kinds": {
+        "end_turn": 6,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 20,
+        "potion": 2
+      },
+      "end_turn_only_legal_action": 0,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 7,
+      "final_player_max_hp": 87,
+      "illegal_actions": 0,
+      "seed": 130008177,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 56,
+      "checkpoint_sha256": "3193b87dbe004d1b",
+      "chosen_action_kinds": {
+        "end_turn": 10,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 39,
+        "potion": 2
+      },
+      "end_turn_only_legal_action": 8,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 7,
+      "final_player_max_hp": 90,
+      "illegal_actions": 0,
+      "seed": 130015199,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 63,
+      "checkpoint_sha256": "3193b87dbe004d1b",
+      "chosen_action_kinds": {
+        "end_turn": 13,
+        "phase1": 1,
+        "phase5": 5,
+        "play_card": 43,
+        "potion": 1
+      },
+      "end_turn_only_legal_action": 12,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 16,
+      "final_player_max_hp": 80,
+      "illegal_actions": 0,
+      "seed": 130016374,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 63,
+      "checkpoint_sha256": "a1ada27ad997a425",
+      "chosen_action_kinds": {
+        "end_turn": 13,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 45
+      },
+      "end_turn_only_legal_action": 13,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 9,
+      "final_player_max_hp": 77,
+      "illegal_actions": 0,
+      "seed": 130008774,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 46,
+      "checkpoint_sha256": "8b06d38e33541fce",
+      "chosen_action_kinds": {
+        "end_turn": 9,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 32
+      },
+      "end_turn_only_legal_action": 9,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        183
+      ],
+      "final_floor": 17,
+      "final_player_hp": 17,
+      "final_player_max_hp": 80,
+      "illegal_actions": 0,
+      "seed": 130011349,
+      "won": true,
+      "wound_in_tail_hand": false
+    },
+    {
+      "boss_decisions": 46,
+      "checkpoint_sha256": "8b06d38e33541fce",
+      "chosen_action_kinds": {
+        "end_turn": 9,
+        "phase1": 1,
+        "phase5": 4,
+        "play_card": 31,
+        "potion": 1
+      },
+      "end_turn_only_legal_action": 0,
+      "end_turn_with_a_playable_card": 0,
+      "enemy_hp_at_first_boss_decision": [
+        63,
+        62,
+        199
+      ],
+      "final_floor": 17,
+      "final_player_hp": 25,
+      "final_player_max_hp": 98,
+      "illegal_actions": 0,
+      "seed": 130017492,
+      "won": true,
+      "wound_in_tail_hand": false
+    }
+  ],
+  "scope": "simulator_act1_single_act_seeds",
+  "seeds": 9,
+  "wins": 9,
+  "wound_locked_fights": 0
+}

@@ -68,7 +68,14 @@ def main() -> int:
     parser.add_argument("--config", type=Path, default=ROOT / "config/training_v2.toml")
     parser.add_argument("--stage", default="act1")
     parser.add_argument("--checkpoint", type=Path, action="append", required=True)
-    parser.add_argument("--seed", default=CHAINED_SEED)
+    parser.add_argument("--seed", default=CHAINED_SEED,
+                        help="comma list of seeds. A numeric seed is passed to the engine "
+                             "as an int, so it matches how evaluation and the win ledger "
+                             "reproduce a named seed; only the retained-trace string seed "
+                             "can chain into Act 2.")
+    parser.add_argument("--allow-non-chained", action="store_true",
+                        help="permit seeds other than the chained demo seed; the output is "
+                             "then scoped to single-act flows and cannot claim Act 2")
     parser.add_argument("--max-steps", type=int, default=60_000)
     parser.add_argument("--sampled", action="store_true",
                         help="sample instead of taking the argmax, to test whether the "
@@ -87,10 +94,19 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
-    if args.seed != CHAINED_SEED:
+    seeds = [token.strip() for token in args.seed.split(",") if token.strip()]
+    if not seeds:
+        raise SystemExit("--seed had no usable entries")
+    # Keep the engine's own type distinction: int seeds are what the campaign,
+    # evaluation and the win ledger use, so re-running a named win here has to
+    # pass the same type or it is a different run.
+    seeds = [int(token) if token.lstrip("-").isdigit() else token for token in seeds]
+    non_chained = [token for token in seeds if token != CHAINED_SEED]
+    if non_chained and not args.allow_non_chained:
         raise SystemExit(
-            f"{args.seed!r} cannot chain acts: only {CHAINED_SEED!r} reaches Act 2 "
-            "(RunEngine.cs:1909). Any other seed ends at the Act 1 or Act 2 boss."
+            f"{non_chained} cannot chain acts: only {CHAINED_SEED!r} reaches Act 2 "
+            "(RunEngine.cs:1909). Pass --allow-non-chained to measure them anyway as "
+            "single-act flows -- the artifact then cannot be read as a two-act result."
         )
 
     import sts2_gym
@@ -110,9 +126,11 @@ def main() -> int:
     factory = _environment_factory(config, open_stage, sts2_gym)
 
     results = []
-    for checkpoint in args.checkpoint:
+    # One flat loop over the cross product keeps the body's indentation (and so
+    # the copied evaluation semantics) untouched.
+    for checkpoint, seed in [(cp, sd) for cp in args.checkpoint for sd in seeds]:
         checkpoint = checkpoint.resolve()
-        probe = DummyVecEnv([lambda: factory(args.seed)])
+        probe = DummyVecEnv([lambda seed=seed: factory(seed)])
         model = MaskablePPO.load(str(checkpoint), env=probe, device="cpu")
         for repeat in range(args.repeats):
             if args.sampled:
@@ -120,8 +138,8 @@ def main() -> int:
 
                 torch.manual_seed(args.sample_seed + repeat)
             deterministic = not args.sampled
-            env = factory(args.seed)
-            observation, info = env.reset(seed=args.seed)
+            env = factory(seed)
+            observation, info = env.reset(seed=seed)
             trace: list[dict[str, object]] = []
             window: list[dict[str, object]] = []
             tail_blocks: deque = deque(maxlen=args.watch_raw or None)
@@ -290,7 +308,7 @@ def main() -> int:
             final = {
                 "repeat": repeat,
                 "policy_mode": "argmax" if deterministic else f"sampled({args.sample_seed}+{repeat})",
-                "seed": args.seed,
+                "seed": seed,
                 "checkpoint": str(checkpoint),
                 "checkpoint_sha256": _sha256(checkpoint),
                 "steps": steps,
@@ -328,20 +346,34 @@ def main() -> int:
 
     payload = {
         "generated_at": datetime.now(UTC).isoformat(),
-        "scope": "simulator_chained_demo_seed",
-        "evidences": "two-act flow reachable from the V2 harness",
+        # The label has to follow the seeds actually rolled: a file claiming a
+        # "two-act flow" while containing ordinary seeds would read as if those
+        # seeds chained, which only the retained-trace seed can do.
+        "scope": ("simulator_chained_demo_seed" if not non_chained
+                  else "simulator_act1_single_act_seeds"),
+        "evidences": ("two-act flow reachable from the V2 harness" if not non_chained
+                      else "Act 1 boss flows on non-scripted seeds"),
         "does_not_evidence": [
             "policy generalisation across acts (Act 1 of this seed is a hardcoded trace)",
             "a three-act clear (the emulator has no Act 3)",
             "real-game A10 acceptance",
-        ],
+        ] + ([] if not non_chained else [
+            "a two-act flow: only the retained-trace seed chains (RunEngine.cs:1909); "
+            "these seeds are generated normally rather than scripted",
+        ]),
         "chained_branch_source": "third_party/.../RunEngine.cs:1907-1920",
         "results": results,
     }
-    print(
-        "\nScope: this seed's Act 1 is scripted (RunMapGenerator.cs:792-947), so a win "
-        "here shows the harness can finish a two-act flow, not that the policy transfers."
-    )
+    if non_chained:
+        print(
+            f"\nScope: {len(non_chained)} seed(s) here are not the retained-trace seed, so "
+            "none of them reaches Act 2; these are ordinary Act 1 boss rolls."
+        )
+    else:
+        print(
+            "\nScope: this seed's Act 1 is scripted (RunMapGenerator.cs:792-947), so a win "
+            "here shows the harness can finish a two-act flow, not that the policy transfers."
+        )
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
