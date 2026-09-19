@@ -618,3 +618,35 @@ A/B 用的 n≈504，半宽 ≈ **0.31 层**。一个真为 0.5 层的效应会�
   有增益 → 下一棒把阶梯的 act1 级正式改为按幕过滤并加深；
   无增益 → Act 1 的瓶颈就要归到 5–8 层消耗与 boss 僵持这两条上，
   而不是训练人群里混了第二幕。
+
+## "哈希链证据"现在到底覆盖到什么程度（一条命令可查）
+
+新增 `scripts/verify_run_artifact_hashes.py`：扫 `runs/` 与 `runtime/` 下所有 JSON 产物，
+把里面写过的 `checkpoint_sha256` / `source_sha256` / `initialized_from_sha256` /
+`resumed_from_sha256` 对着盘上文件重算一遍。2026-09-19 00:55 实测（`runtime/hash_verify_all.log`）：
+
+```
+scanned 605 json artifacts under runs, runtime
+  checks       379
+  verified     369
+  unresolvable 10
+  seed digests: {'unverifiable': 275, 'none': 325, 'ok:json-list': 5}
+```
+
+要说满三点，否则这段会被读成"全都验过了"：
+
+1. **0 个哈希对不上**，369/379 一致。
+2. 那 10 个 unresolvable **不是丢失或篡改**，而是全部指向
+   `G:\ds harness\sts2-a10-advisor\…`——那是历史工作副本的绝对路径，
+   属于"冻结的溯源记录"，按既定口径**不重写**（见 `docs/STATUS.md` 环境审计一节）。
+   工具刻意把"文件不在"和"哈希不符"分成两类，就是因为这两个结论完全不同。
+3. **`seed_sha256` 在库里有两套编码**而键名相同：规范做法
+   `training/seeds.seed_digest`（对 `"1,2,3"` 求摘要），以及
+   `scripts/evaluate_teacher_strength.py` 的 `_seed_digest`（对 `json.dumps(seeds)` 求摘要）。
+   那 5 份 `runs/teacher_v3/strength-*.json` 用的是后者。
+   校验器现在两种都认，**历史产物不改写**。
+   另有 275 处只记了摘要、没记种子本身（尤其按幕筛选后的**非连续**子集，
+   无法从 `start/count` 重建），这部分只能靠重跑普查复现，**不算已验证**。
+
+所以本文说"哈希链"时，成立的是：**每一个被记录的、盘上仍在的文件摘要都对得上**；
+不成立的是"每个种子集都能独立重建"。
