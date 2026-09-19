@@ -2096,5 +2096,15 @@ artifacts re-emitting the labels they reproduced, plus `curriculum_truncated`, a
 matters is not "no label lives outside the glob" (false) but "**no label outside the glob is unexplained**"
 (two new checks on `dead_end_vocabulary`, 10 total).
 
+**Then the holdout result was restated on the tail alone**, at no measurement cost (it is a split of the
+seed lists a committed artifact already carries, not a new roll): over the 9,800 never-read seeds the
+reward-screen rule goes **plain 66 -> ruled 82, 16 converted, 0 lost**, while the 200 previously-read seeds
+contribute 1 plain win and 0 conversions. The split is only meaningful if the artifact's seed lists and its
+aggregate win counts describe the same wins, so that identity is pinned alongside it -- two more checks on
+`holdout_partition_usage` (8 total). What cannot be split the same way is the truncation count: the
+artifact records `truncations_plain/after_rule` at window level only, with no per-seed list, so the 17 -> 1
+statement stays a claim about all 10,000 seeds.
+
+
 
 

@@ -587,7 +587,9 @@
     "the_scans_recorded_two_wins_so_nothing_can_claim_that_window_was_never_read": true,
     "every_reward_rule_conversion_lies_in_the_untouched_tail": true,
     "the_untouched_tail_is_the_partition_less_the_union_of_what_was_read": true,
-    "the_holdout_label_discloses_the_prior_reads": true
+    "the_holdout_label_discloses_the_prior_reads": true,
+    "the_seed_lists_and_the_aggregates_describe_the_same_wins": true,
+    "the_untouched_tail_carries_the_whole_gain_on_its_own": true
   },
   "boss_reward_rule_window_self_consistency": {
     "a_reconciliation_group_is_backed_by_a_pre_registered_seed_list": true,

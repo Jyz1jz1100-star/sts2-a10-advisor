@@ -2371,10 +2371,10 @@ def claim_holdout_partition_usage():
     The report long asserted "`split = final`: 0 artifacts, so the 10,000 seeds from 130020000 are a
     clean holdout". That census walked ``**/metrics/*.json``. Widening it to every JSON under
     ``runs/`` and ``runtime/`` finds two final-split artifacts that never sat in a ``metrics/``
-    directory -- so the zero was the glob's, not the corpus's. The correction is narrow (both record
-    0 wins, so nothing was ever selected on them) but it is the same failure as quoting a count that
-    only describes the query that produced it, and the holdout is the window the report leans on for
-    "not tuned on".
+    directory -- so the zero was the glob's, not the corpus's. And the correction is not narrow: those
+    two scans record 2 wins between four checkpoints, so no "nothing was ever selected there" survives
+    either. What is left is a tail of 9,800 seeds nobody read, and the report's reward-screen result is
+    split across that boundary so a reader can see the gain does not rest on the 2% that had been.
     """
     cut = datetime(2026, 9, 18, 16, 0, tzinfo=UTC)
     narrow, wide = collections.Counter(), collections.Counter()
@@ -2418,6 +2418,11 @@ def claim_holdout_partition_usage():
     untouched = len(seeds_in_partition - read)
     wins_recorded = sum(row["wins"] for row in final_artifacts)
     converted = [int(seed) for seed in holdout["converted_seeds"]]
+    agg = holdout["aggregates"]
+    kept_all = {int(seed) for seed in holdout["kept_win_seeds"]}
+    tail_kept = kept_all - read
+    kept_in_read = kept_all & read
+    tail_converted = set(converted) - read
     return {
         "the_narrow_glob_still_reports_zero_and_that_was_its_blind_spot": (
             narrow.get("final", 0) == 0 and wide["final"] == len(final_artifacts) > 0),
@@ -2433,6 +2438,17 @@ def claim_holdout_partition_usage():
         "the_holdout_label_discloses_the_prior_reads": (
             "never used by any training or evaluation record" not in str(holdout.get("label"))
             and "200" in str(holdout.get("label")) and "09-18" in str(holdout.get("label"))),
+        # Splitting the window by what had been read only means something if the seed lists are the
+        # same quantity the aggregates report, so the join identities are checked before the split.
+        "the_seed_lists_and_the_aggregates_describe_the_same_wins": (
+            len(holdout["kept_win_seeds"]) + len(converted) == agg["rule_win_count"]
+            and len(holdout["kept_win_seeds"]) + len(holdout["lost_win_seeds"])
+            == agg["plain_win_count"] and agg["lost_win_count"] == 0),
+        "the_untouched_tail_carries_the_whole_gain_on_its_own": (
+            len(tail_kept) == 66 and len(tail_converted) == 16
+            and len(read & set(converted)) == 0
+            and len(tail_kept) + len(tail_converted) == 82
+            and len(kept_in_read) == 1 and agg["episodes"] == 10000),
     }
 
 
