@@ -2123,6 +2123,25 @@ the report (`MapBossRow = 16` parsed from the committed provenance citation, plu
 as a string -- and the check read `false` rather than erroring, which is the harness doing its job.
 Commit `b78df5a`; 61/61 claims, 512 + 128 tests.
 
+## 2026-09-20 -- all 25 named Act-2 wins now replay through the committed driver; the six that had been re-run were the only reproducible part of that sentence
+
+The decision table read "25 act-2 wins, 6 re-run confirmed `phase=complete`". The six came from an
+ad-hoc probe loop that no script reproduces, so the reproducible half of that sentence was 6 and the quoted
+half was 25 -- the same shape of gap as retraction row 21 ("穷举 84 个检查点" was a snapshot, not a rule),
+just on the win side instead of the population side. `enumerate_act1_terminals.py` grew `--seeds` (roll a
+named list through the code path that found the wins) and `--expect-checkpoint-sha256` (refuse if the
+weights are not the ones the list was enumerated
+from), and `docs/evidence/act2_named_wins_individual_replay_20260920.json` now carries all 25: every one
+`boss_win`, floor 17, `generated_act` 2, 0 illegal / 0 unclassified / 0 truncations, seeds listed in the
+order the committed arrivals artifact gives, and the earlier six a subset. Four checks on
+`terminal_floor_qualification` pin it. Two side effects worth keeping: the evidence count moved to 55 and
+the harness caught the *second* phrasing of that count in prose ("54 个 JSON 产物") only after the first was
+fixed -- the check compares a set, so a half-updated document fails instead of half-passing; and the claim
+note "25 act-2 wins do not [reach their terminal floor]" was reworded, because the replay shows they are
+terminal at floor 17 through the boss exit, which is a different claim from reaching the underdocks
+`terminalFloor` of 33. Commit `999831f`; 61/61 claims, 512 + 128 tests.
+
+
 
 
 
