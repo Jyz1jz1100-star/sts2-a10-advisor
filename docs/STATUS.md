@@ -2114,6 +2114,16 @@ combat, Act 1, floors 6/6/8, all alive at 1,600 steps, all inside the instrument
 instrument health is the separate `close_failures` column, which is empty for this batch. The prose now says
 that, because a retained row and a broken instrument are different findings and the report had merged them.
 
+**The objective's own wording is now recomputed, not quoted.** "16 层到终局、0 非法动作、无未分类死局" was
+true in prose and true in the ledger artifact, but the claim behind it only counted how many wins
+reproduced. Two checks read the per-seed rows now: all nine are terminal wins at floor 17 with 0 illegal,
+0 unclassified and 0 truncations across nine distinct seeds, and the 17 is tied to the engine rather than to
+the report (`MapBossRow = 16` parsed from the committed provenance citation, plus the overgrowth `+ 1` in
+`RunEngine.cs:1986-1989`). Writing it failed once on a type assumption -- the citation stores `first_line`
+as a string -- and the check read `false` rather than erroring, which is the harness doing its job.
+Commit `b78df5a`; 61/61 claims, 512 + 128 tests.
+
+
 
 
 
