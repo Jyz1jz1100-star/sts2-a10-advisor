@@ -218,6 +218,15 @@
       "illegal_actions_total": 0,
       "unclassified_dead_ends_total": 0
     },
-    "mis_exit_share_of_act2_kills": 0.25
+    "mis_exit_share_of_act2_kills": 0.25,
+    "truncation_seeds": [
+      130001110,
+      130001157,
+      130001220,
+      130001533,
+      130001859,
+      130003061,
+      130003427
+    ]
   }
 }

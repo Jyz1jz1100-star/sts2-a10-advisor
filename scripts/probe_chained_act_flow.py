@@ -409,7 +409,9 @@ def main() -> int:
     if non_chained:
         print(
             f"\nScope: {len(non_chained)} seed(s) here are not the retained-trace seed, so "
-            "none of them reaches Act 2; these are ordinary Act 1 boss rolls."
+            "none of them can chain into Act 2 (RunEngine.cs:1909); each is a single-act "
+            "flow. Which act it *generated* is per seed -- read started_in_act, do not "
+            "assume these are Act 1 rolls."
         )
     else:
         print(

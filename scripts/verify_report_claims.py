@@ -682,6 +682,45 @@ def claim_boss_misexit_rate():
     }
 
 
+def claim_boss_misexit_signature():
+    """Check that every seed behind the mis-exit rate really has the shape the rate claims.
+
+    The rate is about one specific terminal signature, so the per-run evidence is re-read
+    rather than summarised: all sampled runs must conform, the seed sets must be exactly
+    the ones the rate artifact counts, and each run must be judged truncated rather than a
+    win.  This is what stops "21 truncations at floor 17" from quietly including a run that
+    dead-ended somewhere else.
+    """
+    ver = json.loads((ROOT / "docs/evidence/act2_boss_misexit_signature_verified_20260919.json")
+                     .read_text(encoding="utf-8"))
+    rate = json.loads((ROOT / "docs/evidence/act2_boss_misexit_rate_20260919.json")
+                      .read_text(encoding="utf-8"))
+    blocks = ver["verification"]
+    runs_a = blocks["checkpoint_a"]["runs"]
+    runs_b = blocks["checkpoint_b"]["runs"]
+    seeds_a = {row["seed"] for row in runs_a}
+    expected_a = (set(rate["truncation_seeds"])
+                  | set(rate["independent_window_checkpoint_split"]["truncation_seeds"]))
+    return {
+        "every_sampled_run_conforms": ver["verification_all_passed"]
+                                      and all(r["signature_conforms"] for r in runs_a + runs_b),
+        "seed_sets_match_the_rate_artifact": (
+            seeds_a == expected_a
+            and {r["seed"] for r in runs_b}
+            == set(rate["second_checkpoint_generality"]["truncation_seeds"])),
+        "counts_match_the_rate_artifact": (
+            len(runs_a) == rate["whole_partition"]["act2"]["cleared_not_judged"]
+            + rate["independent_window_checkpoint_split"]["act2"]["cleared_not_judged"]
+            and len(runs_b) == rate["second_checkpoint_generality"]["act2"]["cleared_not_judged"]),
+        "none_was_judged_a_win": all(not r["judged_win"] and r["run_outcome"] == "truncated"
+                                     for r in runs_a + runs_b),
+        "zero_illegal_across_sampled_runs": all(r["illegal_actions"] == 0 for r in runs_a + runs_b),
+        "second_boss_encounter_also_affected": (
+            set(blocks["checkpoint_a"]["encounters_seen"])
+            < set(blocks["checkpoint_b"]["encounters_seen"])),
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -732,6 +771,8 @@ CLAIMS = {
                                "what the campaign actually records about why runs end"),
     "boss_misexit_rate": (claim_boss_misexit_rate,
                           "whole-partition boss kills, judged wins, and the ones the engine lost"),
+    "boss_misexit_signature": (claim_boss_misexit_signature,
+                               "every seed behind that rate really ends at a cleared boss node"),
 }
 
 

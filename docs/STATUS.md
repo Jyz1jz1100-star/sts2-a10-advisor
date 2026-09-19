@@ -1201,6 +1201,13 @@ So the quotable figure is the two-split pool, **27/113 = 23.9% [17.0,32.5]**, an
 promotion head window is a low outlier whose cause was **not** found. A second, different
 arm's checkpoint on the same 3,500 seeds loses 7 of its 28 act-2 boss kills (25.0%) and
 none of its 73 act-1 arrivals, so the class is engine-side, not one policy's habit.
+**The signature was checked per seed, not sampled**: all 34 lost runs (33 distinct seeds,
+both checkpoints) were replayed through the independent rollout loop and every one ends at
+`current_node_type=6`, `phase=map`, `floor=17`, `empty_action_mask`, `run_won=false`,
+0 illegal (`docs/evidence/act2_boss_misexit_signature_verified_20260919.json`), and the two
+evaluation paths agree on step counts seed for seed. Caveat kept in that file: per-run boss
+HP was not recorded for all 34, so "boss emptied" is inferred from standing on the Map phase
+of a NodeBoss node, with direct HP evidence only for the seven forked runs.
 Sampling six more
 census truncations and forking each one's boss relic screen: **7 of 7 lost runs have a
 legal action that would have judged them a win, and it is the same action every time --
