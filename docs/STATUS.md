@@ -1937,3 +1937,18 @@ illegal actions and unclassified dead ends are 0 in every pass. Claims `boss_rew
 (one expectation in it was a check that could not fail -- replaced with a real one before committing).
 Two boundaries survive: the rule is hand-written, so this is an upper bound on one decision, and a
 judged Act-2 win is still not the three-act flow the objective names. 57/57 claims, 52 evidence files.
+
+## 2026-09-20 -- the three new instruments now have tests, before their closure logic rots
+
+The census, the reward-screen rule probe and the slice merger each stand or fall on a closure
+property -- located equals recorded, a group counts only if it replays the loss it is compared to,
+converted equals a pre-registered seed list -- and a closure property that quietly stops closing is
+indistinguishable from a passing result. `tests/test_dead_end_reward_rule_instruments.py` (10 tests,
+no simulator loaded) pins: a per-file count that disagrees is reported as a mismatch rather than
+averaged away; exact match is the only clean verdict; the labelling layer is derived from the
+sentinel-action key alone, which is what corrected the earlier mechanism claim; an unlabelled ending is
+kept while ordinary deaths are not counted as anomalies; an engine mask with any basis is never
+counted as a bare empty mask; `recorded_for` reads each group's own list and baseline, and the three
+committed groups really do differ (21 / 6 / 7) so a seed-for-seed agreement cannot be an instrument
+comparing itself; the duplicate-seed guard fires on slices that overlap; and the rule overrides only at
+a boss `relic_reward` state and never in argmax mode. Suite: 512 + 116 OK, 57/57 claims match disk.
