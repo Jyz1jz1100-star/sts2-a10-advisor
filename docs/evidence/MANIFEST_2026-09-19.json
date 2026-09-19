@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "3a649350cd73c0b577e171d44aea9960977f7c8c9b25a2125dccd5e67cd116e5",
+  "bundle_root": "465915784bfa59168c78895fce3414e4c026ed32f2ac9bbb50265fff0e40459c",
   "evidence_file_count": 38,
-  "generated_at": "2026-09-19T16:26:39+00:00",
-  "git_head_at_generation": "cfae20d",
+  "generated_at": "2026-09-19T16:32:09+00:00",
+  "git_head_at_generation": "5fb4162",
   "checkpoint_digests_cited": 218,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 694
+    "total_64_hex_strings_seen": 696
   },
   "resolved_checkpoints": [
     {
@@ -2265,8 +2265,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "b3ca09fa5db7438a0a3f7e2d3dec20b49327af3d9699dad5d74014520af96eda",
-      "bytes": 16725
+      "sha256": "3cbf9a36598f76fc14b0d396c504ace14fcdc11bce8fa61b3205d24bd1c9aa11",
+      "bytes": 16848
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2275,8 +2275,8 @@
     },
     {
       "file": "act1_win_ledger_20260919.json",
-      "sha256": "178f7f64ef4e76e84c39a5e6fd5f14b919d39f55ce8f8e6bcb9223c4b6c3ad81",
-      "bytes": 6056
+      "sha256": "ef1e5b782f748ba2f319ce8845f62be93c77fcc1a4dde773944ee2a27fb61c5f",
+      "bytes": 6630
     },
     {
       "file": "act2_boss_completion_fork_20260919.json",

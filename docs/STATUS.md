@@ -1673,3 +1673,13 @@ Commit `348127d` (2026-09-02 01:33 +08:00) took 0.90 -> 0.93 and added `min_boun
 reaction and also the reason today's re-judgement must not be reported as yesterday's verdict.
 Claim `ladder_promotion_ledger` pins the ordering (`the_promotion_predates_the_raise_that_now_rejects_it`),
 and injecting a later timestamp into the committed artifact was confirmed to flip that check alone.
+## 2026-09-20 -- re-ran the nine Act-1 wins after touching the judging code
+
+Changing `training/metrics.py` and `training/promotion.py` is a change to the code that owns
+verdicts, so the headline claim got re-tested against it rather than assumed safe: all nine named
+Act-1 wins were replayed on their own checkpoints and configs. **9/9 reproduce, `illegal=0`,
+`unclassified=0`, and the per-seed rows hash identically to the ledger committed on 2026-09-19**
+(`9e10f978ff8f…`). `scripts/act1_win_ledger.py --keep_run_history` now stores that as
+`verification_runs` inside the travelling artifact -- row contents hashed, timestamps not -- and
+`win_ledger` pins the property, so "the refactor did not move the wins" is a check rather than a
+sentence. Re-running the ledger without that flag remains the plain one-shot check.

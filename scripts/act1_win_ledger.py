@@ -37,6 +37,9 @@ def main() -> int:
                         help="stage/partition TOML; defaults to each row's source arm config")
     parser.add_argument("--out", type=Path,
                         default=ROOT / "docs/evidence/act1_win_ledger_20260919.json")
+    parser.add_argument("--keep_run_history", action="store_true",
+                        help="merge a verification_runs history into the output file, so a re-run "
+                             "records that the rows themselves did not change")
     args = parser.parse_args()
 
     matrix = json.loads(args.matrix.read_text(encoding="utf-8"))
@@ -148,8 +151,34 @@ def main() -> int:
             "python scripts/act1_win_ledger.py "
             "--matrix docs/evidence/act1_evidence_20260919.json"),
     }
+    def digest_of(recorded: list) -> str:
+        # Hashes the rows only, so a re-run that reproduces everything matches bit-for-bit
+        # even though its own timestamp differs -- which is the whole point of keeping history.
+        return hashlib.sha256(
+            json.dumps(recorded, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+
+    def summary_of(recorded: dict) -> dict:
+        return {"generated_at": recorded.get("generated_at"),
+                "win_rows": recorded.get("win_rows"),
+                "wins_reproduced": recorded.get("wins_reproduced"),
+                "wins_failed_to_reproduce": recorded.get("wins_failed_to_reproduce"),
+                "rows_sha256": digest_of(recorded.get("rows", []))}
+
+    if args.keep_run_history and args.out and args.out.is_file():
+        previous = json.loads(args.out.read_text(encoding="utf-8"))
+        history = list(previous.get("verification_runs", []))
+        if not history and previous.get("rows"):
+            history.append(summary_of(previous))
+        ledger["verification_runs"] = history + [summary_of(ledger)]
+        ledger["rows_identical_across_runs"] = len(
+            {entry["rows_sha256"] for entry in ledger["verification_runs"]}) == 1
     print(f"\nwins reproduced: {ledger['wins_reproduced']}  "
           f"failed: {ledger['wins_failed_to_reproduce']}  rows: {len(rows)}")
+    if "verification_runs" in ledger:
+        print(f"verification runs: {len(ledger['verification_runs'])}, "
+              f"rows identical: {ledger['rows_identical_across_runs']} "
+              f"({ledger['verification_runs'][-1]['rows_sha256'][:12]})")
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(ledger, ensure_ascii=False, indent=2, sort_keys=True) + "\n",

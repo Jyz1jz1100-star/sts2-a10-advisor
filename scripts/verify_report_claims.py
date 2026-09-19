@@ -31,6 +31,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
+def rows_digest(recorded: list) -> str:
+    """Hash the ledger rows, not the file -- the convention scripts/act1_win_ledger.py uses."""
+    return hashlib.sha256(
+        json.dumps(recorded, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
@@ -146,9 +152,20 @@ def claim_evidence_matrix_totals():
 
 def claim_win_ledger():
     ledger = json.loads((ROOT / "docs/evidence/act1_win_ledger_20260919.json").read_text(encoding="utf-8"))
+    runs = ledger.get("verification_runs", [])
     return {"wins_reproduced": ledger["wins_reproduced"],
             "wins_failed_to_reproduce": ledger["wins_failed_to_reproduce"],
-            "rows": ledger["win_rows"]}
+            "rows": ledger["win_rows"],
+            # The campaign's headline is nine individually reproducible wins, so the thing worth
+            # pinning is not "they reproduced once" but "two runs, days and one code refactor
+            # apart, produced rows that hash the same".  Booleans and a digest, no counts: a
+            # legitimate future re-run must not be able to make this read as drift.
+            "two_runs_recorded_and_their_rows_hash_alike": (
+                len(runs) >= 2
+                and ledger.get("rows_identical_across_runs") is True
+                and all(entry["wins_failed_to_reproduce"] == 0 for entry in runs)),
+            "the_recorded_rows_match_the_rows_this_file_carries": bool(runs) and rows_digest(
+                ledger["rows"]) == runs[-1]["rows_sha256"]}
 
 
 def claim_ladder_rungs():

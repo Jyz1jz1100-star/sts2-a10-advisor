@@ -56,9 +56,11 @@
     "unclassified_dead_ends": 0
   },
   "win_ledger": {
-    "rows": 5,
     "wins_reproduced": 9,
-    "wins_failed_to_reproduce": 0
+    "wins_failed_to_reproduce": 0,
+    "rows": 5,
+    "two_runs_recorded_and_their_rows_hash_alike": true,
+    "the_recorded_rows_match_the_rows_this_file_carries": true
   },
   "ladder_rungs": {
     "floor3": {

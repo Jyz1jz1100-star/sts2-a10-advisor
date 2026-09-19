@@ -1268,6 +1268,15 @@ digest mismatches: 0
 - 台账每行同时记 `checkpoint_sha256`（重算）与 `matrix_checkpoint_sha256`
   （矩阵里记的），两者逐行相等，所以"报告里的哈希"与"被复现的那个文件"
   之间是**可核对的**，不是各说各话。
+- **09-20 又重验了一次，而且这次是为了验证当天的改动没弄坏结论。** 本文后面那批门控/指标
+  改动（`training/metrics.py` 加 `absent_metrics` 与 `from_payload`、`training/promotion.py`
+  改为"字段没记就拒绝评分"）动的是**判定用的代码**，所以改完之后把 9 局全部重跑：
+  **9/9 仍然复现，`illegal=0`、`unclassified=0`，并且逐种子行与 09-19 那次的哈希完全相同**
+  （`9e10f978ff8f…`）。台账现在自带 `verification_runs` 历史（`--keep_run_history` 追加），
+  只哈希行内容、不哈希时间戳，所以"两次跑出一样的行"是产物里可核对的事实，
+  不需要读者相信正文；声明 `win_ledger` 里对应两条检查
+  （`two_runs_recorded_and_their_rows_hash_alike`、
+  `the_recorded_rows_match_the_rows_this_file_carries`）会把它钉住。
 - 复现失败时脚本以非零退出，且把失败行留在台账里——**不允许**把不再复现的胜局
   悄悄改掉。任何人跑一次 `python scripts/act1_win_ledger.py` 就能重做这条检查。
 - 本文收尾时（03:38 UTC）又整表重跑了一次：**9/9 仍全部复现**，且重生成台账与原提交
