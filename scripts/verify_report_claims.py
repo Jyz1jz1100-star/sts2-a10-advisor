@@ -469,6 +469,31 @@ def claim_block_economy():
     }
 
 
+def claim_chained_frontier():
+    """Check the exhaustive two-act frontier, including that nothing was dropped.
+
+    The sweep's value is that it covers every checkpoint on disk, so the arithmetic
+    of coverage is part of the claim: rolled plus skipped must equal what exists.
+    The previous attempt crashed on the first foreign-contract checkpoint and produced
+    no artifact, which is the failure mode this guards against.
+    """
+    data = json.loads((ROOT / "docs/evidence/chained_frontier_full_20260919.json")
+                      .read_text(encoding="utf-8"))
+    runs = data["chained_runs"]
+    return {
+        "coverage_exact": (data["rolled"] + data["skipped_contract_mismatch"]
+                           == data["checkpoints_found_on_disk"]),
+        "skipped_are_contract_mismatch": data["skipped_contract_mismatch"] == 10,
+        "chained_into_act_two": data["chained_into_act_two"],
+        "deepest_chained_floor": max(run["max_floor"] for run in runs),
+        "environment_truncated_alive": sum(
+            1 for run in runs
+            if run["run_outcome"] == "truncated" and (run["final_player_hp"] or 0) > 0),
+        "wins_anywhere": data["wins_anywhere"],
+        "illegal_actions_total": data["illegal_actions_total"],
+    }
+
+
 CLAIMS = {
     "metrics_file_count": (claim_metrics_file_count,
                            "how many metrics JSON files exist repo-wide"),
@@ -499,6 +524,8 @@ CLAIMS = {
                         "per-seed Act-1 terminal categories and the rates the report quotes"),
     "arrivals_by_generated_act": (claim_arrivals_by_generated_act,
                                   "boss arrivals split by the act the seed generated"),
+    "chained_frontier": (claim_chained_frontier,
+                         "exhaustive two-act sweep: coverage, frontier depth, zero clears"),
     "block_economy": (claim_block_economy,
                       "nobody brings block to the boss; winners just bleed ~1.7x slower"),
     "action_mix_invariant": (claim_action_mix_invariant,

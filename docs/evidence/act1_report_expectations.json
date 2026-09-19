@@ -139,6 +139,15 @@
     "winners_all_won": true,
     "winners_illegal_total": 0
   },
+  "chained_frontier": {
+    "coverage_exact": true,
+    "skipped_are_contract_mismatch": true,
+    "chained_into_act_two": 3,
+    "deepest_chained_floor": 22,
+    "environment_truncated_alive": 2,
+    "wins_anywhere": 0,
+    "illegal_actions_total": 0
+  },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,
     "same_checkpoint": true,

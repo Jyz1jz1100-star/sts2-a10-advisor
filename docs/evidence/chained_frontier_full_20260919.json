@@ -1,0 +1,78 @@
+{
+  "_comment": [
+    "Complete enumeration: every act1 checkpoint that exists on disk was rolled through the only",
+    "cross-act branch (the retained-trace seed). Ten V1-contract checkpoints cannot be loaded",
+    "against the V2 observation space and are recorded as skips rather than silently dropped --",
+    "the first version of this sweep crashed on the first of them and produced no artifact at all."
+  ],
+  "chained_into_act_two": 3,
+  "chained_runs": [
+    {
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "f7ba5c02c270931d",
+      "final_act": 2,
+      "final_floor": 19,
+      "final_player_hp": 37,
+      "illegal_actions": 0,
+      "max_act": 2,
+      "max_floor": 19,
+      "run_outcome": "truncated",
+      "steps": 244,
+      "trace_tail_phase": "map"
+    },
+    {
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000001000008.zip",
+      "checkpoint_sha256": "0af9d1719f96011a",
+      "final_act": 2,
+      "final_floor": 19,
+      "final_player_hp": 37,
+      "illegal_actions": 0,
+      "max_act": 2,
+      "max_floor": 19,
+      "run_outcome": "truncated",
+      "steps": 221,
+      "trace_tail_phase": "map"
+    },
+    {
+      "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\c_explore-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000002000016.zip",
+      "checkpoint_sha256": "7867df360a4fdf38",
+      "final_act": 2,
+      "final_floor": 22,
+      "final_player_hp": 0,
+      "illegal_actions": 0,
+      "max_act": 2,
+      "max_floor": 22,
+      "run_outcome": "loss",
+      "steps": 283,
+      "trace_tail_phase": "combat"
+    }
+  ],
+  "checkpoints_found_on_disk": 84,
+  "frontier": "Act 2 floor 22 (deepest of the whole repository); no checkpoint cleared Act 2",
+  "generated_at": "2026-09-19T05:28:20Z",
+  "illegal_actions_total": 0,
+  "max_floor_histogram": {
+    "2": 1,
+    "3": 4,
+    "4": 19,
+    "5": 4,
+    "6": 12,
+    "7": 3,
+    "8": 25,
+    "15": 2,
+    "17": 1,
+    "19": 2,
+    "22": 1
+  },
+  "max_steps_per_run": 4000,
+  "open_questions": [
+    "what node is Act 2 terminal for a chained run: the chain resets Floor to 17 (RunEngine.cs:1909-1914) and content is observed up to floor 22, but the assumed floor-33 boss was never reached or verified",
+    "why two chained runs truncate on the Act 2 map at floor 19 with 37/77 HP and ~230 steps, far below the 4000 cap -- same empty-mask family as seed 130012038",
+    "whether the demo seed is representative: only 3 of 74 checkpoints cleared its Act 1 boss, while named Act 1 victories exist on ordinary seeds"
+  ],
+  "rolled": 74,
+  "scope": "simulator chained demo-seed branch; not a three-act clear (no Act 3 exists); not real-game A10 acceptance",
+  "seed": "7MS1YN8NWB",
+  "skipped_contract_mismatch": 10,
+  "wins_anywhere": 0
+}

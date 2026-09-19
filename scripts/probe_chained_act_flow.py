@@ -126,12 +126,27 @@ def main() -> int:
     factory = _environment_factory(config, open_stage, sts2_gym)
 
     results = []
+    skipped: list[dict[str, object]] = []
     # One flat loop over the cross product keeps the body's indentation (and so
     # the copied evaluation semantics) untouched.
     for checkpoint, seed in [(cp, sd) for cp in args.checkpoint for sd in seeds]:
         checkpoint = checkpoint.resolve()
         probe = DummyVecEnv([lambda seed=seed: factory(seed)])
-        model = MaskablePPO.load(str(checkpoint), env=probe, device="cpu")
+        try:
+            model = MaskablePPO.load(str(checkpoint), env=probe, device="cpu")
+        except ValueError as exc:
+            # A batch sweep that dies on the first foreign-contract checkpoint
+            # reports nothing at all, which is worse than reporting a skip per
+            # file: the V1 curriculum checkpoints under runs/curriculum carry a
+            # 199-wide observation and cannot be rolled through the V2 stack.
+            skipped.append({
+                "checkpoint": str(checkpoint),
+                "seed": seed,
+                "skipped": "contract_mismatch",
+                "detail": str(exc),
+            })
+            print(f"{checkpoint.name} skipped: contract mismatch ({exc})")
+            continue
         for repeat in range(args.repeats):
             if args.sampled:
                 import torch
@@ -377,6 +392,8 @@ def main() -> int:
         ]),
         "chained_branch_source": "third_party/.../RunEngine.cs:1907-1920",
         "results": results,
+        "skipped": skipped,
+        "skipped_count": len(skipped),
     }
     if non_chained:
         print(
