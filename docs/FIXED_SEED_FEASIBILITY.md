@@ -48,3 +48,51 @@ Python 控制器 `bridge/trace_controller.py` 增加了 `start-ironclad-a10 --se
 3. 从 `current_run.save`/`GET /api/v1/compendium` 回读非空 seed：十进制必须与原文一致；字母数字必须与游戏 canonical 一致，trace 同时留存原文。
 4. 证明缺 seed、空 seed、旧 DLL（仍返回“不支持标准单人 seed”）以及回读 mismatch 都会失败关闭，不产生 fixed-seed claim。
 5. 更新桥接 DLL hash、seed-injection capability 和版本锁后，才可启动正式 Phase B；本轮没有执行该批次。
+
+## 2026-09-19 冲突记录：已安装桥接的二进制里有种子注入代码
+
+`installed_bridge_supported: false` 这条记录，与**当前实际安装的那个 DLL** 的静态证据
+相矛盾。核对过程（全程只读，未启动游戏、未发任何 POST）：
+
+- 安装路径上的文件 `G:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\STS2_MCP.dll`
+  的 SHA-256 前缀是 `CD3EA7409F5AC697…`，**与 `config/live_version.lock.json` 里锁定的
+  就是同一个文件**（不是候选构建，也不是 staging 目录里的副本）。
+- 该文件的字符串表里存在这些条目（UTF-16 与 ASCII 各扫一遍）：
+  `seed`、`seed_requested`、`seed_canonical`、`seed_injection`、`seed_verified`、
+  `/api/v1/singleplayer`，以及一整套只会在**已实现**的分支里出现的报错文案：
+  `Seeded embark requires a non-empty alphanumeric seed`、
+  `Seeded embark requires a selected character`、
+  `Seeded embark requires an active start-run lobby`、
+  `Seeded embark could not resolve the standard act list`、
+  `Seeded embark failed before starting the run: `，和日志行 `Embarking on run (seed: `。
+
+**这不等于 Phase B 已解锁。** 字符串在二进制里，只说明代码路径被编进去了，
+**不能证明运行期那个端点真的接受 `seed` 并回填 authoritative `current_run.seed`**。
+本项目的一贯口径是：没有真机回读匹配，就不写"支持"。所以：
+
+- **我没有改 `installed_bridge_supported` 的值**，也没有改断言它的
+  `tests/test_seed_allocation.py`。在无真机证据的情况下把 false 翻成 true，
+  正是这个仓库最不能犯的那种错。
+- 但这条记录现在**已知与静态证据冲突**，不该再被当作"已核实为 false"引用。
+  它的准确状态是"未安装验收、且二进制证据倾向于可用"。
+
+一次真机调用就能判定（需要操作员先把游戏开着；这一步会**启动一局**，
+所以不由我在无人值守下做）：
+
+```
+# 1) 只读：确认桥接活着、看当前字段形状
+python scripts/supervise_solver_batch.py --mode observational
+# 2) 判定：用已注册的整数 seed 起一局，并核对回读
+python scripts/run_solver_comparison.py --dry-run          # 先看它是否接受该 seed
+python scripts/run_solver_comparison.py --max-battles 1    # 实跑一局
+```
+
+判定标准（任一不满足就仍是 false）：响应里 `seed_requested` / `seed_canonical`
+都等于请求值、`seed_injection` 为真、随后 authoritative
+`compendium.current_run.seed` 与 canonical 值一致。三者齐了才可以把
+`installed_bridge_supported` 改为 true 并更新该测试。
+
+**为什么值得操作员花这一分钟**：`docs/COMBAT_SOLVER.md` 把 Phase B 正式阶段
+标记为 BLOCKED 的理由就是"没有种子注入端点"；而 Phase B 的判定结论，是
+`docs/FREEZE_2026-09-02.md` 解冻 Combat PPO 路线的**第一个**条件。
+也就是说，这一条静态矛盾同时卡着"固定种子真机对比"和"PPO 训练能否继续"两件事。
