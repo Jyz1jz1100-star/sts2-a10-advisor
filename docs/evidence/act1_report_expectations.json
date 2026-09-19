@@ -282,7 +282,7 @@
     "windows_are_disjoint_five_hundred_seed_slices": true,
     "refusals_confined_to_shop_and_event": true,
     "combat_and_boss_reward_screens_are_refusal_free": true,
-    "potion_reward_is_unobserved_not_clean": true,
+    "potion_reward_is_not_an_engine_phase": true,
     "the_reask_always_changed_the_action": true,
     "per_phase_rates_are_what_the_report_quotes": true,
     "decisions_total_is_the_sum_of_its_phases": true,

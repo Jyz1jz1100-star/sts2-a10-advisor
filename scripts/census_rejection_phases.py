@@ -101,7 +101,7 @@ def main() -> int:
                 entry = pending.setdefault(pre_state, {"refused": [], "phase": pre_phase,
                                                       "floor": pre_floor, "node_type": pre_node})
                 entry["refused"].append(action)
-                if pre_phase in ("relic_reward", "card_reward", "potion_reward"):
+                if pre_phase in ("relic_reward", "card_reward"):
                     relic_screen_rows.append({
                         "seed": int(seed), "step": steps, "phase": pre_phase,
                         "refused_flat": action, "refused_base": action // TARGET_SLOTS,
@@ -113,7 +113,7 @@ def main() -> int:
                     states_with_refusals += 1
                     if action not in entry_done["refused"]:
                         executed_after_refusal_differs += 1
-                    if entry_done["phase"] in ("relic_reward", "card_reward", "potion_reward"):
+                    if entry_done["phase"] in ("relic_reward", "card_reward"):
                         relic_screen_rows.append({
                             "seed": int(seed), "step": steps, "phase": entry_done["phase"],
                             "executed_flat": action, "executed_base": action // TARGET_SLOTS,

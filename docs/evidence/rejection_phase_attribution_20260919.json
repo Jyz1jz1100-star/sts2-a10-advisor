@@ -49,14 +49,13 @@
     "the per-episode refusal rate measured this way (0.502) is the same order as the independently computed campaign counter for this stage/split (0.530 per the contract-channels census), so the two paths agree rather than one being derived from the other"
   ],
   "generated_at": "2026-09-19T09:21:00Z",
-  "not_established": [
-    "anything about potion_reward: the phase never occurs in these 1,500 episodes, so it is unobserved here, not measured clean -- 'reward screens are clean' covers relic_reward and card_reward only"
-  ],
+  "not_established": [],
   "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/census_rejection_phases.py --checkpoint <zip> --limit 500 --start-offset <0|500|1000> --out <file.json>",
   "resolved_since_written": [
     "why the shop and event masks advertise actions their own step refuses: answered by refusal_root_cause_20260919.json -- 641 of 753 are one potion-capacity inconsistency (RunEngine.cs:727 vs RunRewardGenerator.cs:1015) and the rest are the unconditioned default event mask arm; affordability was the wrong guess (every refused shop action was affordable)",
     "how much the shop refusals shift deck strength: attempted in potion_slot_cost_20260919.json and left UNANSWERED -- the exposure variable (a potion-capacity refusal) can only fire while both usable slots are already full, so it is close to a restatement of the outcome; the design is confounded by construction and the deck-strength question stays open",
-    "whether the classes are checkpoint-specific: they are not -- refusal_class_generality_20260919.json re-runs the classifier on 4 checkpoints across 2 stages (6 runs), both classes appear in every run with 0 wrapper drift, but the class MIX is not stable (act1 census 641 potion vs 112 event; floor6 43 vs 292), so a per-episode refusal rate from one stage must not be quoted for another"
+    "whether the classes are checkpoint-specific: they are not -- refusal_class_generality_20260919.json re-runs the classifier on 4 checkpoints across 2 stages (6 runs), both classes appear in every run with 0 wrapper drift, but the class MIX is not stable (act1 census 641 potion vs 112 event; floor6 43 vs 292), so a per-episode refusal rate from one stage must not be quoted for another",
+    "anything about potion_reward: retracted as a category error. RunPhase.cs declares 11 phases and none is a potion reward screen; training/v2_constants.PHASE_NAMES mirrors those 11 exactly, so phase_name can never take that value. The reward-screen claim covers every reward phase the engine has (relic_reward, card_reward), both measured refusal-free, and the verifier check is now potion_reward_is_not_an_engine_phase (a contract check, not a sample one)"
   ],
   "scope": "simulator_act1 label, mixed-act population, argmax, one checkpoint, 1,500 seeds",
   "seed_windows": "act1 promotion partition, offsets 0-499 / 500-999 / 1000-1499 of config.partition('act1','promotion').seeds()",

@@ -901,6 +901,7 @@ def claim_rejection_phase_attribution():
     """
     data = json.loads((ROOT / "docs/evidence/rejection_phase_attribution_20260919.json")
                       .read_text(encoding="utf-8"))
+    from training.v2_constants import PHASE_NAMES
     agg = data["aggregation"]
     shards = data["shards"]
 
@@ -931,7 +932,12 @@ def claim_rejection_phase_attribution():
             and decisions["card_reward"] > 1_000
             and not any(p in refusals for p in ("combat", "relic_reward", "card_reward"))
             and all(not s["reward_screen_events"] for s in shards)),
-        "potion_reward_is_unobserved_not_clean": "potion_reward" not in decisions,
+        # Not "unobserved": RunPhase.cs declares 11 phases and none of them is a potion reward
+        # screen, and PHASE_NAMES mirrors those 11 one-for-one, so `phase_name` can never take
+        # that value. Checked against the contract, not against the sample.
+        "potion_reward_is_not_an_engine_phase": (
+            "potion_reward" not in decisions
+            and "potion_reward" not in PHASE_NAMES and len(PHASE_NAMES) == 11),
         "the_reask_always_changed_the_action": (
             agg["executed_after_refusal_differs"] == agg["states_with_refusals"] > 0),
         "per_phase_rates_are_what_the_report_quotes": (
