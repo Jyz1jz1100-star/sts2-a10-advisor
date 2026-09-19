@@ -55,6 +55,14 @@ class V2StageConfig:
     max_truncation_rate: float
     max_illegal_actions: int
     min_episodes: int = 500
+    #: Explicit train seed list (JSON ``{"seeds": [...], "generated_act": N}``).
+    #: Used when a contiguous range cannot express the stage's population: the
+    #: emulator picks the act per seed, so about half of any "Act 1" range
+    #: actually generates Act 2.  Resolved against the config file's directory
+    #: at load time.  Only *train* seeds are affected -- checkpoint, promotion
+    #: and final partitions stay ranges, so a filtered arm remains comparable
+    #: with the unfiltered ones.
+    train_seeds_file: str | None = None
 
     @property
     def scope(self) -> str:
@@ -140,6 +148,15 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
             max_episode_steps=int(_require(table, "max_episode_steps", int)),
             max_floor=(int(table["max_floor"]) if "max_floor" in table else None),
             initialize_from_previous=bool(table.get("initialize_from_previous", False)),
+            train_seeds_file=(
+                None
+                if "train_seeds_file" not in table
+                else str(
+                    (path.parent / str(table["train_seeds_file"])).resolve()
+                    if not Path(str(table["train_seeds_file"])).is_absolute()
+                    else Path(str(table["train_seeds_file"]))
+                )
+            ),
             promotion_probe_every_steps=int(
                 table.get("promotion_probe_every_steps", 0)
             ),

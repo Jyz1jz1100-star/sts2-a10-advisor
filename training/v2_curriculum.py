@@ -83,6 +83,59 @@ def _environment_factory(config: V2TrainingConfig, stage: V2StageConfig, sts2_gy
     return build
 
 
+def load_train_seed_list(stage: V2StageConfig, train_partition: Any) -> Any:
+    """Read and validate a stage's explicit train seed list.
+
+    The list must be a *subset* of the stage's declared train partition.  That
+    is the guard that keeps the fan-out contract intact: disjointness between
+    arms, and the teacher-reserved seed range, are both properties of the
+    partitions, so a filtered list that stays inside them cannot break either.
+    Without this check a seed file could silently train an "act1" arm on seeds
+    another arm owns.
+    """
+    from .seeds import SeedList
+
+    if stage.train_seeds_file is None:
+        raise ValueError(f"stage {stage.name!r} declares no train_seeds_file")
+    path = Path(stage.train_seeds_file)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    generated_act = payload.get("generated_act")
+    if generated_act not in (1, 2):
+        raise ValueError(
+            f"{path.name}: generated_act must be 1 or 2, got {generated_act!r}; "
+            "the list has to say which act it was censused into"
+        )
+    raw = payload.get("seeds")
+    if not isinstance(raw, list) or not raw:
+        raise ValueError(f"{path.name}: seeds must be a non-empty list")
+    try:
+        seeds = tuple(int(seed) for seed in raw)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"{path.name}: non-integer seed: {error}") from error
+    outside = [seed for seed in seeds if not train_partition.contains(seed)]
+    if outside:
+        raise ValueError(
+            f"{path.name}: {len(outside)} seed(s) outside {train_partition.name!r} "
+            f"(first few: {outside[:3]}); a filtered list may only remove seeds"
+        )
+    return SeedList(name=f"{stage.name}.train.act{generated_act}", seeds=seeds,
+                    source=str(path), generated_act=int(generated_act))
+
+
+def _train_seed_attestation(stage: V2StageConfig, train_partition: Any) -> dict:
+    seed_list = load_train_seed_list(stage, train_partition)
+    path = Path(stage.train_seeds_file)
+    return {
+        "source": str(path),
+        "source_sha256": _sha256_file(path),
+        "generated_act": seed_list.generated_act,
+        "count": seed_list.count,
+        "seed_sha256": seed_list.digest,
+        "per_worker": -(-seed_list.count // stage.parallel_envs),
+        "train_partition": train_partition.name,
+    }
+
+
 def _training_environment_factory(
     config: V2TrainingConfig,
     stage: V2StageConfig,
@@ -95,8 +148,16 @@ def _training_environment_factory(
     from sb3_contrib.common.wrappers import ActionMasker
 
     train_partition = config.partition(stage.name, "train")
-    worker_partition = train_partition.shard(rank, workers)
-    stream = SeedStream(worker_partition, f"v2:{stage.name}:worker:{rank}{stream_suffix}")
+    if stage.train_seeds_file is not None:
+        from .seeds import ListSeedStream
+
+        worker = load_train_seed_list(stage, train_partition).shard(rank, workers)
+        stream = ListSeedStream(worker, f"v2:{stage.name}:worker:{rank}{stream_suffix}")
+        probe_seed = worker.seeds[0]
+    else:
+        worker = train_partition.shard(rank, workers)
+        stream = SeedStream(worker, f"v2:{stage.name}:worker:{rank}{stream_suffix}")
+        probe_seed = worker.start
     base_factory = _environment_factory(config, stage, sts2_gym)
 
     class SeedRotationWrapper(gym.Wrapper):
@@ -118,7 +179,7 @@ def _training_environment_factory(
             return self.env.action_masks()
 
     def initialize():
-        env = SeedRotationWrapper(base_factory(worker_partition.start))
+        env = SeedRotationWrapper(base_factory(probe_seed))
         return ActionMasker(env, lambda environment: environment.action_masks())
 
     return initialize
@@ -436,6 +497,15 @@ def plan(config: V2TrainingConfig, project_root: Path,
                 "timesteps": stage.timesteps,
                 "parallel_envs": stage.parallel_envs,
                 "max_floor": stage.max_floor,
+                # A filtered train list changes what the stage trains *on*, so it
+                # has to be attestable after the fact: the digest identifies the
+                # exact list, and per_worker tells a reader how many episodes the
+                # stream could serve before raising exhaustion.
+                "train_seeds": (
+                    None
+                    if stage.train_seeds_file is None
+                    else _train_seed_attestation(stage, config.partition(stage.name, "train"))
+                ),
                 "checkpoint_every_steps": stage.checkpoint_every_steps,
                 "promotion_probe_every_steps": stage.promotion_probe_every_steps,
                 "initialize_from_previous": stage.initialize_from_previous,

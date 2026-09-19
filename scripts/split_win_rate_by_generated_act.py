@@ -58,7 +58,8 @@ def main() -> int:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--stage", default="act1")
     parser.add_argument("--split", default="promotion")
-    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--checkpoint", type=Path, default=None,
+                        help="required unless the run stops after the census")
     parser.add_argument("--episodes", type=int, default=None,
                         help="cap the partition prefix; default is the whole split")
     parser.add_argument("--only-seeds", default=None,
@@ -74,6 +75,12 @@ def main() -> int:
                              "combat that never resolves, so this isolates that mode")
     parser.add_argument("--sample-seed", type=int, default=0,
                         help="torch seed for --sampled, so a sampled run is re-runnable")
+    parser.add_argument("--start-offset", type=int, default=0,
+                        help="skip this many seeds at the head of the partition; lets a "
+                             "large census run as parallel chunks (18.7 seeds/s each)")
+    parser.add_argument("--emit-seed-list", type=Path, default=None,
+                        help="write the --act filtered seeds as a train seed list "
+                             "for training/v2_config's train_seeds_file, then stop")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -86,9 +93,18 @@ def main() -> int:
     stage = next((s for s in config.stages if s.name == args.stage), None)
     if stage is None:
         raise SystemExit(f"stage {args.stage!r} not in {args.config}")
-    if args.split == "train" and not args.census_only:
+    if (args.split == "train" and not args.census_only
+            and args.emit_seed_list is None):
         raise SystemExit("the train split cannot evidence a win rate")
     seeds = _seed_list(config.partition(stage.name, args.split), args.episodes)
+    if args.start_offset:
+        part = config.partition(stage.name, args.split)
+        if args.start_offset >= part.count:
+            raise SystemExit(f"--start-offset {args.start_offset} is past the end of "
+                             f"{part.name} (count {part.count})")
+        n = min(args.episodes or part.count, part.count - args.start_offset)
+        seeds = list(range(part.start + args.start_offset,
+                           part.start + args.start_offset + n))
     if args.only_seeds:
         wanted = [int(value) for value in args.only_seeds.split(",") if value.strip()]
         outside = [seed for seed in wanted if seed not in set(seeds)]
@@ -118,10 +134,46 @@ def main() -> int:
     census = Counter(ACT_NAMES.get(acts[seed], str(acts[seed])) for seed in seeds)
     print(f"{stage.name}/{args.split}: {len(seeds)} seeds, generated acts: {dict(census)}")
     print(f"(act is seed-deterministic: re-sampled {min(10, len(seeds))} seeds, all agreed)")
+    if args.emit_seed_list is not None:
+        # The trainer only accepts a list that is a subset of the stage's *train*
+        # partition, so censusing some other split would produce a file that is
+        # rejected at load time. Fail here, where the reason is legible.
+        if args.split != "train":
+            raise SystemExit("--emit-seed-list needs --split train: the trainer "
+                             "rejects lists outside the stage's train partition")
+        if args.act is None:
+            raise SystemExit("--emit-seed-list needs --act, so the file says which "
+                             "act it was censused into")
+        filtered = sorted(seed for seed in seeds if acts[seed] == args.act)
+        if not filtered:
+            raise SystemExit(f"no seed in this partition generates act {args.act}")
+        args.emit_seed_list.parent.mkdir(parents=True, exist_ok=True)
+        args.emit_seed_list.write_text(
+            json.dumps({
+                "generated_act": args.act,
+                "act_name": ACT_NAMES[args.act],
+                "seeds": filtered,
+                "censused_from": f"{stage.name}/{args.split}",
+                "window_start": seeds[0],
+                "window_count": len(seeds),
+                "start_offset": args.start_offset,
+                "partition_start": config.partition(stage.name, args.split).start,
+                "partition_count": config.partition(stage.name, args.split).count,
+                "config": str(args.config),
+                "source_sha256": _sha256(args.config),
+                "note": ("produced by asking the emulator which act each seed "
+                         "generates; consumed by V2StageConfig.train_seeds_file"),
+            }, ensure_ascii=False, sort_keys=True) + "\n",
+            encoding="utf-8")
+        print(f"emitted {len(filtered)} act-{args.act} seeds -> {args.emit_seed_list}")
+        return 0
+
     if args.census_only:
         return 0
 
     # Phase 2: evaluate each act's seeds separately, same code path as the trainer.
+    if args.checkpoint is None:
+        raise SystemExit("--checkpoint is required once the run evaluates")
     from sb3_contrib import MaskablePPO
     from stable_baselines3.common.vec_env import DummyVecEnv
 

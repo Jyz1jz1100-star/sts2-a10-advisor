@@ -52,6 +52,7 @@ $trainingOnly = @(
     "tests.test_teacher_batch",
     "tests.test_teacher_bc_dataset",
     "tests.test_teacher_v3",
+    "tests.test_train_seed_lists",
     "tests.test_v2_contract",
     "tests.test_v2_run_wrapper"
 )
