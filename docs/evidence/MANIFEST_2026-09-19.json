@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "36bc53258c27f89d33b3c2dc10ae63b5dc8f36c5b039c94f870976bce42d6525",
-  "evidence_file_count": 55,
-  "generated_at": "2026-09-19T22:14:09+00:00",
-  "git_head_at_generation": "0dd517b",
+  "bundle_root": "ae47a6e2c6ee8f07e5abeb9ebfcdb890b760325e1c327ea0992c040250d67f7b",
+  "evidence_file_count": 56,
+  "generated_at": "2026-09-19T22:21:47+00:00",
+  "git_head_at_generation": "cc2d54b",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1028
+    "total_64_hex_strings_seen": 1029
   },
   "resolved_checkpoints": [
     {
@@ -1520,6 +1520,7 @@
         "event_upgrade_opportunities_20260919.json",
         "metrics_index_20260919.json",
         "opening_choice_20260919.json",
+        "promotion_partition_named_wins_replay_20260920.json",
         "refusal_class_generality_20260919.json",
         "refusal_root_cause_20260919.json",
         "rejection_phase_attribution_20260919.json",
@@ -2385,8 +2386,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "dad93fd964ae11b993e4d4f66b94483e4a20c1be6be82523d8e75d40a2025434",
-      "bytes": 23713
+      "sha256": "cbf4ce30bd58fd8d317efdccb126f6baa9c4a0567926eebb2195e30b0cf39eac",
+      "bytes": 23920
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2577,6 +2578,11 @@
       "file": "potion_slot_cost_20260919.json",
       "sha256": "e661d8e3a577a28df817fa3aeb5d42d14fbe695d99e02bf6c9e011125f413b58",
       "bytes": 1634824
+    },
+    {
+      "file": "promotion_partition_named_wins_replay_20260920.json",
+      "sha256": "1f3f59715b32ce072b0042e1875dcd56e30a829a1af7f895ff09fadda0dc00e2",
+      "bytes": 28580
     },
     {
       "file": "refusal_class_generality_20260919.json",

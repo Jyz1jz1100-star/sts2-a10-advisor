@@ -169,7 +169,10 @@
     "every_listed_act2_win_replays_as_a_terminal_boss_win": true,
     "the_replay_covers_the_six_checked_the_day_before": true,
     "the_replay_runs_on_the_weights_the_wins_were_enumerated_from": true,
-    "no_replayed_seed_lies_outside_the_declared_partition": true
+    "no_replayed_seed_lies_outside_the_declared_partition": true,
+    "the_68_win_promotion_population_replays_seed_for_seed": true,
+    "the_two_instruments_agree_per_act_not_only_in_total": true,
+    "the_population_replay_used_the_weights_the_rule_probe_used": true
   },
   "arrivals_by_generated_act": {
     "arrivals_add_up": true,

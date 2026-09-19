@@ -603,6 +603,19 @@ def claim_terminal_floor_qualification():
     listed_act2_wins = [int(seed) for seed in
                         arrivals["arrivals_by_generated_act"]["act2_underdocks"]["winning_seeds"]]
     replayed = replay["rows"]
+    # The report's headline win population is "68 complete terminal wins over the 10,000-seed promotion
+    # partition" -- a census total. The reward-screen probe enumerated those 68 as a seed list, so the
+    # census driver can roll exactly them, which turns the number into individually reproduced wins and
+    # lets the per-act split be compared with the mis-exit instrument rather than only its total.
+    population = json.loads((ROOT / "docs/evidence/promotion_partition_named_wins_replay_20260920.json")
+                            .read_text(encoding="utf-8"))
+    population_rows = population["rows"]
+    rule_partition = json.loads(
+        (ROOT / "docs/evidence/boss_reward_rule_promotion_partition_20260920.json")
+        .read_text(encoding="utf-8"))
+    misexit = json.loads((ROOT / "docs/evidence/act2_boss_misexit_rate_20260919.json")
+                         .read_text(encoding="utf-8"))["whole_partition"]
+    per_act = collections.Counter(int(row["generated_act"]) for row in population_rows)
     recorded = [seed for row in ledger for seed in row["per_seed"]]
     return {
         "act1_named_wins": len(recorded),
@@ -633,6 +646,26 @@ def claim_terminal_floor_qualification():
         "no_replayed_seed_lies_outside_the_declared_partition": (
             replay["seeds_outside_the_declared_partition"] == []
             and replay["split"] == "promotion"),
+        # The headline population, no longer just a census total.
+        "the_68_win_promotion_population_replays_seed_for_seed": (
+            population["enumerated"] == len(population_rows) == 68
+            == rule_partition["aggregates"]["plain_win_count"]
+            == len(rule_partition["kept_win_seeds"])
+            and all(row["category"] == "boss_win" and int(row["wins"]) == 1
+                    and float(row["final_floor"]) == 17.0
+                    and int(row["illegal_actions"]) == 0
+                    and int(row["unclassified_dead_ends"]) == 0
+                    and int(row["truncations"]) == 0 for row in population_rows)
+            and len({int(row["seed"]) for row in population_rows}) == 68
+            and population["seeds_outside_the_declared_partition"] == []),
+        "the_two_instruments_agree_per_act_not_only_in_total": (
+            per_act[1] == misexit["act1"]["boss_win"]
+            and per_act[2] == misexit["act2"]["boss_win"]
+            and sum(per_act.values()) == 68),
+        "the_population_replay_used_the_weights_the_rule_probe_used": (
+            population["checkpoint"].replace("\\", "/").split("/")[-1]
+            == rule_partition["checkpoint"].split("/")[-1]
+            and population["checkpoint_sha256"] == act2["checkpoint_sha256"]),
         "multi_act_clears_anywhere": 0,
     }
 

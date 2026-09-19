@@ -2141,9 +2141,18 @@ note "25 act-2 wins do not [reach their terminal floor]" was reworded, because t
 terminal at floor 17 through the boss exit, which is a different claim from reaching the underdocks
 `terminalFloor` of 33. Commit `999831f`; 61/61 claims, 512 + 128 tests.
 
+**Then the same treatment went to the headline win population.** "68 complete terminal wins over the
+promotion partition" was a census total whose seed identity existed in only one instrument. The reward-rule
+probe's `kept_win_seeds` supplied the 68 seeds, the census driver rolled exactly them, and all 68 come back
+`boss_win` at floor 17 with 0 illegal / 0 unclassified / 0 truncations -- and the per-act split (3 Act 1,
+65 Act 2) matches the mis-exit instrument **per act**, which is the stronger agreement and the one that
+would have caught a mislabelled act. Three more checks on `terminal_floor_qualification` (12 total).
 
-
-
-
-
-
+Two process notes, both mine, from the same edit. The evidence count moved to 56 and the harness caught the
+stale copy only on re-run -- and the phrase occurs **twice**, which my patch script asserted wrongly, so an
+`assert count == 1` stopped the edit mid-way rather than half-applying it. That script then died writing
+this journal through the platform codec (`gbk` cannot encode a minus sign) because it called
+`write_text` without `encoding="utf-8"`: `write_text` opens in write mode, so the file was truncated
+**before** the failure, and the whole journal went to zero bytes on disk. Recovered with
+`git checkout HEAD -- docs/STATUS.md`, which is why an append-only journal is committed before it is
+scripted on, and why a scripted text edit needs an explicit encoding every time.
