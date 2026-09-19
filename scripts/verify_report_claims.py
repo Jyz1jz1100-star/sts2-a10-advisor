@@ -2427,6 +2427,16 @@ def claim_objective_clause_audit():
                             .read_text(encoding="utf-8"))
     vocab_counts = set(vocabulary.get("vocabulary", vocabulary.get("counts", {})).values())
     clause_numbers = {index: numbers(row[2]) for index, row in enumerate(rows) if len(row) > 2}
+    def _numbers(*paths):
+        out = []
+        for path in paths:
+            out.append(json.loads((ROOT / path).read_text(encoding="utf-8"))["aggregates"])
+        return out
+
+    ledger, mask_census, holdout = _numbers(
+        "docs/evidence/truncation_ledger_20260920.json",
+        "docs/evidence/empty_mask_endings_20260920.json",
+        "docs/evidence/boss_reward_rule_holdout_final_20260920.json")
     return {
         "audit_section_present": True,
         "all_nine_clauses_listed": len(rows) == 9,
@@ -2460,6 +2470,20 @@ def claim_objective_clause_audit():
         "dead_end_row_numbers_match_the_vocabulary_census": (
             vocab_counts <= clause_numbers.get(3, set())
             and vocab_counts == {50, 861, 3}),
+        # The dead-end row used to lean on a counter that reads 0 whether the books balance or no
+        # bookkeeping exists, so the row now has to carry the tested population, and those figures
+        # have to be the ledger's own.
+        "dead_end_row_cites_the_population_the_identity_tested": (
+            {4383, 216, 53} <= clause_numbers.get(3, set())
+            and ledger["current_schema_truncations"] == 4383
+            and ledger["current_schema_files"] == 216
+            and mask_census["named_truncation_located_total"] == 53
+            == ledger["current_schema_truncations"]
+            - ledger["current_schema_boundary_minus_wins_truncations"]),
+        "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": (
+            16 in clause_numbers.get(0, set())
+            and holdout["converted_seed_count"] == 16 and holdout["lost_win_count"] == 0
+            and "未达成" in rows[0][1]),
         "conclusion_still_refuses_completion": "不能标记为完成" in section,
     }
 

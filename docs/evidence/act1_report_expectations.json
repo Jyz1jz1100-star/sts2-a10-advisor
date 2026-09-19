@@ -383,7 +383,9 @@
     "fan_out_row_numbers_match_the_attestation": true,
     "hash_chain_row_numbers_match_the_manifest": true,
     "zero_illegal_row_numbers_match_the_channel_census": true,
-    "dead_end_row_numbers_match_the_vocabulary_census": true
+    "dead_end_row_numbers_match_the_vocabulary_census": true,
+    "dead_end_row_cites_the_population_the_identity_tested": true,
+    "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": true
   },
   "retraction_ledger_integrity": {
     "every_row_has_three_populated_cells": true,
