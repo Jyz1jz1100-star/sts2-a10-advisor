@@ -1993,3 +1993,19 @@ making progress, *not* the floor-17 boss stall the report had implicitly grouped
 37 files resolved only through their own `plan.json` partitions, so the previous turn's lesson is now
 part of the instrument rather than a note about it. The `native_rejection` class (861 endings, all
 previous-schema) remains outside this census by design and says so.
+
+## 2026-09-20 -- the campaign's truncation books balance, and the 53 dead ends match the census
+
+`scripts/census_truncation_ledger.py` tests an identity instead of trusting a counter:
+`truncations == dead_end_reasons + unclassified_dead_ends + max(0, boundary_hits - wins)`, per file, over
+the whole committed corpus. All 216 current-schema files close -- 4,383 truncations, residual zero
+file by file and stage by stage -- and stripping the unclassified counter out of the identity leaves it
+still closing, so `unclassified_dead_ends = 0` is now supported by arithmetic rather than by an absent
+field. Subtracting boundary truncations leaves 53 named dead ends, the same 50 + 3 the per-seed census
+locates: two instruments, one number, reached by different routes.
+
+The 54 older-schema files are excluded on measured grounds, not assertion: 46 of them report
+truncations while `boundary_hits` is pinned at 0, which is what an unrecorded field looks like. Worth
+recording because my first pass at this audit produced "3,464 truncations unexplained" -- the same
+mistake the campaign has now caught three times, reading a field that was never written as a
+measurement that came out low. Claim `truncation_ledger` (5 checks); 58/58 claims match the disk.

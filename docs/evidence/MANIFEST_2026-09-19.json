@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "413031af192cee7ee0cf012334a17c9544f8b09a42b63e7edcc44d30cbd6b294",
-  "evidence_file_count": 52,
-  "generated_at": "2026-09-19T20:39:53+00:00",
-  "git_head_at_generation": "7e1c941",
+  "bundle_root": "b7c63b8f0df15ba6f72762ee741525373078e0632c5efd1177b9ced3c68397d9",
+  "evidence_file_count": 53,
+  "generated_at": "2026-09-19T20:43:56+00:00",
+  "git_head_at_generation": "8bac158",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2384,8 +2384,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "b8eeeac791207609a4505528c44c0bd67a99b4dc3db514a6da55f60a6a22c344",
-      "bytes": 21308
+      "sha256": "47afb892d716462858c25e8474c85f424f7367beb673acff2dadfbcba013db56",
+      "bytes": 21632
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2611,6 +2611,11 @@
       "file": "stalemate_tail_20k_20260919.json",
       "sha256": "60b77212ee29b6638dad33ecf547237cb5355e24652457ae2f0da4b122cf1bfe",
       "bytes": 21722
+    },
+    {
+      "file": "truncation_ledger_20260920.json",
+      "sha256": "a6e1ec784175b83a9d3df48547043059a21d497e2308208084d5345254269d7e",
+      "bytes": 18002
     },
     {
       "file": "upgrade_step_attribution_20260919.json",

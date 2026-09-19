@@ -2198,6 +2198,46 @@ def claim_boss_reward_rule_generality():
     }
 
 
+def claim_truncation_ledger():
+    """`unclassified_dead_ends = 0` has to mean the books balance, not that nothing was written down.
+
+    Every promotion decision leans on that counter, and a truncation no field describes would leave it
+    at zero too. So this checks an identity over the whole committed corpus instead: truncations equal
+    dead-end reasons plus unclassified plus boundary truncations (`boundary_hits` counts wins as well,
+    hence subtracting them). It closes on all 216 current-schema files, and the leftover it names as
+    `dead ends` is the same 53 the per-seed dead-end census locates -- two instruments, one number.
+    The 54 older files are excluded on a measured basis rather than by asserting they are different.
+    """
+    data = json.loads((ROOT / "docs/evidence/truncation_ledger_20260920.json")
+                      .read_text(encoding="utf-8"))
+    agg = data["aggregates"]
+    census = json.loads((ROOT / "docs/evidence/empty_mask_endings_20260920.json")
+                        .read_text(encoding="utf-8"))["aggregates"]
+    rows = data["rows_current_schema"]
+    return {
+        "the_ledger_closes_on_every_current_schema_file": (
+            agg["nonzero_residual_files"] == 0 and agg["current_schema_residual_total"] == 0
+            and agg["current_schema_files"] == 216
+            and all(row["residual"] == 0 for row in rows)),
+        "the_named_endings_equal_the_per_seed_census": (
+            agg["current_schema_truncations"]
+            - agg["current_schema_boundary_minus_wins_truncations"] == 53
+            == census["named_truncation_located_total"]),
+        "closure_does_not_lean_on_the_unclassified_counter": all(
+            row["truncations"] == sum(row["dead_end_reasons"].values())
+            + max(0, row["boundary_hits"] - row["wins"]) for row in rows)
+            and agg["current_schema_unclassified_dead_ends"] == 0,
+        "every_stage_and_schema_resolves_to_zero": (
+            agg["residual_by_stage"] == {"act1/schema3": 0, "act1/schema6": 0,
+                                         "floor3/schema3": 0, "floor3/schema6": 0,
+                                         "floor6/schema3": 0, "floor6/schema6": 0}),
+        "the_legacy_exclusion_has_a_measured_cause": (
+            agg["legacy_files_excluded"] == 54
+            and agg["legacy_files_counting_truncations_with_no_boundary_field"] == 46
+            and agg["legacy_truncations_excluded"] == 4470),
+    }
+
+
 def claim_promotion_gate_refuses_unrecorded_inputs():
     """A gate clause whose input was never measured must be refused, not scored on a default.
 
@@ -2607,6 +2647,9 @@ CLAIMS = {
     "reward_fork_on_census_seeds": (
         claim_reward_fork_on_census_seeds,
         "whether the located endings had a winning action available one screen earlier"),
+    "truncation_ledger": (
+        claim_truncation_ledger,
+        "do the campaign's truncations add up, or is a counter just quiet"),
     "empty_mask_endings": (
         claim_empty_mask_endings,
         "where every recorded empty_action_mask ending sits, and what the engine was showing there"),
