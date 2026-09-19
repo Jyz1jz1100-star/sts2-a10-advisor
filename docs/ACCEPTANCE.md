@@ -22,10 +22,17 @@ in terms of what the gates can now actually check:
 - Simulator evidence has a measured ceiling and a measured scope.  Split by the act
   the emulator actually generated, the one arm measured per-act so far runs Act 1 at
   **3/5014** (three named, individually re-run seeds); `simulator_act1` labels in
-  earlier reports mixed two acts.  The bundled emulator defines two acts, ends every
-  run at its own act's boss, and has no Act 3 and no act chaining, so **no simulator
-  result can satisfy these gates at any checkpoint quality** — the three-act target
-  is a real-game question only.
+  earlier reports mixed two acts.  The bundled emulator defines exactly two acts
+  (`RunConstants.cs:35-36`) and picks one per seed (`RunMapGenerator.cs:9-11`).  It
+  has no Act 3, and chaining is not available to a seed in general: the single
+  Act 1 -> Act 2 branch is gated on hardcoded string seed `7MS1YN8NWB`
+  (`RunEngine.cs:1907-1920`), whose Act 1 map, encounters and boss are themselves
+  scripted — so a clear there evidences the harness finishing a two-act flow, not
+  policy strength, and that flow's Act 2 side is truncated by the environment even
+  at full HP.  Driving 76 campaign checkpoints through it entered Act 2 three times
+  with 0 illegal actions and produced 0 two-act victories.  **No simulator result can
+  satisfy these gates at any checkpoint quality** — the three-act target is a
+  real-game question only.
 
 What still blocks a live attempt is operational, not code: the game is not running,
 and the supervisor deliberately never starts it.  `docs/STATUS.md` names the command
