@@ -441,6 +441,12 @@ VERDICT: reproduced        (exit code 0)
 4. `scripts/run_chained_frontier_sweep.py --out <tmp>.json` —— 重数一遍 act1 检查点人口并把**每一枚**
    滚过唯一那条跨幕分支。它是对"穷举"这句话的复检：工件里记的是发现规则加逐枚摘要，
    声明会独立重数一次并与工件比对，所以人口涨了而没人重跑，会先在这里露出来。
+   本条也已重跑过（22:39 UTC）：22 个顶层键里 **19 个与提交工件完全相同**（人口、逐枚摘要、链上行、
+   最深 floor 22、0 双幕通关、0 非法、跳过的 9 枚），差的三个都有确定原因——`generated_at`；
+   `previous_sweep`（这一跑把上一份当成"前一次"，指针本身会前进）；以及
+   `step_cap_budget_probe`，**它来自 `--budget_probe` 参数**，没传就没有这个字段。
+   所以复算这一条时要么一起传 `--budget_probe`，要么把该字段的缺席当作"没跑那个附加实验"，
+   不要当成结论变了。
 5. `scripts/build_chained_deadend_evidence.py --out <tmp>.json` —— 对前沿里"活着被截断"的那些局，
    重放到最后一个地图决策点、读引擎自己那份掩码，回答"是策略选错还是引擎没给节点"。
    `chained_frontier` 说深度到哪，这条说**为什么**停在那儿。
