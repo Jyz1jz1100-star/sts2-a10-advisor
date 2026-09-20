@@ -2299,3 +2299,16 @@ seed injection. What the current harness can prove without either is an observed
 the solver's own autopilot -- which needs a longer window than the 2,400 s I bounded this batch with, since
 18 battles have not left Act 1. Next step after this batch ends: one long observational run bounded by
 `--max-runs`, not by battle count, and report its act/floor trail as evidence rather than as an acceptance.
+
+### Correction to the entry above, one commit later
+
+The sentence "all still in Act 1" was wrong in the same breath as its own histogram (`{"1": 11, "2": 7}`),
+which is exactly the invented-assertion pattern this session has kept retracting. Measured from
+`battles.jsonl` instead: **Act 1 -- 11 battles, floors 2..15; Act 2 -- 7 battles, floors 19..31; outcomes
+18 wins / 0 losses.** So the live client under solver control has cleared Act 1 and fought deep into Act 2,
+which is the first real-machine evidence of Act-2 progression this project has had.
+
+One ordering caveat kept explicit rather than smoothed over: the 18th record is `csb-0018-f6`, act 1,
+floor 6, so record order is not chronological act order -- the window contains more than one run or the
+writer appends out of act sequence. Until that is checked, "reached Act 2" is safe and "one run reached Act
+2 floor 31" is not, which is why the claim is stated the first way.
