@@ -1,0 +1,32 @@
+{
+  "act_bands": {
+    "1-17": 1,
+    "18-33": 2,
+    "34-50": 3
+  },
+  "campaign_clears": 1,
+  "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+  "checkpoint_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+  "config": "runtime\\fanout\\b_terminal-1.toml",
+  "config_sha256": "4bdc62e330ddeac49ec236f71911b6c3c9b05698b06fd5c4317cccbc723835c0",
+  "deepest_act_reached": 3,
+  "generated_at": "2026-09-20T14:47:06.071131+00:00",
+  "invocation": "G:\\qoder\\sts2-a10-advisor\\scripts\\probe_three_act_campaign.py --config runtime\\fanout\\b_terminal-1.toml --checkpoint runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip --seeds 130008177 --out runtime\\play_sim_first_clear_20260920.json",
+  "max_steps_per_episode": 4800,
+  "rows": [
+    {
+      "act_died_in": 3,
+      "campaign_cleared": 1,
+      "final_floor": 50,
+      "illegal_actions": 0,
+      "seed": 130008177,
+      "steps": 668.0,
+      "truncated": 0,
+      "won_last_combat": 1
+    }
+  ],
+  "scope": "simulator_three_act",
+  "seeds": [
+    130008177
+  ]
+}

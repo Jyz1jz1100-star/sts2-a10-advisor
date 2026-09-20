@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "d05a97c6497f4391f0e429d23af2a09053664159e3ff9d4510e35a6b84ea254d",
-  "evidence_file_count": 56,
-  "generated_at": "2026-09-20T14:13:07+00:00",
-  "git_head_at_generation": "d0558cb",
+  "bundle_root": "1697ce4271d0013551d86c54508eb767398b811334c6b3963431bc14f6fa2dcf",
+  "evidence_file_count": 57,
+  "generated_at": "2026-09-20T14:58:44+00:00",
+  "git_head_at_generation": "4bd6af7",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1029
+    "total_64_hex_strings_seen": 1031
   },
   "resolved_checkpoints": [
     {
@@ -2262,7 +2262,8 @@
         "act1_win_ledger_20260919.json",
         "chained_frontier_full_20260920.json",
         "ladder_lineage_20260919.json",
-        "metrics_index_20260919.json"
+        "metrics_index_20260919.json",
+        "three_act_first_clear_20260920.json"
       ],
       "paths": [
         "runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip"
@@ -2628,6 +2629,11 @@
       "file": "stalemate_tail_20k_20260919.json",
       "sha256": "60b77212ee29b6638dad33ecf547237cb5355e24652457ae2f0da4b122cf1bfe",
       "bytes": 21722
+    },
+    {
+      "file": "three_act_first_clear_20260920.json",
+      "sha256": "0162df939555085e60c09dee7155849593c78bf97c982f150620fd28fea6bcee",
+      "bytes": 1200
     },
     {
       "file": "truncation_ledger_20260920.json",
