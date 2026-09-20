@@ -2274,3 +2274,28 @@ now ends `dry-run: environment verified, no game connection attempted` where it 
 Standing rule updated accordingly: the lock is still operator-owned, but they have now twice said to stop
 asking and push -- so future drift gets reconciled with provenance written into the file, not parked behind
 a question.
+
+## 2026-09-20 ~23:15 UTC -- live batch is playing, and fixed-seed mode is blocked by the DLL line, not by effort
+
+The first live batch (`ssb-20260920T043631Z-eff91016`, observational + `--allow-actions`) is producing
+records: **18 battles written**, all still in Act 1 (histogram {"1": 11, "2": 7}), latest battle
+`csb-0018-f6` vs TOADPOLE_0/1 with `actual_hp_loss` 7. The supervisor's watchdog logged only sub-second
+`game_lost`/`game_restored` pairs, so bridge polling is healthy.
+
+Two structural findings, recorded because they decide what the live path can and cannot prove. **(1)
+Observational mode can never be accepted, by design:** the verdict carries
+`acceptance_blockers: ["observational_mode"]` regardless of battle count, and `decidable` is
+`len(records) >= min_battles` (50) -- so this batch can show coverage and HP agreement, never an accepted
+fixed-seed result. **(2) Fixed-seed mode needs seed injection, and seed injection needs the candidate
+bridge.** `data/combat_solver/fixed_battle_seeds.json` says it outright:
+`installed_bridge_supported: false`, `candidate_bridge_supported: true`, verification field
+`current_run.seed`, and "a fixed run is valid only when the candidate bridge is installed". Installing it
+means swapping the bridge DLL, which the operator has listed off-limits throughout -- so I am not doing it.
+`bridge.autoplay:1606` agrees ("durable fixed-seed ledger until POST authority is granted").
+
+Consequence for the goal: a *verifiable* Act 1-3 live flow needs either the candidate bridge (operator's
+call, and it would also invalidate the lock hashes I just pinned) or acceptance criteria that do not require
+seed injection. What the current harness can prove without either is an observed full-flow progression under
+the solver's own autopilot -- which needs a longer window than the 2,400 s I bounded this batch with, since
+18 battles have not left Act 1. Next step after this batch ends: one long observational run bounded by
+`--max-runs`, not by battle count, and report its act/floor trail as evidence rather than as an acceptance.
