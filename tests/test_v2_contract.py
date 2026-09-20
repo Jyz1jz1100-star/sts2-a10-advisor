@@ -81,7 +81,7 @@ class ScriptedCore:
         self.step_log: list[tuple[int, int]] = []
         self.closed = False
 
-    def reset(self, seed):
+    def reset(self, seed, campaign=False):
         self.mask_position = 0
         raw = self._obs.copy()
         raw[COMBAT_OBS_SIZE + 1] = int(self._reset_info.get("floor", 1))

@@ -29,6 +29,7 @@ CLEAN_RECORD = {
     "seed_sha256": "1" * 64,
     "episodes": 500,
     "wins": 0,
+    "campaign_clears": 0,
     "win_rate": 0.0,
     "wilson_95_low": 0.0,
     "wilson_95_high": 0.0,

@@ -39,7 +39,7 @@ class RejectingBridgeCore:
         self.steps_taken: list[tuple[int, int]] = []
         self.floor = 5
 
-    def reset(self, seed):
+    def reset(self, seed, options=None, campaign=False):
         self.floor = 5
         return make_raw(0), _info(), 0
 
@@ -140,7 +140,7 @@ class TraversalTests(unittest.TestCase):
             def __init__(self, seed):
                 self.steps = 0
 
-            def reset(self, *, seed=None):
+            def reset(self, *, seed=None, options=None):
                 self.steps = 0
                 return make_raw(0), _info()
 

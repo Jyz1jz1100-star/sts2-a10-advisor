@@ -303,7 +303,7 @@ class FakeEnvironment:
         self.seed = seed
         self.steps = 0
 
-    def reset(self, *, seed=None):
+    def reset(self, *, seed=None, options=None):
         self.seed = self.seed if seed is None else seed
         self.steps = 0
         return [self.seed], {"encounter": "fixture"}
@@ -358,7 +358,7 @@ class EvaluationTests(unittest.TestCase):
 
     def test_empty_environment_mask_is_truncation_not_policy_illegal_action(self) -> None:
         class EmptyMaskEnvironment(FakeEnvironment):
-            def reset(self, *, seed=None):
+            def reset(self, *, seed=None, options=None):
                 observation, _ = super().reset(seed=seed)
                 # Mirrors RunEngine's stale LastPlayerWon flag after a combat
                 # win followed by a later map/shop dead-end.

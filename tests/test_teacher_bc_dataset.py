@@ -31,7 +31,7 @@ class FakeCore:
     def __init__(self):
         self._env = None
 
-    def reset(self, seed):
+    def reset(self, seed, options=None, campaign=False):
         self._env = FakeTeacherEnv(seed)
         observation, info = self._env.reset(seed=seed)
         return np.asarray(observation, dtype=np.int32), info, 0
