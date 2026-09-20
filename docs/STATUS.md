@@ -2210,3 +2210,24 @@ under-measurement -- and a digest computed now from whatever file the script nam
 building it for that reason; recorded so the next session does not spend a turn rediscovering it. Only the
 09-19 A/B arms (`a1filt`, `a1mix`) carry both kinds of self-attestation, which is what the field was added
 for.
+
+## 2026-09-20 -- operator authorized the real-machine run; task #9 step 1 done offline, with fresh output
+
+`scripts/replay_solver_grammar_v2.py` is read-only by design -- it never starts the game and never touches
+the bridge -- so it runs before any launch. Fresh result (`rc=0`, output kept at
+`runs/grammar_v2_replay_20260920T2245Z/replay.json`, gitignored): **15 real CombatSolver sessions, mod
+versions 0.35.5 through 0.41.0, 8,297,783 bytes, 16,798 records, 24,263 messages, 72 snapshots, 69
+byte-ranged deploys, 1 empty route, 22 typed failures (NO_ROUTE 21, CRASH 1), 0 envelope errors.** Four
+sessions are 0.41.0, including a 2.56 MB one (4,476 records, 12 snapshots, 12 deploys, 0 empty, 0
+failures). The v1 control ran over the *same* decoded lines: v2 binds 72 answers (10 of them to turn 1,
+which is legitimate turn-1 traffic, not the old bug), v1 binds only 19 and puts **all 19 on turn 1** -- the
+mis-binding grammar v2 was merged to fix, now demonstrated on this machine's own journals rather than on a
+fixture.
+
+Two things the run also made visible, both operator-owned and left alone. Steps 2 and 3
+(`run_solver_comparison.py --max-battles 1`, then the observational 50-battle batch) need the bridge at
+localhost:15526, which means the game running: no `SlayTheSpire2` process here and `sts2mcp` is registered
+in `.qoder/settings.local.json` but absent from this session's connected servers. I do not cold-start the
+game. And the uncommitted `config/combat_solver.lock.json` edit records `installed_mod_version` **0.31.0**
+while the logs directory holds 0.35.5-0.41.0 journals -- a possible staleness in the operator's own file,
+reported as drift, not re-pinned.
