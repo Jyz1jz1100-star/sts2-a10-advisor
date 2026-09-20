@@ -116,6 +116,12 @@ class EvaluationMetrics:
     #: ``wins`` rather than folded into it: relabelling one act-1 boss as a three-act
     #: clear would silently rewrite every win rate recorded before the extension.
     campaign_clears: int = 0
+    #: Which three-act simulator produced a campaign number, and what it contains.
+    #: Stamped only in campaign mode: the emulator has no Hive or Glory pool, so a
+    #: three-act result is an approximate environment's reachability result, and the
+    #: artifact has to carry that itself instead of relying on whoever cites it.
+    environment_version: str | None = None
+    content_coverage: dict[str, object] | None = None
     #: Names this object's source payload did not carry, so their value here is the
     #: dataclass default rather than a measurement.  Populated by :meth:`from_payload`
     #: and deliberately absent from ``to_dict``: which keys a file omits describes that

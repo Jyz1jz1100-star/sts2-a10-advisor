@@ -8,6 +8,11 @@ from pathlib import Path
 
 from training.config import PromotionConfig, load_training_config
 from training.evaluation import evaluate_policy
+from training.campaign_content import (
+    CAMPAIGN_CONTENT_COVERAGE,
+    CAMPAIGN_ENVIRONMENT_VERSION,
+    RESULT_TIERS,
+)
 from training.metrics import EpisodeMetric, atomic_write_json, summarize_episodes
 from training.promotion import decide_promotion
 from training.seeds import SeedPartition, SeedPartitions, SeedStream
@@ -296,6 +301,73 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(len(metrics.seed_sha256), 64)
         self.assertLess(metrics.wilson_95_low, 0.5)
         self.assertGreater(metrics.wilson_95_high, 0.5)
+
+
+class CampaignLabelTests(unittest.TestCase):
+    """A three-act simulator number must arrive wearing its own approximation.
+
+    Campaign mode walks the Act 1 pools three times, so an unlabelled three-act
+    result reads as real three-act coverage.  The label belongs on the artifact
+    rather than in whoever cites it, and the single-act path must stay byte-stable
+    so the pre-campaign population remains comparable.
+    """
+
+    def test_campaign_metrics_carry_environment_version_and_coverage(self) -> None:
+        metrics = evaluate_policy(
+            FakePolicy(),
+            env_factory=FakeEnvironment,
+            seeds=[100],
+            stage="act1",
+            split="three_act_probe",
+            scope="simulator_three_act",
+            checkpoint="fixture.zip",
+            campaign=True,
+        )
+        payload = metrics.to_dict()
+        self.assertEqual(payload["environment_version"], CAMPAIGN_ENVIRONMENT_VERSION)
+        coverage = payload["content_coverage"]
+        self.assertEqual(coverage["verdict"], "approximate")
+        self.assertEqual(coverage["result_tier"], "simulator_three_act_approx")
+
+    def test_the_declaration_names_the_acts_the_shipped_game_actually_uses(self) -> None:
+        # Guards against the campaign quietly being re-described as real coverage:
+        # stage 2 is Hive and stage 3 is Glory, and neither is modelled here.
+        progression = CAMPAIGN_CONTENT_COVERAGE["real_progression"]
+        self.assertEqual(progression["act_2"]["model"], "Hive")
+        self.assertEqual(progression["act_3"]["model"], "Glory")
+        self.assertEqual(progression["act_3"]["second_boss_at_ascension"], 10)
+        stages = CAMPAIGN_CONTENT_COVERAGE["stages"]
+        self.assertTrue(stages["1"]["matches_real_game_act"])
+        self.assertFalse(stages["2"]["matches_real_game_act"])
+        self.assertFalse(stages["3"]["matches_real_game_act"])
+
+    def test_single_act_metrics_keep_the_pre_campaign_shape(self) -> None:
+        metrics = evaluate_policy(
+            FakePolicy(),
+            env_factory=FakeEnvironment,
+            seeds=[100, 101],
+            stage="combat",
+            split="checkpoint",
+            scope="simulator_combat",
+            checkpoint="fixture.zip",
+        ).to_dict()
+        self.assertIsNone(metrics["environment_version"])
+        self.assertIsNone(metrics["content_coverage"])
+        self.assertEqual(metrics["campaign_clears"], 0)
+
+    def test_the_four_result_tiers_are_named_and_kept_apart(self) -> None:
+        tiers = RESULT_TIERS
+        self.assertEqual(
+            set(tiers),
+            {
+                "simulator_single_act",
+                "simulator_three_act_approx",
+                "simulator_three_act_content_verified",
+                "live_full_run",
+            },
+        )
+        self.assertIn("live A10 win rate",
+                      CAMPAIGN_CONTENT_COVERAGE["must_not_be_quoted_as"])
 
 
 class FakeEnvironment:

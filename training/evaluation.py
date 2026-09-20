@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Protocol
 
+from .campaign_content import CAMPAIGN_CONTENT_COVERAGE, CAMPAIGN_ENVIRONMENT_VERSION
 from .metrics import EpisodeMetric, EvaluationMetrics, summarize_episodes
 
 
@@ -166,7 +168,7 @@ def evaluate_policy(
             )
         finally:
             env.close()
-    return summarize_episodes(
+    metrics = summarize_episodes(
         episode_metrics,
         stage=stage,
         split=split,
@@ -175,3 +177,12 @@ def evaluate_policy(
         deterministic=deterministic,
         experimental=experimental,
     )
+    if campaign:
+        # A campaign number without its coverage declaration reads as a real
+        # three-act result, which is the one thing it is not.
+        metrics = replace(
+            metrics,
+            environment_version=CAMPAIGN_ENVIRONMENT_VERSION,
+            content_coverage=CAMPAIGN_CONTENT_COVERAGE,
+        )
+    return metrics

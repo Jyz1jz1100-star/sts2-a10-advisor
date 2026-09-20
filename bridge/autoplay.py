@@ -69,6 +69,7 @@ from bridge.seed_allocation import (  # noqa: E402
     SeedLedger,
     load_seed_allocation,
 )
+from bridge.run_progress import RunCoverage  # noqa: E402
 
 
 def _sha256_file(path: Path | None) -> str | None:
@@ -586,6 +587,16 @@ class AutoPlayer:
         self._combat_attempts = 0
         self._combat_note = ""
         self.actions_by_screen: dict[str, int] = {}
+        # Which required flow steps this run actually walked through, and the
+        # finished runs alongside them.  A batch that never met an act's Ancient
+        # or never fought the final act's second boss has to say so.
+        self.coverage = RunCoverage()
+        self.completed_runs: list[dict[str, Any]] = []
+        # A screen left by the generic proceed fallback is a skip, not a
+        # decision; count them so a repeated one stops the batch instead of
+        # carrying the run past content nobody can account for.
+        self._bypass_counts: dict[str, int] = {}
+        self._max_bypass_per_screen = 3
         self.runs_started = 0
         self.consecutive_failures = 0
         self._last_executed: tuple[str, str] | None = None
@@ -670,7 +681,26 @@ class AutoPlayer:
             payload = self._card_select_choice(state)
         if payload is None and state_type != "map" and _screen_can_proceed(state):
             # continue buttons after an applied choice (rest result, shop,
-            # claimed rewards, ...): the screen itself says it can advance
+            # claimed rewards, ...): the screen itself says it can advance.
+            # On a screen with no rule this is a skip, not a decision, so it is
+            # recorded and bounded rather than quietly carrying the run along.
+            run = state.get("run") or {}
+            self._bypass_counts[state_type] = self._bypass_counts.get(state_type, 0) + 1
+            self.coverage.note_bypass(
+                state_type, run.get("act"), run.get("floor"),
+                reason="generic_proceed_fallback",
+            )
+            print(
+                f"[autoplay] no rule for screen {state_type!r}; "
+                f"proceeding past it ({self._bypass_counts[state_type]}x)",
+                flush=True,
+            )
+            if self._bypass_counts[state_type] > self._max_bypass_per_screen:
+                raise BridgeProtocolError(
+                    f"screen {state_type!r} was skipped "
+                    f"{self._bypass_counts[state_type]} times without a rule; "
+                    "refusing to keep advancing past unmodelled content"
+                )
             return {"action": "proceed"}
         return payload
 
@@ -1134,6 +1164,8 @@ class AutoPlayer:
             # A fresh readable state resets the bridge-unavailable window.
             bridge_unavailable_since = None
             state_type = str(state.get("state_type") or "unknown")
+            self.coverage.observe(state)
+            self.coverage.note_unknown_screen(state_type)
             try:
                 self._reconcile_seed_state(state, state_type)
                 if self._continued_run_guard is not None and state_type in {
@@ -1165,6 +1197,7 @@ class AutoPlayer:
                             {"action": "menu_select", "option": "main_menu"},
                             expected_decision_id=decision_id,
                         )
+                        self._seal_run("game_over")
                     else:
                         screen = str(state.get("menu_screen") or "")
                         if screen not in ("main", "singleplayer"):
@@ -1308,6 +1341,9 @@ class AutoPlayer:
 
     def _start_run(self, state_type: str) -> tuple[dict[str, Any], str]:
         assert self.controller is not None
+        # A fresh start after a run that never reached its terminal screen means
+        # that run ended by abandonment or crash, not by clear.
+        self._seal_run("superseded_by_new_run")
         entry: SeedEntry | None = None
         if self._seed_ledger is not None:
             entry = self._seed_ledger.reserve_next()
@@ -1339,12 +1375,39 @@ class AutoPlayer:
     def _actions_total(self) -> int:
         return sum(self.actions_by_screen.values())
 
+    def _seal_run(self, reason: str) -> None:
+        """Close off the run being observed and begin accounting for the next."""
+
+        coverage = self.coverage.coverage()
+        if coverage["acts_seen"]:
+            coverage["sealed_by"] = reason
+            self.completed_runs.append(coverage)
+        self.coverage = RunCoverage()
+        self._bypass_counts.clear()
+
     def summary(self) -> dict[str, Any]:
         result = {
             "runs_started": self.runs_started,
             "actions_total": self._actions_total(),
             "actions_by_screen": dict(self.actions_by_screen),
+            # The in-flight run is reported only once it is actually a run: the
+            # menu reports act 1 with nothing behind it.
+            "runs": [
+                *self.completed_runs,
+                *([self.coverage.coverage()] if self.coverage.started else []),
+            ],
         }
+        runs = result["runs"]
+        # Kept separate on purpose: a batch can hold a run that cleared three
+        # acts without holding one the bridge could certify as a win, and
+        # collapsing the two would invent victory evidence nobody observed.
+        result["runs_with_certified_clear"] = sum(
+            1 for row in runs if row["run_complete"]
+        )
+        result["victory_evidence_available"] = any(
+            row["outcome_source"] == "bridge_is_victory_flag" and row["outcome"] is True
+            for row in runs
+        )
         if self.stop_reason is not None:
             result["stop_reason"] = self.stop_reason
         if self._seed_ledger is not None:

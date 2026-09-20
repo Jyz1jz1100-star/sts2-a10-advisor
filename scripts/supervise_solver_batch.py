@@ -51,6 +51,11 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from bridge.trace_controller import VersionLock  # noqa: E402
+
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "runs" / "solver_supervisor"
 DEFAULT_AUTOPLAY_LOCK = PROJECT_ROOT / "config" / "combat_solver.lock.json"
 DEFAULT_GAME_LOG_DIR = Path.home() / "AppData" / "Roaming" / "SlayTheSpire2" / "logs"
@@ -76,6 +81,7 @@ EXIT_BATCH_EXISTS = 7
 EXIT_STOPPED = 130
 EXIT_RUN_TIMEOUT = 8
 EXIT_PARTIAL = 9
+EXIT_PREFLIGHT_FAILED = 10
 
 # Mirrors ``bridge.autoplay.EXIT_CLASSIFIED_STOP``: the autoplay child ended
 # itself on purpose for a recorded reason (stale state, bridge unavailable).
@@ -1087,6 +1093,8 @@ class BatchSupervisor:
         # against, at both ends of the window (see combat_solver/modpin.py).
         self.mods_at_start: dict[str, Any] | None = None
         self.mods_at_end: dict[str, Any] | None = None
+        #: What ``--dry-run`` concluded about running a batch on this machine.
+        self.preflight_gates: dict[str, Any] | None = None
         self.seed_allocation = (
             load_seed_allocation(config.resolved_seed_file)
             if config.mode == "fixed" and config.resolved_seed_file is not None
@@ -1267,6 +1275,9 @@ class BatchSupervisor:
             # The autoplay child's own final summary (stop reason, runs,
             # seed-allocation state) when it ended audibly.  Read-only copy:
             # the trace itself stays the authoritative artifact.
+            # What ``--dry-run`` concluded, so the refusal an operator sees is the
+            # same measurement recorded in the batch.
+            "preflight_gates": self.preflight_gates,
             # Read-only measurement of the mod binaries behind this batch, at
             # both ends of the window.  Steam updates Workshop mods on its own,
             # so "we were locked to 0.31.0" is only meaningful if the batch
@@ -1704,6 +1715,40 @@ class BatchSupervisor:
                 return EXIT_RUN_TIMEOUT
             self.sleep(max(0.01, self.config.poll_seconds))
 
+    def _preflight_gates(self) -> dict[str, Any]:
+        """Answer "can a batch be played here" from the files the run trusts.
+
+        Until now ``--dry-run`` checked configuration only, while the entry point
+        pointed at it as the gate for the build and the mod bytes.  The installed
+        game has to match the lock or the acceptance target is void, so that one
+        fails closed.  Mod *bytes* are measured and reported but do not gate:
+        the operator owns the in-game solver's auto-update, and refusing a batch
+        over a solver version bump would override that standing decision.
+        """
+        gates: dict[str, Any] = {"lock_file": str(DEFAULT_AUTOPLAY_LOCK)}
+        failures: list[str] = []
+        try:
+            lock = VersionLock.load(DEFAULT_AUTOPLAY_LOCK)
+            gates["installed_game"] = lock.verify_installed_game()
+        except Exception as exc:
+            gates["installed_game_error"] = f"{type(exc).__name__}: {exc}"
+            failures.append(f"installed game does not match the lock: {exc}")
+        attestation = self.mods_at_start or {}
+        gates["mod_attestation"] = {
+            key: attestation.get(key)
+            for key in ("all_match_lock", "drifted_from_lock", "unreadable", "error")
+        }
+        if attestation.get("error"):
+            failures.append(f"mod bytes could not be measured: {attestation['error']}")
+        elif attestation.get("unreadable"):
+            failures.append(
+                "locked mod files unreadable or missing: "
+                + ", ".join(str(mod) for mod in attestation["unreadable"])
+            )
+        gates["failures"] = failures
+        gates["ok"] = not failures
+        return gates
+
     def run(self) -> int:
         """Execute the lifecycle and always release the active lock."""
 
@@ -1711,12 +1756,16 @@ class BatchSupervisor:
             self._prepare()
             self._install_signal_handlers()
             if self.config.dry_run:
-                self.stop_reason = "dry_run"
-                self._log("dry_run", commands=self.commands)
-                self.result_code = EXIT_OK
+                gates = self._preflight_gates()
+                self.preflight_gates = gates
+                self.stop_reason = "dry_run" if gates["ok"] else "preflight_failed"
+                self._log("dry_run", commands=self.commands, preflight_gates=gates)
+                for failure in gates["failures"]:
+                    print(f"[preflight] {failure}", file=sys.stderr, flush=True)
+                self.result_code = EXIT_OK if gates["ok"] else EXIT_PREFLIGHT_FAILED
                 self.completed_at_utc = _utc_now()
-                self._persist("dry_run")
-                return EXIT_OK
+                self._persist(self.stop_reason)
+                return self.result_code
             if not self._wait_for_game():
                 self.result_code = EXIT_GAME_WAIT_TIMEOUT
                 self.completed_at_utc = _utc_now()

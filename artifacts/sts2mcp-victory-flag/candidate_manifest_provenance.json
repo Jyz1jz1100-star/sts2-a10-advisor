@@ -1,0 +1,58 @@
+{
+  "candidate_id": "sts2mcp-victory-flag",
+  "built_at_utc": "2026-09-20T16:20:12.332620Z",
+  "schema_version": 2,
+  "purpose": "Publish the run's real win/loss outcome on the game_over state.",
+  "why_needed": {
+    "problem": "McpMod.StateBuilder.cs:455-459 reported the identical payload for a cleared run and a death: message is the literal \"Run ended.\" and there is no outcome field. bridge/outcome.py can therefore never return a victory, so no amount of play on the installed bridge can produce the delivery target's required evidence: a real victory terminal.",
+    "authority": "The game itself distinguishes them the same way: NGameOverScreen.cs:268 reads bool win = _runState.CurrentRoom?.IsVictoryRoom ?? false, and AbstractRoom.cs:20-29 defines IsVictoryRoom as the EventRoom whose CanonicalEvent is TheArchitect, entered by RunManager.cs:1207-1246 after the final act's second boss."
+  },
+  "source_delta": [
+    {
+      "file": "third_party/STS2MCP-main/McpMod.StateBuilder.cs",
+      "change": "game_over gains is_victory: the current room's IsVictoryRoom, or null when the room is already torn down. message and options unchanged."
+    },
+    {
+      "file": "third_party/STS2MCP-main/McpMod.Actions.cs",
+      "change": "Carried unchanged from the earlier seeded candidate (ExecuteMenuSelect/BeginStandardSingleplayerSeededRun). This candidate therefore also supports fixed-seed starts; it is not a minimal victory-only build."
+    }
+  ],
+  "null_policy": "is_victory is emitted as bool? so an unavailable room reads as unknown in the trace, never as a loss.",
+  "build": {
+    "command": "powershell -File third_party/STS2MCP-main/build.ps1 -GameDir \"G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\"",
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "game_assembly_lineage": "compiled against the locked build v0.111.0 commit 41cef1ea steam_build_id 24724944"
+  },
+  "binary_verification": {
+    "method": "searched the compiled assembly heaps; not a claim about runtime behaviour",
+    "is_victory_string_present_in_new_dll": true,
+    "is_victory_string_present_in_seeded_dll": false,
+    "IsVictoryRoom_memberref_present_in_new_dll": true,
+    "IsVictoryRoom_memberref_present_in_seeded_dll": false
+  },
+  "dll_path": "artifacts/sts2mcp-victory-flag/STS2_MCP.dll",
+  "dll_sha256": "0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5",
+  "manifest_path": "artifacts/sts2mcp-victory-flag/STS2_MCP.json",
+  "candidate_manifest_path": "artifacts/sts2mcp-victory-flag/STS2_MCP.json",
+  "manifest_sha256": "F64EE11EBFA9F3CC9DFA89D99FA6125C594E3DE4A46AC5E1776327F7A80AA3C9",
+  "manifest_derivation": "byte-for-byte copy of third_party/STS2MCP-main/mod_manifest.json, matching the seeded candidate's convention",
+  "reviewed_source": {
+    "repository": "third_party/STS2MCP-main",
+    "review_status": "reviewed"
+  },
+  "installed": false,
+  "install_state": "NOT INSTALLED. The installed bridge is unchanged and hash-locked; replacing it is an operator decision, and scripts/stage_sts2mcp.py --apply is the only sanctioned path.",
+  "requires_manual_health_smoke": true,
+  "lock_update_allowed": false,
+  "consumer_side_status": {
+    "bridge/outcome.py": "reads is_victory when present and still falls back to the producer's wording otherwise, so the locked bridge keeps working",
+    "bridge/run_progress.py": "labels what a victory reading rested on via outcome_source(); only bridge_is_victory_flag counts as victory evidence",
+    "verified_against": "offline fixtures in tests/test_run_coverage.py; no real run has produced this field yet"
+  },
+  "remaining_blockers_after_install": [
+    "the final act's second boss has never been reached on the real client, so the 1+1+2 shape is still unverified end to end",
+    "observational mode is not acceptance-eligible; fixed-seed replay needs this candidate (or the seeded one) installed and its run identity read back"
+  ]
+}

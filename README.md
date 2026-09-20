@@ -12,8 +12,11 @@
 - Combat Solver 日志解析、路线执行和 full-auto keeper 的离线契约
 - trace/版本锁/执行 owner/种子分区/哈希链的验收账本
 - 离线行为克隆和 PPO 骨架，以及独立的 NativeAOT/Gymnasium 模拟器基线
-- 模拟器三幕战役模式（2026-09-20 起，需显式开启；关闭时与历史单幕人群逐种子一致）
+- 模拟器三幕战役模式（2026-09-20 起，需显式开启；关闭时与历史单幕人群逐种子一致）。
+  **它是近似三幕**：第二、三幕复用 Underdocks 池，真实 progression 的 Hive / Glory 未被接线
 - 一条命令的自动打牌入口 `scripts/play.py`：`--backend live` 打真机，`--backend sim` 打模拟器三幕
+- 真机 run 的流程覆盖判定：`scripts/audit_live_run_coverage.py` 从 trace 读出每幕先古之民、
+  每个 boss 节点与终局读数（`bridge/run_progress.py`）
 
 当前 `LiveHeuristicPolicy` 是局外可运行基线，不是已经训练或部署的全局最优策略；`SmokeBaselinePolicy` 仅用于验证状态链路，输出不得计入胜率。
 
@@ -38,6 +41,7 @@
 - [局外候选与 wire action 契约](docs/LIVE_CANDIDATE_CODEC.md)
 - [Combat Solver 分层与运行审计](docs/COMBAT_SOLVER.md)
 - [当前真实状态](docs/STATUS.md)
+- [逐幕覆盖审计：真机 vs 模拟器，2026-09-21](docs/ACT_COVERAGE_AUDIT_2026-09-21.md)
 - [Act 1 战役报告（含撤回账目）](docs/ACT1_CAMPAIGN_2026-09-19.md)
 - [三幕模拟器扩展与全自动打牌器设计](docs/superpowers/specs/2026-09-20-three-act-emulator-and-auto-player-design.md)
 - [真机版本锁定、trace 录制与动作门禁](docs/LIVE_BRIDGE.md)
@@ -61,13 +65,21 @@
 `play.py` 是分发器，不是第二套实现。战斗仍然完全归局内 Combat Solver，局外动作归
 `bridge.autoplay`，一批真机的运行与自证归 `scripts/supervise_solver_batch.py`。它补的是没人
 该记住的那几步：把游戏拉起来、开跑之前先让**监督器自己的 `--dry-run`** 回答"能不能跑"
-（模组哈希、版本锁、种子分区都在那条命令里，因此这道门不会和被验证的运行走岔），以及把结论
+（自 2026-09-21 起这条是真的：`_preflight_gates()` 加载 `VersionLock` 并核对实机 build，
+不匹配就以 `EXIT_PREFLIGHT_FAILED` 拒绝起局；模组字节测不出/读不到同样拒绝。
+**唯一只报告不否决的是 CombatSolver 版本漂移**——那是 operator 持有的自动更新决定，本仓库不代答），以及把结论
 读回来打印。preflight 不过时它以 exit 2 明确拒绝，不会假装成功。
 
 `--backend sim` 转发到 `scripts/probe_three_act_campaign.py`，scope 是
-`simulator_three_act`：幕推进为"打赢本幕 boss → 下一幕 → 重生成地图"，终幕要连打两个 boss，
-第三幕复用第二幕敌人池且**没有**额外难度倍率。幕区间对齐 2026-09-20 真机实测到的
-2–15 / 19–31 / 35–43。它是模拟器结论，不是实机 A10 成绩，也不替代 `full_run` 的真实整局验收。
+`simulator_three_act`，并自 2026-09-21 起自动带上 `environment_version:
+sts2sim-campaign-approx-v1` 与 `content_coverage.verdict: approximate`：
+**模拟器的第二、三幕都是 Underdocks 池的换皮**，而锁定 build 的真实 progression 是
+Overgrowth → Hive → Glory（`ActModel.cs:510-515`），且模拟器没有任何一幕有先古之民。
+幕区间与真机的对照只用已核实的坐标：真机 act 1/2/3 的 boss 节点分别在 **floor 17 / 33 / 48**
+（2026-09-20 trace 重算，`docs/evidence/live_run_coverage_20260920.json`），模拟器的幕带是
+1–17 / 18–33 / 34–50（`RunConstants.cs:14 MapBossRow = 16` 推出，第三幕多的 1 层是配对 boss）。
+它是模拟器结论，不是实机 A10 成绩，也不替代 `full_run` 的真实整局验收。逐幕证据见
+[逐幕覆盖审计](docs/ACT_COVERAGE_AUDIT_2026-09-21.md)。
 
 ## 本机环境
 
@@ -204,13 +216,37 @@ Act 1-3 全清——种子 `130008177` 走到 floor 50、`campaign_cleared=1`、
 两次独立复跑同结果（上面那条 `--backend sim` 示例是照原样执行过的，即第三次），
 证据文件 `docs/evidence/three_act_first_clear_20260920.json` 已进哈希链。
 同一晚也量清了它的边界：战役关闭时既有 9 个具名 Act 1 胜局仍逐种子复现（回归门），而一个
-500 连续种子的 promotion 窗口里 18 局打到 Act 1 boss、**0 局打赢**——所以"能不能走完三幕"
-从现在起是策略强度问题，不再是表达能力问题。
+500 连续种子的 promotion 窗口里 18 局打到 Act 1 boss、**0 局打赢**。
+
+**上一段曾经接着写"所以能不能走完三幕从现在起是策略强度问题，不再是表达能力问题"。这句撤回。**
+它依据的是"模拟器能走到 floor 50"，而那个 50 站在 Underdocks 池上：锁定 build 的真实 progression
+是 Overgrowth → Hive → Glory，模拟器的第二、三幕都不是它们的池，也没有任何一幕有先古之民，
+终幕双 boss 之间也没有真实的地图出口。所以**三幕覆盖仍是表达能力问题**；
+只有"三阶段流程能否自动跑完"才已被模拟器证明。分级见 `training/campaign_content.py`。
+
 过程中被数据抓到并修掉的一个真缺陷值得记下来：幕推进最初只挂在遗物领奖那一个出口，于是
 两个种子打赢第一幕 boss 却停在第 17 层——boss 的奖可能从遗物屏、也可能从选卡屏结掉，
 这与本文早已记录的"boss 胜局只在遗物屏出口才判定"是同一个**出口清单不全**的坑。
-仍未完成：三幕引用的行号需要按新构建重钉（重跑来源快照会把错指针洗成"已核验"，所以没做）、
-真机三幕仍受 observational mode 限制（固定种子需要候选桥接注入）。
+
+2026-09-21 交付目标纠偏，逐项见 [逐幕覆盖审计](docs/ACT_COVERAGE_AUDIT_2026-09-21.md)。三条需要点名的更正：
+
+1. **真机已经走过真实第三幕，比本文此前承认的多。** 离线回放 2026-09-20 两条 trace
+   （`--allow-actions --out-of-combat-only`，动作由桥接器发出）得到
+   `docs/evidence/live_run_coverage_20260920.json`：一条 run 连续覆盖三幕的先古之民
+   （NEOW / OROBAS / TANX），Hive 的 boss `THE_INSATIABLE` 实测清除，最深到 `act 3 floor 48`
+   的 Glory boss `AEONGLASS`——**在那里战死**。
+2. **"固定种子需要候选桥接（换 DLL，禁区）"这条前提已过期。** 已安装的桥接就是
+   `sts2mcp-seeded` 候选（`config/live_version.lock.json` 的 `install_provenance`，
+   2026-09-06 起），二进制里确有 `BeginStandardSingleplayerSeededRun`。
+3. **但真实胜利在今天不可观测。** STS2MCP 把胜负压成同一句 `"Run ended."`
+   （`McpMod.StateBuilder.cs:455-459`），所以判定器在这条链上永远不会返回"胜"。
+   这是实现缺陷，不是策略不够强。本轮已交付带 `is_victory` 的候选桥接
+   （`artifacts/sts2mcp-victory-flag/`，编译 0 warning / 0 error，**未安装**）+ 消费侧读取；
+   换不换 DLL 由 operator 决定，不换则真实整局胜率永远拿不到分母。
+
+仍未完成：真实第三幕的**第二个 boss** 没有任何一次到达记录；模拟器的 Hive/Glory 池表未接线
+（内容其实已在 `CombatFactory.cs` 里，下标 `66/70/71/73/75/76/78/80/81` 无人引用）；
+三幕引用的行号仍需按新构建重钉。
 
 ## License
 

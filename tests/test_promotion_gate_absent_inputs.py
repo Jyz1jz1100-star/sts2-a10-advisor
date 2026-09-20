@@ -30,6 +30,10 @@ CLEAN_RECORD = {
     "episodes": 500,
     "wins": 0,
     "campaign_clears": 0,
+    # A single-act record carries neither field; presence is what distinguishes
+    # "measured without campaign" from "the file predates the campaign label".
+    "environment_version": None,
+    "content_coverage": None,
     "win_rate": 0.0,
     "wilson_95_low": 0.0,
     "wilson_95_high": 0.0,

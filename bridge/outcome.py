@@ -33,22 +33,27 @@ _LOSS_RE = tuple(re.compile(rf"\b{re.escape(stem)}") for stem in _LOSS_STEMS)
 def run_outcome(state: dict) -> bool | None:
     """``True`` won, ``False`` lost, ``None`` undetermined.
 
-    STS2MCP publishes no win/loss flag, so the producer's own ``game_over``
-    message is the only evidence. Reaching the screen with HP left is deliberately
-    not treated as a victory: abandoning a run mid-Act also ends alive, and an
-    inferred "cleared A10" is exactly the false claim this project cannot take
-    back.
+    A bridge that publishes the game's own victory room reads that flag and
+    nothing else.  STS2MCP 0.4.0 does not: ``McpMod.StateBuilder.cs:457`` hard
+    codes ``message = "Run ended."`` for both outcomes, so on the locked bridge
+    the producer's wording is the only evidence available and it can never say
+    "won".  Reaching this screen with HP left is deliberately not treated as a
+    victory either: abandoning a run mid-Act also ends alive, and an inferred
+    "cleared A10" is exactly the false claim this project cannot take back.
 
-    Win wording is considered before loss wording, as it was originally: a message
-    like "you won, but were defeated at the end" should not be read as a clean
-    victory by ordering alone, so a message carrying *both* polarities is reported
-    as undetermined rather than being resolved by precedence. Same for a victory
-    reading that the message then walks back. A final act with two bosses makes
-    this load-bearing: an intermediate act-clear screen must not be promoted into
-    a run clear.
+    Win wording is considered before loss wording, but a message carrying *both*
+    polarities, or one that walks a victory back, is reported undetermined rather
+    than resolved by precedence: with two bosses in the final act, an intermediate
+    act-clear screen must not be promoted into a run clear.
     """
 
-    message = str(((state.get("game_over") or {}).get("message")) or "").lower()
+    game_over = state.get("game_over")
+    if not isinstance(game_over, dict):
+        game_over = {}
+    explicit = game_over.get("is_victory")
+    if isinstance(explicit, bool):
+        return explicit
+    message = str(game_over.get("message") or "").lower()
     if not message:
         return None
     win_hit = any(pattern.search(message) for pattern in _WIN_RE)
@@ -60,6 +65,23 @@ def run_outcome(state: dict) -> bool | None:
     if loss_hit:
         return False
     return None
+
+
+def outcome_source(state: dict) -> str:
+    """Name the evidence a victory reading rested on, so its absence is visible.
+
+    ``no_victory_signal`` and ``game_over_message_wording`` both mean the bridge
+    could not tell us the outcome structurally; only a run carrying
+    ``bridge_is_victory_flag`` is real victory evidence.
+    """
+    game_over = state.get("game_over")
+    if not isinstance(game_over, dict):
+        game_over = {}
+    if isinstance(game_over.get("is_victory"), bool):
+        return "bridge_is_victory_flag"
+    if str(game_over.get("message") or ""):
+        return "game_over_message_wording"
+    return "no_victory_signal"
 
 
 def game_over_message(state: dict) -> str:

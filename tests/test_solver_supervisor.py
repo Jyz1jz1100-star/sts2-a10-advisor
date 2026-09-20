@@ -9,12 +9,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
 
+import scripts.supervise_solver_batch as supervise_solver_batch
 from scripts.supervise_solver_batch import (
     EXIT_CHILD_FAILED,
     EXIT_GAME_LOST,
     EXIT_GAME_WAIT_TIMEOUT,
     EXIT_OK,
     EXIT_PARTIAL,
+    EXIT_PREFLIGHT_FAILED,
     EXIT_STOPPED,
     AUTOPLAY_CLASSIFIED_STOP_EXIT,
     BatchLock,
@@ -1134,6 +1136,126 @@ class EvidenceAttributionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(SupervisorConfigurationError):
                 _config(Path(tmp), FakeClock(), allow_actions=False)
+
+
+class PreflightGateTests(unittest.TestCase):
+    """``--dry-run`` is what the one-command entry point asks "can this be played".
+
+    That answer has to come from the same lock the batch itself runs under, or the
+    gate and the run disagree about the build.  Both directions are pinned here:
+    a matching installed build is allowed, a different Steam build id is refused
+    before any child is started.
+    """
+
+    def _lock(self, root: Path, *, observed_build: str = "build-1") -> Path:
+        release = root / "release_info.json"
+        release.write_text(
+            json.dumps(
+                {
+                    "version": "v0.111.0",
+                    "commit": "41cef1ea",
+                    "main_assembly_hash": 123,
+                }
+            ),
+            encoding="utf-8",
+        )
+        manifest = root / "appmanifest_2868840.acf"
+        manifest.write_text(
+            f'"appid"\t"2868840"\n"buildid"\t"{observed_build}"\n'
+            '"BetaKey"\t"public-beta"\n',
+            encoding="utf-8",
+        )
+        lock = root / "combat_solver.lock.json"
+        lock.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "game": {
+                        "app_id": "2868840",
+                        "version": "v0.111.0",
+                        "commit": "41cef1ea",
+                        "main_assembly_hash": 123,
+                        "steam_build_id": "build-1",
+                        "branch": "public-beta",
+                        "release_info_path": str(release),
+                        "steam_manifest_path": str(manifest),
+                    },
+                    "bridge": {
+                        "version": "0.4.0",
+                        "base_url": "http://127.0.0.1:15526",
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        return lock
+
+    def _run_dry(self, root: Path, lock: Path):
+        clock = FakeClock()
+        popen = FakePopen()
+        supervisor = BatchSupervisor(
+            _config(root, clock, dry_run=True, allow_actions=False),
+            popen_factory=popen,
+            game_probe=lambda _config: False,
+            clock=clock,
+            sleep=clock.sleep,
+        )
+        with patch.object(supervise_solver_batch, "DEFAULT_AUTOPLAY_LOCK", lock):
+            return supervisor.run(), supervisor, popen
+
+    def test_matching_installed_game_allows_dry_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            code, supervisor, popen = self._run_dry(root, self._lock(root))
+            self.assertEqual(code, EXIT_OK)
+            self.assertEqual(popen.started, [])
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "dry_run")
+            gates = status["preflight_gates"]
+            self.assertTrue(gates["ok"])
+            self.assertEqual(gates["failures"], [])
+            self.assertEqual(gates["installed_game"]["steam_build_id"], "build-1")
+
+    def test_installed_game_drift_refuses_before_any_child(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            lock = self._lock(root, observed_build="build-2")
+            code, supervisor, popen = self._run_dry(root, lock)
+            self.assertEqual(code, EXIT_PREFLIGHT_FAILED)
+            self.assertEqual(popen.started, [])
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "preflight_failed")
+            gates = status["preflight_gates"]
+            self.assertFalse(gates["ok"])
+            self.assertTrue(
+                any("installed game does not match" in text for text in gates["failures"]),
+                gates["failures"],
+            )
+            # The mismatch text is the evidence: which field, expected and observed.
+            self.assertIn("steam_build_id", gates["installed_game_error"])
+
+    def test_unmeasurable_mod_bytes_refuse_the_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            lock = self._lock(root)
+            # A lock that declares mod paths which are not there cannot attest,
+            # and a batch that cannot name its mod bytes is not evidence.
+            lock.write_text(
+                lock.read_text(encoding="utf-8").replace(
+                    '"bridge": {',
+                    '"evaluation_environment": {"mod_dll_inventory": ['
+                    '{"mod_id": "CombatSolver", "path": "'
+                    + (root / "absent.dll").as_posix()
+                    + '", "sha256": "' + "0" * 64 + '"}]}, "bridge": {',
+                ),
+                encoding="utf-8",
+            )
+            code, supervisor, _popen = self._run_dry(root, lock)
+            self.assertEqual(code, EXIT_PREFLIGHT_FAILED)
+            gates = json.loads(
+                supervisor.status_path.read_text(encoding="utf-8")
+            )["preflight_gates"]
+            self.assertIn("CombatSolver", gates["mod_attestation"]["unreadable"])
 
 
 if __name__ == "__main__":

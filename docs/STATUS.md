@@ -2408,3 +2408,101 @@ and regenerating `MANIFEST_2026-09-19.json` (still 56 files). `verify_report_cla
 claims fail *because the engine legitimately changed* -- `emulator_act_ceiling` still expects two acts,
 `chained_map_deadend` and `emulator_source_provenance` cite `*.cs:line` text and digests from the pre-extension
 build. Those get re-pinned against the new build, not relaxed.
+
+## Delivery-goal correction: 2026-09-21
+
+Operator re-bound the target: an out-of-the-box full autonomous player for the locked
+build's real three acts (three acts, that act's Ancient, 1+1+2 bosses), and explicitly
+refused to let "the upstream emulator never defined a third act" shrink the scope or a
+placeholder emulator score stand in for the product. Audit first, then fix what the audit
+confirmed. Per-act result with source locations: `docs/ACT_COVERAGE_AUDIT_2026-09-21.md`.
+
+**What the locked build actually requires, read off the game's own assembly.** The
+progression is `Overgrowth -> Hive -> Glory` (`ActModel.cs:510-515`); `Underdocks` is an
+*alternate Act 1* and can only ever overwrite `list[0]` (`ActModel.cs:498-507`). Each act's
+Ancient is a fixed map node at the act's entry (`StandardActMap.cs:334`), rolled from that
+act's candidates (`ActModel.cs:345-348`). `1+1+2` is not a design choice: `DoubleBoss` is
+ascension level 10 (`AscensionLevel.cs:4-15`) and `maxAscensionAllowed = 10`
+(`AscensionManager.cs:9`), consumed at exactly one site that is last-act-only
+(`RunManager.cs:685-691`). The second boss is an extra map row past the boss
+(`StandardActMap.cs:88-91,231-234`), reached by returning to the map from boss 1's terminal
+rewards screen (`NRewardsScreen.cs:473-482`) -- and the final act's bosses generate **no
+reward set at all** (`RewardsSet.cs:67-74`). Victory is `EventRoom<TheArchitect>`
+(`RunManager.cs:1207-1246`, `AbstractRoom.cs:20-29`); win and loss share one
+`NGameOverScreen`, which the game itself separates via `CurrentRoom.IsVictoryRoom`
+(`NGameOverScreen.cs:268`). There is no per-act ascension scaling anywhere, so Act 3's only
+A10-exclusive modifier is that second boss -- which retires the "the sim's act 3 is easier
+because it has no difficulty multiplier" caveat's premise.
+
+**A live conclusion that was too generous, retracted.** `README.md` claimed that after the
+campaign extension "getting through three acts is now a strength question, not an
+expressibility question". It is still an expressibility question: the extension's stages 2
+and 3 both draw the **Underdocks** pools (`RunMapGenerator.cs:19` sends any act != 1 down
+that branch), no act has an Ancient, and the paired boss starts the next combat with no map
+or reward exit (`RunEngine.cs:1996-2012`). Historical artifacts are untouched; new ones now
+carry `environment_version` / `content_coverage` (`training/campaign_content.py`), and the
+four result tiers are named so approximate and verified three-act numbers cannot mix.
+
+**Real-machine coverage is better than the docs admitted, and worse at the very end.**
+Replaying the two 2026-09-20 traces (both `--allow-actions --out-of-combat-only`, so the
+out-of-combat POSTs are the bridge's) through the new
+`bridge/run_progress.py` / `scripts/audit_live_run_coverage.py` gives
+`docs/evidence/live_run_coverage_20260920.json`: two runs entered real Act 3, one continuous
+run covered **all three Ancients** (NEOW / OROBAS / TANX -- Tanx is a Glory Ancient), and the
+Hive boss `THE_INSATIABLE` was cleared twice. Both then died: at `3:48 AEONGLASS` and at
+`3:45`. No run ever saw the final act's second boss.
+
+**The headline blocker is structural, not strategic.** The installed bridge reports both
+outcomes identically -- `McpMod.StateBuilder.cs:455-459` hard-codes `message = "Run ended."`
+-- so `bridge/outcome.py` can never return a victory and the required "real victory terminal
+evidence" is unobservable no matter how well the player plays. Delivered this round: the
+producer now publishes `is_victory` (the game's own `IsVictoryRoom` reading, `null` when the
+room is already gone so unknown is never read as defeat), built clean against the locked
+assembly (0 warnings / 0 errors) into `artifacts/sts2mcp-victory-flag/` (DLL
+`0A3C1158…7EBA5`), self-checked at the binary level (the new DLL carries `is_victory` and an
+`IsVictoryRoom` memberref, the seeded one carries neither), and staged read-only
+(`stage_sts2mcp.py` -> `status: ready, mutated: false`). **Not installed** -- replacing the
+bridge is the operator's call, so this item is *implementation awaiting verification*, not
+done. The consumer reads the flag when present and falls back to wording otherwise, so the
+locked bridge keeps working unchanged.
+
+**A "blocker" that is already gone.** Several commits kept citing fixed-seed replay as
+needing the candidate bridge, i.e. an off-limits DLL swap. The installed DLL *is* the seeded
+candidate (`config/live_version.lock.json` -> `install_provenance.candidate_id:
+sts2mcp-seeded`, reconciled 2026-09-06), and the binary confirms
+`BeginStandardSingleplayerSeededRun` / `SetSeed` / `Embarking on run (seed:`. So the
+`docs/FIXED_SEED_FEASIBILITY.md` "not installed" line is stale by two weeks and
+`--seed-mode fixed` is not blocked by the bridge.
+
+**Two claims that the code did not back, now fixed in code.**
+(1) `README.md` said the supervisor's `--dry-run` pre-flight carried the mod hashes, the
+version lock and the seed partition. `VersionLock` appeared **zero** times in
+`supervise_solver_batch.py`; the attestation was recorded and never judged, and dry-run
+returned `EXIT_OK` unconditionally. `_preflight_gates()` now loads the lock and verifies the
+installed build, refusing with `EXIT_PREFLIGHT_FAILED = 10`; unmeasurable or unreadable mod
+bytes refuse too. Solver *version drift* deliberately still only reports: the operator owns
+the Workshop auto-update, and a gate that overrode that standing decision would be the
+wrong kind of strict. Verified on this machine: dry-run exits 0 with
+`installed_game = v0.111.0/41cef1ea/24724944`, `all_match_lock = true`.
+(2) Any unrecognised screen advertising a continue control was dismissed by a bare
+`proceed` with no trace (`autoplay.py:671-674`). Every generic proceed is now recorded with
+its act/floor, and a fourth one on the same screen stops the batch rather than walking past
+unmodelled content. `summary()` finally reports per-run coverage,
+`runs_with_certified_clear` and `victory_evidence_available` -- `run_outcome` had never been
+called by the autonomous driver at all, so a batch could only ever count actions.
+
+**One bug the ledger found in itself.** My first completeness rule required the last boss to
+be cleared "while the player was alive", and a passing test caught it: the build records a
+win by flagging victory and *then* killing the party (`RunManager.cs:1238-1246`), so on a
+real clear the terminal screen is reached at HP 0. The victory terminal now certifies the
+boss it followed; a death still certifies nothing.
+
+**Gate state.** Light runtime: `552 tests`, 0 failures (9 errors are the pre-existing
+`numpy`/`gymnasium` absences in that interpreter). Training runtime via `scripts/test.ps1`:
+`132 tests OK`, including the real-DLL integration class. `verify_report_claims.py`:
+**56/59** scored (up from 54 before this section -- adding an evidence file broke
+`objective_clause_audit` and `harness_self_description`, both self-referential bundle counts,
+and they are repaired here), plus 2 claims that need the training venv. The 3 remaining
+DRIFTs are the pre-existing set the previous entry already declared red and refused to relax:
+`emulator_act_ceiling`, `chained_map_deadend`, `emulator_source_provenance` -- stale
+`*.cs:line` pointers from the pre-extension build, to be re-pinned, not re-baselined.

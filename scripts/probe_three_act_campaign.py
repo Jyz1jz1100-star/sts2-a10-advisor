@@ -6,7 +6,9 @@ that measures it: per seed it records the final floor (which identifies the act 
 because the act bands are 1-17 / 18-33 / 34-50), the illegal-action count, and whether the engine
 itself reported the run cleared -- not whether the last combat happened to be won.
 
-Nothing here is a claim about the real game client; the scope is labelled simulator_three_act.
+Nothing here is a claim about the real game client.  Every row is written next to the
+content-coverage declaration in ``training/campaign_content.py``: the engine has no Hive or
+Glory pool, so stages 2 and 3 replay Act 1 material and the result tier is approximate.
 
     python scripts/probe_three_act_campaign.py --config config/training_v2.toml \
         --checkpoint checkpoints/.../best.zip --seeds 20000039,20000102
@@ -24,6 +26,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT.parent / "third_party" / "slay-the-spire-2-emulator-main" / "src"))
 sys.path.insert(0, str(ROOT))
+
+from training.campaign_content import (  # noqa: E402
+    CAMPAIGN_CONTENT_COVERAGE,
+    CAMPAIGN_ENVIRONMENT_VERSION,
+)
 
 # The engine's own act bands: act A ends at MapBossRow*A + 1, and the final act spends one more
 # floor on its paired boss.  Used only to name where a run stopped, never to decide a result.
@@ -116,6 +123,10 @@ def main() -> int:
         "generated_at": datetime.now(UTC).isoformat(),
         "invocation": " ".join(sys.argv),
         "scope": "simulator_three_act",
+        # Artifacts written before 2026-09-21 carry neither field; they are the
+        # same approximate content, unlabelled (tier approx-v0 by absence).
+        "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+        "content_coverage": CAMPAIGN_CONTENT_COVERAGE,
         "config": str(args.config),
         "config_sha256": hashlib.sha256(args.config.read_bytes()).hexdigest(),
         "checkpoint": str(args.checkpoint),
