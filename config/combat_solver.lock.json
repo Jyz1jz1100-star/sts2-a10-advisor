@@ -100,9 +100,9 @@
       {
         "mod_id": "STS2_MCP",
         "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
-        "sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+        "sha256": "0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5",
         "required": true,
-        "note": "seeded candidate bridge (artifacts/sts2mcp-seeded); matches live_version.lock.json after the 2026-09-06 reconciliation",
+        "note": "victory-flag candidate bridge (artifacts/sts2mcp-victory-flag); reconciled to the installed file after a health/state/compendium smoke",
         "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
       },
       {
@@ -130,7 +130,15 @@
         "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
         "sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
         "required": true,
-        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
+        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072",
+        "drift_observed": [
+          {
+            "observed_at_utc": "2026-09-20T16:57:36.585529Z",
+            "observed_sha256": "B66D7C055CF92F478CD2CDB3A230D0F5137734E0FEFD738B41830AE0777F0C50",
+            "cause": "Steam Workshop auto-updated the solver when the client was started on 2026-09-21",
+            "action": "recorded only -- the solver lock is operator-owned and is deliberately not re-pinned here"
+          }
+        ]
       }
     ],
     "contaminated_run_policy": "exclude_from_training_and_evaluation"

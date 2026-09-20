@@ -238,6 +238,16 @@ def _canonical_character(state: dict[str, Any]) -> str:
     return normalized.split(".")[-1]
 
 
+def _character_is_readable(state: dict[str, Any]) -> bool:
+    """False only when the frame carries no character field at all.
+
+    The first state after a ``continue`` is often a transition frame with no
+    ``player`` block.  Treating that as "not Ironclad" refused legitimate A10
+    resumes outright, so absence is kept distinct from a real conflict.
+    """
+    return bool(_canonical_character(state))
+
+
 def _run_identity_from_state(state: dict[str, Any]) -> dict[str, Any]:
     """Extract only identity fields needed by the automated run guard."""
     player = state.get("player") or {}
@@ -626,6 +636,11 @@ class AutoPlayer:
         # checked through compendium before the POST and the first resulting
         # live state is checked for Ironclad/A10 before any gameplay action.
         self._continued_run_guard: dict[str, Any] | None = None
+        #: Bounded wait for the first post-``continue`` frame that exposes a
+        #: character; transition frames legitimately carry none for a moment.
+        self._continue_identity_since: float | None = None
+        self._continue_identity_frames = 0
+        self._continue_identity_timeout = 60.0
         # If a crash left an active reservation and the authoritative save is
         # still sitting behind the menu, require the user-visible Continue
         # path before any fresh-start action.  Reconciliation must never turn
@@ -1179,6 +1194,23 @@ class AutoPlayer:
                     "menu",
                     "game_over",
                 }:
+                    if not _character_is_readable(state):
+                        # Unreadable is not the same as wrong.  Poll again under
+                        # a deadline; never wait without one, and never act.
+                        self._continue_identity_since = (
+                            self._continue_identity_since or time.monotonic()
+                        )
+                        self._continue_identity_frames += 1
+                        waited = time.monotonic() - self._continue_identity_since
+                        if waited > self._continue_identity_timeout:
+                            raise RunIdentityError(
+                                "Refusing automated actions after continue: no state "
+                                f"exposed a character within {waited:.0f}s across "
+                                f"{self._continue_identity_frames} frames "
+                                f"(last screen {state_type!r})"
+                            )
+                        time.sleep(self.poll)
+                        continue
                     identity = _require_continued_run_identity(
                         state,
                         self._continued_run_guard,
@@ -1190,6 +1222,7 @@ class AutoPlayer:
                             decision_id=decision_id,
                         )
                     self._continued_run_guard = None
+                    self._continue_identity_since = None
                 if state_type in {"menu", "game_over"}:
                     # leave the death screen; the next menu visit starts a run
                     if state_type == "game_over":
@@ -1286,12 +1319,26 @@ class AutoPlayer:
                     self._last_executed = execution_key
                     if self._repeat_execution_count >= 3:
                         if payload.get("action") != "proceed":
+                            run = state.get("run") or {}
+                            self.coverage.note_bypass(
+                                state_type, run.get("act"), run.get("floor"),
+                                reason="repeat_without_state_change",
+                            )
                             print(
                                 "[autoplay] repeating identical action without "
                                 f"state change; falling back to proceed ({payload})",
                                 flush=True,
                             )
                             payload = {"action": "proceed"}
+                        if self._repeat_execution_count >= 6:
+                            # The proceed escape is itself not advancing, so the
+                            # screen is unmodelled rather than merely stubborn.
+                            self._classified_stop(
+                                "unmodelled_screen",
+                                f"screen {state_type!r} repeated the same action "
+                                f"{self._repeat_execution_count + 1} times and the "
+                                "proceed escape did not change state",
+                            )
                     self.controller.send_action(payload, expected_decision_id=decision_id)
             except SeedAllocationExhausted:
                 # Exhaustion is a clean, auditable stop.  Never fall through

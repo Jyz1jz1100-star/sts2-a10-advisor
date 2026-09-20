@@ -221,6 +221,43 @@ class ScriptedController:
         return {"status": "ok"}, None
 
 
+    def test_a_repeat_escape_is_recorded_and_bounded(self) -> None:
+        """The second silent-skip path, seen firing on the 2026-09-21 live run.
+
+        A rule that keeps POSTing the same action with no state change used to
+        escape into ``proceed`` forever with nothing in the ledger.  Now the
+        escape is recorded, and a sixth repeat ends the batch by name.
+        """
+        class StubbornController:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.posts: list[dict] = []
+
+            def get_state(self):
+                return ({"state_type": "relic_select",
+                         "run": {"act": 1, "floor": 17, "ascension": 10},
+                         "relics": [{"index": 0}]}, "same-decision")
+
+            def send_action(self, payload, **kwargs):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        from bridge.autoplay import AutoplayClassifiedStop
+
+        controller = StubbornController()
+        player = AutoPlayer(controller, max_runs=1, max_actions=500, poll=0)
+        with self.assertRaises(AutoplayClassifiedStop):
+            player.run()
+
+        self.assertEqual(player.stop_reason, "unmodelled_screen")
+        recorded = player.coverage.coverage()["proceed_bypasses"]
+        self.assertTrue(recorded, "the escape was taken but nothing was recorded")
+        self.assertEqual(
+            {row["reason"] for row in recorded}, {"repeat_without_state_change"}
+        )
+
+
 class LoopIntegrationTests(unittest.TestCase):
     """The ledger has to work in the driver, not just beside it.
 

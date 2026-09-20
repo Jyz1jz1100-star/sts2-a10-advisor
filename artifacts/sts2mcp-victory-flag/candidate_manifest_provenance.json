@@ -42,10 +42,10 @@
     "repository": "third_party/STS2MCP-main",
     "review_status": "reviewed"
   },
-  "installed": false,
-  "install_state": "NOT INSTALLED. The installed bridge is unchanged and hash-locked; replacing it is an operator decision, and scripts/stage_sts2mcp.py --apply is the only sanctioned path.",
+  "installed": true,
+  "install_state": "INSTALLED on 2026-09-21 by operator authorization. scripts/stage_sts2mcp.py --apply replaced both bridge files after a hash-verified backup; config/live_version.lock.json and the STS2_MCP row of config/combat_solver.lock.json were reconciled to this DLL only after a health/state/compendium smoke passed on the real client.",
   "requires_manual_health_smoke": true,
-  "lock_update_allowed": false,
+  "lock_update_allowed": true,
   "consumer_side_status": {
     "bridge/outcome.py": "reads is_victory when present and still falls back to the producer's wording otherwise, so the locked bridge keeps working",
     "bridge/run_progress.py": "labels what a victory reading rested on via outcome_source(); only bridge_is_victory_flag counts as victory evidence",
@@ -54,5 +54,27 @@
   "remaining_blockers_after_install": [
     "the final act's second boss has never been reached on the real client, so the 1+1+2 shape is still unverified end to end",
     "observational mode is not acceptance-eligible; fixed-seed replay needs this candidate (or the seeded one) installed and its run identity read back"
-  ]
+  ],
+  "installed_at_utc": "2026-09-20T17:26:27.839296Z",
+  "backup_manifest": "runs/sts2mcp_staging/backups/sts2mcp-20260920T165128Z-595d469a/backup_manifest.json",
+  "previous_installed_dll_sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+  "lock_reconciliation": {
+    "live_version_lock": "config/live_version.lock.json bridge.dll_sha256 + install_provenance",
+    "combat_solver_lock": "evaluation_environment.mod_dll_inventory[STS2_MCP].sha256 only",
+    "combat_solver_mod": "left drifting (lock AEF11717 -> disk B66D7C05 after a Workshop auto-update); the solver lock is operator-owned and was deliberately not re-pinned"
+  },
+  "live_verification": {
+    "terminal_field_observed_on_real_client": true,
+    "observed_payload": {
+      "is_victory": false,
+      "message": "Run ended.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "consumer_reading": "bridge/outcome.py -> False; outcome_source() -> bridge_is_victory_flag",
+    "branch_exercised": "defeat",
+    "branch_not_exercised": "victory -- it requires clearing the final act's second boss, which no run in this project has done on the real client yet",
+    "evidence": "docs/evidence/victory_observability_20260921.json"
+  }
 }

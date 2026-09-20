@@ -627,6 +627,102 @@ class AutoplayRunIdentityTests(unittest.TestCase):
         )
 
 
+    def test_identity_less_transition_frame_does_not_refuse_a_real_ironclad_resume(self):
+        """Observed on the real client 2026-09-21: an Ironclad A10 resume was refused.
+
+        The first frame after ``continue`` was ``unknown`` at act 2 floor 18 with
+        no ``player`` block at all, and absence was being read as "not Ironclad".
+        Absence must be re-read under a deadline; a real conflict still refuses.
+        """
+        class FakeController:
+            recorder = None
+
+            def __init__(self, states, compendia):
+                self._states = states
+                self._compendia = compendia
+                self._cursor = 0
+                self.posts = []
+                self.identity_events = []
+
+            def get_state(self):
+                index = min(self._cursor, len(self._states) - 1)
+                self._cursor += 1
+                return self._states[index], f"decision-{index}"
+
+            def get_compendium(self, record=True):
+                index = min(len(self.identity_events), len(self._compendia) - 1)
+                self.identity_events.append(index)
+                return self._compendia[index]
+
+            def send_action(self, payload, **kwargs):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        transition = {"state_type": "unknown",
+                      "run": {"act": 2, "floor": 18, "ascension": 10}}
+        terminal = {"state_type": "game_over",
+                    "run": {"act": 2, "floor": 19, "ascension": 10},
+                    "player": {"character_id": "IRONCLAD", "hp": 0},
+                    "game_over": {"message": "Run ended.", "is_victory": False}}
+        controller = FakeController(
+            [
+                {"state_type": "menu", "menu_screen": "main",
+                 "options": ["continue", "singleplayer"]},
+                transition,
+                transition,
+                self._active(),
+                terminal,
+            ],
+            [self._saved_file(seed="2450ZAR9EF"), self._saved(seed="2450ZAR9EF")],
+        )
+        player = AutoPlayer(controller, max_runs=1, max_actions=6, poll=0)
+        player.run()
+
+        self.assertIsNone(player._continued_run_guard)
+        self.assertEqual(controller.posts[0], {"action": "menu_select", "option": "continue"})
+        self.assertIn({"action": "menu_select", "option": "main_menu"}, controller.posts)
+        # Two unreadable frames were waited through, not acted on and not refused.
+        self.assertEqual(player._continue_identity_frames, 2)
+        # The terminal was read from the flag, not from the message wording.
+        runs = player.summary()["runs"]
+        self.assertIs(runs[0]["outcome"], False)
+        self.assertEqual(runs[0]["outcome_source"], "bridge_is_victory_flag")
+
+    def test_a_resume_that_never_exposes_a_character_stops_under_a_deadline(self):
+        """Waiting is bounded: an unreadable identity cannot stall the batch forever."""
+        class FakeController:
+            recorder = None
+
+            def __init__(self):
+                self._cursor = 0
+                self.posts = []
+
+            def get_state(self):
+                self._cursor += 1
+                if self._cursor == 1:
+                    return ({"state_type": "menu", "menu_screen": "main",
+                             "options": ["continue"]}, "d1")
+                return ({"state_type": "unknown",
+                         "run": {"act": 2, "floor": 18, "ascension": 10}}, f"d{self._cursor}")
+
+            def get_compendium(self, record=True):
+                return {"current_run": None, "saved_run": {
+                    "is_saved": True, "game_mode": "standard", "ascension": 10,
+                    "run_id": "modded:profile1:run-1", "seed": "2450ZAR9EF"}}
+
+            def send_action(self, payload, **kwargs):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        controller = FakeController()
+        player = AutoPlayer(controller, max_runs=1, max_actions=50, poll=0)
+        player._continue_identity_timeout = -1.0  # expire on the first unreadable frame
+        with self.assertRaises(RunIdentityError) as caught:
+            player.run()
+        self.assertIn("no state exposed a character", str(caught.exception))
+        self.assertEqual(controller.posts, [{"action": "menu_select", "option": "continue"}])
+
+
 class AutoplayClassifiedStopTests(unittest.TestCase):
     """Regressions for the ssb-20260906T102557Z-183d0b05 failure class.
 

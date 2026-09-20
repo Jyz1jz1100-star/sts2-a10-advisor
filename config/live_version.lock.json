@@ -14,17 +14,27 @@
     "name": "STS2MCP",
     "version": "0.4.0",
     "dll_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
-    "dll_sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+    "dll_sha256": "0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5",
     "manifest_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.json",
     "manifest_sha256": "F64EE11EBFA9F3CC9DFA89D99FA6125C594E3DE4A46AC5E1776327F7A80AA3C9",
     "install_provenance": {
-      "candidate_id": "sts2mcp-seeded",
-      "provenance_record": "artifacts/sts2mcp-seeded/candidate_manifest_provenance.json",
-      "source_copy": "third_party/STS2MCP-main/McpMod.Actions.cs (seeded standard-SP branch)",
-      "drift_recorded": "docs/STS2MCP_SAVE_IDENTITY_2026-09-03.md (2026-09-03, pre-existing)",
-      "reconciled": "2026-09-06: lock updated to describe the already-installed seeded candidate; GET-only health smoke passed (v0.4.0, game build 24724944 unchanged)",
-      "seed_capability": "fixed seeds still require per-run authoritative current_run.seed readback; mismatches fail closed",
-      "previous_dll_sha256": "095EE091F6D20D17FC0FC09AF53B46DE092F95B29FB970FF0D8714D14CC5B124"
+      "candidate_id": "sts2mcp-victory-flag",
+      "provenance_record": "artifacts/sts2mcp-victory-flag/candidate_manifest_provenance.json",
+      "source_copy": "third_party/STS2MCP-main/McpMod.StateBuilder.cs (game_over is_victory branch)",
+      "previous_dll_sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+      "previous_candidate_id": "sts2mcp-seeded",
+      "installed": "2026-09-20T16:57:36.585529Z: scripts/stage_sts2mcp.py --apply, hash-verified backup + rollback available",
+      "backup_manifest": "G:\\qoder\\sts2-a10-advisor\\runs\\sts2mcp_staging\\backups\\sts2mcp-20260920T165128Z-595d469a\\backup_manifest.json",
+      "health_verification": {
+        "performed": true,
+        "at_utc": "2026-09-20T16:57:36.585529Z",
+        "health": "GET / -> 'Hello from STS2 MCP v0.4.0', status ok",
+        "singleplayer": "GET /api/v1/singleplayer?format=json -> state_type menu / menu_screen main",
+        "compendium": "GET /api/v1/compendium -> profile_id, current_run, saved_run, sections",
+        "game_build_unchanged": "24724944 / v0.111.0 / 41cef1ea / 222455745"
+      },
+      "capability_delta": "game_over now publishes is_victory (bool, null when the room is gone); seeded fixed-seed support retained",
+      "seed_capability": "fixed seeds still require per-run authoritative current_run.seed readback; mismatches fail closed"
     },
     "base_url": "http://127.0.0.1:15526",
     "health_path": "/",
@@ -32,7 +42,9 @@
     "compendium_path": "/api/v1/compendium"
   },
   "evaluation_environment": {
-    "allowed_mod_ids": ["STS2_MCP"],
+    "allowed_mod_ids": [
+      "STS2_MCP"
+    ],
     "live_mod_roots": [
       "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods",
       "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840"

@@ -2506,3 +2506,45 @@ and they are repaired here), plus 2 claims that need the training venv. The 3 re
 DRIFTs are the pre-existing set the previous entry already declared red and refused to relax:
 `emulator_act_ceiling`, `chained_map_deadend`, `emulator_source_provenance` -- stale
 `*.cs:line` pointers from the pre-extension build, to be re-pinned, not re-baselined.
+
+## Bridge updated and the terminal made observable: 2026-09-21 (later same day)
+
+Operator authorized the DLL swap and asked for the terminal-victory verification to be redone.
+Detail in `docs/ACT_COVERAGE_AUDIT_2026-09-21.md` §8; evidence in
+`docs/evidence/victory_observability_20260921.json`.
+
+`stage_sts2mcp.py --apply` installed `0A3C1158…7EBA5` over `CD3EA740…43A4D` after a hash-verified
+backup (rollback: `runs/sts2mcp_staging/backups/sts2mcp-20260920T165128Z-595d469a/`). Only after
+`GET /`, `GET /api/v1/singleplayer` and `GET /api/v1/compendium` all answered on the locked build
+were the locks reconciled, and only for the **STS2_MCP** row. CombatSolver drifted again while I
+was working (`AEF11717…` -> `B66D7C05…`, a Workshop auto-update on client start) and that pin was
+deliberately left alone -- which is also why this verification drove `bridge.autoplay` directly
+instead of through the supervisor: the comparison child gates on the solver hash. **Less
+batch-level self-attestation than a supervised run would have given, stated rather than glossed.**
+
+**Result on real hardware:** the terminal screen now carries a real boolean --
+`{"is_victory": false, "message": "Run ended.", "options": ["main_menu"]}` -- and
+`bridge/outcome.py` resolves it to `False` with `outcome_source() == bridge_is_victory_flag`,
+where the same screen previously produced `None` + `game_over_message_wording`. The
+"no numerator for a real win rate" blocker is gone.
+
+**What is *not* proven:** the victory branch. It requires actually clearing the final act's second
+boss and no run in this project has done that on the real client. The resumed run (operator
+approved continuing a pre-existing suspended standard/A10 Ironclad save at act 2 floor 19) died at
+the act 2 boss, floor 33, so `bosses_cleared` is empty and `run_complete` is false. Do not read
+"is_victory works" as "we can win".
+
+Two defects the live data caught in code I wrote earlier today:
+
+1. The post-`continue` identity guard treated a frame with no `player` block as "not Ironclad" and
+   refused a legitimate Ironclad A10 resume outright. Absence is now re-read under a 60 s deadline;
+   a genuine conflict still fails immediately, and an exhausted deadline reports how many frames
+   exposed nothing and what the last screen was.
+2. Only the `decide()` proceed fallback was recorded in the coverage ledger. A real log line showed
+   the *other* silent path -- `repeating identical action ... falling back to proceed` -- taking a
+   skip nobody counted. It is recorded now, and a seventh non-advancing repeat stops the batch with
+   `stop_reason=unmodelled_screen` instead of proceeding forever.
+
+Side effect the operator should know: when the batch ended, the menu branch started a fresh
+Ironclad A10 run (act 1 floor 1) before `--max-runs` stopped the loop. No `abandon_run`, no save
+deletion, no profile switch; that new run is sitting on the machine.

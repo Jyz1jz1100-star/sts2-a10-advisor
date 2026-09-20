@@ -235,18 +235,24 @@ Act 1-3 全清——种子 `130008177` 走到 floor 50、`campaign_cleared=1`、
    `docs/evidence/live_run_coverage_20260920.json`：一条 run 连续覆盖三幕的先古之民
    （NEOW / OROBAS / TANX），Hive 的 boss `THE_INSATIABLE` 实测清除，最深到 `act 3 floor 48`
    的 Glory boss `AEONGLASS`——**在那里战死**。
-2. **"固定种子需要候选桥接（换 DLL，禁区）"这条前提已过期。** 已安装的桥接就是
-   `sts2mcp-seeded` 候选（`config/live_version.lock.json` 的 `install_provenance`，
-   2026-09-06 起），二进制里确有 `BeginStandardSingleplayerSeededRun`。
-3. **但真实胜利在今天不可观测。** STS2MCP 把胜负压成同一句 `"Run ended."`
-   （`McpMod.StateBuilder.cs:455-459`），所以判定器在这条链上永远不会返回"胜"。
-   这是实现缺陷，不是策略不够强。本轮已交付带 `is_victory` 的候选桥接
-   （`artifacts/sts2mcp-victory-flag/`，编译 0 warning / 0 error，**未安装**）+ 消费侧读取；
-   换不换 DLL 由 operator 决定，不换则真实整局胜率永远拿不到分母。
+2. **"固定种子需要候选桥接（换 DLL，禁区）"这条前提已过期。** 2026-09-06 起已装的就是
+   `sts2mcp-seeded` 候选，二进制里确有 `BeginStandardSingleplayerSeededRun`；本轮之后装的是
+   带胜负位的候选（它也保留 seed 注入能力）。
+3. **"真实胜利不可观测"已在 2026-09-21 授权复验中解除。** 原先 STS2MCP 把胜负压成同一句
+   `"Run ended."`（`McpMod.StateBuilder.cs:455-459`），判定器在这条链上永远不会返回"胜"——
+   这是实现缺陷，不是策略不够强。带 `is_victory` 的桥接经 `scripts/stage_sts2mcp.py --apply`
+   安装（哈希校验备份 + 回滚可用），health/state/compendium smoke 通过后才同步两份锁里的
+   **STS2_MCP** 一行；**CombatSolver 的自动更新漂移只记录、不代钉**。
+   真机终止屏实测 `is_victory=false`，读数来源 `bridge_is_victory_flag`
+   （证据 `docs/evidence/victory_observability_20260921.json`）。
+   **注意边界：验到的是败局分支。** "赢"这个分支仍未跑过——它需要真的清掉终幕第二个 boss。
+   所以"真实整局胜利"这条验收项**还没达成**，只是不再被观测能力卡住。
 
-仍未完成：真实第三幕的**第二个 boss** 没有任何一次到达记录；模拟器的 Hive/Glory 池表未接线
-（内容其实已在 `CombatFactory.cs` 里，下标 `66/70/71/73/75/76/78/80/81` 无人引用）；
-三幕引用的行号仍需按新构建重钉。
+仍未完成：真实第三幕的**第二个 boss** 没有任何一次到达记录，因此也没有一次真实胜利；
+模拟器的 Hive/Glory 池表未接线（内容其实已在 `CombatFactory.cs` 里，下标
+`66/70/71/73/75/76/78/80/81` 无人引用）；三幕引用的行号仍需按新构建重钉。
+另需知道：本轮真机验证结束时，驱动按既有菜单逻辑**另起了一局铁甲战士 A10**（第 1 幕第 1 层），
+没有 `abandon_run`、没有删档；那局留在机器上待处置。
 
 ## License
 

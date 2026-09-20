@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-09-20T17:25:55.529320Z",
+  "claim": "The real client's terminal outcome is now observable, and read structurally rather than from wording.",
+  "what_changed": {
+    "producer": "third_party/STS2MCP-main/McpMod.StateBuilder.cs game_over branch publishes is_victory from the game's own CurrentRoom.IsVictoryRoom",
+    "consumer": "bridge/outcome.py prefers the flag; bridge/run_progress.py labels the reading via outcome_source()",
+    "installed_bridge_dll_sha256": "0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5",
+    "previous_installed_dll_sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
+    "install_path": "scripts/stage_sts2mcp.py --apply with pinned candidate hashes; hash-verified backup + rollback",
+    "backup_manifest": "runs/sts2mcp_staging/backups/sts2mcp-20260920T165128Z-595d469a/backup_manifest.json"
+  },
+  "preflight_smoke": {
+    "health_get_root": "Hello from STS2 MCP v0.4.0 / status ok",
+    "singleplayer_get": "state_type menu, menu_screen main",
+    "compendium_get": "profile_id 1, current_run, saved_run, sections",
+    "game_build_verified_against_lock": "24724944 / v0.111.0 / 41cef1ea / 222455745"
+  },
+  "live_batch": {
+    "trace": "runtime/victory_probe_20260921b.jsonl",
+    "trace_sha256": "4714f232fdb4945848c1600e1c68c439eee66c3133b6069cd9c853c5fcffe9ea",
+    "component": "bridge.autoplay driven directly (--allow-actions --out-of-combat-only), not through scripts/supervise_solver_batch.py",
+    "why_direct_not_supervised": "Steam auto-updated CombatSolver when the client started (lock AEF11717 -> disk B66D7C05); the supervised comparison child gates on that hash and the solver lock is operator-owned, so it was left unreconciled rather than re-pinned here",
+    "starting_state": "resumed a pre-existing suspended standard/A10 run at act 2 floor 19 (operator-approved), which the identity guard first refused for a fixable reason -- see autoplay_identity_fix",
+    "autoplay_identity_fix": "the guard read an identity-less transition frame as 'not Ironclad'; absence is now waited on under a 60s deadline instead of refusing a legitimate resume",
+    "state_events_by_screen": {
+      "rewards": 63,
+      "card_reward": 15,
+      "map": 42,
+      "unknown": 12,
+      "monster": 48,
+      "event": 15,
+      "rest_site": 15,
+      "treasure": 8,
+      "elite": 17,
+      "shop": 14,
+      "card_select": 6,
+      "boss": 18,
+      "game_over": 2,
+      "menu": 19
+    },
+    "actions_by_screen": {
+      "card_reward": 5,
+      "card_select": 2,
+      "event": 6,
+      "game_over": 1,
+      "map": 14,
+      "rest_site": 6,
+      "rewards": 23,
+      "shop": 5,
+      "treasure": 2
+    },
+    "runs": [
+      {
+        "acts_in_required_progression": [
+          2
+        ],
+        "acts_seen": [
+          2
+        ],
+        "ancients_by_act": {},
+        "ancients_covered_acts": [],
+        "boss_battles_by_act_floor": {
+          "2:33": [
+            "CRUSHER_0",
+            "ROCKET_0"
+          ]
+        },
+        "bosses_cleared": {},
+        "bosses_cleared_by_act": {},
+        "bosses_covered_acts": [],
+        "outcome": false,
+        "outcome_source": "bridge_is_victory_flag",
+        "proceed_bypasses": [],
+        "required_bosses_per_act": {
+          "1": 1,
+          "2": 1,
+          "3": 2
+        },
+        "run_complete": false,
+        "schema_version": 1,
+        "sealed_by": "game_over",
+        "started": true,
+        "terminal_floor": 33,
+        "unhandled_screen_bypasses": [],
+        "unknown_screens": {}
+      }
+    ]
+  },
+  "observed_terminal_payloads": [
+    {
+      "is_victory": false,
+      "message": "Run ended.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    {
+      "is_victory": false,
+      "message": "Run ended.",
+      "options": [
+        "main_menu"
+      ]
+    }
+  ],
+  "verdict": {
+    "is_victory_field_present_on_real_client": true,
+    "outcome_read_from_flag": true,
+    "outcome_value": false,
+    "reading_before_this_change": "None / game_over_message_wording, because the message is the hard-coded literal 'Run ended.' for both outcomes",
+    "defeat_branch": "EXERCISED on real hardware",
+    "victory_branch": "NOT EXERCISED -- reaching it requires actually clearing the final act's second boss; no run in this project has done that on the real client",
+    "run_complete": false,
+    "victory_evidence_available_in_batch": false
+  },
+  "side_effects_to_know_about": {
+    "fresh_run_started_by_the_driver": "after the death, the menu branch began a new Ironclad A10 run (act 1 floor 1) before max-runs stopped the loop; no run was abandoned and no save was deleted",
+    "combat_solver_lock": "left drifting and unreconciled, deliberately"
+  }
+}
