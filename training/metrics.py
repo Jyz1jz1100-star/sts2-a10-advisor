@@ -22,6 +22,9 @@ class EpisodeMetric:
     steps: int
     episode_return: float
     illegal_actions: int
+    #: Campaign mode only: the final act cleared both of its bosses. Deliberately separate from
+    #: ``won``, which one act-1 boss already satisfies.
+    campaign_cleared: bool = False
     final_floor: int | None = None
     #: Which act the emulator generated for this seed. RunMapGenerator chooses it by
     #: coin flip, so an evaluation configured as "act1" really spans two acts unless
@@ -109,6 +112,10 @@ class EvaluationMetrics:
     #: be re-checked episode by episode; this list can, and "reproduce one reviewable
     #: win" is the thing the acceptance chain actually asks for.
     winning_seeds: list[int] = field(default_factory=list)
+    #: Campaign-mode episodes that cleared the final act's two bosses. Kept apart from
+    #: ``wins`` rather than folded into it: relabelling one act-1 boss as a three-act
+    #: clear would silently rewrite every win rate recorded before the extension.
+    campaign_clears: int = 0
     #: Names this object's source payload did not carry, so their value here is the
     #: dataclass default rather than a measurement.  Populated by :meth:`from_payload`
     #: and deliberately absent from ``to_dict``: which keys a file omits describes that
@@ -144,6 +151,7 @@ def summarize_episodes(
     if not episodes:
         raise ValueError("cannot summarize an empty evaluation")
     wins = sum(int(episode.won) for episode in episodes)
+    campaign_clears = sum(int(episode.campaign_cleared) for episode in episodes)
     truncations = sum(int(episode.truncated) for episode in episodes)
     boundary_hits = sum(int(episode.boundary_reached) for episode in episodes)
     # Boundary hits that are truncations (stage-completion).  Terminal wins
@@ -237,6 +245,7 @@ def summarize_episodes(
         seed_sha256=seed_digest(seeds),
         episodes=len(episodes),
         wins=wins,
+        campaign_clears=campaign_clears,
         win_rate=wins / len(episodes),
         wilson_95_low=low,
         wilson_95_high=high,

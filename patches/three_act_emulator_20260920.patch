@@ -1,0 +1,726 @@
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Core/Run/RunConstants.cs b/Sts2Emulator/Core/Run/RunConstants.cs
+--- a/Sts2Emulator/Core/Run/RunConstants.cs	2026-09-20 14:28:06.924392700 +0800
++++ b/Sts2Emulator/Core/Run/RunConstants.cs	2026-09-20 21:50:09.839902900 +0800
+@@ -7,7 +7,7 @@
+     public const int CombatObsSize = 164;
+     public const int RunExtraObsSize = 35;
+     public const int RunObsSize = CombatObsSize + RunExtraObsSize;
+-    public const int RunInfoSize = 11;
++    public const int RunInfoSize = 12;
+     public const int MaxActions = 32;
+     public const int MapChoices = 4;
+     public const int MapWidth = 7;
+@@ -35,6 +35,14 @@
+     public const int ActOvergrowth = 1;
+     public const int ActUnderdocks = 2;
+ 
++    // Third act, added for campaign mode. It reuses the Underdocks encounter pools and the
++    // Underdocks event branch: the emulator has no per-act difficulty ramp to invent here.
++    public const int ActFinal = 3;
++    public const int ActCount = 3;
++
++    /// <summary>Bosses the final act must clear before the run counts as cleared.</summary>
++    public const int FinalActBosses = 2;
++
+     public const int EventResultPending = -1;
+     public const int EventUnrestSite = 1;
+     public const int EventAromaOfChaos = 2;
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Core/Run/RunEngine.cs b/Sts2Emulator/Core/Run/RunEngine.cs
+--- a/Sts2Emulator/Core/Run/RunEngine.cs	2026-09-20 14:28:06.924392700 +0800
++++ b/Sts2Emulator/Core/Run/RunEngine.cs	2026-09-20 22:42:16.739713300 +0800
+@@ -7,7 +7,7 @@
+ {
+     public RunState State { get; } = new();
+ 
+-    public void Reset(string seed)
++    public void Reset(string seed, bool campaign = false)
+     {
+         State.StringSeed = seed;
+         State.Rng = new RunRngSet(seed);
+@@ -17,6 +17,9 @@
+         State.Gold = 99;
+         State.Floor = 1;
+         State.Act = RunConstants.ActOvergrowth;
++        State.Campaign = campaign;
++        State.FinalActBossesCleared = 0;
++        State.RunCleared = false;
+         State.Phase = RunPhase.Ancient;
+         State.Deck = [];
+         foreach (int cardId in RunConstants.StarterDeckIds)
+@@ -883,6 +886,7 @@
+         info[8] = State.CurrentNodeType;
+         info[9] = State.EventId;
+         info[10] = State.RelicReward;
++        info[11] = State.RunCleared ? 1 : 0;
+     }
+ 
+     public int Step(
+@@ -1904,8 +1908,11 @@
+ 
+     private int AdvanceAfterRelicReward(out bool terminal)
+     {
+-        if (State.CurrentNodeType == RunConstants.NodeBoss)
++        // A non-campaign boss node still ends its run on the spot, exactly as before the
++        // extension; only a campaign hands its boss to the shared progression funnel.
++        if (State.CurrentNodeType == RunConstants.NodeBoss && !State.Campaign)
+         {
++            // The retained demo trace: the one two-act chain the engine has always had.
+             if (State.StringSeed == "7MS1YN8NWB" && State.Floor == 17)
+             {
+                 State.Act = RunConstants.ActUnderdocks;
+@@ -1923,9 +1930,104 @@
+             terminal = true;
+             return 0;
+         }
++
+         return AdvanceAfterNode(out terminal);
+     }
+ 
++    /// <summary>
++    /// Campaign progression, reached from every exit a cleared boss can take.
++    ///
++    /// A boss node's rewards can resolve through the relic screen or through the card screen
++    /// depending on the order the player claims them, so the act transition cannot hang off one
++    /// of those exits alone -- doing that made a campaign run walk into act 2 or stop at floor 17
++    /// depending on reward order rather than on the fight.  Returns true when this hook decided
++    /// the step, false when the caller should advance the node as usual.
++    /// </summary>
++    private bool TryAdvanceCampaignAct(out bool terminal)
++    {
++        terminal = false;
++        if (!State.Campaign || State.CurrentNodeType != RunConstants.NodeBoss)
++        {
++            return false;
++        }
++
++        if (State.Act == RunConstants.ActFinal)
++        {
++            State.FinalActBossesCleared++;
++            if (State.FinalActBossesCleared < RunConstants.FinalActBosses)
++            {
++                StartFinalActBoss(PairedFinalActBoss());
++                return true;
++            }
++
++            State.Phase = RunPhase.Complete;
++            State.RunCleared = State.PlayerHp > 0;
++            terminal = true;
++            return true;
++        }
++
++        if (State.Act < RunConstants.ActCount)
++        {
++            AdvanceToNextAct();
++            return true;
++        }
++
++        return false;
++    }
++
++    /// <summary>
++    /// The final act has to be cleared twice over, and nothing in the engine models a second
++    /// wave inside one combat, so the paired boss is simply the next id in the act's boss pool.
++    /// </summary>
++    private int PairedFinalActBoss()
++    {
++        var pool = RunConstants.UnderdocksBossEncounters.ToArray();
++        for (int i = 0; i < pool.Length; i++)
++        {
++            if (pool[i] == State.BossEncounterId)
++            {
++                return pool[(i + 1) % pool.Length];
++            }
++        }
++
++        return pool[0];
++    }
++
++    private int StartFinalActBoss(int encounterId)
++    {
++        State.Floor++;
++        State.CurrentNodeType = RunConstants.NodeBoss;
++        State.Phase = RunPhase.Combat;
++        int completedRooms = State.NormalEncountersVisited + State.EliteEncountersVisited - 1;
++        return StartCombatWithDeck(
++            State.Deck,
++            encounterId,
++            State.Relics,
++            State.PlayerHp,
++            State.PlayerMaxHp,
++            State.PotionSlots,
++            State.Gold,
++            Math.Max(0, completedRooms)
++        );
++    }
++
++    /// <summary>
++    /// Walk a campaign run into the next act: the map is regenerated from that act's own RNG
++    /// stream and every per-act cursor restarts, because each act carries its own encounter and
++    /// event sequences.
++    /// </summary>
++    private void AdvanceToNextAct()
++    {
++        State.Act++;
++        State.CurrentNodeType = RunConstants.NodeNone;
++        State.Phase = RunPhase.Map;
++        State.NormalEncountersVisited = 0;
++        State.EliteEncountersVisited = 0;
++        State.UnknownMapPointsVisited = 0;
++        RunMapGenerator.SelectActAndGenerateRooms(State);
++        RunMapGenerator.GenerateActMap(State);
++    }
++
+     private bool TryEnterRetainedTraceActTwoAncient(int action)
+     {
+         if (
+@@ -1983,10 +2085,16 @@
+     private int AdvanceAfterNode(out bool terminal)
+     {
+         terminal = false;
+-        int terminalFloor =
+-            State.Act == RunConstants.ActUnderdocks
+-                ? RunConstants.MapBossRow * 2 + 1
+-                : RunConstants.MapBossRow + 1;
++        // Every node-resolution exit in the engine funnels through here, which is what makes the
++        // campaign's act transition independent of which reward screen a boss cleared through.
++        if (TryAdvanceCampaignAct(out terminal))
++        {
++            return 0;
++        }
++
++        // Identical to the old two-act expression for acts 1 and 2; act 3 needs the same rule
++        // rather than a third hardcoded arm.
++        int terminalFloor = RunConstants.MapBossRow * State.Act + 1;
+         if (State.Floor >= terminalFloor)
+         {
+             State.Phase = RunPhase.Complete;
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Core/Run/RunMapGenerator.cs b/Sts2Emulator/Core/Run/RunMapGenerator.cs
+--- a/Sts2Emulator/Core/Run/RunMapGenerator.cs	2026-09-20 14:28:06.925916300 +0800
++++ b/Sts2Emulator/Core/Run/RunMapGenerator.cs	2026-09-20 21:54:39.564806200 +0800
+@@ -8,7 +8,15 @@
+     {
+         var actRng = new DotNetRandom(unchecked((int)state.Rng.Seed));
+         bool underdocks = actRng.NextBool();
+-        state.Act = underdocks ? RunConstants.ActUnderdocks : RunConstants.ActOvergrowth;
++        // A campaign run walks the acts in order, so the act it is standing in wins over the
++        // coin flip. The flip still happens (it draws from a throwaway stream) so that every
++        // non-campaign seed keeps the map and event sequences it has always produced.
++        if (!state.Campaign)
++        {
++            state.Act = underdocks ? RunConstants.ActUnderdocks : RunConstants.ActOvergrowth;
++        }
++
++        underdocks = state.Act != RunConstants.ActOvergrowth;
+         state.EventSequence = GenerateEventSequence(state, underdocks);
+         state.EventSequenceIndex = 0;
+ 
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Core/Run/RunState.cs b/Sts2Emulator/Core/Run/RunState.cs
+--- a/Sts2Emulator/Core/Run/RunState.cs	2026-09-20 14:28:06.928962800 +0800
++++ b/Sts2Emulator/Core/Run/RunState.cs	2026-09-20 21:50:17.806663500 +0800
+@@ -38,6 +38,9 @@
+     public CountingRandom? ActiveCombatRng;
+     public bool LastPlayerWon;
+     public int CompletedCombatRoomsBeforeCurrent;
++    public bool Campaign;
++    public int FinalActBossesCleared;
++    public bool RunCleared;
+     public Dictionary<(int Col, int Row), RunMapNode> MapNodes = [];
+     public (int Col, int Row) CurrentMapCoord;
+     public (int Col, int Row)?[] MapOptionCoords = new (int Col, int Row)?[RunConstants.MapChoices];
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Interop/NativeExports.cs b/Sts2Emulator/Interop/NativeExports.cs
+--- a/Sts2Emulator/Interop/NativeExports.cs	2026-09-20 14:28:06.936586700 +0800
++++ b/Sts2Emulator/Interop/NativeExports.cs	2026-09-20 21:57:12.035521200 +0800
+@@ -255,6 +255,18 @@
+     public static int Sts2Run_Create() => RunNativeExports.Sts2Run_Create();
+ 
+     [UnmanagedCallersOnly]
++    public static unsafe int Sts2Run_ResetCampaign(
++        int handle,
++        byte* seedPtr,
++        int seedLen,
++        int campaign,
++        int* obsBuf
++    )
++    {
++        return RunNativeExports.Sts2Run_ResetCampaign(handle, seedPtr, seedLen, campaign, obsBuf);
++    }
++
++    [UnmanagedCallersOnly]
+     public static unsafe int Sts2Run_Reset(int handle, byte* seedPtr, int seedLen, int* obsBuf)
+     {
+         return RunNativeExports.Sts2Run_Reset(handle, seedPtr, seedLen, obsBuf);
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Interop/RunNativeExports.cs b/Sts2Emulator/Interop/RunNativeExports.cs
+--- a/Sts2Emulator/Interop/RunNativeExports.cs	2026-09-20 14:28:06.937591200 +0800
++++ b/Sts2Emulator/Interop/RunNativeExports.cs	2026-09-20 21:57:02.608216200 +0800
+@@ -7,7 +7,9 @@
+ 
+ public static class RunNativeExports
+ {
+-    public const int RUN_NATIVE_API_VERSION = 8;
++    // Bumped for the campaign reset entry point and the twelfth info slot: a caller that links
++    // against the older ABI must fail on load, not silently read a short info buffer.
++    public const int RUN_NATIVE_API_VERSION = 9;
+     private static readonly RunEngine?[] _pool = new RunEngine?[256];
+ 
+     public static int Sts2Run_NativeApiVersion() => RUN_NATIVE_API_VERSION;
+@@ -35,13 +37,24 @@
+ 
+     public static unsafe int Sts2Run_Reset(int handle, byte* seedPtr, int seedLen, int* obsBuf)
+     {
++        return Sts2Run_ResetCampaign(handle, seedPtr, seedLen, 0, obsBuf);
++    }
++
++    public static unsafe int Sts2Run_ResetCampaign(
++        int handle,
++        byte* seedPtr,
++        int seedLen,
++        int campaign,
++        int* obsBuf
++    )
++    {
+         if (!TryGet(handle, out var run))
+         {
+             return -1;
+         }
+ 
+         string seed = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(seedPtr, seedLen));
+-        run.Reset(seed);
++        run.Reset(seed, campaign != 0);
+         run.WriteObservation(new Span<int>(obsBuf, RunConstants.RunObsSize));
+         return 0;
+     }
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator/Sts2Emulator.csproj b/Sts2Emulator/Sts2Emulator.csproj
+--- a/Sts2Emulator/Sts2Emulator.csproj	2026-09-20 14:28:06.938094800 +0800
++++ b/Sts2Emulator/Sts2Emulator.csproj	2026-09-20 22:21:57.254269600 +0800
+@@ -38,6 +38,7 @@
+     <LinkerArg Include="/EXPORT:Sts2Run_InfoSize=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_InfoSize" />
+     <LinkerArg Include="/EXPORT:Sts2Run_Create=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_Create" />
+     <LinkerArg Include="/EXPORT:Sts2Run_Reset=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_Reset" />
++    <LinkerArg Include="/EXPORT:Sts2Run_ResetCampaign=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_ResetCampaign" />
+     <LinkerArg Include="/EXPORT:Sts2Run_Step=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_Step" />
+     <LinkerArg Include="/EXPORT:Sts2Run_StartCombat=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_StartCombat" />
+     <LinkerArg Include="/EXPORT:Sts2Run_ActionMask=Sts2Emulator_Sts2Emulator_Interop_NativeExports__Sts2Run_ActionMask" />
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/Sts2Emulator.Tests/RunEngineTests.cs b/Sts2Emulator.Tests/RunEngineTests.cs
+--- a/Sts2Emulator.Tests/RunEngineTests.cs	2026-09-20 14:28:06.899432700 +0800
++++ b/Sts2Emulator.Tests/RunEngineTests.cs	2026-09-20 22:41:13.979423500 +0800
+@@ -322,6 +322,7 @@
+                 RunConstants.NodeEvent,
+                 RunConstants.EventSunkenTreasury,
+                 123,
++                0,
+             },
+             info
+         );
+@@ -980,6 +981,163 @@
+         Assert.Equal(deckSize - 2, cage.State.Deck.Count);
+     }
+ 
++    [Fact]
++    public void CampaignReset_AlwaysStartsInActOne_WhileDefaultResetStillRollsTheAct()
++    {
++        string[] seeds = ["1", "2", "3", "7MS1YN8NWB", "1600000001"];
++        var rolledActTwo = new List<string>();
++
++        foreach (string seed in seeds)
++        {
++            var rolled = new RunEngine();
++            rolled.Reset(seed);
++            if (rolled.State.Act == RunConstants.ActUnderdocks)
++            {
++                rolledActTwo.Add(seed);
++            }
++
++            var campaign = new RunEngine();
++            campaign.Reset(seed, campaign: true);
++            Assert.Equal(RunConstants.ActOvergrowth, campaign.State.Act);
++            Assert.True(campaign.State.Campaign);
++        }
++
++        // The coin flip has to survive the campaign flag, otherwise the existing one-act corpus
++        // would silently change meaning.
++        Assert.NotEmpty(rolledActTwo);
++    }
++
++    [Fact]
++    public void CampaignBossReward_WalksIntoTheNextActWithAFreshlyGeneratedMap()
++    {
++        var engine = new RunEngine();
++        engine.Reset("1600000002", campaign: true);
++        engine.State.Act = RunConstants.ActOvergrowth;
++        engine.State.Floor = 17;
++        engine.State.NormalEncountersVisited = 5;
++        engine.State.EliteEncountersVisited = 2;
++        engine.State.CurrentNodeType = RunConstants.NodeBoss;
++        engine.State.Phase = RunPhase.RelicReward;
++
++        Assert.Equal(0, engine.Step(RunConstants.RewardSkipAction, -1, out _, out bool terminal, out _));
++
++        Assert.False(terminal);
++        Assert.Equal(RunConstants.ActUnderdocks, engine.State.Act);
++        Assert.Equal(RunPhase.Map, engine.State.Phase);
++        Assert.Equal(17, engine.State.Floor);
++        Assert.Contains(
++            engine.State.MapNodes.Values,
++            node => node.NodeType == RunConstants.NodeBoss
++        );
++        Assert.Equal(RunConstants.MapBossRow, engine.State.MapNodes.Values
++            .Where(node => node.NodeType == RunConstants.NodeBoss)
++            .Select(node => node.Row)
++            .Single());
++        Assert.Equal(0, engine.State.NormalEncountersVisited);
++        Assert.Equal(0, engine.State.EliteEncountersVisited);
++    }
++
++    [Fact]
++    public void NonCampaignBossReward_StillEndsTheRunAtTheEndOfItsOwnAct()
++    {
++        var engine = new RunEngine();
++        engine.Reset("1600000003");
++        int rolledAct = engine.State.Act;
++        engine.State.CurrentNodeType = RunConstants.NodeBoss;
++        engine.State.Phase = RunPhase.RelicReward;
++
++        Assert.Equal(0, engine.Step(RunConstants.RewardSkipAction, -1, out _, out bool terminal, out _));
++
++        Assert.True(terminal);
++        Assert.Equal(RunPhase.Complete, engine.State.Phase);
++        Assert.Equal(rolledAct, engine.State.Act);
++        Assert.False(engine.State.RunCleared);
++    }
++
++    [Theory]
++    [InlineData(1, 16, false)]
++    [InlineData(1, 17, true)]
++    [InlineData(2, 32, false)]
++    [InlineData(2, 33, true)]
++    [InlineData(3, 48, false)]
++    [InlineData(3, 49, true)]
++    public void TerminalFloor_ScalesWithTheActInTheEngineIsStandingIn(
++        int act,
++        int floor,
++        bool expectTerminal
++    )
++    {
++        var engine = new RunEngine();
++        engine.Reset("1600000004", campaign: true);
++        engine.State.Act = act;
++        engine.State.Floor = floor;
++        engine.State.CurrentNodeType = RunConstants.NodeRest;
++        engine.State.Phase = RunPhase.Rest;
++        engine.State.RestResultPending = true;
++
++        Assert.Equal(0, engine.Step(RunConstants.RestHealAction, -1, out _, out bool terminal, out _));
++
++        Assert.Equal(expectTerminal, terminal);
++        Assert.Equal(expectTerminal ? RunPhase.Complete : RunPhase.Map, engine.State.Phase);
++    }
++
++    [Fact]
++    public void FinalActNeedsBothBosses_AndOnlyThenReportsTheRunCleared()
++    {
++        var engine = new RunEngine();
++        engine.Reset("1600000005", campaign: true);
++        engine.State.Act = RunConstants.ActFinal;
++        engine.State.Floor = 49;
++        engine.State.BossEncounterId = RunConstants.UnderdocksBossEncounters[0];
++        engine.State.CurrentNodeType = RunConstants.NodeBoss;
++        engine.State.Phase = RunPhase.RelicReward;
++
++        Assert.Equal(0, engine.Step(RunConstants.RewardSkipAction, -1, out _, out bool terminal, out _));
++
++        Assert.False(terminal);
++        Assert.Equal(RunPhase.Combat, engine.State.Phase);
++        Assert.Equal(1, engine.State.FinalActBossesCleared);
++        int pairedBoss = engine.State.ActiveCombat!.EncounterId;
++        Assert.NotEqual(RunConstants.UnderdocksBossEncounters[0], pairedBoss);
++        Assert.Contains(pairedBoss, RunConstants.UnderdocksBossEncounters.ToArray());
++        Assert.Equal(50, engine.State.Floor);
++
++        engine.State.CurrentNodeType = RunConstants.NodeBoss;
++        engine.State.Phase = RunPhase.RelicReward;
++        Assert.Equal(0, engine.Step(RunConstants.RewardSkipAction, -1, out _, out terminal, out _));
++
++        Assert.True(terminal);
++        Assert.Equal(RunPhase.Complete, engine.State.Phase);
++        Assert.Equal(2, engine.State.FinalActBossesCleared);
++        Assert.True(engine.State.RunCleared);
++
++        var info = new int[RunConstants.RunInfoSize];
++        engine.WriteInfo(info);
++        Assert.Equal(12, RunConstants.RunInfoSize);
++        Assert.Equal(1, info[11]);
++    }
++
++    [Fact]
++    public void CampaignBossClearedThroughTheCardScreen_StillWalksIntoActTwo()
++    {
++        // A cleared boss can resolve its rewards through the card screen with a "return to the
++        // reward screen" flag set, which is a different exit than the relic screen. Acting on only
++        // one of them made the act transition depend on claim order (seeds 130008177 and
++        // 130011349, 2026-09-20: won the Act-1 boss, stayed in Act 1).
++        var engine = new RunEngine();
++        engine.Reset("1600000006", campaign: true);
++        engine.State.Floor = 17;
++        engine.State.CurrentNodeType = RunConstants.NodeBoss;
++        engine.State.ReturnToRewardScreenAfterCardReward = true;
++        engine.State.Phase = RunPhase.CardReward;
++
++        Assert.Equal(0, engine.Step(RunConstants.RewardSkipAction, -1, out _, out bool terminal, out _));
++
++        Assert.False(terminal);
++        Assert.Equal(RunConstants.ActUnderdocks, engine.State.Act);
++        Assert.Equal(RunPhase.Map, engine.State.Phase);
++    }
++
+     private static void AssertMask(int[] mask, params int[] enabledActions)
+     {
+         var expected = new int[mask.Length];
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/sts2_gym/native.py b/sts2_gym/native.py
+--- a/sts2_gym/native.py	2026-09-20 14:28:07.014947200 +0800
++++ b/sts2_gym/native.py	2026-09-20 22:02:15.567027200 +0800
+@@ -12,7 +12,7 @@
+ }
+ _ALLOW_STALE_ENV = "STS2_ALLOW_STALE_NATIVE"
+ _REQUIRED_NATIVE_API_VERSION = 10
+-_REQUIRED_RUN_NATIVE_API_VERSION = 8
++_REQUIRED_RUN_NATIVE_API_VERSION = 9
+ 
+ 
+ def _repo_root() -> Path:
+@@ -227,6 +227,15 @@
+     ctypes.POINTER(ctypes.c_int),
+ ]
+ 
++_lib.Sts2Run_ResetCampaign.restype = ctypes.c_int
++_lib.Sts2Run_ResetCampaign.argtypes = [
++    ctypes.c_int,
++    ctypes.POINTER(ctypes.c_ubyte),
++    ctypes.c_int,
++    ctypes.c_int,
++    ctypes.POINTER(ctypes.c_int),
++]
++
+ _lib.Sts2Run_Step.restype = ctypes.c_int
+ _lib.Sts2Run_Step.argtypes = [
+     ctypes.c_int,
+@@ -399,10 +408,14 @@
+     return int(_lib.Sts2Run_Create())
+ 
+ 
+-def run_reset(handle: int, seed: str, obs_buf: ctypes.Array) -> int:
++def run_reset(handle: int, seed: str, obs_buf: ctypes.Array, campaign: bool = False) -> int:
+     seed_bytes = seed.encode("utf-8")
+     seed_buf = (ctypes.c_ubyte * len(seed_bytes))(*seed_bytes)
+-    return int(_lib.Sts2Run_Reset(handle, seed_buf, len(seed_bytes), obs_buf))
++    if not campaign:
++        return int(_lib.Sts2Run_Reset(handle, seed_buf, len(seed_bytes), obs_buf))
++    return int(
++        _lib.Sts2Run_ResetCampaign(handle, seed_buf, len(seed_bytes), 1, obs_buf)
++    )
+ 
+ 
+ def run_step(
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/sts2_gym/run_constants.py b/sts2_gym/run_constants.py
+--- a/sts2_gym/run_constants.py	2026-09-20 14:28:07.016463200 +0800
++++ b/sts2_gym/run_constants.py	2026-09-20 22:02:38.657414500 +0800
+@@ -34,3 +34,5 @@
+ 
+ ACT_OVERGROWTH = 1
+ ACT_UNDERDOCKS = 2
++ACT_FINAL = 3
++ACT_NAMES = {ACT_OVERGROWTH: "overgrowth", ACT_UNDERDOCKS: "underdocks", ACT_FINAL: "final"}
+diff -ruN '--exclude=bin' '--exclude=obj' '--exclude=__pycache__' a/sts2_gym/run_env.py b/sts2_gym/run_env.py
+--- a/sts2_gym/run_env.py	2026-09-20 14:28:07.017971700 +0800
++++ b/sts2_gym/run_env.py	2026-09-20 22:03:59.999065900 +0800
+@@ -8,44 +8,46 @@
+ import numpy as np
+ from gymnasium import spaces
+ 
+-from . import native
+-from . import run_constants as constants
+-from .commands import execute_command
+-from .env import ENCOUNTER_NAMES
+-
+-REWARD_SKIP_ACTION = constants.REWARD_SKIP_ACTION
+-SHOP_SKIP_ACTION = constants.SHOP_SKIP_ACTION
+-EVENT_SKIP_ACTION = constants.EVENT_SKIP_ACTION
+-MAP_CHOICES = constants.MAP_CHOICES
+-RUN_OBS_SIZE = constants.RUN_OBS_SIZE
+-RUN_MAX_EPISODE_STEPS = constants.RUN_MAX_EPISODE_STEPS
+-
+-PHASE_COMBAT = constants.PHASE_COMBAT
+-PHASE_CARD_REWARD = constants.PHASE_CARD_REWARD
+-PHASE_MAP = constants.PHASE_MAP
+-PHASE_REST = constants.PHASE_REST
+-PHASE_SHOP = constants.PHASE_SHOP
+-PHASE_RELIC_REWARD = constants.PHASE_RELIC_REWARD
+-PHASE_COMPLETE = constants.PHASE_COMPLETE
+-PHASE_EVENT = constants.PHASE_EVENT
+-PHASE_ANCIENT = constants.PHASE_ANCIENT
+-PHASE_TRANSFORM_SELECT = constants.PHASE_TRANSFORM_SELECT
+-PHASE_TREASURE = constants.PHASE_TREASURE
+-
+-NODE_NONE = constants.NODE_NONE
+-NODE_NORMAL = constants.NODE_NORMAL
+-NODE_ELITE = constants.NODE_ELITE
+-NODE_REST = constants.NODE_REST
+-NODE_SHOP = constants.NODE_SHOP
+-NODE_RELIC = constants.NODE_RELIC
+-NODE_BOSS = constants.NODE_BOSS
+-NODE_EVENT = constants.NODE_EVENT
+-
+-ACT_OVERGROWTH = constants.ACT_OVERGROWTH
+-ACT_UNDERDOCKS = constants.ACT_UNDERDOCKS
+-
+-
+-class Sts2RunEnv(gym.Env):
++from . import native
++from . import run_constants as constants
++from .commands import execute_command
++from .env import ENCOUNTER_NAMES
++
++REWARD_SKIP_ACTION = constants.REWARD_SKIP_ACTION
++SHOP_SKIP_ACTION = constants.SHOP_SKIP_ACTION
++EVENT_SKIP_ACTION = constants.EVENT_SKIP_ACTION
++MAP_CHOICES = constants.MAP_CHOICES
++RUN_OBS_SIZE = constants.RUN_OBS_SIZE
++RUN_MAX_EPISODE_STEPS = constants.RUN_MAX_EPISODE_STEPS
++
++PHASE_COMBAT = constants.PHASE_COMBAT
++PHASE_CARD_REWARD = constants.PHASE_CARD_REWARD
++PHASE_MAP = constants.PHASE_MAP
++PHASE_REST = constants.PHASE_REST
++PHASE_SHOP = constants.PHASE_SHOP
++PHASE_RELIC_REWARD = constants.PHASE_RELIC_REWARD
++PHASE_COMPLETE = constants.PHASE_COMPLETE
++PHASE_EVENT = constants.PHASE_EVENT
++PHASE_ANCIENT = constants.PHASE_ANCIENT
++PHASE_TRANSFORM_SELECT = constants.PHASE_TRANSFORM_SELECT
++PHASE_TREASURE = constants.PHASE_TREASURE
++
++NODE_NONE = constants.NODE_NONE
++NODE_NORMAL = constants.NODE_NORMAL
++NODE_ELITE = constants.NODE_ELITE
++NODE_REST = constants.NODE_REST
++NODE_SHOP = constants.NODE_SHOP
++NODE_RELIC = constants.NODE_RELIC
++NODE_BOSS = constants.NODE_BOSS
++NODE_EVENT = constants.NODE_EVENT
++
++ACT_OVERGROWTH = constants.ACT_OVERGROWTH
++ACT_UNDERDOCKS = constants.ACT_UNDERDOCKS
++ACT_FINAL = constants.ACT_FINAL
++ACT_NAMES = constants.ACT_NAMES
++
++
++class Sts2RunEnv(gym.Env):
+     """Gym wrapper for deterministic full-run simulation owned by C#."""
+ 
+     metadata = {"render_modes": []}
+@@ -55,9 +57,11 @@
+         seed: int | str = 0,
+         max_episode_steps: int = RUN_MAX_EPISODE_STEPS,
+         max_floors: int = 16,
++        campaign: bool = False,
+     ):
+         super().__init__()
+         self._seed = seed
++        self._campaign = campaign
+         self._max_episode_steps = max_episode_steps
+         self._max_floors = max_floors
+         self._elapsed_steps = 0
+@@ -78,20 +82,24 @@
+         super().reset(seed=seed)
+         actual_seed = seed if seed is not None else self._seed
+         self._seed = actual_seed
++        if options and "campaign" in options:
++            self._campaign = bool(options["campaign"])
+         self._elapsed_steps = 0
+         if self._run_handle is not None:
+             native.run_destroy(self._run_handle)
+         self._run_handle = native.run_create()
+-        status = native.run_reset(self._run_handle, str(actual_seed), self._run_obs_buf)
++        status = native.run_reset(
++            self._run_handle, str(actual_seed), self._run_obs_buf, campaign=self._campaign
++        )
+         if status != 0:
+             raise RuntimeError(f"Sts2Run_Reset failed with status {status}.")
+         return self._obs(), self._info()
+ 
+-    def step(self, action: int, target: int = -1):
+-        self._elapsed_steps += 1
+-        if self._run_handle is None:
+-            raise RuntimeError("Call reset() before step().")
+-
++    def step(self, action: int, target: int = -1):
++        self._elapsed_steps += 1
++        if self._run_handle is None:
++            raise RuntimeError("Call reset() before step().")
++
+         status = native.run_step(
+             self._run_handle,
+             action,
+@@ -113,26 +121,26 @@
+             float(self._run_rew_buf[0]),
+             terminal,
+             truncated,
+-            self._info(),
+-        )
+-
+-    def command(self, payload: dict, *, target_map=None, reference_step=None):
+-        """Execute an STS2MCP-style command through the integer action API."""
+-        reward, terminated, truncated, obs, info = execute_command(
+-            self,
+-            payload,
+-            self._obs(),
+-            self._info(),
+-            target_map=target_map,
+-            reference_step=reference_step,
+-        )
+-        return obs, reward, terminated, truncated, info
+-
+-    def action_masks(self) -> np.ndarray:
+-        if self._run_handle is None:
+-            return np.zeros(native.RUN_MAX_ACTIONS, dtype=bool)
+-        mask_buf = native.run_action_mask(self._run_handle, native.RUN_MAX_ACTIONS)
+-        return np.ctypeslib.as_array(mask_buf).astype(bool)
++            self._info(),
++        )
++
++    def command(self, payload: dict, *, target_map=None, reference_step=None):
++        """Execute an STS2MCP-style command through the integer action API."""
++        reward, terminated, truncated, obs, info = execute_command(
++            self,
++            payload,
++            self._obs(),
++            self._info(),
++            target_map=target_map,
++            reference_step=reference_step,
++        )
++        return obs, reward, terminated, truncated, info
++
++    def action_masks(self) -> np.ndarray:
++        if self._run_handle is None:
++            return np.zeros(native.RUN_MAX_ACTIONS, dtype=bool)
++        mask_buf = native.run_action_mask(self._run_handle, native.RUN_MAX_ACTIONS)
++        return np.ctypeslib.as_array(mask_buf).astype(bool)
+ 
+     def close(self):
+         if self._run_handle is not None:
+@@ -153,12 +161,15 @@
+         obs = np.ctypeslib.as_array(self._run_obs_buf)
+         run_offset = native.OBS_SIZE
+         phase = int(info_buf[0])
+-        act = "overgrowth" if int(info_buf[2]) == ACT_OVERGROWTH else "underdocks"
++        act_index = int(info_buf[2])
++        act = ACT_NAMES[act_index]
+         map_option_coords = native.run_state_list(self._run_handle, 7, MAP_CHOICES * 2)
+         return {
+             "phase": phase,
+             "floor": int(info_buf[1]),
+             "act": act,
++            "act_index": act_index,
++            "run_cleared": bool(int(info_buf[11])),
+             "deck_size": int(info_buf[3]),
+             "gold": int(info_buf[4]),
+             "player_hp": int(info_buf[5]),

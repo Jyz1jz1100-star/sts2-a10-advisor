@@ -22,6 +22,12 @@ def main() -> None:
         "--split", choices=("checkpoint", "promotion", "final"), default="checkpoint"
     )
     parser.add_argument("--episodes", type=int, default=100)
+    parser.add_argument(
+        "--campaign",
+        action="store_true",
+        help="walk all three acts instead of the one act the generator draws per seed; "
+        "the result is reported under its own simulator_three_act scope",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -31,6 +37,8 @@ def main() -> None:
     )
     config = load_training_config(config_path)
     stage = config.stage(args.stage)
+    if args.campaign and stage.environment == "combat":
+        raise SystemExit("--campaign walks acts, which the combat stage does not have.")
     emulator_root = args.emulator_root or config.emulator_root
     if not emulator_root.is_absolute():
         emulator_root = (project_root / emulator_root).resolve()
@@ -57,13 +65,16 @@ def main() -> None:
         stage=stage.name,
         split=args.split,
         scope=(
-            "simulator_combat"
+            "simulator_three_act"
+            if args.campaign
+            else "simulator_combat"
             if stage.environment == "combat"
             else f"simulator_{stage.name}{'_experimental' if stage.experimental else ''}"
         ),
         checkpoint=args.checkpoint,
         experimental=stage.experimental,
         max_steps_per_episode=stage.max_episode_steps,
+        campaign=args.campaign,
     )
     payload = metrics.to_dict()
     if args.output:

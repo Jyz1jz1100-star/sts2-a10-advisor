@@ -63,14 +63,26 @@ def _promotion_config(stage: V2StageConfig) -> PromotionConfig:
     )
 
 
-def _environment_factory(config: V2TrainingConfig, stage: V2StageConfig, sts2_gym: Any):
-    """Build the full V2 contract stack for one seed (used by evaluation)."""
+def _environment_factory(
+    config: V2TrainingConfig,
+    stage: V2StageConfig,
+    sts2_gym: Any,
+    *,
+    max_episode_steps: int | None = None,
+):
+    """Build the full V2 contract stack for one seed (used by evaluation).
+
+    ``max_episode_steps`` overrides the stage horizon for callers that ask the
+    simulator for something longer than one act; leaving it None keeps every
+    existing stage's own truncation exactly as recorded.
+    """
 
     from .v2_native_env import NativeRunCore
 
     def build(seed: int):
         core = NativeRunCore(
-            sts2_gym.native, max_episode_steps=stage.max_episode_steps
+            sts2_gym.native,
+            max_episode_steps=max_episode_steps or stage.max_episode_steps,
         )
         flat = V2FlatActionEnv(core)
         return V2RunEnvWrapper(

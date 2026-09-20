@@ -207,7 +207,9 @@ class V2FlatActionEnv(gym.Env):
             # Silent fallback to a fixed seed would poison the whole seed
             # contract; the seed-rotation wrapper must always pass one.
             raise ValueError("V2FlatActionEnv.reset requires an explicit seed")
-        raw, info, status = self._core.reset(seed)
+        raw, info, status = self._core.reset(
+            seed, campaign=bool((options or {}).get("campaign", False))
+        )
         if status != 0:
             raise RuntimeError(f"native run_reset failed with status {status}")
         self._rejected_by_state = {}

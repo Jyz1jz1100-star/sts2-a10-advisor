@@ -2356,3 +2356,55 @@ Also correcting my own interim note from this batch: I said "0 rejected actions"
 because the action-result fields did not parse. `run_identity`/`machine_verification` events did appear and
 the per-battle `failures` arrays are empty in all 38 records, so the illegal-action clause is evidenced at
 the battle layer; the action-channel schema still has not been matched to field names and stays unclaimed.
+
+## 2026-09-20 ~14:31 UTC -- three-act emulator extension lands: campaign mode walks acts 1/2/3, and every recorded one-act result still reproduces
+
+Operator instruction that opened this: "把模拟器也拓展成三幕，方案由你来定 … 你要向我交付的是一个可以开箱即用的
+全自动打牌器". Design recorded in `docs/superpowers/specs/2026-09-20-three-act-emulator-and-auto-player-design.md`
+(commit `d0558cb`); the emulator tree is not under git, so the whole C#/binding delta is also committed as a
+replayable patch: `patches/three_act_emulator_20260920.patch` (11 files, +310/-67).
+
+**Why the extension was structural and not a constant.** `RunMapGenerator.SelectActAndGenerateRooms` re-rolls the
+act from the seed on every reset, so a run has always been exactly one act, and the only two-act chain in the tree
+was `AdvanceAfterRelicReward`'s `StringSeed == "7MS1YN8NWB" && Floor == 17` special case. Campaign mode keeps the
+coin flip but ignores it (`!state.Campaign` guards the assignment, and the demo-seed hop is skipped under campaign
+so one progression rule covers every seed), generalizes the boss transition to `Act++` + regenerate, and replaces
+the hardcoded `Act == ActUnderdocks ? 33 : 17` terminal floor with `MapBossRow * Act + 1` -- which is exactly the
+old number for acts 1 and 2. The final act's two bosses are a counter, not a hardcoded floor, because nothing in
+the engine models a second wave inside one combat (`CombatState` carries one `EncounterId`), and
+`CreateEncounter` throws on an out-of-range id, so act 3 reuses the Underdocks pools rather than inventing ids.
+
+**The contract did not move.** The act reaches the observation as a scalar slot (`obs[offset+2] = State.Act`), not
+a one-hot, so feeding `act=3 / floor=49` through `build_observation()` leaves `OBS_SIZE` at 1739 and changes only
+the two cells written. `run_cleared` is a new twelfth info slot, which is why `RUN_NATIVE_API_VERSION` went 8->9:
+an old DLL must fail on load rather than read a short buffer.
+
+**Build chain, learned the hard way.** There is no system .NET SDK (`C:\Program Files\dotnet` is runtime-only, and
+`winget install Microsoft.DotNet.SDK.9` fails with `0x80072efd` -- no egress). The working combination is the
+vendored `.tools/dotnet` 9.0.317 + `.cache/nuget` (holds the AOT compiler) + `vcvars64.bat` first, because outside a
+developer prompt `VCToolsInstallDir`/`WindowsSdkDir` are empty and `link.rsp` comes out with five empty `/LIBPATH:`
+lines behind a misleading `'Analysis' 不是内部或外部命令`. Now wrapped as `scripts/build_emulator.cmd`. Separately:
+exports are wired by hand as `/EXPORT:` `LinkerArg`s in the csproj, and omitting one leaves the version gate passing
+while `ctypes` reports the symbol missing -- that is what the first campaign probe hit.
+
+**Regression gate passed, and it had to be behavioural.** Re-running `scripts/act1_win_ledger.py` against the rebuilt
+DLL with campaign off reproduces **9/9 named Act-1 wins, floor 17, illegal=0, unclassified=0**. The DLL hash cannot
+be the gate: rebuilding the *unmodified* tree already produced a different hash from the 08-31 artifact
+(`1367c526…` vs `bcd623ce…`), because ILC 9.0.19 is not the compiler that built the original.
+
+**First measurements of the new capability.** `scripts/probe_three_act_campaign.py` (scope
+`simulator_three_act`) replayed the nine named Act-1 winners through campaign mode with their own arm checkpoints;
+of the three already examined, all three entered Act 2 and seed 130019400 reached **floor 49**, the final act's boss
+node, with `illegal_actions=0`. A contiguous 500-seed window of the act1 promotion partition (130010000-130010499)
+produced 18 arrivals at the Act-1 boss and **0 boss wins**, so it never left act 1: the wall beyond expressibility
+is policy strength, not the map. No campaign clear (`campaign_clears=0`) has been observed yet, and nothing here is
+a real-client A10 claim.
+
+**Gate bookkeeping, stated while red.** `Sts2Emulator.Tests` 208/208 pass, including six new campaign cases (one
+pre-existing test that pins the 11-slot info layout gained its twelfth deliberately). The Python suite's
+`test_committed_manifest_still_matches_the_committed_bundle` was already failing *before* this work -- the
+post-re-pin `solver_inventory_drift_20260919.json` was never committed -- and is fixed by committing that capture
+and regenerating `MANIFEST_2026-09-19.json` (still 56 files). `verify_report_claims.py` is now **58/61**: three
+claims fail *because the engine legitimately changed* -- `emulator_act_ceiling` still expects two acts,
+`chained_map_deadend` and `emulator_source_provenance` cite `*.cs:line` text and digests from the pre-extension
+build. Those get re-pinned against the new build, not relaxed.

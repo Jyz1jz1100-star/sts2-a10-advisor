@@ -47,8 +47,13 @@ def evaluate_policy(
     deterministic: bool = True,
     experimental: bool = False,
     max_steps_per_episode: int | None = None,
+    campaign: bool = False,
 ) -> EvaluationMetrics:
     """Roll out one episode per seed with a defensive step cap.
+
+    ``campaign`` asks the simulator for the three-act walk instead of the single act it
+    draws per seed; it changes which act a seed plays, so an episode's ``won`` under
+    campaign is not comparable to the same seed's one-act result.
 
     ``max_steps_per_episode`` must come from the caller's stage configuration
     and must not rely on the environment's own truncation signal: the
@@ -64,7 +69,9 @@ def evaluate_policy(
     for seed in seeds:
         env = env_factory(seed)
         try:
-            observation, reset_info = env.reset(seed=seed)
+            observation, reset_info = env.reset(
+                seed=seed, options={"campaign": True} if campaign else None
+            )
             total_reward = 0.0
             steps = 0
             illegal_actions = 0
@@ -109,6 +116,9 @@ def evaluate_policy(
             act = reset_info.get("act")
             encounter = reset_info.get("encounter")
             won = bool(terminated and info.get("player_won", False))
+            # Distinct from ``won``: the engine only sets run_cleared after a campaign run's
+            # final act clears both of its bosses, so this cannot be bought with one act.
+            campaign_cleared = bool(terminated and info.get("run_cleared", False))
             # End-of-episode HP fraction for the joint ablation metric
             # (mean_final_hp_fraction); the V2 info stack carries player_hp /
             # player_max_hp from the native run info on every transition.
@@ -139,6 +149,7 @@ def evaluate_policy(
                     # a run win; otherwise a truncated post-combat dead-end
                     # becomes a false positive (seed 20000039, 2026-09-01).
                     won=won,
+                    campaign_cleared=campaign_cleared,
                     terminated=bool(terminated),
                     truncated=bool(truncated),
                     steps=steps,

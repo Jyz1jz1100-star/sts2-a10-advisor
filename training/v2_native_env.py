@@ -54,12 +54,14 @@ class NativeRunCore:
 
     # ------------------------------------------------------------- lifecycle
 
-    def reset(self, seed: int | str) -> tuple[np.ndarray, dict[str, Any], int]:
+    def reset(
+        self, seed: int | str, *, campaign: bool = False
+    ) -> tuple[np.ndarray, dict[str, Any], int]:
         if self._handle is not None:
             self._native.run_destroy(self._handle)
         self._handle = self._native.run_create()
         self._elapsed = 0
-        status = self._native.run_reset(self._handle, str(seed), self._obs_buf)
+        status = self._native.run_reset(self._handle, str(seed), self._obs_buf, campaign=campaign)
         return self._obs(), self._info(), int(status)
 
     def step(
@@ -145,6 +147,7 @@ class NativeRunCore:
             "current_node_type": int(info_buf[8]),
             "event_id": int(info_buf[9]),
             "relic_reward": int(info_buf[10]),
+            "run_cleared": bool(int(info_buf[11])),
             "player_won": bool(self._native.run_player_won(self._handle)),
             "encounter_id": int(self._native.run_encounter_id(self._handle)),
         }

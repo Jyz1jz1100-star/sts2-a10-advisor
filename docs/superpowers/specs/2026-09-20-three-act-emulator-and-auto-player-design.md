@@ -45,7 +45,25 @@ operator 指令原话：**"把模拟器也拓展成三幕，方案由你来定�
   PlayerHp == .. && Gold == ..` 是演示种子的逐层回放补丁，第三幕的层号（≥33）不可能命中，
   所以不会污染新路径。
 
-所以要真改的只有：幕的常量与推进、敌人/事件池的第三份选择、终局谓词、ABI 一处、Python 侧三处。
+所以要真改的比"加一幕"字面意思少，也比 §2 初稿写的更集中：**敌人池与事件池根本不用加第三份**
+（`AssignEncounterIds` 完全不读 `Act`，事件池按 `== ActOvergrowth` / `else` 二分，act 3 自然落进
+第二幕那一支）。真正要动的是：幕的常量与推进、`AdvanceAfterNode` 的终局层数、幕间游标重置、
+终幕第二个 boss 的新路径、ABI 一处、Python 侧三处。
+
+## 2.5 I0 与构建基线的实测结果（改动之前先量）
+
+- **契约探针通过**：把 `act=3 / floor=49` 写进原生 run 块喂给 `build_observation()`，
+  输出宽度仍是 **1739**，与 `act=1` 的向量只差我写进去的那两格（槽 165 floor、166 act），
+  `observation_contract()["size"]` 不变。V2 契约不需要为第三幕改宽度。
+- **构建链是本项目自带的，不依赖网络**：`dotnet` SDK 9.0.317 在 `.tools/dotnet`，
+  AOT 编译器包在 `.cache/nuget`（`runtime.win-x64.microsoft.dotnet.ilcompiler/9.0.19`）。
+  本机 `C:\Program Files\dotnet` **没有任何 SDK**，winget 装 SDK 会失败（HTTPS 出口不通，
+  `0x80072efd`）。NativeAOT 还必须先进 `vcvars64.bat`：直接 `dotnet publish` 会生成
+  `/LIBPATH:` **全空**的 `link.rsp` 并报 `'Analysis' 不是内部或外部命令`。
+  固化入口：`scripts/build_emulator.cmd`。
+- **同一份未改动源码重编出的 DLL 哈希与 8-31 的产物不同**
+  （`1367c526…` vs `bcd623ce…`，源码逐字节未动）。所以
+  **回归门只能是行为复现，不能是 DLL 哈希** —— §6 的 I1 验收按此写。
 
 ## 3. 设计：加"战役模式"，而不是把老模式改掉
 
@@ -68,12 +86,29 @@ operator 指令原话：**"把模拟器也拓展成三幕，方案由你来定�
    否则进入终局判定。
 4. **终幕双 boss 用计数器而不是硬编码层数。** operator 的原始要求是
    "一共有3个act，最后一个act有两个boss都要跑通"。终局条件写成
-   `Act == ActFinal && FinalActBossesRemaining == 0`（第二个 boss 在同一节点直接开打，
-   `AdvanceAfterNode` 只在非终幕时用 `MapBossRow*Act+1` 判终）。
+   `Act == ActFinal && FinalActBossesRemaining == 0`。
    **终局层数因此是实测值，不是我发明的常量**；产物里记下它实际落在哪一层。
-5. 第三幕内容：**复用第二幕敌人池**（`RunConstants.cs:104/108/110/112` 的 Underdocks 四条）。
-   **不发明难度倍率。** 代价写进范围声明：第三幕每节点强度低于真机（真机 A10 后期有缩放，
-   模拟器没有），所以三幕通关在模拟器里比在真机上容易，这个数字不能当真机 A10 的替身。
+   三条支撑事实（逐条读过）：
+   - `AdvanceAfterNode`（`RunEngine.cs:1986-1989`）今天写作
+     `Act == ActUnderdocks ? MapBossRow*2+1 : MapBossRow+1` —— **act=3 会掉进 act-1 那一支、
+     终局层数变成 17**，即"一进第三幕就结束"。这一行是整个改动里最吃劲的一处，必须改成按幕算。
+   - 引擎里**没有任何串联遭遇的机制**：`CombatState` 只有一个 `int EncounterId` 和一个
+     `Enemies` 列表（`Core/CombatState.cs:43-45`），`RunMapNode.EncounterId` 也是单个 int。
+     所以第二个 boss 是新代码，走既有的 `StartCombatWithDeck(...)` 在 boss 节点直接开第二场。
+   - 遭遇号越界会**抛异常**（`CombatFactory.cs:761` `_ => throw ArgumentOutOfRangeException`），
+     因此第三幕只能复用已存在的合法 id。第二幕的三个 boss id（77/79/84）都能解析。
+5. **幕边界要重置遭遇序列游标。** `RefreshMapOptions` 用
+   `state.NormalEncountersVisited % NormalEncounterSequence.Length`（`RunMapGenerator.cs:974-984`）
+   取遭遇，而 `NormalEncountersVisited` / `EliteEncountersVisited` **在任何幕间代码路径里都不清零**
+   —— 这是今天演示种子双幕链就带着的一个潜在缺陷。战役模式在幕边界把它们归零，
+   使每一幕从头消费自己的序列；不改演示种子的老路径，以免历史产物失配。
+6. 第三幕内容：**复用第二幕敌人池**（`RunConstants.cs:104/108/110/112` 的 Underdocks 四条）。
+   **不发明难度倍率。** 代价写进范围声明，而且这条是有据的而非猜测：模拟器**没有**按幕或按层的
+   难度爬坡 —— 敌人意图是写死的字面量（如 `new Intent(IntentType.Attack, 6)`），
+   唯一的"越后期越强"信号 `completedCombatRoomsBeforeCurrent` 只被**一个**遭遇读取
+   （`CorpseSlugs`，`CombatFactory.cs:410`，判据 `>= 0 and < 3`）。
+   因此第三幕每节点强度不高于第二幕，而真机 A10 后期有缩放：
+   **模拟器三幕通关比真机容易，这个数字不能当真机 A10 的替身。**
 6. `WriteInfo`：`RunInfoSize` 11 → 12，新槽 `info[11] = run_cleared`
    （终局且玩家存活且双 boss 已清）。有了它，"整局通关"是**从环境读出来的**，
    不是 Python 拿层数反推的。
