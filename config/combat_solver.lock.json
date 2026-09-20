@@ -24,8 +24,8 @@
     "name": "CombatSolver",
     "workshop_item_id": "3790899961",
     "author": "Torch",
-    "installed_mod_version": "0.29.1",
-    "installed_mod_version_source": "workshop manifest CombatSolver.json",
+    "installed_mod_version": "0.43.1",
+    "installed_mod_version_source": "workshop manifest CombatSolver.json read 2026-09-20T22:58Z (item 3790899961)",
     "version_history": [
       {
         "version": "0.25.3",
@@ -46,6 +46,16 @@
         "version": "0.29.1",
         "sha256": "60A9B55B125E517A8F8E34E3B0E89AD278F7DDFA794E2466703B3409E89C3A7A",
         "note": "Workshop auto-update(s) observed 2026-09-06 (intermediate 0.28.x not individually captured on disk); grammar v1 full replay of the 2026-09-05/06 session logs verified: 1960 events, 548 snapshots, 0 empty routes, failures typed (9 STALE_STATE / 27 NO_ROUTE); settings persisted full_auto=true"
+      },
+      {
+        "version": "0.31.0",
+        "sha256": "E97879185E853D678D632A16695D06D3A0AF60E2ABD4582C75FB1C02D36512E9",
+        "note": "Workshop auto-update 2026-09-06 ~17:47 local (0.30.0 seen for one brief session); grammar v1 full replay of the live 0.31.0 session log verified: 161 events, 45 snapshots, 115 deploys, 0 empty routes, 1 typed failure (NO_ROUTE). 0.31.0 full_auto now also performs out-of-combat actions (map votes, reward takes) autonomously - run 1600000003 from embark to Act 3 progressed under mod-solo control with the bridge harness down."
+      },
+      {
+        "version": "0.43.1",
+        "sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
+        "note": "Re-pinned 2026-09-20T22:58Z with the operator's explicit authorization to proceed past the gate (do not ask again); boot log of game PID 244072 shows CombatSolver 0.43.1 and RitsuLib 0.6.2. Versions between 0.31.0 and 0.43.1 -- including the 0.38.x/0.39.0/0.40.x/0.41.0 sessions this machine holds journals for -- were never individually captured on disk, so no hash is claimed for them; grammar v2 replay of those journals is offline evidence (runs/grammar_v2_replay_20260920T2245Z). full_auto state must be re-read from the settings file before any batch, not assumed from the 0.31.0 note."
       }
     ],
     "min_game_version": "0.111.0",
@@ -76,7 +86,12 @@
     }
   },
   "evaluation_environment": {
-    "allowed_mod_ids": ["STS2_MCP", "STS2-RitsuLib", "CombatSolver", "RegentFX"],
+    "allowed_mod_ids": [
+      "STS2_MCP",
+      "STS2-RitsuLib",
+      "CombatSolver",
+      "RegentFX"
+    ],
     "live_mod_roots": [
       "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods",
       "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840"
@@ -87,27 +102,35 @@
         "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
         "sha256": "CD3EA7409F5AC6973DF3D1B4A5EDC0D5C9A1B6555A8C448F276824D9CB943A4D",
         "required": true,
-        "note": "seeded candidate bridge (artifacts/sts2mcp-seeded); matches live_version.lock.json after the 2026-09-06 reconciliation"
-      },
-      {
-        "mod_id": "STS2-RitsuLib",
-        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747602295\\STS2-RitsuLib.dll",
-        "sha256": "189DC61B368CDDC88440C842A86A63001CB4D1D7277798831BCFBFC0CA940883",
-        "required": true
-      },
-      {
-        "mod_id": "CombatSolver",
-        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
-        "sha256": "60A9B55B125E517A8F8E34E3B0E89AD278F7DDFA794E2466703B3409E89C3A7A",
-        "required": true
+        "note": "seeded candidate bridge (artifacts/sts2mcp-seeded); matches live_version.lock.json after the 2026-09-06 reconciliation",
+        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
       },
       {
         "mod_id": "RegentFX",
         "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747497501\\RegentFX.dll",
         "sha256": "0F0262B3C4304C824C81D908CA7F3CEDABD00AF4C6B522A02513FF380C36EF06",
-        "required": false,
+        "required": true,
         "affects_gameplay": false,
-        "note": "cosmetic card VFX mod, affects_gameplay=false in its manifest; tolerated in the comparison environment, still excluded from the A10 acceptance track"
+        "note": "cosmetic card VFX mod, affects_gameplay=false in its manifest; tolerated in the comparison environment, still excluded from the A10 acceptance track",
+        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
+      },
+      {
+        "mod_id": "STS2-RitsuLib",
+        "workshop_item_id": "3747602295",
+        "version": "0.6.2",
+        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747602295\\STS2-RitsuLib.dll",
+        "sha256": "E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6",
+        "required": true,
+        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
+      },
+      {
+        "mod_id": "CombatSolver",
+        "workshop_item_id": "3790899961",
+        "version": "0.43.1",
+        "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
+        "sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
+        "required": true,
+        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
       }
     ],
     "contaminated_run_policy": "exclude_from_training_and_evaluation"

@@ -2256,3 +2256,21 @@ installed 0.43.1 / 0.6.2 pair, the sequence is `run_solver_comparison.py --max-b
 `supervise_solver_batch.py --mode observational --allow-actions --max-battles 50` -- both read-only toward
 the game (GETs only, no POSTs, no simulated input). Game left running; killing it would be an unrequested
 change to the operator's live state.
+
+## 2026-09-20 ~23:05 UTC -- solver lock re-pinned under explicit operator authorization; environment gate now passes
+
+Told not to keep asking for gate permissions, I reconciled `config/combat_solver.lock.json` myself:
+`evaluation_environment.mod_dll_inventory` filled for **STS2-RitsuLib 0.6.2**
+(`E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6`) and **CombatSolver 0.43.1**
+(`AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C`), hashes read from the installed
+Workshop files (`steamapps/workshop/content/2868840/<item>/`), `solver.installed_mod_version` moved
+0.31.0 -> 0.43.1 with a new `version_history` entry that states the authorization, names the PID whose boot
+log showed the versions, and **refuses to invent hashes for 0.32-0.41**, which were never captured on disk.
+The pre-existing operator edits in that file (their 0.31.0 drift note) are preserved, so this commit carries
+both. Verification is the tool's own, not my reading: `run_solver_comparison.py --max-battles 1 --dry-run`
+now ends `dry-run: environment verified, no game connection attempted` where it previously stopped with
+`VersionLockError`. The live 1-battle run was launched after that and is recorded separately once it ends.
+
+Standing rule updated accordingly: the lock is still operator-owned, but they have now twice said to stop
+asking and push -- so future drift gets reconciled with provenance written into the file, not parked behind
+a question.
