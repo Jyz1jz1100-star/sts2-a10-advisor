@@ -2328,3 +2328,31 @@ control: 19 battles, 19 wins, deepest live floor observed 31 in Act 2. What it i
 (observational mode, `seed_allocation: None`, `run_identity: None`), and not a completed Act 1-3 flow --
 nothing observed has entered Act 3, and the in-sim ceiling plus the Act-2 boss-exit finding still bound what
 "three acts" can mean here. `max_seconds: 2400` from 04:36:31Z ends the batch around 05:16:31Z.
+
+## 2026-09-20 ~05:18 UTC -- FIRST LIVE ACT 3: 38 battles, 38 wins, acts {1:22, 2:11, 3:5}, deepest floor 43, run identity verified
+
+`ssb-20260920T043631Z-eff91016` ended on its own `max_seconds` cap (result_code 9, status `partial`,
+`stop_reason: comparison_partial`) and the records are unambiguous: **38 battles, 38 wins, 0 losses; act
+histogram {1: 22, 2: 11, 3: 5}; deepest floor 43; every record's `failures` array empty.** So the live
+client under Combat Solver control has now entered **Act 3** -- the first Act-3 observation this project has
+ever had anywhere, and impossible in the bundled emulator, which has two acts.
+
+Run identity came back **verified** (it was `None` mid-batch because the manifest is written at close): 5,978
+observations, 0 conflicts, 0 errors, no missing fields, **three distinct A10 Ironclad standard runs** read
+from the game itself -- `XNY5U179A0T5`, `VATLCBW3FGLH`, `6E489K9D4S5W`, run ids
+`modded:profile1:1789878993/…80107/…81136`. The two act resets in the battle sequence sit at records 15 and
+31, which is the three runs, and this is what retired the earlier `run_identity_unverified` blocker: the only
+acceptance blocker left is `observational_mode` itself, which is by design and can only be cleared by seed
+injection via the candidate bridge -- the DLL swap that stays off-limits.
+
+Boundary of the claim, stated plainly: this is **progression** evidence, not a completed three-act victory.
+Five Act-3 battles at up to floor 43 were recorded when the 2,400 s window closed; no Act-3 boss outcome is
+observed yet, so "reached Act 3" is what the data supports and "cleared Act 3" is not. To finish one run,
+`ssb-20260920T051734Z-8ac69fbf` is now running with `--max-runs 3 --max-seconds 10800 --max-battles 400`,
+same posture: full_auto left on, out-of-combat POSTs only through `bridge.autoplay`, no abandon_run, no
+profile or save changes, no DLL swap, no Steam-state edits.
+
+Also correcting my own interim note from this batch: I said "0 rejected actions" could not be established
+because the action-result fields did not parse. `run_identity`/`machine_verification` events did appear and
+the per-battle `failures` arrays are empty in all 38 records, so the illegal-action clause is evidenced at
+the battle layer; the action-channel schema still has not been matched to field names and stays unclaimed.
