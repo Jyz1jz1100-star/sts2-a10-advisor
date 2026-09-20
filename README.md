@@ -12,6 +12,8 @@
 - Combat Solver 日志解析、路线执行和 full-auto keeper 的离线契约
 - trace/版本锁/执行 owner/种子分区/哈希链的验收账本
 - 离线行为克隆和 PPO 骨架，以及独立的 NativeAOT/Gymnasium 模拟器基线
+- 模拟器三幕战役模式（2026-09-20 起，需显式开启；关闭时与历史单幕人群逐种子一致）
+- 一条命令的自动打牌入口 `scripts/play.py`：`--backend live` 打真机，`--backend sim` 打模拟器三幕
 
 当前 `LiveHeuristicPolicy` 是局外可运行基线，不是已经训练或部署的全局最优策略；`SmokeBaselinePolicy` 仅用于验证状态链路，输出不得计入胜率。
 
@@ -36,8 +38,36 @@
 - [局外候选与 wire action 契约](docs/LIVE_CANDIDATE_CODEC.md)
 - [Combat Solver 分层与运行审计](docs/COMBAT_SOLVER.md)
 - [当前真实状态](docs/STATUS.md)
+- [Act 1 战役报告（含撤回账目）](docs/ACT1_CAMPAIGN_2026-09-19.md)
+- [三幕模拟器扩展与全自动打牌器设计](docs/superpowers/specs/2026-09-20-three-act-emulator-and-auto-player-design.md)
 - [真机版本锁定、trace 录制与动作门禁](docs/LIVE_BRIDGE.md)
 - [上游与许可证](UPSTREAM.md)
+
+## 一条命令打牌
+
+```powershell
+# 真机：游戏在跑就直接打；没跑则要求本机 Steam 客户端在跑，由它 -applaunch 2868840
+& ..\third_party\slay-the-spire-2-emulator-main\.venv\Scripts\python.exe `
+  scripts\play.py --backend live
+# 只想先自检、一个动作都不发：加 --preflight-only
+
+# 模拟器：三幕战役，逐种子落可复核证据。--config 必须是该 checkpoint 训练时用的那份，
+# 否则阶段配置与观测契约对不上，跑出来的数字不属于那个人群
+& ..\third_party\slay-the-spire-2-emulator-main\.venv\Scripts\python.exe `
+  scripts\play.py --backend sim --config runtime\fanout\b_terminal-1.toml `
+    --checkpoint <ckpt.zip> --seeds 130008177 --out <json>
+```
+
+`play.py` 是分发器，不是第二套实现。战斗仍然完全归局内 Combat Solver，局外动作归
+`bridge.autoplay`，一批真机的运行与自证归 `scripts/supervise_solver_batch.py`。它补的是没人
+该记住的那几步：把游戏拉起来、开跑之前先让**监督器自己的 `--dry-run`** 回答"能不能跑"
+（模组哈希、版本锁、种子分区都在那条命令里，因此这道门不会和被验证的运行走岔），以及把结论
+读回来打印。preflight 不过时它以 exit 2 明确拒绝，不会假装成功。
+
+`--backend sim` 转发到 `scripts/probe_three_act_campaign.py`，scope 是
+`simulator_three_act`：幕推进为"打赢本幕 boss → 下一幕 → 重生成地图"，终幕要连打两个 boss，
+第三幕复用第二幕敌人池且**没有**额外难度倍率。幕区间对齐 2026-09-20 真机实测到的
+2–15 / 19–31 / 35–43。它是模拟器结论，不是实机 A10 成绩，也不替代 `full_run` 的真实整局验收。
 
 ## 本机环境
 
@@ -46,6 +76,13 @@
 - uv 0.12.7
 - CPython 3.12.14
 - .NET SDK 9.0.317
+
+重编模拟器原生库用 `scripts\build_emulator.cmd`。三条前提值得写在这里，因为它们各自看起来像
+另一种故障：系统 `C:\Program Files\dotnet` 只有运行时、**没有 SDK**；本机没有 HTTPS 出口，装不了
+SDK；NativeAOT 的链接步骤要 `vcvars64.bat` 提供 `VCToolsInstallDir`，否则 `link.rsp` 里会全是空的
+`/LIBPATH:`，报出来的却是一句 VS 自己的 `'Analysis' 不是内部或外部命令`。AOT 编译器包已离线缓存在
+`.cache/nuget`。另外，导出符号是在 `Sts2Emulator.csproj` 里用 `/EXPORT:` 手工挂的——漏挂时版本门
+照样通过、`ctypes` 才报找不到符号。
 
 训练/模拟器使用相邻的 `third_party/slay-the-spire-2-emulator-main/.venv`，其
 Gymnasium、NumPy、PyTorch、Stable-Baselines3 和 sb3-contrib 版本由
@@ -120,7 +157,10 @@ http://127.0.0.1:15526/api/v1/singleplayer?format=json
 配置中的 `combat -> act1 -> full_run` 每阶段均保存 checkpoint、使用独立评测
 seed、生成 JSON metrics，并且只有达到胜率、Wilson 下界、截断率、非法动作数和
 楼层门槛后才晋级。`full_run` 当前是显式 opt-in 的实验阶段；本地模拟器尚未证明
-多 Act A10 等价，因此其结果永远不会标记为真实 A10 成绩。
+多 Act A10 等价，因此其结果永远不会标记为真实 A10 成绩。自 2026-09-20 起模拟器确实有第三幕，
+用 `python -m training.evaluate_checkpoint --campaign` 走：它把 scope 换成
+`simulator_three_act`、并额外报 `campaign_clears`，与既有的 `wins` 并列而不合并——
+把一次 Act 1 boss 胜利改叫三幕通关，会让改动前的所有胜率失去可比性。
 
 ## Trace 数据校验
 
@@ -147,7 +187,7 @@ train/validation/test 之间的 seed 泄漏：
 
 因此下一阶段不是继续把模拟器 PPO 当作局外部署模型，而是先修正并接通 live 候选/奖励闭环，固定 Combat Solver 版本，完成少量可审计的实机整局，再比较路线/商店/火堆策略对整局结果的影响。
 
-## 当前实验结论（2026-09-05）
+## 当前实验结论（截至 2026-09-20）
 
 2026-09-03 的 Act 1 模拟器 bulk 实验确实完成了 20,000,000 steps；最终评测为
 `1/500 = 0.2%`，平均最终楼层 `7.67`，checkpoint 未晋级（`promoted=false`）。
@@ -158,6 +198,19 @@ train/validation/test 之间的 seed 泄漏：
 
 2026-09-05 的离线小运行时集合为 `337/337` 通过；`scripts/test.ps1` 另有
 训练环境单元测试 `99/99` 通过。这些是契约/模拟器测试，不是实机整局验收。
+
+2026-09-20：模拟器长出第三幕（战役模式，默认关闭）。同一晚第一次出现可复核的模拟器内
+Act 1-3 全清——种子 `130008177` 走到 floor 50、`campaign_cleared=1`、`illegal_actions=0`，
+两次独立复跑同结果（上面那条 `--backend sim` 示例是照原样执行过的，即第三次），
+证据文件 `docs/evidence/three_act_first_clear_20260920.json` 已进哈希链。
+同一晚也量清了它的边界：战役关闭时既有 9 个具名 Act 1 胜局仍逐种子复现（回归门），而一个
+500 连续种子的 promotion 窗口里 18 局打到 Act 1 boss、**0 局打赢**——所以"能不能走完三幕"
+从现在起是策略强度问题，不再是表达能力问题。
+过程中被数据抓到并修掉的一个真缺陷值得记下来：幕推进最初只挂在遗物领奖那一个出口，于是
+两个种子打赢第一幕 boss 却停在第 17 层——boss 的奖可能从遗物屏、也可能从选卡屏结掉，
+这与本文早已记录的"boss 胜局只在遗物屏出口才判定"是同一个**出口清单不全**的坑。
+仍未完成：三幕引用的行号需要按新构建重钉（重跑来源快照会把错指针洗成"已核验"，所以没做）、
+真机三幕仍受 observational mode 限制（固定种子需要候选桥接注入）。
 
 ## License
 
