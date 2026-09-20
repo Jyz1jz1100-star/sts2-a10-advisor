@@ -2231,3 +2231,28 @@ in `.qoder/settings.local.json` but absent from this session's connected servers
 game. And the uncommitted `config/combat_solver.lock.json` edit records `installed_mod_version` **0.31.0**
 while the logs directory holds 0.35.5-0.41.0 journals -- a possible staleness in the operator's own file,
 reported as drift, not re-pinned.
+
+## 2026-09-20 ~22:55 UTC -- game launched on operator instruction; bridge live; step 2 blocked by the version lock alone
+
+Overriding the earlier "never cold-start" caution, the operator said Steam is already up and starting the
+game is expected of me. Done the safe way: `cmd //c start "" "steam://rungameid/2868840"`, app id read from
+`G:\SteamLibrary\steamappsppmanifest_2868840.acf` -- **not** by executing `SlayTheSpire2.exe`, which
+`docs/STEAM_LAUNCH_AUDIT_2026-09-03.md` forbids, and no clicks into the window. Live evidence: game PID
+244072 (1.7 GB), STS2MCP answering on `127.0.0.1:15526` (HTTP 404 JSON for guessed routes -- the real
+routes are in the driver code, so endpoint spraying stops there), and a fresh CombatSolver journal
+`244072-6e5dce237513484f844927e9c829d4d0`. Boot log: **RitsuLib 0.6.2, CombatSolver 0.43.1** -- the
+Workshop has moved past the 0.41.0 drift this session recorded, while `config/combat_solver.lock.json`
+still carries the 0.31.0-era inventory.
+
+Task #9 step 1 finished before the launch, offline and read-only: `scripts/replay_solver_grammar_v2.py`
+over 15 real sessions (0.35.5-0.41.0, 8,297,783 bytes, 16,798 records, 72 snapshots, 69 deploys, 22 typed
+failures, 0 envelope errors), with the v1 control on the same decoded lines binding 19/19 answers to turn
+1 against v2's 72 (10 legitimately on turn 1).
+
+Step 2 is stopped by exactly one thing, and it is the operator's call: `run_solver_comparison.py
+--max-battles 1 --dry-run` exits with `VersionLockError: Combat Solver track mod inventory
+incomplete/failing … STS2-RitsuLib, CombatSolver`. I do not re-pin that lock. Once it is reconciled to the
+installed 0.43.1 / 0.6.2 pair, the sequence is `run_solver_comparison.py --max-battles 1` and then
+`supervise_solver_batch.py --mode observational --allow-actions --max-battles 50` -- both read-only toward
+the game (GETs only, no POSTs, no simulated input). Game left running; killing it would be an unrequested
+change to the operator's live state.
