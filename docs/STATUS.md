@@ -2312,3 +2312,19 @@ One ordering caveat kept explicit rather than smoothed over: the 18th record is 
 floor 6, so record order is not chronological act order -- the window contains more than one run or the
 writer appends out of act sequence. Until that is checked, "reached Act 2" is safe and "one run reached Act
 2 floor 31" is not, which is why the claim is stated the first way.
+
+### Second correction of the same paragraph -- the caveat itself was wrong, and the real sequence is better
+
+Record order *is* chronological; I misread one reset as evidence of disorder. Read in full, the live
+sequence is: **csb-0001..0015 = one run, Act 1 floors 2,5,6,7,12,13,14,15 then Act 2 floors 19,20,22,23,24,
+30,31, every battle won (15/15), HP 64->12 across Act 1 and 69->33 across Act 2**; then **csb-0016 resets to
+Act 1 floor 2** and a second run follows (floors 2,3,6,12, also 4/4 wins). `child_started: 3` in
+`supervisor.log` explains the boundary -- the comparison child restarted, so a fresh run began -- and the
+supervisor logs no `game_over` event, so **how run A ended is not recorded**, only that Act-2 floor 31 was
+its deepest observed battle and a new run followed.
+
+That is the first live-client evidence this project has of Act 1 being cleared and Act 2 fought under solver
+control: 19 battles, 19 wins, deepest live floor observed 31 in Act 2. What it is *not*: an accepted result
+(observational mode, `seed_allocation: None`, `run_identity: None`), and not a completed Act 1-3 flow --
+nothing observed has entered Act 3, and the in-sim ceiling plus the Act-2 boss-exit finding still bound what
+"three acts" can mean here. `max_seconds: 2400` from 04:36:31Z ends the batch around 05:16:31Z.
