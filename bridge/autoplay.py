@@ -624,6 +624,8 @@ class AutoPlayer:
         self._max_bypass_per_screen = 3
         #: frames spent on a screen that has neither a rule nor a continue control
         self._unhandled_counts: dict[str, int] = {}
+        #: the identical frame the current unhandled streak started from
+        self._unhandled_identity: tuple[str, str] | None = None
         self._max_unhandled_per_screen = 10
         self.runs_started = 0
         self.consecutive_failures = 0
@@ -851,14 +853,18 @@ class AutoPlayer:
         return {"action": "confirm_bundle_selection"}
 
     @staticmethod
-    def _event_choice(state: dict[str, Any]) -> dict[str, Any]:
+    def _event_choice(state: dict[str, Any]) -> dict[str, Any] | None:
         event = state.get("event") or {}
-        options = [
-            o for o in (event.get("options") or [])
-            if isinstance(o, dict) and o.get("is_locked") is not True
-        ]
-        if not options:
-            return {"action": "choose_event_option", "index": 0}
+        options = [o for o in (event.get("options") or []) if isinstance(o, dict)]
+        choosable = [o for o in options if o.get("is_locked") is not True]
+        if not choosable:
+            # Nothing on this screen can be picked yet.  An event whose options
+            # are still animating looks exactly like this: PUNCH_OFF and
+            # SLIPPERY_BRIDGE each exposed zero options for one poll and two the
+            # next.  Posting index 0 into it is an action the state does not
+            # offer, and the mod refuses it -- so the trace that claims "every
+            # action was legal" cannot contain such a post.  Wait instead.
+            return None
         # An Ancient's options *are* the run-defining boon, so leaving one is a
         # loss; a plain event's proceed is the offer to walk away.  The old
         # Neow-only "移除" branch is subsumed by the rule -- removal is an
@@ -866,7 +872,7 @@ class AutoPlayer:
         is_ancient = bool(event.get("is_ancient"))
         return {
             "action": "choose_event_option",
-            "index": choose(options, prefer_proceed=not is_ancient),
+            "index": choose(choosable, prefer_proceed=not is_ancient),
         }
 
     # ------------------------------------------------- combat route executor
@@ -1338,9 +1344,19 @@ class AutoPlayer:
                         run_state = state.get("run") or {}
                         self.coverage.note_unhandled(state_type, run_state.get("act"),
                                                      run_state.get("floor"))
-                        self._unhandled_counts[state_type] = (
-                            self._unhandled_counts.get(state_type, 0) + 1
-                        )
+                        # "Stuck" means the same screen keeps coming back with
+                        # nothing to do, so the count is of *identical* frames:
+                        # an event whose options appear one poll later is not a
+                        # missing handler, and a lifetime-per-screen tally would
+                        # stop a long run on a transient frame.
+                        identity = (state_type, decision_id)
+                        if identity == self._unhandled_identity:
+                            self._unhandled_counts[state_type] = (
+                                self._unhandled_counts.get(state_type, 0) + 1
+                            )
+                        else:
+                            self._unhandled_counts[state_type] = 1
+                            self._unhandled_identity = identity
                         count = self._unhandled_counts[state_type]
                         if count > self._max_unhandled_per_screen:
                             # A screen with no rule and no continue control is a
@@ -1487,6 +1503,7 @@ class AutoPlayer:
         self.coverage = RunCoverage()
         self._bypass_counts.clear()
         self._unhandled_counts.clear()
+        self._unhandled_identity = None
         self._card_select_screen = None
         self._card_select_picks = set()
 

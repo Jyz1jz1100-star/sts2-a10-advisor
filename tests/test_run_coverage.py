@@ -217,6 +217,43 @@ class SilentSkipBoundsTests(unittest.TestCase):
         self.assertEqual(len(coverage["unhandled_screens"]["crystal_sphere"]),
                          player._max_unhandled_per_screen + 1)
 
+    def test_a_screen_that_keeps_changing_is_not_a_stuck_screen(self) -> None:
+        """The unhandled budget counts *identical* frames, not lifetime visits.
+
+        An event whose options render one poll later is the case that matters:
+        counting every frame without a rule across a whole three-act run would
+        stop a batch that was simply watching an animation.
+        """
+        class EventuallyOfferingController:
+            def __init__(self):
+                self.polls = 0
+                self.posts = []
+
+            def get_state(self):
+                self.polls += 1
+                options = (
+                    [{"index": 0, "title": "顺从"}] if self.polls > 12 else []
+                )
+                return {
+                    "state_type": "event",
+                    "event": {"event_id": "PUNCH_OFF", "options": options},
+                    "run": {"act": 1, "floor": 11},
+                }, f"decision-{self.polls}"
+
+            def send_action(self, payload, **kwargs):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        controller = EventuallyOfferingController()
+        player = AutoPlayer(controller, max_runs=1, max_actions=3, poll=0)
+        player.run()
+        self.assertNotEqual(player.stop_reason, "unhandled_screen")
+        self.assertEqual(
+            controller.posts,
+            [{"action": "choose_event_option", "index": 0}] * len(controller.posts),
+        )
+        self.assertTrue(controller.posts)
+
     def test_a_ruled_screen_is_not_counted_as_unhandled(self) -> None:
         player = AutoPlayer(controller=None)
         coverage = player.coverage

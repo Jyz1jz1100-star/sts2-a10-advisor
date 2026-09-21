@@ -129,6 +129,24 @@ class AutoplayDecisionTests(unittest.TestCase):
         payload = self.player.decide(state)
         self.assertEqual(payload, {"action": "proceed"})
 
+    def test_an_event_that_offers_nothing_yet_is_waited_out(self) -> None:
+        """Zero options is not a reason to post index 0.
+
+        Observed on the real client 2026-09-21: PUNCH_OFF and SLIPPERY_BRIDGE
+        each reported an event with no options for one poll and two the next,
+        and the driver's blind ``choose_event_option index 0`` came back
+        ``No event options available``.  A trace that has to certify "every
+        action was legal" cannot contain a post the state did not offer.
+        """
+        state = load("event")
+        state["event"]["options"] = []
+        self.assertIsNone(self.player.decide(state))
+        state["event"]["options"] = [
+            {"index": 0, "title": "顺从", "is_locked": True},
+            {"index": 1, "title": "我能打倒他们", "is_locked": True},
+        ]
+        self.assertIsNone(self.player.decide(state))
+
     def test_neow_prefers_card_removal(self) -> None:
         state = load("event")  # fixture is the NEOW screen
         payload = self.player.decide(state)
