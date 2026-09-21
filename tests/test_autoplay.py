@@ -1180,3 +1180,48 @@ class PotionActionTests(unittest.TestCase):
         )
         state = self._shop([offered], [held], max_slots=1)
         self.assertEqual(self.player.decide(state), {"action": "proceed"})
+
+
+class CrystalSphereTests(unittest.TestCase):
+    """The Crystal Sphere is a screen with its own actions, not a dead end.
+
+    It stopped the deepest live run of 2026-09-21 at act 3 floor 40: the driver
+    had no rule, the generic proceed cannot serve it, and the batch stopped by
+    name.  The build's own auto-play handler drives it by revealing clickable
+    cells until the exit is offered, which is what this mirrors -- deterministically.
+    """
+
+    def setUp(self) -> None:
+        self.player = player()
+
+    @staticmethod
+    def _sphere(**fields):
+        state = {
+            "state_type": "crystal_sphere",
+            "crystal_sphere": {
+                "grid_width": 5, "grid_height": 5, "can_proceed": False,
+                "clickable_cells": [{"x": 1, "y": 0}, {"x": 4, "y": 2}],
+                "tool": "none",
+            },
+            "run": {"act": 3, "floor": 40, "ascension": 10},
+        }
+        state["crystal_sphere"].update(fields)
+        return state
+
+    def test_a_revealable_cell_is_clicked_in_a_fixed_order(self) -> None:
+        self.assertEqual(
+            self.player.decide(self._sphere()),
+            {"action": "crystal_sphere_click_cell", "x": 1, "y": 0},
+        )
+
+    def test_the_exit_is_taken_once_the_screen_offers_it(self) -> None:
+        self.assertEqual(
+            self.player.decide(self._sphere(can_proceed=True)),
+            {"action": "crystal_sphere_proceed"},
+        )
+
+    def test_no_cell_and_no_exit_is_a_wait_not_a_stalled_batch(self) -> None:
+        state = self._sphere(clickable_cells=[])
+        decision = self.player.decide(state)
+        self.assertIsInstance(decision, WaitForTransition)
+        self.assertEqual(self.player.coverage.coverage()["unhandled_screens"], {})

@@ -140,13 +140,13 @@ class StreamHygieneTests(unittest.TestCase):
 
     def test_every_generic_proceed_is_recorded(self) -> None:
         ledger = RunCoverage()
-        ledger.note_bypass("crystal_sphere", 2, 21, reason="generic_proceed_fallback")
+        ledger.note_bypass("overlay", 3, 40, reason="generic_proceed_fallback")
         ledger.note_bypass("rewards", 1, 17, reason="generic_proceed_fallback")
         coverage = ledger.coverage()
         self.assertEqual(len(coverage["proceed_bypasses"]), 2)
         self.assertEqual(
             [row["state_type"] for row in coverage["unhandled_screen_bypasses"]],
-            ["crystal_sphere"],
+            ["overlay"],
         )
 
 
@@ -154,29 +154,60 @@ class SilentSkipBoundsTests(unittest.TestCase):
     """An unmodelled screen may be stepped past once; it may not be walked through."""
 
     def test_unknown_screen_with_a_proceed_control_is_reported_not_swallowed(self) -> None:
+        """The guard for the next screen nobody has mapped yet.
+
+        ``overlay`` is the catch-all the bridge emits for an overlay it does not
+        model (``McpMod.StateBuilder.cs``'s overlay branch carries ``screen_type``
+        and a message).  Crystal Sphere used to be this suite's live example and
+        got its own rule on 2026-09-21, so the fixture states the mechanism rather
+        than pretending a screen is still unmodelled.
+        """
         player = AutoPlayer(controller=None)
         mystery = {
-            "state_type": "crystal_sphere",
-            "crystal_sphere": {"can_proceed": True},
+            "state_type": "overlay",
+            "overlay": {
+                "screen_type": "SomeFutureScreen",
+                "message": "An overlay (SomeFutureScreen) is active.",
+                "can_proceed": True,
+            },
             "run": {"act": 3, "floor": 49},
         }
         self.assertEqual(player.decide(mystery), {"action": "proceed"})
         self.assertEqual(
             [row["state_type"] for row in player.coverage.coverage()["proceed_bypasses"]],
-            ["crystal_sphere"],
+            ["overlay"],
         )
 
     def test_repeated_bypass_of_the_same_unmodelled_screen_stops_the_batch(self) -> None:
         player = AutoPlayer(controller=None)
         mystery = {
-            "state_type": "crystal_sphere",
-            "crystal_sphere": {"can_proceed": True},
+            "state_type": "overlay",
+            "overlay": {"screen_type": "SomeFutureScreen", "can_proceed": True},
             "run": {"act": 3, "floor": 49},
         }
         with self.assertRaises(Exception) as caught:
             for _ in range(5):
                 player.decide(mystery)
         self.assertIn("unmodelled content", str(caught.exception))
+
+    def test_the_crystal_sphere_screen_is_ruled_and_uses_its_own_exit(self) -> None:
+        """It stopped the deepest live run of 2026-09-21 at act 3 floor 40.
+
+        Its exit is not the generic ``proceed``: the mod looks for a different
+        button in ``crystal_sphere_proceed`` than the generic path does, so a
+        screen that has had a rule since this commit must not be recorded as a
+        bypass either.
+        """
+        player = AutoPlayer(controller=None)
+        sphere = {
+            "state_type": "crystal_sphere",
+            "crystal_sphere": {"can_proceed": True, "clickable_cells": []},
+            "run": {"act": 3, "floor": 40},
+        }
+        self.assertEqual(
+            player.decide(sphere), {"action": "crystal_sphere_proceed"}
+        )
+        self.assertEqual(player.coverage.coverage()["proceed_bypasses"], [])
 
     def test_fake_merchant_tries_the_documented_exit(self) -> None:
         """A screen with no rule used to be idled on for 300 s.
@@ -211,8 +242,8 @@ class SilentSkipBoundsTests(unittest.TestCase):
                 return {"status": "ok"}, None
 
         # No continue control anywhere on the frame, so nothing is decidable.
-        mystery = {"state_type": "crystal_sphere",
-                   "crystal_sphere": {"options": []},
+        mystery = {"state_type": "overlay",
+                   "overlay": {"screen_type": "SomeFutureScreen", "options": []},
                    "run": {"act": 3, "floor": 47}}
         player = AutoPlayer(DeadlockedController(mystery), max_runs=1,
                             max_actions=500, poll=0)
@@ -221,8 +252,8 @@ class SilentSkipBoundsTests(unittest.TestCase):
             player.run()
         self.assertEqual(player.stop_reason, "unhandled_screen")
         coverage = player.coverage.coverage()
-        self.assertIn("crystal_sphere", coverage["unhandled_screens"])
-        self.assertEqual(len(coverage["unhandled_screens"]["crystal_sphere"]),
+        self.assertIn("overlay", coverage["unhandled_screens"])
+        self.assertEqual(len(coverage["unhandled_screens"]["overlay"]),
                          player._max_unhandled_per_screen + 1)
 
     def test_a_screen_that_keeps_changing_is_not_a_stuck_screen(self) -> None:

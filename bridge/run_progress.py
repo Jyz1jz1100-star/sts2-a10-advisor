@@ -30,7 +30,7 @@ RULED_SCREENS = frozenset(
     | {
         "card_reward", "shop", "rest_site", "map", "treasure", "relic_select",
         "bundle_select", "rewards", "event", "card_select", "menu", "game_over",
-        "fake_merchant",
+        "fake_merchant", "crystal_sphere",
     }
 )
 

@@ -783,6 +783,8 @@ class AutoPlayer:
             payload = self._event_choice(state)
         elif state_type == "card_select":
             payload = self._card_select_choice(state)
+        elif state_type == "crystal_sphere":
+            payload = self._crystal_sphere_step(state)
         if state_type == "shop":
             freed = self._potion_room_to_free(state, payload)
             if freed is not None:
@@ -929,6 +931,36 @@ class AutoPlayer:
         if weakest is None:
             return None
         return {"action": "discard_potion", "slot": int(weakest.get("slot", 0))}
+
+    def _crystal_sphere_step(
+        self, state: dict[str, Any]
+    ) -> dict[str, Any] | WaitForTransition | None:
+        """The Crystal Sphere minigame: reveal cells until the exit is offered.
+
+        The screen was reported unhandled at act 3 floor 40 by
+        ``ssb-20260921T133240Z-7eb0c916`` -- the deepest live run of the day --
+        and the generic ``proceed`` cannot serve it: the mod's own proceed path
+        looks for a different button than ``crystal_sphere_proceed`` does.  The
+        rule mirrors the build's own handler
+        (AutoSlay.Handlers.Screens/CrystalSphereScreenHandler.cs:28-95): take the
+        exit once the screen offers one, otherwise reveal a cell it says is
+        clickable, in a fixed order rather than the handler's random one.
+        """
+        sphere = state.get("crystal_sphere") or {}
+        if sphere.get("can_proceed"):
+            return {"action": "crystal_sphere_proceed"}
+        cells = [c for c in (sphere.get("clickable_cells") or []) if isinstance(c, dict)]
+        if not cells:
+            # Nothing to reveal and no exit yet: the divinations are spent and the
+            # reward drain is still resolving. Waiting is bounded by the caller's
+            # stall watchdog, so this cannot spin forever.
+            return WaitForTransition("the crystal sphere offers no cell and no exit yet")
+        cell = min(cells, key=lambda c: (int(c.get("y", 0)), int(c.get("x", 0))))
+        return {
+            "action": "crystal_sphere_click_cell",
+            "x": int(cell.get("x", 0)),
+            "y": int(cell.get("y", 0)),
+        }
 
     def _treasure_step(self, state: dict[str, Any]) -> dict[str, Any]:
         treasure = state.get("treasure") or {}
