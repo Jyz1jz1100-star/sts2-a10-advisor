@@ -48,6 +48,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from advisor_core.live_choice_policy import POLICY_VERSION as LIVE_CHOICE_POLICY_VERSION  # noqa: E402
+from advisor_core.live_choice_policy import choose  # noqa: E402
 from advisor_core.policy_live import LiveHeuristicPolicy  # noqa: E402
 
 from combat_solver.snapshot import RouteAction  # noqa: E402
@@ -686,7 +688,12 @@ class AutoPlayer:
                 self._last_step = None
             payload = self._treasure_step(state)
         elif state_type == "relic_select":
-            payload = {"action": "select_relic", "index": 0}
+            # A boss relic is one of the few decisions whose value persists for
+            # the whole run, so it gets the recorded rule rather than slot zero.
+            payload = {
+                "action": "select_relic",
+                "index": choose(((state.get("relic_select") or {}).get("relics")) or []),
+            }
         elif state_type == "fake_merchant":
             # The fake merchant offer has two exits only: buy, or decline into a
             # fight.  The bridge exposes the decline as the event's proceed button
@@ -839,18 +846,14 @@ class AutoPlayer:
         ]
         if not options:
             return {"action": "choose_event_option", "index": 0}
-        if str(event.get("event_id") or "").upper() == "NEOW":
-            for option in options:
-                text = f"{option.get('title') or ''}{option.get('description') or ''}"
-                if "移除" in text:
-                    return {
-                        "action": "choose_event_option",
-                        "index": int(option.get("index") or 0),
-                    }
-        chosen = options[0]
+        # An Ancient's options *are* the run-defining boon, so leaving one is a
+        # loss; a plain event's proceed is the offer to walk away.  The old
+        # Neow-only "移除" branch is subsumed by the rule -- removal is an
+        # upside marker for every act's Ancient, not just the first one's.
+        is_ancient = bool(event.get("is_ancient"))
         return {
             "action": "choose_event_option",
-            "index": int(chosen.get("index") or 0),
+            "index": choose(options, prefer_proceed=not is_ancient),
         }
 
     # ------------------------------------------------- combat route executor
@@ -1703,6 +1706,10 @@ def main(argv: list[str] | None = None) -> int:
                 "component": "autoplay",
                 "cohort": args.cohort,
                 "seed_mode": args.seed_mode,
+                # Which out-of-combat pick rule produced this run's relic/event/
+                # Ancient choices.  Without it a survival difference cannot be
+                # attributed to a policy change instead of to luck.
+                "live_choice_policy_version": LIVE_CHOICE_POLICY_VERSION,
                 "seed_allocation": allocation.describe() if allocation else None,
                 "seed_ledger": str(seed_ledger_path) if seed_ledger_path else None,
                 "execution_owner": execution_owner,

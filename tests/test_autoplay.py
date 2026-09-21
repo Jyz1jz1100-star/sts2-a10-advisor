@@ -136,12 +136,18 @@ class AutoplayDecisionTests(unittest.TestCase):
         # the 移除 option is index 1 in the fixture
         self.assertEqual(payload["index"], 1)
 
-    def test_generic_event_falls_back_to_first_option(self) -> None:
-        state = load("event")
-        state["event"]["event_id"] = "SOME_OTHER_EVENT"
-        payload = self.player.decide(state)
-        self.assertEqual(payload["action"], "choose_event_option")
-        self.assertEqual(payload["index"], 0)
+    def test_the_same_rule_applies_whatever_the_event_id_says(self) -> None:
+        """The pick used to be special-cased on ``event_id == "NEOW"``.
+
+        Reading wording instead of identity means Act 2's and Act 3's Ancients
+        get the same treatment, and no run can be answered by name.
+        """
+        named = load("event")
+        renamed = load("event")
+        renamed["event"]["event_id"] = "SOME_OTHER_EVENT"
+        self.assertEqual(
+            self.player.decide(named), self.player.decide(renamed)
+        )
 
     def test_rest_site_payload_uses_option_index(self) -> None:
         state = load("rest_site")
@@ -293,11 +299,16 @@ class AutoplayDecisionTests(unittest.TestCase):
             self.player.decide(state), {"action": "confirm_bundle_selection"}
         )
 
-    def test_relic_select_picks_first(self) -> None:
-        self.assertEqual(
-            self.player.decide(load("relic_select")),
-            {"action": "select_relic", "index": 0},
-        )
+    def test_relic_select_prefers_the_option_with_no_visible_cost(self) -> None:
+        """Was `index: 0` unconditionally; now the rule, and it is explainable.
+
+        On this screen slot 0 drips out relics slowly while slot 1 is a per-combat
+        potion with no wording cost, so the rule takes 1 -- a decision a constant
+        could not have made, and one a reader can check against the fixture.
+        """
+        payload = self.player.decide(load("relic_select"))
+        self.assertEqual(payload["action"], "select_relic")
+        self.assertEqual(payload["index"], 1)
 
     def test_heuristic_shop_payload_maps_to_purchase(self) -> None:
         state = load("shop")
