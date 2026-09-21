@@ -1059,3 +1059,124 @@ class AutoplayClassifiedStopTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PotionActionTests(unittest.TestCase):
+    """The two potion actions the live player never had, and when they fire.
+
+    Measured before this existed: the runs held a drinkable potion for 3,285
+    out-of-combat frames without drinking, and sat through 5,179 shop frames with
+    every potion slot full.  Neither action is posted on a guess -- the sip needs
+    the state to say the potion is usable outside combat, which the installed
+    bridge does not, and the discard needs a purchase the policy already chose.
+    """
+
+    def setUp(self) -> None:
+        self.player = player()
+
+    @staticmethod
+    def _shop(items, potions, max_slots):
+        state = load("shop")
+        state["shop"]["items"] = items
+        state["player"]["potions"] = potions
+        state["player"]["max_potion_slots"] = max_slots
+        state["player"]["gold"] = 99
+        return state
+
+    @staticmethod
+    def _potion_item(**extra):
+        item = {
+            "index": 0,
+            "category": "potion",
+            "price": 50,
+            "is_stocked": True,
+            "can_afford": True,
+            "potion_id": "FRUIT_JUICE",
+            "potion_name": "果汁",
+            "potion_description": "获得5点最大生命值。",
+        }
+        item.update(extra)
+        return item
+
+    def test_a_map_screen_drinks_a_potion_the_state_says_is_drinkable(self) -> None:
+        state = load("map")
+        state["player"] = {
+            "hp": 80, "max_hp": 80,
+            "potions": [{
+                "slot": 1, "id": "FRUIT_JUICE", "name": "果汁",
+                "description": "获得5点最大生命值。",
+                "usage": "AnyTime", "target_type": "AnyPlayer",
+            }],
+        }
+        self.assertEqual(
+            self.player.decide(state), {"action": "use_potion", "slot": 1}
+        )
+
+    def test_nothing_is_drunk_when_the_state_cannot_say_it_is_legal(self) -> None:
+        # The installed bridge's shape: can_use_in_combat is true for CombatOnly
+        # too, so it carries no information about drinking between fights.
+        state = load("map")
+        state["player"] = {
+            "hp": 30, "max_hp": 80,
+            "potions": [{
+                "slot": 0, "id": "BLOOD_POTION", "name": "鲜血药水",
+                "description": "回复你最大生命值的20%。",
+                "can_use_in_combat": True,
+            }],
+        }
+        self.assertEqual(
+            self.player.decide(state), {"action": "choose_map_node", "index": 0}
+        )
+
+    def test_a_full_shop_slot_is_cleared_only_for_a_purchase_already_chosen(self) -> None:
+        held = {
+            "slot": 0, "id": "FIRE_POTION", "name": "火焰药水",
+            "description": "对一个敌人造成10点伤害。", "usage": "CombatOnly",
+        }
+        state = self._shop([self._potion_item()], [held], max_slots=1)
+        self.assertEqual(
+            self.player.decide(state), {"action": "discard_potion", "slot": 0}
+        )
+
+    def test_an_empty_slot_needs_no_discard(self) -> None:
+        held = {
+            "slot": 0, "id": "FIRE_POTION", "name": "火焰药水",
+            "description": "对一个敌人造成10点伤害。", "usage": "CombatOnly",
+        }
+        state = self._shop([self._potion_item()], [held], max_slots=2)
+        self.assertEqual(
+            self.player.decide(state), {"action": "shop_purchase", "index": 0}
+        )
+
+    def test_a_non_potion_purchase_never_costs_a_potion(self) -> None:
+        held = {
+            "slot": 0, "id": "FIRE_POTION", "name": "火焰药水",
+            "description": "对一个敌人造成10点伤害。", "usage": "CombatOnly",
+        }
+        relic = {
+            "index": 0, "category": "relic", "price": 50, "is_stocked": True,
+            "can_afford": True, "relic_id": "ANCHOR", "relic_name": "锚",
+            "relic_description": "获得15点格挡。",
+        }
+        state = self._shop([relic], [held], max_slots=1)
+        self.assertEqual(
+            self.player.decide(state), {"action": "shop_purchase", "index": 0}
+        )
+
+    def test_a_worse_offered_potion_is_neither_bought_nor_bought_with_a_swap(self) -> None:
+        """No discard, and no doomed purchase either.
+
+        With the slots full and nothing visibly better on the shelf, the potion is
+        not a legal candidate at all, so the shop leaves instead of posting a
+        purchase the run cannot carry.
+        """
+        held = {
+            "slot": 0, "id": "FRUIT_JUICE", "name": "果汁",
+            "description": "获得5点最大生命值。", "usage": "AnyTime",
+        }
+        offered = self._potion_item(
+            potion_id="FIRE_POTION", potion_name="火焰药水",
+            potion_description="对一个敌人造成10点伤害。",
+        )
+        state = self._shop([offered], [held], max_slots=1)
+        self.assertEqual(self.player.decide(state), {"action": "proceed"})

@@ -50,6 +50,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from advisor_core.live_choice_policy import POLICY_VERSION as LIVE_CHOICE_POLICY_VERSION  # noqa: E402
 from advisor_core.live_choice_policy import choose  # noqa: E402
+from advisor_core.live_choice_policy import has_out_of_combat_use  # noqa: E402
+from advisor_core.live_choice_policy import potion_to_discard_for  # noqa: E402
+from advisor_core.live_choice_policy import potion_to_sip_now  # noqa: E402
 from advisor_core.policy_live import LiveHeuristicPolicy  # noqa: E402
 
 from combat_solver.snapshot import RouteAction  # noqa: E402
@@ -725,6 +728,13 @@ class AutoPlayer:
             # older bridge -- behaviour is unchanged, because refusing to act on
             # an unknown would strand every rest site.
             return WaitForTransition("the rest site room cannot take a choice yet")
+        if state_type in ("map", "rest_site"):
+            # A potion the state says can be drunk between fights, drunk when the
+            # recorded rule says it is worth it.  With the installed bridge the
+            # state never says so, and this returns None for every run.
+            sip = potion_to_sip_now(state, at_rest_site=state_type == "rest_site")
+            if sip is not None:
+                return {"action": "use_potion", "slot": int(sip.get("slot", 0))}
         payload: dict[str, Any] | None = None
         if state_type in _HEURISTIC_SCREENS:
             try:
@@ -773,6 +783,10 @@ class AutoPlayer:
             payload = self._event_choice(state)
         elif state_type == "card_select":
             payload = self._card_select_choice(state)
+        if state_type == "shop":
+            freed = self._potion_room_to_free(state, payload)
+            if freed is not None:
+                return freed
         if payload is None and state_type != "map" and _screen_can_proceed(state):
             # continue buttons after an applied choice (rest result, shop,
             # claimed rewards, ...): the screen itself says it can advance.
@@ -879,6 +893,42 @@ class AutoPlayer:
         chosen = int(pick.get("index", 0))
         self._card_select_picks.add(chosen)
         return {"action": "select_card", "index": chosen}
+
+    @staticmethod
+    def _potion_room_to_free(
+        state: dict[str, Any], payload: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
+        """Discard a held potion when the shop pick this frame cannot be carried.
+
+        The shop is the one screen where the run demonstrably hits its own capacity:
+        5,179 recorded shop frames already had every potion slot filled, 5,119 of
+        them with an affordable potion on the shelf.  The discard therefore never
+        leads -- it only follows a purchase the policy already chose, and it only
+        when the offered potion's own published text beats the weakest held text.
+        """
+        if payload is None or payload.get("action") != "shop_purchase":
+            return None
+        shop = state.get("shop") or {}
+        player = state.get("player") or {}
+        held = [p for p in (player.get("potions") or []) if isinstance(p, dict) and p.get("id")]
+        max_slots = player.get("max_potion_slots")
+        if not isinstance(max_slots, int) or len(held) < max_slots:
+            return None
+        items = [i for i in (shop.get("items") or []) if isinstance(i, dict)]
+        offered = next(
+            (
+                i for i in items
+                if int(i.get("index", -1)) == int(payload.get("index", -2))
+                and i.get("category") == "potion"
+            ),
+            None,
+        )
+        if offered is None:
+            return None
+        weakest = potion_to_discard_for(state, offered)
+        if weakest is None:
+            return None
+        return {"action": "discard_potion", "slot": int(weakest.get("slot", 0))}
 
     def _treasure_step(self, state: dict[str, Any]) -> dict[str, Any]:
         treasure = state.get("treasure") or {}

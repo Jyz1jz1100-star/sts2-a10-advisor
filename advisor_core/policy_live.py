@@ -22,6 +22,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .contracts import Candidate, Recommendation
+from .live_choice_policy import potion_to_discard_for
 from .live_candidate_codec import LiveCandidateSet, extract_live_candidates
 from .policy import SmokeBaselinePolicy
 
@@ -268,10 +269,27 @@ class LiveHeuristicPolicy:
         gold = int(player.get("gold") or 0)
         fraction, hp, max_hp = _hp_fraction(state)
         hp_fact = f"生命 {hp}/{max_hp}" if (state.get("player") or {}).get("max_hp") else None
+        # A potion cannot be bought into full slots: the recorded live shops sat
+        # at 5,179 frames where every slot was already filled.  It stays a
+        # candidate only when giving one up is visibly worth it -- the same strict
+        # wording comparison the driver uses to emit the discard -- because
+        # otherwise the pick is a purchase the run cannot carry, which is exactly
+        # the kind of action the trace is not allowed to contain.
+        held_potions = [
+            p for p in (player.get("potions") or []) if isinstance(p, dict) and p.get("id")
+        ]
+        max_slots = player.get("max_potion_slots")
+        slots_full = isinstance(max_slots, int) and len(held_potions) >= max_slots
+
+        def _carriable(item: dict[str, Any]) -> bool:
+            if not slots_full or item.get("category") != "potion":
+                return True
+            return potion_to_discard_for(state, item) is not None
+
         affordable = [
             i for i in items
             if i.get("is_stocked") and i.get("can_afford") is not False
-            and int(i.get("price") or 0) <= gold
+            and int(i.get("price") or 0) <= gold and _carriable(i)
         ]
 
         def _label(item: dict[str, Any]) -> str:
