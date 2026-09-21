@@ -83,7 +83,13 @@ def check_run(records: list[dict[str, Any]], coverage: RunCoverage) -> dict[str,
         f"acts={cov['acts_seen']} entries={ {k: v for k, v in sorted(coverage.act_entries.items())} }",
     )
     ancients_ok = sorted(cov["ancients_covered_acts"]) == list(REQUIRED_ACTS) and all(
-        act in VALID_ANCIENTS_BY_ACT and str(cov["ancients_by_act"].get(act)) in VALID_ANCIENTS_BY_ACT[act]
+        # ``ancients_by_act`` is emitted with str keys because it is a JSON
+        # artifact (run_progress.coverage), while REQUIRED_ACTS are ints.  Read
+        # with `.get(act)` this lookup returned None for every run and the check
+        # could not pass -- the first synthetic trace that walks all three acts
+        # is the test that pins it.
+        act in VALID_ANCIENTS_BY_ACT
+        and str(cov["ancients_by_act"].get(str(act))) in VALID_ANCIENTS_BY_ACT[act]
         for act in REQUIRED_ACTS
     )
     add(

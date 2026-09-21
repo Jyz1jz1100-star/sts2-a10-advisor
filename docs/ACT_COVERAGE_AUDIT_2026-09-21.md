@@ -523,3 +523,59 @@ seq 4126/4127（被拒）与 seq 4130-4132（随后被接受）在状态暴露�
 同一份输出里 `menu_select`、`proceed`、`set_ascension` 的拒绝率高达 74%/83%/100%，
 那**不是打牌动作**，是历史批次开机引导阶段的循环（在 `run` 分段之外，闸门也不把它算进任何一局），
 本文不拿它当"玩家不合法"的证据，也不把它和局内动作混在一个总数里说事。
+
+## 12. 药水：两个动作根本不在动作空间里（一个已可修，一个卡在桥接）
+
+产品层的说法是"算法不会丢药水，也不会局外用那些局内局外都能用的药水"。核实之后这两句都成立，
+而且比"没学会"更基本：**这两个动作从来没进过驱动的动作空间**。
+
+| 事实 | 证据 |
+| --- | --- |
+| 全部真机 trace 里 `use_potion` / `discard_potion` 的 POST 次数为 **0** | `scripts/census_action_refusals.py` 的 posted 清单里就没有这两个动作 |
+| 局外持有可用药水却不动的帧数：**3,285** | 逐帧重算 `runs/solver_supervisor/*/autoplay_trace.jsonl`；其中 `鲜血药水` 61 帧、`果汁` 247 帧 |
+| 商店里药水槽**已满**的帧：**5,179**，其中 **5,119** 帧货架上有买得起的药水 | 同上（`shop.items[].category == "potion"` + `player.max_potion_slots`） |
+| 真机构建里"任何时点可用"的药水只有 **4/64** | `PotionUsage.cs` + 全树 `PotionUsage.AnyTime`：`BloodPotion`(回复最大生命20%)、`FruitJuice`(+5最大生命)、`EntropicBrew`、`FoulPotion` |
+| 战斗中用药水归战斗求解器，不冲突 |  Combat Solver 日志的 `ROUTE_ACTION` 里有 `PotionSlot/PotionId`，权重含 `potion_min_hp_saved`、`final_policy=...hp_potions...` |
+
+### 已修：丢药水→买药水（不需要换桥接）
+
+`discard_potion` 桥接本来就接受，而且商店侧的判据全都在状态里，所以这一步能真正落地：
+
+- `advisor_core/policy_live.py::_shop`：**满槽时的药水不再是合法候选**，除非"换"这一件事在可见信息上是严格变好的——
+  否则就会 POST 一发装不下的购买（那就是又一个不合法动作）。
+- `advisor_core/live_choice_policy.py::potion_to_discard_for`：只用双方都公布的效果文本比较，
+  不达标就不换；换的是**最弱的一格**。
+- `bridge/autoplay.py::_potion_room_to_free`：丢弃只在"这一帧的商店选择本来就是这瓶药水"时发出，
+  所以它永远是既有购买决策的代价，不会是独立的损失。丢完下一帧槽空了，购买照旧。
+
+### 卡在桥接：局外喝药水的合法性读不到
+
+驱动需要知道"这瓶能不能在战斗外喝"。桥接目前只公布 `can_use_in_combat`，
+而它对 `CombatOnly` 和 `AnyTime` **同样为 true**——所以这个信息在装着的桥上根本不存在；
+`McpMod.Compendium.cs:141-147` 也自陈只给已发现的药水 id，不给规则文本。
+于是规则写成**只在状态明确说可以时才动**：`usage` 缺失即不喝（不是猜，是不做没依据的动作）。
+候选桥接已加上 `usage = potion.Usage.ToString()`，见 `artifacts/sts2mcp-actionability/`
+（与 `rest_site.can_choose` 同一支、同样未安装）。
+
+策略版本因此从 `conservative-visible-v1` 升到 **`conservative-visible-v2`**，
+记录的规则是：+最大生命这类永久增益只要合法就喝；回复类只在生命低于 60% 且**人不站在休息点**时喝
+（休息是免费的同样治疗）。分类读的是客户端自己公布的中文文本，不读药水 id——
+`鲜血药水` 的文本是"回复你最大生命值的20%。"，同时含"最大生命"和"回复"，
+所以判据必须是动词，不是短语；这三条真实文本已钉进 `tests/test_live_choice_policy.py`。
+
+### 12.1 顺带发现：闸门自己有一项永远不可能通过
+
+`three_ancients_are_this_builds` 拿 int 幕号去查一个 str 键的 dict
+（`run_progress.coverage()` 为了 JSON 产物把 `ancients_by_act` 的键转成了字符串），
+所以它**从来没想过**——今天下午那份已经集齐三幕先古之民的真机 trace 也被它判 FAIL。
+已按 `str(act)` 读取修正，并补上 `tests/test_full_run_contract.py`：
+一份合成"Floor 1→三幕→1+1+2→victory"的 trace 必须 11/11 全过，
+同时把"错幕的先古之民""中途入局""最后一关战死""一处被拒动作"各判死一项。
+在此之前这一项的"严格"是假的：它只是恒假。
+
+### 12.2 提交门禁漏了四个测试模块
+
+`scripts/test.ps1` 的光环境套件是**手写清单**，不是发现式：
+`test_full_run_contract`、`test_live_choice_policy`、`test_run_coverage`、`test_mod_gate`
+四个模块不在清单里，也就是说今天新写的规则测试与覆盖率测试**根本没被门禁跑过**，
+而它一直在报绿。已全部补进去：光环境 539→**594**，训练环境 132，两半都 OK。
