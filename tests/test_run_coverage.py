@@ -296,6 +296,35 @@ class ScriptedController:
         }
         self.assertEqual(player.decide(state), {"action": "confirm_selection"})
 
+    def test_in_combat_prompt_after_a_boss_does_not_erase_the_clear(self) -> None:
+        """Found in the 2026-09-21 batch audit: a beaten boss showed no clear.
+
+        The solver's own end-of-fight prompt (hand_select, or a combat pile card
+        choice) arrives between the boss frame and the reward frame.  Cancelling
+        the pending boss there dropped real clears from the record.
+        """
+        ledger = RunCoverage()
+        for step in (
+            state(1, 17, "boss", enemies=["WATERFALL_GIANT_0"]),
+            state(1, 17, "hand_select"),
+            state(1, 17, "card_select"),
+            state(1, 17, "rewards", hp=70),
+        ):
+            ledger.observe(step)
+        self.assertEqual(ledger.boss_cleared, {(1, 17): "rewards:hp70"})
+
+    def test_dying_at_the_boss_is_still_not_a_clear(self) -> None:
+        ledger = RunCoverage()
+        for step in (
+            state(2, 33, "boss", enemies=["THE_INSATIABLE_0"]),
+            state(2, 33, "hand_select"),
+            state(2, 33, "game_over", hp=0, game_over={"is_victory": False,
+                                                       "message": "Run ended."}),
+        ):
+            ledger.observe(step)
+        self.assertEqual(ledger.boss_cleared, {})
+        self.assertIs(ledger.coverage()["outcome"], False)
+
     def test_a_repeat_escape_is_recorded_and_bounded(self) -> None:
         """The second silent-skip path, seen firing on the 2026-09-21 live run.
 

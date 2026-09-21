@@ -102,17 +102,23 @@ class RunCoverage:
             self._record_battle((act, floor), state)
             self._pending_boss = (act, floor)
         elif state_type in _COMBAT_SCREENS:
-            if state_type != "boss":
-                self._pending_boss = None
-        elif self._pending_boss is not None and self._player_alive(state):
+            pass  # hand_select and friends are inside the same fight; see below
+        elif state_type == "game_over":
+            pass  # the terminal decides for itself, since a win is recorded at HP 0
+        elif self._pending_boss is not None:
+            # Only *leaving the node* settles a boss.  Cancelling on an in-combat
+            # prompt instead dropped beaten bosses from the record, which
+            # understates coverage and would make the full-run gate unpassable
+            # for reasons that have nothing to do with the run.
             player = state.get("player") or {}
-            # The label names the screen that followed and the HP carried into
-            # it; it used to read "floor" here while printing HP, which invited
-            # exactly the wrong inference about where the boss sat.
-            self.boss_cleared.setdefault(
-                self._pending_boss,
-                f"{state_type}:hp{player.get('hp', '?')}",
-            )
+            if self._player_alive(state):
+                # The label names the screen that followed and the HP carried into
+                # it; it used to read "floor" here while printing HP, which invited
+                # exactly the wrong inference about where the boss sat.
+                self.boss_cleared.setdefault(
+                    self._pending_boss,
+                    f"{state_type}:hp{player.get('hp', '?')}",
+                )
             self._pending_boss = None
 
         if state_type == "game_over":
