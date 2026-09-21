@@ -18,6 +18,28 @@ def _finite(value: Any) -> float | None:
     return number if math.isfinite(number) else None
 
 
+#: ``sts2_gym`` reports the generated act two ways: ``act_index`` as a number and
+#: ``act`` as the model's name. Reading only ``act`` and calling ``int()`` on it
+#: crashed the whole evaluation chain on the flat env, so prefer the number and
+#: fall back through a digit string to the name table.
+_ACT_NAMES = {"overgrowth": 1, "underdocks": 2, "final": 3, "hive": 2, "glory": 3}
+
+
+def _act_number(info: Any) -> int | None:
+    if not isinstance(info, dict):
+        return None
+    index = info.get("act_index")
+    if isinstance(index, (int, float)) and not isinstance(index, bool):
+        return int(index)
+    act = info.get("act")
+    if act is None:
+        return None
+    try:
+        return int(act)
+    except (TypeError, ValueError):
+        return _ACT_NAMES.get(str(act).strip().lower())
+
+
 class MaskedPolicy(Protocol):
     def predict(
         self, observation: Any, *, action_masks: Any, deterministic: bool
@@ -115,7 +137,7 @@ def evaluate_policy(
                     truncated = True
                     step_capped = True
             final_floor = info.get("floor")
-            act = reset_info.get("act")
+            act = _act_number(reset_info)
             encounter = reset_info.get("encounter")
             won = bool(terminated and info.get("player_won", False))
             # Distinct from ``won``: the engine only sets run_cleared after a campaign run's
@@ -158,7 +180,7 @@ def evaluate_policy(
                     episode_return=total_reward,
                     illegal_actions=illegal_actions,
                     final_floor=(int(final_floor) if final_floor is not None else None),
-                    act=(int(act) if act is not None else None),
+                    act=act,
                     encounter=(str(encounter) if encounter is not None else None),
                     boundary_reached=boundary,
                     dead_end_reason=(str(dead_end) if dead_end is not None else None),
