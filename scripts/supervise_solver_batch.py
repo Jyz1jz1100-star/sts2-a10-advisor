@@ -314,6 +314,12 @@ class SupervisorConfig:
     seed_file: Path | None = None
     seed_ledger: Path | None = None
     output_root: Path = DEFAULT_OUTPUT_ROOT
+    #: Dropping a file here asks a running batch to end itself at its next poll.
+    #: A signal is not usable on Windows for a detached child, and killing the
+    #: supervisor outright leaves its play child running behind it -- which is
+    #: exactly what must not happen when the reason to stop is "the save is
+    #: finally empty, start the next batch clean".
+    stop_file: Path | None = None
     base_url: str = "http://127.0.0.1:15526"
     health_path: str = "/"
     game_log_dir: Path = DEFAULT_GAME_LOG_DIR
@@ -345,6 +351,15 @@ class SupervisorConfig:
     @property
     def mod_gate(self) -> str:
         return "attest" if self.track == "acceptance" else "strict"
+
+    @property
+    def resolved_stop_file(self) -> Path:
+        """Where to touch to ask a running batch to stop itself."""
+        return (
+            Path(self.stop_file)
+            if self.stop_file is not None
+            else Path(self.output_root) / ".stop-requested"
+        )
 
     def __post_init__(self) -> None:
         validate_batch_id(self.batch_id)
@@ -1374,6 +1389,8 @@ class BatchSupervisor:
                 "wait_seconds": self.config.game_wait_seconds,
                 "loss_grace_seconds": self.config.game_loss_grace_seconds,
             },
+            #: Touch this path to ask a running batch to end at its next poll.
+            "stop_file": str(self.config.resolved_stop_file),
             "limits": {
                 "max_battles": self.config.max_battles,
                 "max_seconds": self.config.max_seconds,
@@ -1750,6 +1767,16 @@ class BatchSupervisor:
                 self._finalize_stop()
                 return EXIT_STOPPED
 
+            if self._stop_file_requested():
+                self.stop_reason = "operator_stop_file"
+                self._log(
+                    "operator_stop_file",
+                    stop_file=str(self.config.resolved_stop_file),
+                )
+                self._stop_children("operator_stop_file")
+                self._finalize_stop()
+                return EXIT_STOPPED
+
             states = {
                 name: self._poll_child(child) for name, child in self.children.items()
             }
@@ -1880,6 +1907,21 @@ class BatchSupervisor:
                 self._finalize_stop()
                 return EXIT_RUN_TIMEOUT
             self.sleep(max(0.01, self.config.poll_seconds))
+
+    def _stop_file_requested(self) -> bool:
+        """True once, on a stop request written since the last poll.
+
+        The file is consumed rather than left in place: it asks *this* batch to
+        stop, and a stale marker would stop every batch after it forever.
+        """
+        path = self.config.resolved_stop_file
+        if not path.exists():
+            return False
+        try:
+            path.unlink()
+        except OSError as exc:
+            self._log("stop_file_unlink_failed", stop_file=str(path), error=str(exc))
+        return True
 
     def _sample_client_log(self) -> dict[str, Any] | None:
         """Report a wedged client, and freeze it, from its own log's growth.

@@ -1306,6 +1306,45 @@ class ClientWedgeTests(unittest.TestCase):
     observe the client any more -- its own log was the only signal left.
     """
 
+    def test_a_stop_file_ends_the_batch_at_its_next_poll_and_is_consumed(self) -> None:
+        """The only clean stop available to an unattended batch on Windows.
+
+        Killing the supervisor outright would leave the play child driving the
+        client behind it, so stopping has to go through the process that owns
+        the children.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None, autoplay_code=None)
+            stop_file = root / ".stop-requested"
+            config = _config(root, clock, stop_file=stop_file)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            original_sleep = clock.sleep
+
+            def sleep_then_request(seconds: float) -> None:
+                stop_file.write_text("stop after the terminal\n", encoding="utf-8")
+                original_sleep(seconds)
+
+            supervisor.sleep = sleep_then_request
+
+            result = supervisor.run()
+            self.assertEqual(result, EXIT_STOPPED)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "operator_stop_file")
+            self.assertEqual(status["stop_file"], str(stop_file))
+            # consumed, so the next batch is not stopped by a stale marker
+            self.assertFalse(stop_file.exists())
+            # and the children were asked to stop rather than orphaned
+            self.assertEqual(len(popen.processes["autoplay"].signal_calls), 1)
+
     def test_runaway_client_log_stops_the_batch_and_freezes_the_client(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
