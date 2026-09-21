@@ -210,10 +210,23 @@ def hand_multiset(hand: list[dict[str, Any]]) -> multiset_type:
     )
 
 _COMBAT_SCREEN_TYPES = {"monster", "elite", "boss", "hand_select"}
-# card_select is NOT here: it doubles as the out-of-combat removal screen
-# (no "battle" key) and the in-combat selection (battle key present), and
-# _card_select_choice discriminates by exactly that.
 _HEURISTIC_SCREENS = {"card_reward", "shop", "rest_site", "map"}
+# card_select is not a combat screen type: it doubles as the out-of-combat grid
+# screens and the in-combat selection (battle key present).  The build's own
+# auto-play registry, MegaCrit.Sts2.Core.AutoSlay.Handlers.Screens, drives every
+# card-selection screen except one, so that exception is the only name the driver
+# abstains on -- and it needs the class name because its state carries no
+# ``battle`` key.  The registry's card screens: NDeckCardSelectScreen,
+# NSimpleCardSelectScreen, NDeckTransformSelectScreen, NDeckUpgradeSelectScreen,
+# NDeckEnchantSelectScreen, NChooseACardSelectionScreen,
+# NChooseABundleSelectionScreen.  ``BuildCardSelectState`` spells the first four
+# with a logical name and the rest with the class name.
+#
+# Evidence that NCombatPileCardSelectScreen belongs to the combat layer: in the
+# recorded trace it disappeared within two polls with no action of ours, and the
+# one ``select_card`` posted against it returned ``No card selection screen is
+# open``.
+_COMBAT_OWNED_CARD_SELECT_SCREENS = frozenset({"NCombatPileCardSelectScreen"})
 
 
 def _first_present(*values: Any) -> Any:
@@ -635,6 +648,10 @@ class AutoPlayer:
         # two steps); reset whenever the screen type changes
         self._last_step: tuple[str, str] | None = None
         self._last_screen: str | None = None
+        #: ``select_card`` toggles, so the driver remembers which grid indices it
+        #: has already clicked on the current card-selection screen.
+        self._card_select_screen: tuple[Any, ...] | None = None
+        self._card_select_picks: set[int] = set()
         self._stall_since: float | None = None
         self._stall_screen: str | None = None
         # A menu ``continue`` is never trusted on its own.  The saved run is
@@ -763,65 +780,61 @@ class AutoPlayer:
         return None
 
     def _card_select_choice(self, state: dict[str, Any]) -> dict[str, Any] | None:
-        """Out-of-combat card selection (Neow/event/shop/removal): toggling UI.
+        """Out-of-combat card selection (Neow/event/shop/removal/enchant): toggling UI.
 
         ``select_card`` TOGGLES the highlight, then ``confirm_selection``
         commits it — ``can_confirm`` in the state is the truth signal.  Some
-        events require SEVERAL picks ("选择2张普通牌...") before ``can_confirm``
-        lights up, and the exposed state carries no per-card selected flag, so
-        the driver walks a deterministic pick sequence instead of re-toggling
-        the same card forever.  In-combat card selections carry a ``battle``
-        key and belong to the Combat Solver.
+        screens require SEVERAL picks before it lights up and the exposed state
+        carries no per-card selected flag, so the driver walks distinct indices
+        and stops the moment the screen itself says it can confirm.  In-combat
+        card selections carry a ``battle`` key and belong to the Combat Solver.
         """
         if state.get("battle") is not None:
             return None
         selection = state.get("card_select") or {}
-        # ``screen_type`` is the only honest discriminator here.  The bridge has
-        # no action path for combat-pile selection at all (select_card covers just
-        # the grid and choose-a-card overlays), and that prompt carries no
-        # ``battle`` key, so keying off ``battle`` alone made the driver POST an
-        # action the mod can only refuse.  Combat-owned prompts are left to the
-        # Combat Solver, and the abstention is recorded rather than dropped.
-        serviceable = {"select", "simple_select", "transform", "upgrade", "choose", "bundle"}
+        # ``screen_type`` is the overlay's class name for anything the bridge has
+        # no logical name for.  That is NOT evidence of combat ownership: the
+        # build's own auto-play registry
+        # (MegaCrit.Sts2.Core.AutoSlay.Handlers.Screens) drives
+        # NDeckEnchantSelectScreen out of combat, and keying the abstention on
+        # "unrecognised name" left that screen with no owner -- it sat through
+        # 11 polls, advancing nothing, until the unhandled-screen guard stopped
+        # the batch.
         screen_type = str(selection.get("screen_type") or "")
-        if screen_type and screen_type not in serviceable:
+        if screen_type in _COMBAT_OWNED_CARD_SELECT_SCREENS:
             self.coverage.note_deferred_to_combat(screen_type)
             return None
         if selection.get("can_confirm"):
             self._last_step = None
+            self._card_select_screen = None
+            self._card_select_picks = set()
             return {"action": "confirm_selection"}
         cards = [
             c for c in selection.get("cards") or [] if isinstance(c, dict)
         ]
         if not cards:
             return None
+        run = state.get("run") or {}
+        identity = (screen_type, run.get("act"), run.get("floor"), len(cards))
+        if identity != self._card_select_screen:
+            self._card_select_screen = identity
+            self._card_select_picks = set()
+        unpicked = [
+            c for c in cards if int(c.get("index", -1)) not in self._card_select_picks
+        ]
+        if not unpicked:
+            # Every card offered has been clicked and the screen still cannot
+            # confirm: this is a state the driver has no rule for, so it is left
+            # for the caller's bounded unhandled-screen stop instead of
+            # toggling the same card forever.
+            return None
         pick = next(
-            (c for c in cards if str(c.get("id") or "").startswith("STRIKE")),
-            cards[0],
+            (c for c in unpicked if str(c.get("id") or "").startswith("STRIKE")),
+            unpicked[0],
         )
         chosen = int(pick.get("index", 0))
-        prompt = str(selection.get("prompt") or "")
-        count_match = re.search(r"(\d+)\s*张", prompt)
-        required = int(count_match.group(1)) if count_match else 1
-        if required <= 1:
-            return {"action": "select_card", "index": chosen}
-        step = (
-            self._last_step
-            if isinstance(self._last_step, tuple)
-            and self._last_step[0] == "card_select"
-            else None
-        )
-        if step is None:
-            self._last_step = ("card_select", chosen)
-            return {"action": "select_card", "index": chosen}
-        alt = next(
-            (c for c in cards if int(c.get("index", -1)) != step[1]),
-            None,
-        )
-        self._last_step = None
-        if alt is None:
-            return {"action": "select_card", "index": chosen}
-        return {"action": "select_card", "index": int(alt.get("index", 0))}
+        self._card_select_picks.add(chosen)
+        return {"action": "select_card", "index": chosen}
 
     def _treasure_step(self, state: dict[str, Any]) -> dict[str, Any]:
         treasure = state.get("treasure") or {}
@@ -1474,6 +1487,8 @@ class AutoPlayer:
         self.coverage = RunCoverage()
         self._bypass_counts.clear()
         self._unhandled_counts.clear()
+        self._card_select_screen = None
+        self._card_select_picks = set()
 
     def summary(self) -> dict[str, Any]:
         result = {

@@ -173,6 +173,64 @@ class AutoplayDecisionTests(unittest.TestCase):
         state["battle"] = {"round": 3}
         self.assertIsNone(self.player.decide(state))
 
+    def test_combat_pile_card_select_is_named_not_guessed(self) -> None:
+        """The one card-select screen the build's auto-player does not drive."""
+        state = load("card_select")
+        state["card_select"]["screen_type"] = "NCombatPileCardSelectScreen"
+        state["card_select"]["can_cancel"] = False
+        self.assertIsNone(self.player.decide(state))
+        self.assertEqual(
+            self.player.coverage.deferred_to_combat,
+            {"NCombatPileCardSelectScreen": 1},
+        )
+
+    def test_an_unnamed_out_of_combat_grid_is_still_ours(self) -> None:
+        """A class name is not evidence of combat ownership.
+
+        Observed on the real client 2026-09-21: ``NDeckEnchantSelectScreen`` was
+        read as "unrecognised, so the Combat Solver owns it" and sat unattended
+        for 11 polls, which stopped the batch.  Nothing in combat serves an
+        out-of-combat grid, so abstention on an unknown name is a deadlock, not a
+        hand-off.
+        """
+        state = load("card_select")
+        state["card_select"]["screen_type"] = "NDeckEnchantSelectScreen"
+        state["card_select"]["can_cancel"] = False
+        self.assertEqual(
+            self.player.decide(state), {"action": "select_card", "index": 0}
+        )
+        self.assertEqual(self.player.coverage.deferred_to_combat, {})
+        state["card_select"]["can_confirm"] = True
+        self.assertEqual(self.player.decide(state), {"action": "confirm_selection"})
+
+    def test_card_select_walks_distinct_indices_until_the_screen_can_confirm(
+        self
+    ) -> None:
+        """``select_card`` toggles, so re-clicking one card can never complete a
+        multi-pick screen.  The screen's own ``can_confirm`` ends the walk."""
+        state = load("card_select")
+        state["card_select"]["can_cancel"] = False
+        picks = [self.player.decide(state)["index"] for _ in range(3)]
+        self.assertEqual(picks, [0, 1, 2])
+        state["card_select"]["can_confirm"] = True
+        self.assertEqual(self.player.decide(state), {"action": "confirm_selection"})
+        # A new screen instance restarts the walk.
+        state["card_select"]["can_confirm"] = False
+        state["run"]["floor"] = 9
+        self.assertEqual(
+            self.player.decide(state), {"action": "select_card", "index": 0}
+        )
+
+    def test_card_select_exhausted_without_confirming_is_left_unhandled(
+        self
+    ) -> None:
+        state = load("card_select")
+        state["card_select"]["can_cancel"] = False
+        for _ in range(len(state["card_select"]["cards"])):
+            self.player.decide(state)
+        self.assertIsNone(self.player.decide(state))
+        self.assertEqual(self.player.coverage.deferred_to_combat, {})
+
     def test_rewards_claim_card_opens_card_reward_and_pick_proceeds(self) -> None:
         state = {
             "state_type": "rewards",
