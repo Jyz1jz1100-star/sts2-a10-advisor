@@ -303,6 +303,7 @@ def sample_walks(seeds: list[int], max_steps: int) -> dict[str, Any]:
     factory = _environment_factory(config, stage, sts2_gym, max_episode_steps=max_steps)
     model = MaskablePPO.load(str(checkpoint), device="cpu")
     drawn: dict[str, list[int]] = {"act_1": [], "act_2": [], "act_3": []}
+    nodes: dict[str, list[int]] = {"act_1": [], "act_2": [], "act_3": []}
     illegal_total = 0
     deepest_floor = 0
     for seed in seeds:
@@ -318,16 +319,22 @@ def sample_walks(seeds: list[int], max_steps: int) -> dict[str, Any]:
             obs, _reward, term, trunc, info = env.step(int(action))
             illegal_total += int(info.get("illegal_actions") or 0)
             deepest_floor = max(deepest_floor, int(info.get("floor") or 0))
-            act_index = int(info.get("act_index") or 0)
+            # The run's act is published as `act` by the V2 wrapper and as
+            # `act_index` by the flat one; reading only either silently measures
+            # nothing, which is why both are tried and an empty result is reported
+            # as a measurement failure rather than as a clean act.
+            act_index = int(info.get("act") or info.get("act_index") or 0)
             encounter_id = info.get("encounter_id")
             if act_index in (1, 2, 3) and encounter_id is not None and int(encounter_id) >= 0:
                 drawn[f"act_{act_index}"].append(int(encounter_id))
+                nodes[f"act_{act_index}"].append(int(info.get("current_node_type") or 0))
             if term or trunc:
                 break
     return {
         "measured": True,
         "seeds": seeds,
         "drawn_by_act": {k: sorted(set(v)) for k, v in drawn.items()},
+        "node_types_by_act": {k: sorted(set(v)) for k, v in nodes.items()},
         "drawn_counts": {k: len(v) for k, v in drawn.items()},
         "deepest_floor": deepest_floor,
         "illegal_actions_total": illegal_total,
