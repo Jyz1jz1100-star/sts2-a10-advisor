@@ -163,6 +163,35 @@ class RunIdentityAuditTests(unittest.TestCase):
         current.update(overrides)
         return {"current_run": current}
 
+    def test_a_frame_with_no_player_does_not_abort_the_batch(self) -> None:
+        """Observed live on 2026-09-21: the comparison child died one second in.
+
+        The game was still on the menu so the first active-ish frame carried run
+        coordinates and no player block; absence was read as a contract
+        violation and took the whole supervised batch down with it.
+        """
+        audit = RunIdentityAudit()
+        transition = {
+            "state_type": "map",
+            "run": {"act": 1, "floor": 1, "ascension": 10,
+                    "run_id": "local:profile1:run-1", "seed": "2450ZAR9EF"},
+        }
+        self.assertIsNone(audit.observe(transition, self._compendium()))
+        self.assertEqual(audit.to_json()["transition_frames_skipped"], 1)
+        self.assertEqual(audit.observations, 0, "a skipped frame is not evidence")
+        self.assertFalse(audit.verified, "nothing has named Ironclad A10 yet")
+
+        # A later readable frame still satisfies the contract normally.
+        identity = audit.observe(self._state(), self._compendium())
+        self.assertIsNotNone(identity)
+        self.assertTrue(audit.verified)
+
+    def test_a_readably_wrong_character_still_fails_closed(self) -> None:
+        audit = RunIdentityAudit()
+        silent = self._state(player={"character_id": "CHARACTER.SILENT"})
+        with self.assertRaises(BatchIntegrityError):
+            audit.observe(silent, self._compendium())
+
     def test_active_state_is_recorded_and_round_trips(self) -> None:
         audit = RunIdentityAudit()
         identity = audit.observe(self._state(), self._compendium())

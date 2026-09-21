@@ -745,6 +745,8 @@ class RunIdentityAudit:
     def __init__(self) -> None:
         self.status = "pending"
         self.observations = 0
+        #: Active frames that exposed no character at all -- see ``observe``.
+        self.transition_frames = 0
         self.verified_observations = 0
         self.missing_fields: set[str] = set()
         self.conflicts: list[str] = []
@@ -779,10 +781,20 @@ class RunIdentityAudit:
         """Validate one active state; unknown identity fails closed."""
         if not _active_run(state) or state.get("state_type") in {"menu", "game_over"}:
             return None
+        live = _state_run_identity(state)
+        if live.get("character") is None and live.get("character_id") is None:
+            # A screen in transition carries run coordinates but no player block
+            # yet.  That is absence, not a conflict: treating it as a violation
+            # aborted whole batches one second after they started, whenever the
+            # game had not yet been driven onto a readable screen.  Skipping it
+            # without counting it keeps ``verified`` demanding at least one frame
+            # that actually names Ironclad A10, so nothing passes on an empty
+            # budget -- a run that never exposes identity ends unverified.
+            self.transition_frames += 1
+            return None
         if self.status == "failed":
             raise BatchIntegrityError("run identity audit is already failed")
         self.observations += 1
-        live = _state_run_identity(state)
         saved = _compendium_run_identity(compendium)
         problems: list[str] = []
 
@@ -899,6 +911,7 @@ class RunIdentityAudit:
             "verified": self.verified,
             "required": dict(RUN_IDENTITY_REQUIRED),
             "observations": self.observations,
+            "transition_frames_skipped": self.transition_frames,
             "verified_observations": self.verified_observations,
             "missing_fields": sorted(self.missing_fields),
             "conflicts": list(self.conflicts),
