@@ -66,9 +66,15 @@
 `bridge.autoplay`，一批真机的运行与自证归 `scripts/supervise_solver_batch.py`。它补的是没人
 该记住的那几步：把游戏拉起来、开跑之前先让**监督器自己的 `--dry-run`** 回答"能不能跑"
 （自 2026-09-21 起这条是真的：`_preflight_gates()` 加载 `VersionLock` 并核对实机 build，
-不匹配就以 `EXIT_PREFLIGHT_FAILED` 拒绝起局；模组字节测不出/读不到同样拒绝。
-**唯一只报告不否决的是 CombatSolver 版本漂移**——那是 operator 持有的自动更新决定，本仓库不代答），以及把结论
-读回来打印。preflight 不过时它以 exit 2 明确拒绝，不会假装成功。
+不匹配就以 `EXIT_PREFLIGHT_FAILED` 拒绝起局；模组字节测不出/读不到同样拒绝），
+以及把结论读回来打印。preflight 不过时它以 exit 2 明确拒绝，不会假装成功。
+
+**求解器的版本漂移按目的分两条轨**（2026-09-21 纠正：此前一个 `required` 哈希门同时服务两种目的，
+于是验收整局被比较实验的门禁绑架，与本文"漂移只报告、不否决"的承诺不一致）：
+`--track acceptance`（`play.py --backend live` 的默认）只点名并记录求解器字节，漂移写进
+`acceptance_blockers`，批次照跑；`--track comparison` 仍必须钉死，因为那条实验的自变量就是求解器本身。
+**两条轨都仍然拒绝缺失或不可读的必需模组**，且**批内**字节变化一律
+`invalidated_by_mod_update`（放开的只有"批前就已漂移"这个既成事实）。求解器锁本身归 operator。
 
 `--backend sim` 转发到 `scripts/probe_three_act_campaign.py`，scope 是
 `simulator_three_act`，并自 2026-09-21 起自动带上 `environment_version:

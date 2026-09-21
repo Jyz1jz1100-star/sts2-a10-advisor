@@ -80,6 +80,8 @@ def supervisor_command(args: argparse.Namespace, *, dry_run: bool) -> list[str]:
         str(SUPERVISOR),
         "--mode",
         "observational",
+        "--track",
+        args.track,
         "--base-url",
         args.base_url,
         "--max-battles",
@@ -181,6 +183,17 @@ def main() -> int:
     parser.add_argument("--max-runs", type=int, default=3)
     parser.add_argument("--max-seconds", type=int, default=None)
     parser.add_argument("--batch-id", help="only to report the finished batch's evidence")
+    parser.add_argument(
+        "--track",
+        choices=("acceptance", "comparison"),
+        default="acceptance",
+        help=(
+            "acceptance (default) plays a real run: the in-game solver owns combat "
+            "and its auto-update drift is recorded as a blocker, not a refusal. "
+            "comparison is the solver-vs-solver experiment, which needs every mod "
+            "pinned because the solver is the variable under test."
+        ),
+    )
     parser.add_argument(
         "--preflight-only",
         action="store_true",

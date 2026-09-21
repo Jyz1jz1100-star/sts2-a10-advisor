@@ -356,3 +356,44 @@ operator 授权"更新桥接 DLL 并重新进行终局胜利验证"。逐条按�
    `repeating identical action … falling back to proceed`，而 §3.5 只埋了 `decide()` 里那条兜底。
    这条"重复→改发 proceed"的兜底现在同样记账，并在第 7 次仍不推进时以
    `stop_reason=unmodelled_screen` 明确停批，而不是永远 proceed。
+
+---
+
+## 9. §8 里那句"因为求解器漂了，所以只能绕过监督器"不是可接受的稳态——已修
+
+上一节把直驱 `bridge.autoplay` 记为一次性权宜。查下去发现**实现与 README 契约确实不一致**，
+而且不是小口径问题：
+
+- `run_solver_comparison.py:146` 的 `verify_solver_inventory()` 对**所有** `required` 模组
+  一律要求哈希相等，任何不符直接 `raise VersionLockError`；
+- 监督器固定起三个子进程（`fullauto_keeper` / `comparison` / `autoplay`），
+  所以**验收链路被比较实验的门禁绑架了**；
+- 报错文案还是错的：把"operator 允许的 Workshop 自动更新把字节换了"说成
+  `"fill config/combat_solver.lock.json at installation time"`（好像锁没填）。
+
+而 README 一直承诺求解器漂移**只报告、不否决**。两边都有道理，冲突在于**一个函数被两种目的共用**：
+
+| 目的 | 求解器哈希的角色 | 应该怎样 |
+|---|---|---|
+| CombatSolver 对比实验 | 自变量（arms 之间就是换它） | 必须钉死，否则比较的不是任何东西 |
+| 真机验收整局 | 执行者身份 | 必须**点名并记录**，漂移→记为验收阻塞项，但不中止批次 |
+
+### 修法
+
+按目的分开，而不是把门禁调松：
+
+1. `verify_solver_inventory(lock, *, mod_gate)`：`strict`（默认，对比轨）保持必须相等；
+   `attest`（验收轨）漂移只记账并入 `acceptance_blockers`（`solver_version_drift:<mod>`）。
+2. **两种模式下都仍然硬失败的情况**：required 模组缺失或不可读——点不出执行者就没有 provenance。
+   这条不能松，松了就等于允许"不知道自己跟谁打的"进入验收。
+3. **批内漂移仍然致命**：`_moved_mods()` 比对批次首尾两次测量，中途换字节照旧
+   `invalidated_by_mod_update`。放开的只是"批前就已漂移"这个既成事实。
+4. 监督器加 `--track {comparison,acceptance}`，把 `--mod-gate` 传给比对子进程，并把
+   `track`/`mod_gate` 写进批次 `status.json`；`scripts/play.py --backend live` 默认走
+   `acceptance`（成品路径是"打一局"，不是"比两个求解器"）。
+5. 报错文案改成真实原因。
+
+`tests/test_mod_gate.py`（新增 6 项）钉住这四条：漂移→strict 拒 / attest 记；缺失→两模式都拒；
+track→子进程 `--mod-gate` 正确传递；未知 track 在启动前就拒。
+`verify_solver_inventory` 此前**没有任何测试覆盖**——一个会中止真机批次的安全门长期无人验证，
+这本身是这次不一致能存活到今天的原因。

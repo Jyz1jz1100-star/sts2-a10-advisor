@@ -327,10 +327,23 @@ class SupervisorConfig:
     allow_actions: bool = False
     dry_run: bool = False
     comparison_batch_id: str | None = None
+    #: ``comparison`` pins every mod because the experiment varies the solver.
+    #: ``acceptance`` plays a real run and only needs to name the executor, so
+    #: solver drift is recorded rather than fatal -- the contract README already
+    #: promises. Both tracks still stop on a missing or unreadable mod.
+    track: str = "comparison"
     autoplay_lock: Path = DEFAULT_AUTOPLAY_LOCK
+
+    @property
+    def mod_gate(self) -> str:
+        return "attest" if self.track == "acceptance" else "strict"
 
     def __post_init__(self) -> None:
         validate_batch_id(self.batch_id)
+        if self.track not in {"comparison", "acceptance"}:
+            raise SupervisorConfigurationError(
+                f"unknown track {self.track!r}; expected comparison or acceptance"
+            )
         if self.mode not in {"fixed", "observational"}:
             raise SupervisorConfigurationError(
                 "mode must be explicitly 'fixed' or 'observational'"
@@ -491,6 +504,8 @@ def build_component_commands(
         "--bridge-grace-seconds",
         str(config.game_loss_grace_seconds),
         "--automated",
+        "--mod-gate",
+        config.mod_gate,
     ]
     if config.max_seconds is not None:
         comparison.extend(["--max-seconds", str(config.max_seconds)])
@@ -1220,6 +1235,8 @@ class BatchSupervisor:
             "batch_id": self.config.batch_id,
             "comparison_batch_id": self.config.resolved_comparison_batch_id,
             "mode": self.config.mode,
+            "track": self.config.track,
+            "mod_gate": self.config.mod_gate,
             "seed_allocation": self._seed_allocation_snapshot(),
             "status": self.status,
             "started_at_utc": self.started_at_utc,
@@ -1869,6 +1886,17 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
         help="seed evidence mode; must be explicit for every new batch",
     )
+    parser.add_argument(
+        "--track",
+        choices=("comparison", "acceptance"),
+        default="comparison",
+        help=(
+            "comparison pins every required mod (the solver is the variable "
+            "under test); acceptance plays a real run and records solver drift "
+            "as a blocker instead of aborting. Both still refuse a mod that is "
+            "missing or unreadable."
+        ),
+    )
     parser.add_argument("--batch-id", default=None)
     parser.add_argument(
         "--seed-file",
@@ -1920,6 +1948,7 @@ def main(argv: list[str] | None = None) -> int:
         config = SupervisorConfig(
             batch_id=batch_id,
             mode=args.mode,
+            track=args.track,
             seed_file=args.seed_file,
             seed_ledger=args.seed_ledger,
             output_root=args.output_root,

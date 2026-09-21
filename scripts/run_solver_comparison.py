@@ -143,8 +143,22 @@ def resolve_gate_config(
     return gate_values, provenance
 
 
-def verify_solver_inventory(solver_lock: VersionLock) -> dict:
-    """Fail-closed mod inventory: every required DLL present and hash-matched."""
+def verify_solver_inventory(
+    solver_lock: VersionLock, *, mod_gate: str = "strict"
+) -> dict:
+    """Check the mods this batch depends on.
+
+    Two different things were being conflated here.  A *comparison* experiment
+    changes the solver between arms, so the solver's bytes are the independent
+    variable and must match the pin or the comparison compares nothing.  An
+    *acceptance* batch only needs to be able to name the combat executor it
+    played against; the operator lets Steam auto-update that mod, and README
+    promises drift is reported rather than vetoed.  Under ``attest`` a drifted
+    hash is therefore recorded and surfaced as an acceptance blocker instead of
+    aborting, while a mod that is missing or unreadable still stops every track:
+    no name, no provenance.  Bytes moving *during* a batch remain fatal in both
+    modes -- that is what would actually make the evidence unattributable.
+    """
     environment = solver_lock.raw.get("evaluation_environment") or {}
     inventory = environment.get("mod_dll_inventory") or []
     results = []
@@ -153,27 +167,55 @@ def verify_solver_inventory(solver_lock: VersionLock) -> dict:
             continue
         path_value = entry.get("path")
         expected = entry.get("sha256")
-        observed = _sha256(Path(path_value)) if path_value else None
-        ok = bool(path_value) and observed is not None and (
-            expected is None or observed == str(expected).upper()
+        observed = None
+        unreadable = None
+        if not path_value:
+            unreadable = "no_path_declared"
+        else:
+            target = Path(path_value)
+            try:
+                observed = _sha256(target) if target.is_file() else None
+            except OSError as exc:
+                unreadable = f"unreadable: {exc}"
+            if observed is None and unreadable is None:
+                unreadable = "missing_file"
+        matches = (
+            observed is not None and (expected is None or observed == str(expected).upper())
         )
         results.append(
             {
                 "mod_id": entry.get("mod_id"),
                 "path": path_value,
+                "sha256_expected": expected,
                 "sha256_observed": observed,
-                "ok": ok,
+                "matches_lock": bool(matches),
+                "error": unreadable,
+                "ok": unreadable is None and (matches or mod_gate == "attest"),
             }
         )
-    failed = [r["mod_id"] for r in results if not r["ok"]]
-    if failed:
+    unusable = [r["mod_id"] for r in results if r["error"]]
+    if unusable:
         raise VersionLockError(
-            "Combat Solver track mod inventory incomplete/failing (fill "
-            "config/combat_solver.lock.json at installation time): "
-            + ", ".join(str(m) for m in failed)
+            "Required mods are missing or unreadable, so this batch cannot name "
+            "what executed combat: " + ", ".join(str(m) for m in unusable)
+        )
+    drifted = [str(r["mod_id"]) for r in results if not r["matches_lock"]]
+    if drifted and mod_gate != "attest":
+        raise VersionLockError(
+            "Mod bytes differ from the pin and this track compares mods, so the "
+            "comparison would have no fixed independent variable: "
+            + ", ".join(drifted)
+            + ". Re-pin under authorization, or run the acceptance track with "
+            "--mod-gate attest."
         )
     observed_mods = solver_lock.verify_live_mods()
-    return {"verified": True, "mods": observed_mods, "inventory": results}
+    return {
+        "verified": True,
+        "mods": observed_mods,
+        "inventory": results,
+        "mod_gate": mod_gate,
+        "drifted_from_lock": drifted,
+    }
 
 
 def cross_check_game_identity(live_lock: VersionLock, solver_lock: VersionLock) -> None:
@@ -1292,6 +1334,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--bridge-grace-seconds", type=float, default=30.0)
     parser.add_argument("--base-url", default=None)
     parser.add_argument(
+        "--mod-gate",
+        default="strict",
+        choices=["strict", "attest"],
+        help=(
+            "strict: required mod bytes must match the pin (a comparison "
+            "experiment needs a fixed independent variable). attest: mod bytes "
+            "are named and recorded, drift becomes an acceptance blocker rather "
+            "than an abort; a missing or unreadable mod still stops the batch."
+        ),
+    )
+    parser.add_argument(
         "--reader-mode",
         default=None,
         choices=["jsonl", "logtail", "directory"],
@@ -1409,6 +1462,13 @@ def main(argv: list[str] | None = None) -> int:
             blockers.append("legacy_records_without_full_checkpoint")
         if not identity_verified:
             blockers.append("run_identity_unverified")
+        # Drift no longer stops an acceptance batch, but it must never be able to
+        # make one look acceptance-grade either: the solver's behaviour is what
+        # the win rate is actually measuring.
+        if inventory is not None and inventory.get("drifted_from_lock"):
+            blockers.append(
+                "solver_version_drift:" + ",".join(inventory["drifted_from_lock"])
+            )
         verdict = {
             "accepted": (
                 current_status == "complete"
@@ -1588,7 +1648,7 @@ def main(argv: list[str] | None = None) -> int:
         # observational evidence as fixed-seed evidence.
         cross_check_game_identity(live_lock, solver_lock)
         game_observed = live_lock.verify_installed_game()
-        inventory = verify_solver_inventory(solver_lock)
+        inventory = verify_solver_inventory(solver_lock, mod_gate=args.mod_gate)
         reader = build_reader(config, PROJECT_ROOT, args.reader_mode)
         comparison_cfg = config.get("comparison") or {}
         max_battles = args.max_battles
