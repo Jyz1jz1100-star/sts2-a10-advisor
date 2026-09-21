@@ -65,6 +65,8 @@ class RunCoverage:
         self.unhandled_screens: dict[str, list[dict[str, Any]]] = {}
         #: prompts the driver left to the in-game combat owner, by screen type
         self.deferred_to_combat: dict[str, int] = {}
+        #: frames the driver held off on because the client is mid-transition
+        self.waits_for_transition: dict[str, int] = {}
         #: state_types that were seen but have no out-of-combat rule
         self.unknown_screens: dict[str, int] = {}
         self.outcome: bool | None = None
@@ -135,6 +137,17 @@ class RunCoverage:
         """
         key = str(screen_type)
         self.deferred_to_combat[key] = self.deferred_to_combat.get(key, 0) + 1
+
+    def note_wait_for_transition(self, reason: str) -> None:
+        """Record a frame the driver deliberately held off on.
+
+        A held frame is neither an illegal post nor a skipped screen, but a run
+        that spent most of its time holding has to be able to say so.
+        """
+        key = str(reason)
+        self.waits_for_transition[key] = (
+            self.waits_for_transition.get(key, 0) + 1
+        )
 
     def note_unhandled(self, state_type: str, act, floor) -> None:
         """Record a screen with no rule the moment it is seen.
@@ -245,6 +258,7 @@ class RunCoverage:
             ],
             "unknown_screens": dict(self.unknown_screens),
             "deferred_to_combat": dict(self.deferred_to_combat),
+            "waits_for_transition": dict(self.waits_for_transition),
             # The one claim that must not be wrong: a run is complete only on the
             # game's own victory terminal with all three acts, all three ancients
             # and four boss clears in the same continuous stream.

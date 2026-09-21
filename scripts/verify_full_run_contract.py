@@ -115,6 +115,9 @@ def check_run(records: list[dict[str, Any]], coverage: RunCoverage) -> dict[str,
         "every_action_was_legal_and_acked",
         bool(posted) and len(refused) == 0,
         f"posted={len(posted)} refused={len(refused)}"
+        # A clean pass must not be able to hide a run that spent its time
+        # holding, so the holds are printed next to the count that passed.
+        f" waits={cov.get('waits_for_transition', {})}"
         + (f" first_refusals={[r.get('error') for r in refused[:3]]}" if refused else ""),
     )
     add(

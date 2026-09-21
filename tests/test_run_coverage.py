@@ -7,11 +7,19 @@ loss, which is the misfiling this whole audit exists to stop.
 """
 from __future__ import annotations
 
+import json
 import unittest
+from pathlib import Path
 
 from bridge.autoplay import AutoPlayer
 from bridge.outcome import outcome_source, run_outcome
 from bridge.run_progress import RunCoverage
+
+FIXTURES = Path(__file__).parent / "fixtures" / "screens"
+
+
+def load(name: str) -> dict:
+    return json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8"))["state"]
 
 
 def state(act, floor, state_type, *, hp=50, event=None, enemies=None, game_over=None):
@@ -253,6 +261,46 @@ class SilentSkipBoundsTests(unittest.TestCase):
             [{"action": "choose_event_option", "index": 0}] * len(controller.posts),
         )
         self.assertTrue(controller.posts)
+
+    def test_an_acked_travel_closes_the_map_it_was_chosen_from(self) -> None:
+        """The client keeps reporting the map it was asked to leave.
+
+        Real trace, 2026-09-21: after ``choose_map_node`` was answered with
+        ``Traveling to Monster at (1,1)``, three more polls still reported the
+        map at the old node with legal-looking options, and the driver's second
+        post came back ``Map screen is not open``.  A travel the mod already
+        acknowledged is not a pending decision.
+        """
+        base = load("map")
+
+        class TravelController:
+            def __init__(self):
+                self.polls = 0
+                self.posts = []
+
+            def get_state(self):
+                self.polls += 1
+                state = json.loads(json.dumps(base))
+                if self.polls > 6:
+                    state["map"]["current_position"] = {
+                        "col": 1, "row": 12, "type": "Monster",
+                    }
+                return state, f"decision-{self.polls}"
+
+            def send_action(self, payload, **kwargs):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        controller = TravelController()
+        player = AutoPlayer(controller, max_runs=1, max_actions=2, poll=0)
+        player.run()
+        self.assertEqual(len(controller.posts), 2, controller.posts)
+        coverage = player.coverage.coverage()
+        self.assertEqual(
+            coverage["waits_for_transition"],
+            {"map travel already acknowledged from this node": 5},
+        )
+        self.assertEqual(coverage["unhandled_screens"], {})
 
     def test_a_ruled_screen_is_not_counted_as_unhandled(self) -> None:
         player = AutoPlayer(controller=None)

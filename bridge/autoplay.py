@@ -229,6 +229,27 @@ _HEURISTIC_SCREENS = {"card_reward", "shop", "rest_site", "map"}
 _COMBAT_OWNED_CARD_SELECT_SCREENS = frozenset({"NCombatPileCardSelectScreen"})
 
 
+class WaitForTransition:
+    """The driver is holding off on purpose: the client is mid-transition.
+
+    Not a refused post and not a skipped screen, so it must not travel through
+    the same path as either -- the caller keeps polling, the bounded stall
+    watchdog still applies, and the run records how long it held.
+    """
+
+    __slots__ = ("reason",)
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+
+
+def _map_position(state: dict[str, Any]) -> str:
+    """The map node the client currently stands on, as a comparable value."""
+    return json.dumps(
+        (state.get("map") or {}).get("current_position"), sort_keys=True
+    )
+
+
 def _first_present(*values: Any) -> Any:
     """Return the first value that is present, including falsy scalars."""
     for value in values:
@@ -626,6 +647,10 @@ class AutoPlayer:
         self._unhandled_counts: dict[str, int] = {}
         #: the identical frame the current unhandled streak started from
         self._unhandled_identity: tuple[str, str] | None = None
+        #: map node whose travel the mod already acknowledged; the client keeps
+        #: reporting that map while the travel animation plays, and posting a
+        #: second choose_map_node into it is a move the state no longer offers
+        self._map_travel_committed: str | None = None
         self._max_unhandled_per_screen = 10
         self.runs_started = 0
         self.consecutive_failures = 0
@@ -672,17 +697,25 @@ class AutoPlayer:
         self._seed_continue_required = False
 
     # ------------------------------------------------------------- decisions
-    def decide(self, state: dict[str, Any]) -> dict[str, Any] | None:
+    def decide(
+        self, state: dict[str, Any]
+    ) -> dict[str, Any] | WaitForTransition | None:
         """Return the wire payload for this screen, or None to leave it alone."""
         state_type = str(state.get("state_type") or "unknown")
         fresh = self._last_screen != state_type
         self._last_screen = state_type
         if state_type in _COMBAT_SCREEN_TYPES:
             return None  # the Combat Solver owns every combat screen
+        if state_type != "map":
+            self._map_travel_committed = None
         event = state.get("event") or {}
         if state_type == "event" and event.get("in_dialogue"):
             # post-choice dialogue: advance until real options return
             return {"action": "advance_dialogue"}
+        if state_type == "map" and _map_position(state) == self._map_travel_committed:
+            return WaitForTransition(
+                "map travel already acknowledged from this node"
+            )
         payload: dict[str, Any] | None = None
         if state_type in _HEURISTIC_SCREENS:
             try:
@@ -1338,6 +1371,27 @@ class AutoPlayer:
                         self._stall_since = None
                         self._stall_screen = state_type
                     payload = self.decide(state)
+                    if isinstance(payload, WaitForTransition):
+                        # A held frame is neither a refused post nor a skipped
+                        # screen: the client still reports the map it was asked
+                        # to leave, and the only legal move is to wait for it.
+                        # Bounded, because a hold that never resolves is exactly
+                        # the hang the unhandled budget exists to catch.
+                        run_state = state.get("run") or {}
+                        self.coverage.note_wait_for_transition(payload.reason)
+                        print(
+                            f"[autoplay] holding: {payload.reason} "
+                            f"at act {run_state.get('act')} floor {run_state.get('floor')}",
+                            flush=True,
+                        )
+                        self._stall_since = self._stall_since or time.monotonic()
+                        if time.monotonic() - self._stall_since > 300:
+                            raise BridgeProtocolError(
+                                f"stalled: {payload.reason} for over 5 minutes "
+                                "— manual action required"
+                            )
+                        time.sleep(self.poll)
+                        continue
                     if payload is None:
                         # non-combat screens must always be decidable; an
                         # unsupported one would stall the batch silently
@@ -1411,6 +1465,12 @@ class AutoPlayer:
                                 "proceed escape did not change state",
                             )
                     self.controller.send_action(payload, expected_decision_id=decision_id)
+                    if payload.get("action") == "choose_map_node":
+                        # Only an acknowledged travel counts as committed: a
+                        # refused one leaves the map genuinely open, and the
+                        # next poll must be free to try again.
+                        self._map_travel_committed = _map_position(state)
+                        self._stall_since = None
             except SeedAllocationExhausted:
                 # Exhaustion is a clean, auditable stop.  Never fall through
                 # to an unseeded/random start once the allocation is spent.
