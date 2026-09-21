@@ -12,6 +12,7 @@ from unittest.mock import patch
 import scripts.supervise_solver_batch as supervise_solver_batch
 from scripts.supervise_solver_batch import (
     EXIT_CHILD_FAILED,
+    EXIT_CLIENT_WEDGED,
     EXIT_GAME_LOST,
     EXIT_GAME_WAIT_TIMEOUT,
     EXIT_OK,
@@ -638,6 +639,44 @@ class FailureConvergenceTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def test_acceptance_observer_death_is_an_attestation_gap_not_a_veto(self) -> None:
+        """The run is the deliverable; the witness over it is evidence.
+
+        ssb-20260921T122818Z-0ba3f976: the comparison child gave up after a 5s
+        bridge timeout and the supervisor stopped the autoplay child with it, so
+        an acceptance batch produced no run at all on the observer's schedule.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=1, autoplay_code=0)
+            config = _config(root, clock, track="acceptance")
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+
+            result = supervisor.run()
+            self.assertNotEqual(result, EXIT_CHILD_FAILED)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "autoplay_completed")
+            self.assertEqual(status["exit_codes"]["autoplay"], 0)
+            self.assertEqual(
+                status["attestation_gaps"], ["comparison_observer_exited:1"]
+            )
+            events = [
+                json.loads(line)["event"]
+                for line in supervisor.supervisor_log_path.read_text(
+                    encoding="utf-8"
+                ).splitlines()
+            ]
+            self.assertIn("comparison_observer_lost", events)
+            self.assertNotIn("comparison_failed", events)
+
     def test_autoplay_clean_exit_completes_batch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1256,6 +1295,90 @@ class PreflightGateTests(unittest.TestCase):
                 supervisor.status_path.read_text(encoding="utf-8")
             )["preflight_gates"]
             self.assertIn("CombatSolver", gates["mod_attestation"]["unreadable"])
+
+
+class ClientWedgeTests(unittest.TestCase):
+    """The batch must not let a wedged client pour gigabytes into the disk.
+
+    Real client, 2026-09-21: walking into an event node put the game loop in a
+    per-frame failed VFX instantiation.  ``godot.log`` grew 2.3 GB in about two
+    minutes while the bridge stopped answering, and nothing on our side could
+    observe the client any more -- its own log was the only signal left.
+    """
+
+    def test_runaway_client_log_stops_the_batch_and_freezes_the_client(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_dir = root / "game-logs"
+            log_dir.mkdir()
+            log = log_dir / "godot.log"
+            log.write_bytes(b"MegaDot v4.5.1 starting up\n")
+            clock = FakeClock()
+
+            def sleep(seconds: float) -> None:
+                with log.open("ab") as handle:
+                    handle.write(
+                        b'ERROR: Parameter "particles" is null.\n' * 40_000
+                    )
+                clock.sleep(seconds)
+
+            popen = FakePopen(comparison_code=None, autoplay_code=None)
+            config = _config(
+                root, clock, game_log_dir=log_dir, game_log_wedge_samples=3
+            )
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            with patch.object(
+                supervise_solver_batch,
+                "freeze_client",
+                return_value={"image": "SlayTheSpire2.exe", "pids": [7], "frozen": [7]},
+            ) as freeze:
+                result = supervisor.run()
+
+            self.assertEqual(result, EXIT_CLIENT_WEDGED)
+            freeze.assert_called_once()
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "client_wedged")
+            watchdog = status["client_watchdog"]
+            self.assertGreater(
+                watchdog["bytes_per_second"], watchdog["limit_bytes_per_second"]
+            )
+            self.assertEqual(watchdog["client"]["frozen"], [7])
+            self.assertIn("particles", " ".join(watchdog["repeated_errors"]))
+
+    def test_a_healthy_client_log_never_triggers_the_watchdog(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_dir = root / "game-logs"
+            log_dir.mkdir()
+            log = log_dir / "godot.log"
+            clock = FakeClock()
+
+            def sleep(seconds: float) -> None:
+                with log.open("ab") as handle:
+                    handle.write(b"[INFO] a few hundred bytes of ordinary logging\n")
+                clock.sleep(seconds)
+
+            popen = FakePopen(comparison_code=None, autoplay_code=0)
+            config = _config(root, clock, game_log_dir=log_dir)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=sleep,
+                comparison_output_dir=root / "comparison",
+            )
+
+            result = supervisor.run()
+            self.assertNotEqual(result, EXIT_CLIENT_WEDGED)
+            self.assertIsNone(supervisor.client_watchdog)
 
 
 if __name__ == "__main__":

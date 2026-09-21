@@ -43,6 +43,7 @@ import sys
 import tempfile
 import time
 import uuid
+from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -82,6 +83,7 @@ EXIT_STOPPED = 130
 EXIT_RUN_TIMEOUT = 8
 EXIT_PARTIAL = 9
 EXIT_PREFLIGHT_FAILED = 10
+EXIT_CLIENT_WEDGED = 11
 
 # Mirrors ``bridge.autoplay.EXIT_CLASSIFIED_STOP``: the autoplay child ended
 # itself on purpose for a recorded reason (stale state, bridge unavailable).
@@ -322,6 +324,12 @@ class SupervisorConfig:
     poll_seconds: float = 0.5
     game_wait_seconds: float = 60.0
     game_loss_grace_seconds: float = 5.0
+    #: The client's own log is a diagnostic file, not a stream: a healthy session
+    #: wrote 9.2 MB across a whole day of batches.  A rate this high means the
+    #: game loop is pouring the same failing call every frame, which starves the
+    #: bridge and fills the disk unattended (see ``_sample_client_log``).
+    game_log_growth_limit_bytes_per_second: float = 5_000_000.0
+    game_log_wedge_samples: int = 4
     graceful_timeout_seconds: float = 10.0
     run_timeout_seconds: float | None = None
     allow_actions: bool = False
@@ -672,6 +680,107 @@ def snapshot_solver_logs(
             )
         inventory.append(row)
     return inventory
+
+
+CLIENT_PROCESS_IMAGE = "SlayTheSpire2.exe"
+
+
+def live_client_log(log_dir: Path) -> Path | None:
+    """The log the running client is writing to, if the directory is readable.
+
+    ``godot.log`` is the live file and the client renames it to a timestamped
+    one on its next start, so the timestamped siblings are history.
+    """
+    live = Path(log_dir) / "godot.log"
+    if live.is_file():
+        return live
+    try:
+        entries = [p for p in Path(log_dir).glob(SOLVER_LOG_GLOB) if p.is_file()]
+    except OSError:
+        return None
+    return max(entries, key=lambda p: p.name) if entries else None
+
+
+def repeated_log_errors(path: Path, *, tail_bytes: int = 262_144) -> list[str]:
+    """The ``ERROR:`` lines in the log's last chunk, most frequent first.
+
+    Read from the end only: a wedged client's log runs to gigabytes, and the
+    repeating frame is by definition in the tail.
+    """
+    try:
+        with path.open("rb") as handle:
+            handle.seek(0, os.SEEK_END)
+            handle.seek(max(0, handle.tell() - tail_bytes))
+            chunk = handle.read().decode("utf-8", "replace")
+    except OSError:
+        return []
+    counts = Counter(
+        line.strip() for line in chunk.splitlines() if line.startswith("ERROR:")
+    )
+    return [f"{text} x{n}" for text, n in counts.most_common(3)]
+
+
+def client_pids(image: str = CLIENT_PROCESS_IMAGE) -> list[int]:
+    """Process ids for the client image, via ``tasklist`` (no psutil needed)."""
+    try:
+        proc = subprocess.run(
+            ["tasklist", "/FI", f"IMAGENAME eq {image}", "/FO", "CSV", "/NH"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return []
+    pids: list[int] = []
+    for line in (proc.stdout or "").splitlines():
+        fields = line.strip().split('","')
+        if len(fields) < 2 or fields[0].strip('"').lower() != image.lower():
+            continue
+        try:
+            pids.append(int(fields[1].strip('"')))
+        except ValueError:
+            continue
+    return pids
+
+
+def freeze_client(image: str = CLIENT_PROCESS_IMAGE) -> dict[str, Any]:
+    """Suspend a wedged client instead of killing it.
+
+    A kill can land inside the game's own save write, and the operator's
+    boundary on this machine is that saves and profiles are never touched.  A
+    suspend stops the runaway loop -- and the disk it is filling -- while
+    leaving the process, its window and its files exactly where they were, and
+    the user can close or resume it.  The outcome is reported, never swallowed.
+    """
+    pids = client_pids(image)
+    if not pids:
+        return {"image": image, "pids": [], "frozen": [], "error": "no such process"}
+    try:
+        import ctypes
+    except ImportError as exc:  # pragma: no cover - non-Windows
+        return {"image": image, "pids": pids, "frozen": [], "error": str(exc)}
+    frozen: list[int] = []
+    errors: dict[str, str] = {}
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    PROCESS_SUSPEND_RESUME = 0x0800
+    for pid in pids:
+        handle = kernel32.OpenProcess(PROCESS_SUSPEND_RESUME, False, pid)
+        if not handle:
+            errors[str(pid)] = f"OpenProcess failed: {ctypes.get_last_error()}"
+            continue
+        try:
+            status = ntdll.NtSuspendProcess(int(handle))
+        finally:
+            kernel32.CloseHandle(handle)
+        if status == 0:
+            frozen.append(pid)
+        else:
+            errors[str(pid)] = f"NtSuspendProcess status {status:#x}"
+    result: dict[str, Any] = {"image": image, "pids": pids, "frozen": frozen}
+    if errors:
+        result["errors"] = errors
+    return result
 
 
 def verify_comparison_artifacts(
@@ -1110,6 +1219,13 @@ class BatchSupervisor:
         self.mods_at_end: dict[str, Any] | None = None
         #: What ``--dry-run`` concluded about running a batch on this machine.
         self.preflight_gates: dict[str, Any] | None = None
+        #: (path, size, mono) of the previous client-log sample.
+        self._client_log_sample: tuple[Path, int, float] | None = None
+        self._client_log_fast_samples = 0
+        #: Set when the client was found wedged; names what was done about it.
+        self.client_watchdog: dict[str, Any] | None = None
+        #: Things that degrade this batch's self-attestation without vetoing it.
+        self.attestation_gaps: list[str] = []
         self.seed_allocation = (
             load_seed_allocation(config.resolved_seed_file)
             if config.mode == "fixed" and config.resolved_seed_file is not None
@@ -1270,6 +1386,11 @@ class BatchSupervisor:
             "children": self._child_snapshot(),
             "exit_codes": self.exit_codes,
             "comparison_result": self.comparison_result,
+            #: Why this batch's self-attestation is weaker than it looks.  The
+            #: acceptance track records an observer that died instead of letting
+            #: it veto the run the batch exists to produce.
+            "attestation_gaps": list(self.attestation_gaps),
+            "client_watchdog": self.client_watchdog,
             # Read-only Combat Solver/game log inventory around the batch
             # window.  Hash-observation semantics only: the fields say which
             # hashes were observed at start / end.  A hash missing from
@@ -1663,6 +1784,25 @@ class BatchSupervisor:
                     self._stop_children("comparison_artifacts_invalid")
                     self._finalize_stop()
                     return EXIT_CHILD_FAILED
+                if self.config.track == "acceptance":
+                    # The acceptance batch exists to produce the run; this child
+                    # only witnesses what the auto-updating solver did while the
+                    # run was playing.  Its death costs the batch evidence, and
+                    # evidence lost is not a reason to kill the thing being
+                    # attested -- the same split the solver-drift gate uses.  If
+                    # the client itself went away, ``game_lost`` below says so
+                    # under its own name.
+                    self.attestation_gaps.append(
+                        f"comparison_observer_exited:{comparison_code}"
+                    )
+                    self.children.pop("comparison", None)
+                    self._log(
+                        "comparison_observer_lost",
+                        exit_code=comparison_code,
+                        remaining_children=sorted(self.children),
+                    )
+                    self._persist("running")
+                    continue
                 self.stop_reason = "comparison_failed"
                 self._log("comparison_failed", exit_code=comparison_code)
                 self._stop_children("comparison_failed")
@@ -1723,6 +1863,15 @@ class BatchSupervisor:
                     self._log("game_restored", missing_seconds=round(self.clock() - game_missing_since, 3))
                 game_missing_since = None
 
+            wedge = self._sample_client_log()
+            if wedge is not None:
+                self.client_watchdog = wedge
+                self.stop_reason = "client_wedged"
+                self._log("client_wedged", **wedge)
+                self._stop_children("client_wedged")
+                self._finalize_stop()
+                return EXIT_CLIENT_WEDGED
+
             elapsed = self.clock() - started
             if self.config.run_timeout_seconds is not None and elapsed >= self.config.run_timeout_seconds:
                 self.stop_reason = "supervisor_timeout"
@@ -1731,6 +1880,60 @@ class BatchSupervisor:
                 self._finalize_stop()
                 return EXIT_RUN_TIMEOUT
             self.sleep(max(0.01, self.config.poll_seconds))
+
+    def _sample_client_log(self) -> dict[str, Any] | None:
+        """Report a wedged client, and freeze it, from its own log's growth.
+
+        Observed on the real client 2026-09-21: travelling to an event node put
+        the game loop into a per-frame failed VFX instantiation
+        (``PunchOff.PunchEachOther`` -> ``NHitSparkVfx.Create`` ->
+        ``Parameter "particles" is null``).  The client wrote 2.3 GB to
+        ``godot.log`` in about two minutes, stopped serving the bridge inside ten
+        seconds, and would have gone on filling the disk unattended.  A batch
+        cannot continue through that, so the run is named and the process is
+        suspended -- not killed, which is the difference between stopping the
+        runaway and touching the save file.
+        """
+        limit = self.config.game_log_growth_limit_bytes_per_second
+        path = live_client_log(self.config.game_log_dir)
+        now = self.clock()
+        previous = self._client_log_sample
+        try:
+            size = path.stat().st_size if path is not None else None
+        except OSError:
+            size = None
+        self._client_log_sample = (path, size, now) if path and size is not None else None
+        if (
+            path is None
+            or size is None
+            or previous is None
+            or previous[0] != path
+            or now <= previous[2]
+        ):
+            self._client_log_fast_samples = 0
+            return None
+        rate = (size - previous[1]) / (now - previous[2])
+        if rate <= limit:
+            self._client_log_fast_samples = 0
+            return None
+        self._client_log_fast_samples += 1
+        if self._client_log_fast_samples < self.config.game_log_wedge_samples:
+            return None
+        report = {
+            "log_path": str(path),
+            "log_bytes": size,
+            "bytes_per_second": round(rate, 1),
+            "samples_over_limit": self._client_log_fast_samples,
+            "limit_bytes_per_second": limit,
+            "repeated_errors": repeated_log_errors(path),
+            "client": freeze_client(),
+            "note": (
+                "the client was suspended mid-screen, not killed; nothing was "
+                "written to its save files, and closing the window from the "
+                "desktop is the operator's call"
+            ),
+        }
+        return report
 
     def _preflight_gates(self) -> dict[str, Any]:
         """Answer "can a batch be played here" from the files the run trusts.

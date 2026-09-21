@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "finding": "real_client_wedges_on_the_punch_off_event_room",
+  "observed_at_utc": "2026-09-21T12:29:12Z",
+  "batch_id": "ssb-20260921T122818Z-0ba3f976",
+  "track": "acceptance",
+  "classification": "flow_blocked_by_client",
+  "not_a_strategy_death_because": "the run did not lose HP to an enemy; the client process stopped serving the bridge inside ten seconds of walking into the room, and no action of ours was in flight",
+  "sequence": [
+    "12:29:03 ACTION choose_map_node index 0 -> 'Traveling to Unknown at (2,10)'",
+    "12:29:03 STATE state_type=unknown act 1 floor 10 hp 80/80",
+    "12:29:07 comparison child: GET /api/v1/singleplayer timed out",
+    "12:29:12 comparison child gave up (bridge_grace_seconds=5.0), supervisor stopped autoplay + keeper, batch exit 5",
+    "12:31:11 measured the client's own log growing 50,380,091 bytes in 3 seconds",
+    "12:35 process still alive, bridge still unresponsive after a 20s timeout",
+    "12:36 wedged client terminated by the operator of this batch (no save file was written to or deleted)"
+  ],
+  "client_log": {
+    "path": "C:\\Users\\Administrator\\AppData\\Roaming\\SlayTheSpire2\\logs\\godot2026-09-21T20.43.18.log",
+    "bytes": 2301246672,
+    "lines": 22044517,
+    "measured_growth_bytes_per_second": 16793363,
+    "particles_null_errors": 708549,
+    "lines_naming_punch_off": 2368137,
+    "first_error_line": 8386,
+    "repeated_error": "ERROR: Parameter \"particles\" is null. at: particles_set_mode (servers/rendering/renderer_rd/storage_rd/particles_storage.cpp:247)",
+    "preceding_errors": [
+      "ERROR: System.InvalidOperationException: An attempt was made to transition a task to a final state when it had already completed. at NChooseACardSelectionScreen.SelectHolder",
+      "ERROR: Invalid Task ID",
+      "ERROR: Element limit reached. at: initialize_rid (./core/templates/rid_owner.h:274)"
+    ],
+    "failing_frame": "MegaCrit.Sts2.Core.Models.Events.PunchOff+<PunchEachOther>d__12.MoveNext() <- EventRoom.EnterInternal"
+  },
+  "real_build_evidence": {
+    "event": "PunchOff",
+    "source": "decompiled/MegaCrit.Sts2.Core.Models.Events/PunchOff.cs",
+    "notes": [
+      "PunchOff.cs:30 LayoutType => EventLayoutType.Combat, so the room builds a combat layout with two dummy enemies",
+      "PunchOff.cs:40 IsAllowed => runState.TotalFloor >= 6, so it is eligible from Act 1 floor 6 onward",
+      "PunchOff.cs:65 AfterEventStarted runs PunchEachOther() fire-and-forget and it is only cancelled by RoomExited",
+      "PunchOff.cs:81-99 the loop instantiates vfx/vfx_attack_blunt and NHitSparkVfx.Create every cycle; on this machine both instantiations fail, and the awaits stop yielding, so the failure repeats thousands of times per second"
+    ]
+  },
+  "novelty": "no earlier client log on this machine (2026-09-18, 09-20, 09-21 00:53, 09-21 18:19) contains PunchEachOther or Element limit reached; the continuous runs only reached an event node past floor 6 today",
+  "consequences_for_the_delivery_goal": [
+    "A continuous Floor 1 -> victory trace cannot cross this room while the client behaves this way, and the event is drawn from the Act 1 pool, so it is not avoidable by choosing a different route at an earlier node",
+    "abandon_run is off-limits by operator instruction, so the wedged run is left in the save file and any later batch that continues it re-enters the same room",
+    "this is a real-machine content/flow gap, not strategy weakness, and must be reported as such"
+  ],
+  "engineering_response": {
+    "client_wedge_watchdog": "scripts/supervise_solver_batch.py BatchSupervisor._sample_client_log: growth over 5 MB/s in the client's own live log, on 4 consecutive polls, stops the batch with stop_reason=client_wedged and freezes (NtSuspendProcess) rather than kills the client, because a kill can land inside the game's own save write",
+    "acceptance_track_conflation_fix": "a comparison observer that exits non-zero on the acceptance track is now recorded as attestation_gaps=comparison_observer_exited:<code> and the run keeps playing; on the comparison track it stays fatal, because there the observer's battles are the deliverable",
+    "tests": [
+      "tests/test_solver_supervisor.py ClientWedgeTests.test_runaway_client_log_stops_the_batch_and_freezes_the_client",
+      "tests/test_solver_supervisor.py ClientWedgeTests.test_a_healthy_client_log_never_triggers_the_watchdog",
+      "tests/test_solver_supervisor.py FailureConvergenceTests.test_acceptance_observer_death_is_an_attestation_gap_not_a_veto"
+    ]
+  },
+  "separate_defect_found_in_the_same_window": {
+    "batch_id": "ssb-20260921T120802Z-55de2c04",
+    "symptom": "stop_reason=unhandled_screen, detail=\"no rule and no continue control for screen 'card_select' at act 1 floor 5 after 11 frames\", coverage.deferred_to_combat={'NDeckEnchantSelectScreen': 11}",
+    "root_cause": "bridge/autoplay.py treated any unrecognised card_select class name as combat-owned, but an out-of-combat grid has no combat owner to hand it to, so the abstention was a deadlock",
+    "real_build_evidence": "MegaCrit.Sts2.Core.AutoSlay.Handlers.Screens/DeckEnchantScreenHandler.cs drives NDeckEnchantSelectScreen, so the build's own auto-player considers it out of combat; NCombatPileCardSelectScreen has no handler in that registry",
+    "fix": "abstain only on the one class the registry does not drive, and walk distinct grid indices until the screen's own can_confirm lights up (recorded by tests/test_autoplay.py)"
+  }
+}

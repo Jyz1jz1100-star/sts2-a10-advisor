@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "9d6c42e6088824b72cfc58659599d75a46824edb9cf6338b1fef8d934484017d",
-  "evidence_file_count": 60,
-  "generated_at": "2026-09-21T11:10:40+00:00",
-  "git_head_at_generation": "7ec6c14",
+  "bundle_root": "b2079e2c57998137e45d94b04174d9531ee70e9c45e55a8e9e61e7122a4378f8",
+  "evidence_file_count": 61,
+  "generated_at": "2026-09-21T12:46:55+00:00",
+  "git_head_at_generation": "aeac768",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2559,6 +2559,11 @@
       "file": "ladder_promotion_ledger_20260919.json",
       "sha256": "a8c7f668c5f97df4c4504f8ea914a55198029d5808e08ae08f0b78b8f98dacad",
       "bytes": 50304
+    },
+    {
+      "file": "live_client_wedge_20260921.json",
+      "sha256": "8f48924a6a4d1387a9b7a5f67221e1420f806fee3b31a43fac9095fba6a9d063",
+      "bytes": 5522
     },
     {
       "file": "live_first_victory_20260921.json",
