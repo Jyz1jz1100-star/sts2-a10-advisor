@@ -607,6 +607,9 @@ class AutoPlayer:
         # carrying the run past content nobody can account for.
         self._bypass_counts: dict[str, int] = {}
         self._max_bypass_per_screen = 3
+        #: frames spent on a screen that has neither a rule nor a continue control
+        self._unhandled_counts: dict[str, int] = {}
+        self._max_unhandled_per_screen = 10
         self.runs_started = 0
         self.consecutive_failures = 0
         self._last_executed: tuple[str, str] | None = None
@@ -684,6 +687,14 @@ class AutoPlayer:
             payload = self._treasure_step(state)
         elif state_type == "relic_select":
             payload = {"action": "select_relic", "index": 0}
+        elif state_type == "fake_merchant":
+            # The fake merchant offer has two exits only: buy, or decline into a
+            # fight.  The bridge exposes the decline as the event's proceed button
+            # (McpMod.Actions.cs:618-637), which is disabled until the encounter is
+            # resolved, so trying proceed is the one action that neither spends gold
+            # nor picks a relic for the run.  A refusal is surfaced as a named error
+            # rather than an idle, which is what used to happen here.
+            payload = {"action": "proceed"}
         elif state_type == "bundle_select":
             if fresh:
                 self._last_step = None
@@ -1297,6 +1308,23 @@ class AutoPlayer:
                     if payload is None:
                         # non-combat screens must always be decidable; an
                         # unsupported one would stall the batch silently
+                        run_state = state.get("run") or {}
+                        self.coverage.note_unhandled(state_type, run_state.get("act"),
+                                                     run_state.get("floor"))
+                        self._unhandled_counts[state_type] = (
+                            self._unhandled_counts.get(state_type, 0) + 1
+                        )
+                        count = self._unhandled_counts[state_type]
+                        if count > self._max_unhandled_per_screen:
+                            # A screen with no rule and no continue control is a
+                            # missing handler, not a slow moment.  Say so by name
+                            # where the run is standing rather than idling on it.
+                            self._classified_stop(
+                                "unhandled_screen",
+                                f"no rule and no continue control for screen "
+                                f"{state_type!r} at act {run_state.get('act')} "
+                                f"floor {run_state.get('floor')} after {count} frames",
+                            )
                         self._stall_since = self._stall_since or time.monotonic()
                         if time.monotonic() - self._stall_since > 300:
                             raise BridgeProtocolError(
@@ -1431,6 +1459,7 @@ class AutoPlayer:
             self.completed_runs.append(coverage)
         self.coverage = RunCoverage()
         self._bypass_counts.clear()
+        self._unhandled_counts.clear()
 
     def summary(self) -> dict[str, Any]:
         result = {

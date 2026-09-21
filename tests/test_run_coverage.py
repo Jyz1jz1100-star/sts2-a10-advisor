@@ -148,27 +148,74 @@ class SilentSkipBoundsTests(unittest.TestCase):
     def test_unknown_screen_with_a_proceed_control_is_reported_not_swallowed(self) -> None:
         player = AutoPlayer(controller=None)
         mystery = {
-            "state_type": "fake_merchant",
-            "fake_merchant": {"can_proceed": True},
+            "state_type": "crystal_sphere",
+            "crystal_sphere": {"can_proceed": True},
             "run": {"act": 3, "floor": 49},
         }
         self.assertEqual(player.decide(mystery), {"action": "proceed"})
         self.assertEqual(
             [row["state_type"] for row in player.coverage.coverage()["proceed_bypasses"]],
-            ["fake_merchant"],
+            ["crystal_sphere"],
         )
 
     def test_repeated_bypass_of_the_same_unmodelled_screen_stops_the_batch(self) -> None:
         player = AutoPlayer(controller=None)
         mystery = {
-            "state_type": "fake_merchant",
-            "fake_merchant": {"can_proceed": True},
+            "state_type": "crystal_sphere",
+            "crystal_sphere": {"can_proceed": True},
             "run": {"act": 3, "floor": 49},
         }
         with self.assertRaises(Exception) as caught:
             for _ in range(5):
                 player.decide(mystery)
         self.assertIn("unmodelled content", str(caught.exception))
+
+    def test_fake_merchant_tries_the_documented_exit(self) -> None:
+        """A screen with no rule used to be idled on for 300 s.
+
+        The bridge models the fake merchant's decline as its proceed button, so
+        the driver must attempt that rather than sit -- attempting turns a silent
+        hang into either progress or one named error.
+        """
+        player = AutoPlayer(controller=None)
+        state = {
+            "state_type": "fake_merchant",
+            "fake_merchant": {"event_id": "FAKE_MERCHANT",
+                              "started_fight": False,
+                              "shop": {"can_proceed": False, "items": []}},
+            "run": {"act": 3, "floor": 46},
+        }
+        self.assertEqual(player.decide(state), {"action": "proceed"})
+
+    def test_a_screen_with_no_rule_is_reported_from_the_first_frame(self) -> None:
+        class DeadlockedController:
+            recorder = None
+
+            def __init__(self, state):
+                self._state = state
+                self.posts = []
+
+            def get_state(self):
+                return self._state, "same"
+
+            def send_action(self, payload, **kwargs):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        # No continue control anywhere on the frame, so nothing is decidable.
+        mystery = {"state_type": "crystal_sphere",
+                   "crystal_sphere": {"options": []},
+                   "run": {"act": 3, "floor": 47}}
+        player = AutoPlayer(DeadlockedController(mystery), max_runs=1,
+                            max_actions=500, poll=0)
+        from bridge.autoplay import AutoplayClassifiedStop
+        with self.assertRaises(AutoplayClassifiedStop):
+            player.run()
+        self.assertEqual(player.stop_reason, "unhandled_screen")
+        coverage = player.coverage.coverage()
+        self.assertIn("crystal_sphere", coverage["unhandled_screens"])
+        self.assertEqual(len(coverage["unhandled_screens"]["crystal_sphere"]),
+                         player._max_unhandled_per_screen + 1)
 
     def test_a_ruled_screen_is_not_counted_as_unhandled(self) -> None:
         player = AutoPlayer(controller=None)

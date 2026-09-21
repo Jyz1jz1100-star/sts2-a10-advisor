@@ -397,3 +397,47 @@ operator 授权"更新桥接 DLL 并重新进行终局胜利验证"。逐条按�
 track→子进程 `--mod-gate` 正确传递；未知 track 在启动前就拒。
 `verify_solver_inventory` 此前**没有任何测试覆盖**——一个会中止真机批次的安全门长期无人验证，
 这本身是这次不一致能存活到今天的原因。
+
+---
+
+## 10. 正式监督链路已恢复，并向前推到真实第三幕——然后卡在一个新发现的关口
+
+`ssb-20260921T102537Z-2f872726`（`--track acceptance --allow-actions`，三子进程齐全）：
+
+- 监督链路**跑起来了**：三个子进程全部存活，一次 `game_lost → game_restored`（缺失 0.5 s）被宽限期正确吸收；
+  求解器漂移只记账（`drifted_at_start: [CombatSolver]`、`moved_during_batch: []`），批次不再被它中止。
+- 真机进度（本次是**从挂起存档续打**，局外动作 224 次由桥接器发出）：
+  - 幕：**1 → 2 → 3**，实测推进到 `act 3 floor 46`；
+  - 三个先古之民：**NEOW / PAEL / VAKUU**（PAEL 属 Hive、VAKUU 属 Glory）；
+  - 关底 boss：`1:17 CEREMONIAL_BEAST`（Overgrowth）**已清**、`2:33 CRUSHER+ROCKET`（Hive）**已清**；
+  - 无终局屏（`terminal payloads: []`），所以这局**仍然活着**、`run_complete=false`。
+
+### 卡在 `fake_merchant`：一个真实的内容/能力缺口
+
+`act 3 floor 46` 是 `FAKE_MERCHANT` 事件屏。读模组源码得到的机制是硬的：
+
+- `McpMod.StateBuilder.cs:1487-1515`：`started_fight=false` 时 `shop.can_proceed=false`；
+  打赢之后才 `can_proceed=true` 并提示 "Proceed to map"。
+- `McpMod.Actions.cs:618-637`：`proceed` **确实**处理假商人——但按钮 `IsEnabled` 才点得动。
+- `McpMod.Actions.cs:410-431`：唯一会去 ForceClick `MerchantButton`（即触发那场遭遇）的路径，
+  藏在 `shop_purchase` 内部"顺手打开商店"的逻辑里。
+
+也就是说这一屏只有两条出路：**花钱买**，或者**打一架**；没有"白手退出"。
+驱动原先对 `fake_merchant` **没有任何规则**，且因为 `can_proceed=false` 连 proceed 都不试，
+于是连续 260 帧原地空转——看起来像卡死，实际是"没有人实现这一步"。
+
+### 本轮已改（不改验证标准，只把静默变成实名）
+
+1. `decide()` 增加 `fake_merchant` 规则：**尝试 proceed**。这是唯一既不花钱也不替本局选遗物的动作；
+   被拒绝时会在一次 POST 内变成具名错误，而不是三分钟空转。
+2. 任何"无规则且无 continue 控件"的屏幕，**第一帧就记入** `coverage.unhandled_screens`（幕+层），
+   并在超过 10 帧后以 `stop_reason=unhandled_screen` **具名停批**。
+3. 修掉我上一轮自己的一个缺陷：兜底越界抛的是 `BridgeProtocolError`，而循环把它当瞬时故障**重试**——
+   所以那个"边界"其实不会终止批次。现在走 `_classified_stop`，真正终止且落盘原因。
+
+### 还要做的一件（需要再一次桥接授权）
+
+要把假商人**变成可通行的流程而不是死路**，需要桥接暴露一个"点 MerchantButton 但不购买"的动作。
+这跟上一轮 `is_victory` 是同一类小改动（同一套 `stage_sts2mcp` 安装/回滚路径），
+但它意味着**再一次替换已安装的桥接 DLL**——上一次的授权是针对胜负位那一个目的给的，
+我不把它当成对后续任意 DLL 替换的通用许可。

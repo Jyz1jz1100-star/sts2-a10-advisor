@@ -30,6 +30,7 @@ RULED_SCREENS = frozenset(
     | {
         "card_reward", "shop", "rest_site", "map", "treasure", "relic_select",
         "bundle_select", "rewards", "event", "card_select", "menu", "game_over",
+        "fake_merchant",
     }
 )
 
@@ -60,6 +61,8 @@ class RunCoverage:
         self.act_entries: dict[int, int] = {}
         #: every generic proceed, with the screen and position it dismissed
         self.proceed_bypasses: list[dict[str, Any]] = []
+        #: screens that had no rule at all, keyed by type, from the first frame
+        self.unhandled_screens: dict[str, list[dict[str, Any]]] = {}
         #: state_types that were seen but have no out-of-combat rule
         self.unknown_screens: dict[str, int] = {}
         self.outcome: bool | None = None
@@ -112,6 +115,17 @@ class RunCoverage:
 
         if action is not None and str(action.get("action") or "") == "proceed":
             self.note_bypass(state_type, act, floor, reason=str(action.get("_reason") or ""))
+
+    def note_unhandled(self, state_type: str, act, floor) -> None:
+        """Record a screen with no rule the moment it is seen.
+
+        Waiting 300 s before saying anything turned a missing handler into what
+        looked like a hang.  The first frame is the report; the budget on top of
+        it belongs to the caller.
+        """
+        self.unhandled_screens.setdefault(state_type, []).append(
+            {"act": act, "floor": floor}
+        )
 
     def note_bypass(self, state_type: str, act, floor, *, reason: str = "") -> None:
         """Record a screen the driver left without a content-specific rule.
@@ -202,6 +216,9 @@ class RunCoverage:
             "outcome_source": self.outcome_source,
             "terminal_floor": self.terminal_floor,
             "proceed_bypasses": list(self.proceed_bypasses),
+            "unhandled_screens": {
+                key: list(frames) for key, frames in sorted(self.unhandled_screens.items())
+            },
             "unhandled_screen_bypasses": [
                 bypass for bypass in self.proceed_bypasses
                 if bypass["state_type"] not in RULED_SCREENS
