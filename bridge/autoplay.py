@@ -49,6 +49,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from advisor_core.live_choice_policy import POLICY_VERSION as LIVE_CHOICE_POLICY_VERSION  # noqa: E402
+from advisor_core.live_candidate_codec import EmptyCandidateError  # noqa: E402
 from advisor_core.live_choice_policy import choose  # noqa: E402
 from advisor_core.live_choice_policy import has_out_of_combat_use  # noqa: E402
 from advisor_core.live_choice_policy import potion_to_discard_for  # noqa: E402
@@ -1306,6 +1307,11 @@ class AutoPlayer:
         assert self.controller is not None
         failures = 0
         last_fail_id: str | None = None
+        # A protocol failure on the very first read must still be recordable, and
+        # recording it reaches for the screen it happened on.
+        state: dict[str, Any] = {}
+        state_type = ""
+        decision_id: str | None = None
         bridge_unavailable_since: float | None = None
         while self.runs_started < self.max_runs and self._actions_total() < self.max_actions:
             try:
@@ -1583,6 +1589,17 @@ class AutoPlayer:
                 last_fail_id = decision_id
                 failures += 1
                 self.consecutive_failures += 1
+                if isinstance(exc, EmptyCandidateError):
+                    # A screen the contract found nothing actionable on is a gap to
+                    # read later, not a moment that passed: the retry that follows can
+                    # well succeed, and without this the trace shows only the success.
+                    run_state = state.get("run") or {}
+                    self.coverage.note_empty_candidates(
+                        state_type or "unknown",
+                        run_state.get("act"),
+                        run_state.get("floor"),
+                        error=str(exc),
+                    )
                 print(f"action failed ({exc}); retrying", flush=True)
                 if self.consecutive_failures > self._max_consecutive_failures:
                     self._classified_stop(

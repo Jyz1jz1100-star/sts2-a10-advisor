@@ -155,6 +155,7 @@
 带这个名字改内容会直接抛 `EnvironmentVersionError`；跨 environment 合并被
 `assert_single_environment` 与 `merge_reward_rule_slices.py` 拒掉。
 下一版保真环境必须叫 `sts2sim-campaign-fidelity-v2`（已在本模块预留）。
+2026-09-22 已按下文 §6 发布，approx-v1 的声明与摘要原样保留。
 
 2026-09-21 首次运行（静态判据）：**六门全 FAIL**，并且每台仪器都报告它读到了什么——
 例如 G3 的 `paired_final_act_boss_body` 直接印出第二 boss 是
@@ -171,3 +172,57 @@
    `ExoskeletonsWeak` 与 `ExoskeletonsNormal` 都落到 id 4），
    所以即使 G1 把池子接对，弱/正常两档在部分怪上仍不可区分——这是接完 G1 之后
    仍然存在的差异，必须留在 `still_differs` 里而不是被"池子接上了"一句话盖掉。
+
+## 6. fidelity-v2 的落地记录（2026-09-22）
+
+这一版只做 G6 + G1 + G3，改动全在引擎里，不在文档里：
+
+* **G6**：`RunRewardGenerator.GenerateCombatRewards` 的遗物发放收窄成
+  `state.CurrentNodeType is RunConstants.NodeElite`。真实 build 里 `BossRelicReward`
+  一次都没出现（`RewardsSet.cs:245-261` 给 boss 的是金币 + 一次药水 roll + 三张稀有卡），
+  所以原来那枚 boss 遗物是本引擎发明的屏幕。两处保留 trace 夹具（固定种子的历史复现）
+  仍按原样发它们自己的遗物，这是刻意的，写在函数注释里。
+* **G1**：`RunMapGenerator.SelectActAndGenerateRooms` 的池子选择从"`Act != 1` 就是
+  Underdocks"的二分，改成 Overgrowth / Hive / Glory / Underdocks 四档，判定用
+  `RunConstants.IsHiveAct` / `IsGloryAct`（两者都要求 `state.Campaign`，因为非战役下
+  act 数字含义是抛硬币出来的第一幕）。`Underdocks` 只剩它本来的身份：Alternate Act 1。
+* **G3**：配对 boss 不再"从池子里取下一个 id 并立刻开打"。现在第二 boss 在**生成这一幕
+  房间时**就从本幕 boss 池里抽定（排除已定的第一 boss，走同一 up-front 流，
+  `RunManager.cs:685-690` 的形状），打赢第一 boss 后引擎回到地图、在 boss 之后另开一行
+  （`OpenSecondBossRow`，坐标 `MapBossRow + 1`，等价于 `SecondBossMapPoint`），
+  走常规路径 travel 过去。`Floor` 由 travel 递增，两战之间 HP/药水/卡组/遗物/金币连续。
+
+判据也一起改了，因为"源码里写了"不等于"状态机走到了"：
+
+* G3 与 G6 现在要求 `engine_scenario_tests()` 跑引擎自己的场景测试（`dotnet test --filter`），
+  并先用 `--list-tests` 核对过滤器点名的测试确实存在——一个匹配不到任何测试的 filter 会退 0，
+  那是最便宜的假绿。G6 的静态探针也不再在整文件里找 `PendingRelicReward = true`
+  （事件处理器里本来就有两处合法的遗物发放），而是锚在 `GenerateCombatRewards` 的函数体上。
+* G1 是两条腿：走查腿（10,000 个种子跑真 campaign，只统计**在战斗中**的帧，
+  因为地图/过渡帧的 info 里还挂着上一个节点的 encounter id）与生成器腿
+  （`EveryCampaignActDrawsFromItsOwnPools`，60 个种子 × 3 幕，逐房间/精英/boss 断言
+  落在本幕池子里、地图节点携带的 id 与之一致、每幕至少 6 个不同遭遇、
+  第二幕与第三幕的可见集合不相交）。
+
+实测结果（`runtime/fidelity_gates_v2.json`，`environment_version=sts2sim-campaign-fidelity-v2`）：
+
+* G1 PASS：act 1 21/21 全在 Overgrowth 池（含三幕 boss 74/82/83），act 2 2/2 全在 Hive 池，
+  act 3 在走查腿里是 `unreached_acts=["act_3"]`（没有任何策略活到那里），由生成器腿覆盖；
+  `illegal_actions_total=0`、`dead_ends=[]`。
+* G3 PASS、G6 PASS；G2 / G4 / G5 仍然 FAIL，六门退出码仍是 1，`hard_gate_passed=false`。
+
+代价被一起量了出来，而不是被藏起来：同一个 act1 checkpoint（approx-v1 训出来的）在
+fidelity-v2 上走过 10,000 个声明过的种子，只有 **2** 局进入第二幕、**0** 局进入第三幕，
+最深 **floor 19**。approx-v1 下同一批种子有 25 局到达第二幕 boss、1 局打通三幕。
+差出来的那一枚遗物就是 G6 删掉的那个屏幕发的——也就是说旧环境用一件真游戏不发的遗物
+把策略"送"进了后两幕。因此：
+
+1. `scripts/smoke_full_run_pipeline.py` 的第 11 项 `episode_crosses_act_boundaries`
+   现在**红**（10/11）。标准没有被下调：它要求有一局真 campaign 跨到第三幕，
+   而今天没有任何 checkpoint 做得到。分类是**策略强度 + 产物归属**
+   （checkpoint 属于上一个环境），不是流水线缺陷——跨幕状态机本身由 G3 的场景测试证明。
+2. `scripts/probe_boss_reward_rule.py` 那条 "+21 / +16 局" 的规则只在 approx-v1 有意义，
+   它键在 `phase=relic_reward 且 current_node_type=boss` 上，而这个状态在新环境里不存在。
+   产物现在带 `result_applies_to_environment`，重跑只会量到 0，不会量到"少赢了 21 局"。
+3. 下一版（G2/G4/G5）不能拿 v2 的任何强度数字当结论，也不能拿 v1 的数字当 v2 的对照，
+   两边产物由 `assert_single_environment` 分开。

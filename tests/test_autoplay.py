@@ -22,6 +22,7 @@ from bridge.trace_controller import (
     BridgeProtocolError,
     TraceRecorder,
 )
+from advisor_core.live_candidate_codec import EmptyCandidateError
 from advisor_core.live_candidate_codec import LiveCandidateContractError
 
 FIXTURES = Path(__file__).parent / "fixtures" / "screens"
@@ -998,6 +999,48 @@ class AutoplayClassifiedStopTests(unittest.TestCase):
             FlakyBridge(), max_runs=1, max_actions=1, poll=0, bridge_backoff=0
         ).run()
         self.assertEqual(summary["runs_started"], 1)
+
+    def test_a_screen_with_no_legal_candidate_is_recorded_and_not_smoothed_over(self) -> None:
+        """The retry may succeed; the gap it retried through still has to be readable."""
+
+        class RestSiteBridge:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.get_calls = 0
+
+            def get_state(self):
+                self.get_calls += 1
+                return {
+                    "state_type": "rest_site",
+                    "rest_site": {"can_choose": True, "options": []},
+                    "run": {"act": 2, "floor": 28},
+                }, f"rest-{self.get_calls}"
+
+            def start_ironclad_a10(self, **kwargs):
+                return {"state_type": "monster"}, "run-1"
+
+        player = AutoPlayer(
+            RestSiteBridge(), max_runs=1, max_actions=4, poll=0,
+            max_total_failures=2,
+        )
+
+        def no_candidates(_state):
+            raise EmptyCandidateError("rest_site: no legal visible candidates")
+
+        player.decide = no_candidates
+        with self.assertRaises(AutoplayClassifiedStop):
+            player.run()
+
+        rows = player.coverage.coverage()["empty_candidate_refusals"]
+        # One row per retry that went through the same gap, and the budget that ends
+        # the batch counts them: a silent recovery is not the same as an invisible one.
+        self.assertEqual(len(rows), 3, rows)
+        self.assertEqual(
+            [(row["state_type"], row["act"], row["floor"]) for row in rows],
+            [("rest_site", 2, 28)] * 3,
+        )
+        self.assertIn("no legal visible candidates", rows[0]["error"])
 
     def test_classified_stop_writes_session_end_event(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

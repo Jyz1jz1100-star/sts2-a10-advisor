@@ -100,10 +100,10 @@
       {
         "mod_id": "STS2_MCP",
         "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
-        "sha256": "0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5",
+        "sha256": "730D60B154626F644EEC2FB5D0E7715871FA22D15BB2A8966C024DB90BFB3D72",
         "required": true,
-        "note": "victory-flag candidate bridge (artifacts/sts2mcp-victory-flag); reconciled to the installed file after a health/state/compendium smoke",
-        "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
+        "note": "actionability candidate bridge (artifacts/sts2mcp-actionability): publishes rest_site.can_choose and player.potions[].usage on top of the victory flag",
+        "source": "re-pinned 2026-09-21T15:40Z under operator authorization (batch stopped, game closed, port idle); hash read from the installed file by scripts/stage_sts2mcp.py --apply, backup at runs/sts2mcp_staging/backups/sts2mcp-20260921T153502Z-288868f1"
       },
       {
         "mod_id": "RegentFX",

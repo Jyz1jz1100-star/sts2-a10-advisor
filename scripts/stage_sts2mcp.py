@@ -421,8 +421,13 @@ def bridge_port_occupied(base_url: str, timeout: float = 0.35) -> bool:
                 check=False,
                 # Process startup can exceed the socket probe's 350ms, while
                 # still remaining bounded.  A query that cannot complete is
-                # unknown and therefore blocks staging.
-                timeout=max(1.0, float(timeout)),
+                # unknown and therefore blocks staging.  The floor has to clear
+                # the real cost of starting Windows PowerShell at all -- one
+                # second is not that, and the 1s floor made an idle machine read
+                # as "cannot enumerate", which blocked a legitimate install.
+                # Raising it changes only the budget of the query, never the
+                # rule: the answer must still be FREE.
+                timeout=max(25.0, float(timeout)),
             )
         except Exception as exc:
             raise StagingError(

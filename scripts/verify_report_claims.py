@@ -150,12 +150,20 @@ def claim_evidence_matrix_totals():
             "unclassified_dead_ends": totals["unclassified_dead_ends_total"]}
 
 
+#: The provenance snapshot for the engine build the report is read out of.  It is
+#: regenerated after every engine edit (scripts/build_emulator_provenance.py); the
+#: line numbers the campaign cites drift with the build, and re-pinning them here is
+#: what keeps "the cited code still says it" a check instead of a stale claim.
+EMULATOR_SOURCE_PROVENANCE = (
+    ROOT / "docs/evidence/emulator_source_provenance_20260922.json"
+)
+
 def claim_win_ledger():
     ledger = json.loads((ROOT / "docs/evidence/act1_win_ledger_20260919.json").read_text(encoding="utf-8"))
     runs = ledger.get("verification_runs", [])
     recorded_wins = [row for entry in ledger.get("rows", [])
                      for row in (entry.get("per_seed") or [])]
-    provenance = json.loads((ROOT / "docs/evidence/emulator_source_provenance_20260920.json")
+    provenance = json.loads(EMULATOR_SOURCE_PROVENANCE
                             .read_text(encoding="utf-8"))
     boss_row = next((int(match.group(1))
                      for cite in provenance["citations"]
@@ -1931,8 +1939,8 @@ def claim_chained_map_deadend():
             and fork["branches"][0]["dead_end_label"] == "empty_action_mask" for fork in forks),
         "the_cited_engine_code_still_says_it": (
             "MapNodeTypes" in engine_text("RunEngine.cs", 690, 695)
-            and "ChooseMapNode" in engine_text("RunEngine.cs", 966, 966)
-            and "NodeNone" in engine_text("RunMapGenerator.cs", 1017, 1029)),
+            and "ChooseMapNode" in engine_text("RunEngine.cs", 970, 970)
+            and "NodeNone" in engine_text("RunMapGenerator.cs", 1127, 1139)),
     }
 
 
@@ -2607,7 +2615,7 @@ def claim_emulator_source_provenance():
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
 
-    payload = json.loads((ROOT / "docs/evidence/emulator_source_provenance_20260920.json")
+    payload = json.loads(EMULATOR_SOURCE_PROVENANCE
                          .read_text(encoding="utf-8"))
     emulator = builder.DEFAULT_EMULATOR.resolve()
     report = (ROOT / "docs/ACT1_CAMPAIGN_2026-09-19.md").read_text(encoding="utf-8")
@@ -2889,7 +2897,10 @@ CLAIMS = {
     "v2_contract_sizes": (claim_v2_contract_sizes,
                           "OBS_SIZE and flat action size quoted in the anti-misreading note"),
     "emulator_act_ceiling": (claim_emulator_act_count,
-                              "the two-act ceiling the whole scope statement rests on"),
+                              "the Act* identifiers the engine declares: three acts plus the "
+                              "ActCount sentinel this probe counts, which is why the number is 4 "
+                              "and not 3. The two-act ceiling it used to record was retracted "
+                              "with the third act, which the campaign now walks"),
     "evidence_matrix_totals": (claim_evidence_matrix_totals,
                                "the committed Act-1 matrix totals"),
     "win_ledger": (claim_win_ledger,

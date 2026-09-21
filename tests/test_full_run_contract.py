@@ -206,6 +206,30 @@ class FullRunContractTests(unittest.TestCase):
         best = self.audit(records)["best_run"]
         self.assertIn("every_action_was_legal_and_acked", failed_checks(best))
 
+    def test_a_recovered_no_candidate_screen_is_reported_without_disqualifying(self) -> None:
+        """Nothing was posted and nothing was refused, so the trace would be silent.
+
+        The legality item stays green for it -- a retry that worked is not a contract
+        violation -- but the detail has to name the screen and where it happened,
+        because that is the only place a recurring gap can be read.
+        """
+        from bridge.run_progress import RunCoverage
+        from scripts.verify_full_run_contract import check_run
+
+        records = full_victory_run()
+        coverage = RunCoverage()
+        for record in records:
+            if record.get("event_type") == "state":
+                coverage.observe(record["raw"])
+        coverage.note_empty_candidates("rest_site", 2, 28, error="no legal visible candidates")
+        detail = next(
+            check["detail"]
+            for check in check_run(records, coverage)["checks"]
+            if check["check"] == "every_action_was_legal_and_acked"
+        )
+        self.assertIn("empty_candidates={'rest_site@2-28': 1}", detail)
+        self.assertNotIn("no legal visible candidates", detail)
+
     def test_a_clean_run_is_not_disqualified_by_a_neighbour(self) -> None:
         """Records are segmented per run, so legality cannot leak across runs."""
         dirty_tail = [

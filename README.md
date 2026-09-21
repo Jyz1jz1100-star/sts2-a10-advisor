@@ -77,15 +77,20 @@
 `invalidated_by_mod_update`（放开的只有"批前就已漂移"这个既成事实）。求解器锁本身归 operator。
 
 `--backend sim` 转发到 `scripts/probe_three_act_campaign.py`，scope 是
-`simulator_three_act`，并自 2026-09-21 起自动带上 `environment_version:
-sts2sim-campaign-approx-v1` 与 `content_coverage.verdict: approximate`：
-**模拟器的第二、三幕都是 Underdocks 池的换皮**，而锁定 build 的真实 progression 是
-Overgrowth → Hive → Glory（`ActModel.cs:510-515`），且模拟器没有任何一幕有先古之民。
+`simulator_three_act`，并自动带上 `environment_version` 与 `content_coverage`。
+2026-09-22 起当前版本是 **`sts2sim-campaign-fidelity-v2`**（verdict 仍是 `approximate`）：
+第二、三幕不再抽 Underdocks 换皮池，而是各抽自己那一幕 —— Overgrowth → Hive → Glory
+（`ActModel.cs:510-515`），最终幕的配对 boss 改成"先回地图、再走到 boss 之后那一行"，
+并且删掉了真实游戏根本不发的 boss 遗物奖励。这关闭了 G6/G1/G3；**G2（每幕先古之民）、
+G4（每幕地图形状）、G5（升级概率与 boss 奖励分布）仍然不真实**，模拟器也没有任何一幕
+有先古之民。旧版本号 `sts2sim-campaign-approx-v1` 已被摘要冻结：带这个标签的历史产物
+永远表示"二、三幕是换皮"，两种环境的产物不得平均、不得互判、不得续档。
 幕区间与真机的对照只用已核实的坐标：真机 act 1/2/3 的 boss 节点分别在 **floor 17 / 33 / 48**
 （2026-09-20 trace 重算，`docs/evidence/live_run_coverage_20260920.json`），模拟器的幕带是
-1–17 / 18–33 / 34–50（`RunConstants.cs:14 MapBossRow = 16` 推出，第三幕多的 1 层是配对 boss）。
+1–17 / 18–33 / 34–50（`RunConstants.cs` 的 `MapBossRow = 16` 推出，第三幕多的 1 层是配对 boss）。
 它是模拟器结论，不是实机 A10 成绩，也不替代 `full_run` 的真实整局验收。逐幕证据见
-[逐幕覆盖审计](docs/ACT_COVERAGE_AUDIT_2026-09-21.md)。
+[逐幕覆盖审计](docs/ACT_COVERAGE_AUDIT_2026-09-21.md)，六门保真度的度量与判据见
+[模拟器幕内容保真度](docs/SIMULATOR_ACT_FIDELITY_2026-09-21.md)。
 
 ## 本机环境
 

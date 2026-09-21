@@ -40,8 +40,10 @@
     "observation_size": 1739
   },
   "emulator_act_ceiling": {
-    "act_count": 2,
+    "act_count": 4,
     "acts": [
+      "ActCount",
+      "ActFinal",
       "ActOvergrowth",
       "ActUnderdocks"
     ],

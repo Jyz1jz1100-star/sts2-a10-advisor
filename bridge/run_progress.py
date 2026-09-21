@@ -61,6 +61,7 @@ class RunCoverage:
         self.act_entries: dict[int, int] = {}
         #: every generic proceed, with the screen and position it dismissed
         self.proceed_bypasses: list[dict[str, Any]] = []
+        self.empty_candidate_refusals: list[dict[str, Any]] = []
         #: screens that had no rule at all, keyed by type, from the first frame
         self.unhandled_screens: dict[str, list[dict[str, Any]]] = {}
         #: prompts the driver left to the in-game combat owner, by screen type
@@ -171,6 +172,18 @@ class RunCoverage:
             {"state_type": state_type, "act": act, "floor": floor, "reason": reason}
         )
 
+    def note_empty_candidates(self, state_type: str, act, floor, *, error: str) -> None:
+        """Record a screen the codec found nothing actionable on, where the run is.
+
+        The driver retries such a state, and a retry that eventually works is
+        invisible in a trace that only logs posted actions.  Kept per screen and per
+        floor so a recurring gap (a rest site whose options the contract cannot read)
+        shows up in the batch instead of being smoothed over by the next frame.
+        """
+        self.empty_candidate_refusals.append(
+            {"state_type": state_type, "act": act, "floor": floor, "error": error}
+        )
+
     def note_unknown_screen(self, state_type: str) -> None:
         if state_type != "unknown":
             return
@@ -249,6 +262,7 @@ class RunCoverage:
             "outcome_source": self.outcome_source,
             "terminal_floor": self.terminal_floor,
             "proceed_bypasses": list(self.proceed_bypasses),
+            "empty_candidate_refusals": list(self.empty_candidate_refusals),
             "unhandled_screens": {
                 key: list(frames) for key, frames in sorted(self.unhandled_screens.items())
             },

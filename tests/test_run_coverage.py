@@ -149,6 +149,15 @@ class StreamHygieneTests(unittest.TestCase):
             ["overlay"],
         )
 
+    def test_a_screen_with_nothing_actionable_is_recorded_where_it_happened(self) -> None:
+        ledger = RunCoverage()
+        ledger.note_empty_candidates("rest_site", 2, 28, error="no legal visible candidates")
+        ledger.note_empty_candidates("rest_site", 2, 28, error="no legal visible candidates")
+        rows = ledger.coverage()["empty_candidate_refusals"]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual({row["floor"] for row in rows}, {28})
+        self.assertIn("no legal visible candidates", rows[0]["error"])
+
 
 class SilentSkipBoundsTests(unittest.TestCase):
     """An unmodelled screen may be stepped past once; it may not be walked through."""

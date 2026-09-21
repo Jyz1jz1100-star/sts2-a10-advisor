@@ -93,9 +93,9 @@ def main() -> int:
             for branch in fork["branches"] if branch.get("which_contract_layer_labelled_it")}),
         "engine_citations": [
             "RunEngine.cs:690-695 (map mask: one bit per non-NodeNone MapNodeTypes entry)",
-            "RunEngine.cs:966 (`StepMap` returns -1 when `ChooseMapNode` and the scripted "
+            "RunEngine.cs:970 (`StepMap` returns -1 when `ChooseMapNode` and the scripted "
             "fallback `TryChooseInstant5RetainedUnknownPath` both fail)",
-            "RunMapGenerator.cs:1017-1029 (ChooseMapNode is false when every MapNodeTypes entry is "
+            "RunMapGenerator.cs:1127-1139 (ChooseMapNode is false when every MapNodeTypes entry is "
             "NodeNone, or an option carries no coordinate)"],
         "forks": forks,
         "frontier_artifact": str(args.frontier.relative_to(ROOT)).replace("\\", "/"),

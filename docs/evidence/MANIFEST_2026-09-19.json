@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "b2079e2c57998137e45d94b04174d9531ee70e9c45e55a8e9e61e7122a4378f8",
-  "evidence_file_count": 61,
-  "generated_at": "2026-09-21T12:46:55+00:00",
-  "git_head_at_generation": "aeac768",
+  "bundle_root": "e07fdbc49741191ece46af9e4701a4a8245753b32eebe261778ca98e5123be47",
+  "evidence_file_count": 66,
+  "generated_at": "2026-09-21T17:32:38+00:00",
+  "git_head_at_generation": "f16e73e",
   "checkpoint_digests_cited": 219,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1033
+    "total_64_hex_strings_seen": 1116
   },
   "resolved_checkpoints": [
     {
@@ -2263,6 +2263,7 @@
         "chained_frontier_full_20260920.json",
         "ladder_lineage_20260919.json",
         "metrics_index_20260919.json",
+        "three_act_fidelity_v2_20260922.json",
         "three_act_first_clear_20260920.json"
       ],
       "paths": [
@@ -2387,8 +2388,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "461a25c37542140baa11344b257861e79ab6bd6496e53c2d143295e665f8e515",
-      "bytes": 24016
+      "sha256": "7a742e946ced8a80d2b9863e2e1accba83b8304df1af5b46ae7c803d70a42293",
+      "bytes": 24054
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2491,6 +2492,21 @@
       "bytes": 4756
     },
     {
+      "file": "campaign_fidelity_gates_20260922.json",
+      "sha256": "cff67e686e74f302c9f500c9cadfc66b47cba05a1bd6c6356e690e11e4c9e3f7",
+      "bytes": 277955
+    },
+    {
+      "file": "campaign_pool_holdout_20260922.json",
+      "sha256": "b33bbcd9bdde0feec5d776ac8a14e1466fbdfdc0b22ef49e35c83b4df0ef1446",
+      "bytes": 243438
+    },
+    {
+      "file": "campaign_pool_sweep_20260922.json",
+      "sha256": "28481b439f80577a27fe27f32b1bc9d87ecf677b8d5c7bdd61ccae775ad78052",
+      "bytes": 267818
+    },
+    {
       "file": "chained_act2_reachability_20260920.json",
       "sha256": "769d907bc20c86394be0bb08afc3a517373d351c1d4e5f6b5ae198e4de035cd0",
       "bytes": 9796
@@ -2534,6 +2550,11 @@
       "file": "emulator_source_provenance_20260920.json",
       "sha256": "8b3191371d9c48f5ec2f0efc1016ca4c99c2c1ced679cacb7a363ce30a8749dd",
       "bytes": 24034
+    },
+    {
+      "file": "emulator_source_provenance_20260922.json",
+      "sha256": "0e2da9f4828b3f40305c1700b2e8b576fb8aec04bf1f56039e90c309121bf817",
+      "bytes": 23463
     },
     {
       "file": "event_mask_case_audit_20260919.json",
@@ -2644,6 +2665,11 @@
       "file": "stalemate_tail_20k_20260919.json",
       "sha256": "60b77212ee29b6638dad33ecf547237cb5355e24652457ae2f0da4b122cf1bfe",
       "bytes": 21722
+    },
+    {
+      "file": "three_act_fidelity_v2_20260922.json",
+      "sha256": "85632faaa894e91935dd935ad94d6601e3c972cbeb55a8cec6827fdb9b856b6e",
+      "bytes": 14063
     },
     {
       "file": "three_act_first_clear_20260920.json",

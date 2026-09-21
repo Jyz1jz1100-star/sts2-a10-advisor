@@ -1,0 +1,430 @@
+{
+  "act_bands": {
+    "1-17": 1,
+    "18-33": 2,
+    "34-50": 3
+  },
+  "campaign_clears": 0,
+  "checkpoint": "runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000004000032.zip",
+  "checkpoint_sha256": "f514ffa3ffbe62c06c4bf469668516e6000c939b40c7f9d8f8152fc0af8a8b4e",
+  "config": "runtime\\fanout\\b_terminal-1.toml",
+  "config_sha256": "4bdc62e330ddeac49ec236f71911b6c3c9b05698b06fd5c4317cccbc723835c0",
+  "content_coverage": {
+    "environment_version": "sts2sim-campaign-fidelity-v2",
+    "gates_closed": [
+      "G6_no_boss_relic_reward",
+      "G1_act_pools",
+      "G3_second_boss_structure"
+    ],
+    "gates_open": [
+      "G2_ancients",
+      "G4_map_shape",
+      "G5_reward_and_upgrade_distribution"
+    ],
+    "may_be_quoted_as": [
+      "a three-act campaign whose stages draw the shipped game's own acts",
+      "a paired-boss final act with a real route decision between the two fights",
+      "a regression control against approx-v1 artifacts"
+    ],
+    "must_not_be_quoted_as": [
+      "content-verified three-act coverage",
+      "live A10 win rate",
+      "evidence that a strategy can clear the shipped game",
+      "a per-act Ancient or a real Act 2/Act 3 event pool"
+    ],
+    "not_modelled": [
+      "a per-act Ancient event; only the run-start Neow choice exists (G2 open: the real Act 2 draws Orobas/Pael/Tezcatara and Act 3 Nonupeipe/Tanx/Vakuu)",
+      "per-act map shape: all three stages use the same 16-row map with the boss at row 16, where the build defines 15/14/13 rooms with the boss at 16/15/14 (G4 open)",
+      "per-act room counts and encounter-fill counts (real weak 3/2/2, normal 12/12/11)",
+      "Hive and Glory event pools: acts 2 and 3 still draw the Underdocks event list",
+      "card upgrade odds by act and the composition of boss rewards (G5 open)",
+      "AscensionLevel: the double boss is unconditional here, which is A10 and nothing else",
+      "any per-act or per-floor difficulty scaling",
+      "TheArchitect: the real run ends in an EventRoom after the second boss (RunManager.cs:1207-1246); the engine ends it with a cleared flag",
+      "ExoskeletonsWeak and DevotedSculptorWeak: the emulator has no separate weak variant, so those two weak slots draw the normal encounter"
+    ],
+    "real_progression": {
+      "act_1": {
+        "alternate": "Underdocks",
+        "ancients": [
+          "Neow"
+        ],
+        "model": "Overgrowth"
+      },
+      "act_2": {
+        "ancients": [
+          "Orobas",
+          "Pael",
+          "Tezcatara"
+        ],
+        "bosses": [
+          "TheInsatiableBoss",
+          "KnowledgeDemonBoss",
+          "KaiserCrabBoss"
+        ],
+        "model": "Hive"
+      },
+      "act_3": {
+        "ancients": [
+          "Nonupeipe",
+          "Tanx",
+          "Vakuu"
+        ],
+        "bosses": [
+          "QueenBoss",
+          "TestSubjectBoss",
+          "AeonglassBoss"
+        ],
+        "model": "Glory",
+        "second_boss_at_ascension": 10
+      },
+      "evidence": {
+        "act_contents": "Models.Acts/{Overgrowth,Hive,Glory,Underdocks}.cs",
+        "progression": "ActModel.cs:510-515 GetDefaultList()",
+        "second_boss": "RunManager.cs:685-691 (last act + AscensionLevel.DoubleBoss)",
+        "second_boss_node": "StandardActMap.cs:88-91,231-234 SecondBossMapPoint",
+        "underdocks_is_act_1": "ActModel.cs:498-507 replaces list[0] only",
+        "victory": "RunManager.cs:1207-1246 -> EventRoom<TheArchitect>"
+      }
+    },
+    "result_tier": "simulator_three_act_pools_and_pair_boss",
+    "result_tiers": {
+      "live_full_run": "the real client, victory screen observed; not achieved",
+      "simulator_single_act": "one act per seed; every pre-2026-09-20 artifact",
+      "simulator_three_act_approx": "three stages, Act 1 content reused for stages 2 and 3",
+      "simulator_three_act_content_verified": "requires Hive and Glory pools, a per-act Ancient, and a boss-to-boss exit; no artifact in this repository is at this tier yet",
+      "simulator_three_act_pools_and_pair_boss": "each stage draws the act the shipped campaign defines (Overgrowth -> Hive -> Glory), the final act's paired boss is a map row past the first, and no boss relic is invented; per-act Ancients, per-act map shape and the reward/upgrade distributions are still not real, so this tier is not content-verified"
+    },
+    "rewards": {
+      "boss": "gold + a potion roll + cards, no relic -- RewardsSet.cs:245-261",
+      "elite": "the only combat clear that grants a relic",
+      "final_act_boss": "the shipped build gives the final act's boss an empty RewardsSet (RewardsSet.cs:65-74); the engine still hands out its standard post-combat screen, which is a G5 residual, not a closure"
+    },
+    "stages": {
+      "1": {
+        "encounter_pools": "Overgrowth weak/normal/elite/boss",
+        "encounter_pools_match_real_game_act": true,
+        "event_pools": "Overgrowth events",
+        "event_pools_match_real_game_act": true,
+        "evidence": "Core/Run/RunConstants.cs:111-120"
+      },
+      "2": {
+        "encounter_pools": "Hive weak/normal/elite/boss",
+        "encounter_pools_match_real_game_act": true,
+        "event_pools": "Underdocks events (G2/G4 territory, unchanged here)",
+        "event_pools_match_real_game_act": false,
+        "evidence": "Core/Run/RunConstants.cs:132-136 from Models.Acts/Hive.cs:84-103"
+      },
+      "3": {
+        "encounter_pools": "Glory weak/normal/elite/boss, twice over at the boss row",
+        "encounter_pools_match_real_game_act": true,
+        "event_pools": "Underdocks events (G2/G4 territory, unchanged here)",
+        "event_pools_match_real_game_act": false,
+        "evidence": "Core/Run/RunConstants.cs:138-142 from Models.Acts/Glory.cs:80-97",
+        "second_boss": {
+          "dealt_at": "act generation, from GloryBossEncounters minus the first boss",
+          "evidence": "Core/Run/RunMapGenerator.cs GenerateSecondBoss()/OpenSecondBossRow() for RunManager.cs:685-690 and StandardActMap.cs:88-91,231-234",
+          "reached_by": "a map node one row past the boss, travelled to through the normal map path with the run's own HP, potions, deck, relics and gold"
+        }
+      }
+    },
+    "summary": "Each stage draws the act the shipped campaign defines: stage 1 Overgrowth, stage 2 Hive, stage 3 Glory, with no cross-act draw. The final act's paired boss is dealt at act generation from that act's own boss pool minus the first, and is reached by travelling to a map row past the boss, so the two fights are one continuous resource problem with an observable middle. The boss relic the engine invented is gone. That closes G6, G1 and G3. G2 (per-act Ancients), G4 (per-act map shape) and G5 (upgrade odds and boss reward distributions) are still open, so this environment is closer to the game without yet being content-verified.",
+    "verdict": "approximate"
+  },
+  "deepest_act_reached": 2,
+  "environment_version": "sts2sim-campaign-fidelity-v2",
+  "generated_at": "2026-09-21T17:11:32.980198+00:00",
+  "invocation": "scripts/probe_three_act_campaign.py --config runtime/fanout/b_terminal-1.toml --checkpoint runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/checkpoints/step_000004000032.zip --seeds 130008177,130010053,130010125,130010155,130010199,130010318,130010420,130010613,130011014,130011191,130011328,130011390,130011443,130011512,130011629,130011631,130011801,130012263,130012414,130012525,130012938,130012981,130013292,130013350,130013410,130013451 --out docs/evidence/three_act_fidelity_v2_20260922.json",
+  "max_steps_per_episode": 4800,
+  "rows": [
+    {
+      "act_died_in": 2,
+      "campaign_cleared": 0,
+      "final_floor": 18,
+      "illegal_actions": 0,
+      "seed": 130008177,
+      "steps": 237.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 11,
+      "illegal_actions": 0,
+      "seed": 130010053,
+      "steps": 118.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 14,
+      "illegal_actions": 0,
+      "seed": 130010125,
+      "steps": 168.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130010155,
+      "steps": 125.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130010199,
+      "steps": 127.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 13,
+      "illegal_actions": 0,
+      "seed": 130010318,
+      "steps": 161.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130010420,
+      "steps": 116.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 7,
+      "illegal_actions": 0,
+      "seed": 130010613,
+      "steps": 126.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130011014,
+      "steps": 141.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 11,
+      "illegal_actions": 0,
+      "seed": 130011191,
+      "steps": 130.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 7,
+      "illegal_actions": 0,
+      "seed": 130011328,
+      "steps": 120.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 7,
+      "illegal_actions": 0,
+      "seed": 130011390,
+      "steps": 105.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130011443,
+      "steps": 105.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 11,
+      "illegal_actions": 0,
+      "seed": 130011512,
+      "steps": 162.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 7,
+      "illegal_actions": 0,
+      "seed": 130011629,
+      "steps": 119.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 5,
+      "illegal_actions": 0,
+      "seed": 130011631,
+      "steps": 106.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 6,
+      "illegal_actions": 0,
+      "seed": 130011801,
+      "steps": 141.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 15,
+      "illegal_actions": 0,
+      "seed": 130012263,
+      "steps": 211.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 6,
+      "illegal_actions": 0,
+      "seed": 130012414,
+      "steps": 112.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 11,
+      "illegal_actions": 0,
+      "seed": 130012525,
+      "steps": 154.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 11,
+      "illegal_actions": 0,
+      "seed": 130012938,
+      "steps": 147.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 13,
+      "illegal_actions": 0,
+      "seed": 130012981,
+      "steps": 204.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 7,
+      "illegal_actions": 0,
+      "seed": 130013292,
+      "steps": 75.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130013350,
+      "steps": 129.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 8,
+      "illegal_actions": 0,
+      "seed": 130013410,
+      "steps": 106.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    },
+    {
+      "act_died_in": 1,
+      "campaign_cleared": 0,
+      "final_floor": 11,
+      "illegal_actions": 0,
+      "seed": 130013451,
+      "steps": 99.0,
+      "truncated": 0,
+      "won_last_combat": 0
+    }
+  ],
+  "scope": "simulator_three_act",
+  "seeds": [
+    130008177,
+    130010053,
+    130010125,
+    130010155,
+    130010199,
+    130010318,
+    130010420,
+    130010613,
+    130011014,
+    130011191,
+    130011328,
+    130011390,
+    130011443,
+    130011512,
+    130011629,
+    130011631,
+    130011801,
+    130012263,
+    130012414,
+    130012525,
+    130012938,
+    130012981,
+    130013292,
+    130013350,
+    130013410,
+    130013451
+  ]
+}

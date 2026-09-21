@@ -1749,7 +1749,7 @@ reads the engine's own 32-bit mask and the V2 225-wide expansion, and steps each
 
 Both dead-end checkpoints agree: **the native mask has zero legal bases**
 (`RunEngine.cs:690-695` sets a bit only for `MapNodeTypes[i] != NodeNone`; `ChooseMapNode` is false
-for every action at `RunMapGenerator.cs:1017-1029`; `StepMap` returns -1 at `RunEngine.cs:966`), and
+for every action at `RunMapGenerator.cs:1127-1139`; `StepMap` returns -1 at `RunEngine.cs:970`), and
 the only legal action in the flat mask is base 32 -- the synthetic sentinel that
 `training/v2_run_wrapper.py:222-230` deliberately advertises when the engine mask is empty. So
 **floor 19 is an engine-side structural ceiling**, not policy weakness and not the step budget.
@@ -2548,3 +2548,47 @@ Two defects the live data caught in code I wrote earlier today:
 Side effect the operator should know: when the batch ended, the menu branch started a fresh
 Ironclad A10 run (act 1 floor 1) before `--max-runs` stopped the loop. No `abandon_run`, no save
 deletion, no profile switch; that new run is sitting on the machine.
+
+---
+
+## 2026-09-22 (early): the bridge is installed, and the simulator now draws its own acts
+
+Two things landed since the entry above, and both changed what the numbers mean.
+
+**The `rest_site` defect is closed on real hardware.** The candidate bridge
+(`rest_site.can_choose` + `potions[].usage`) went through the staging tool and is now the installed
+DLL; both locks re-pinned to `730D60B1…` with the previous digest and the authorization recorded.
+On the first batch after the install, `choose_rest_option` posted 8 times and was refused 0 times,
+and a `use_potion` posted and was accepted — that action class had been 100% refused before.
+What the census could not see is now recorded separately: five frames where the candidate codec
+found nothing actionable on a rest site were retried through, invisible in a trace that only logs
+posted actions. `RunCoverage.note_empty_candidates()` records them per act/floor and the full-run
+gate prints `empty_candidates={…}` inside its legality detail. No acceptance standard was lowered;
+what was removed is the blind spot. The same batch then died on the client side
+(`stop_reason=game_lost_timeout`, children at `0xC0000409`) after reaching act 2 floor 28, so the
+continuous Floor 1 → victory trace is still not obtained. Collection was relaunched unattended.
+
+**`sts2sim-campaign-fidelity-v2` is published, and it is not a scoring result.** G6, G1 and G3
+are closed in the engine, not in the prose: acts draw Overgrowth → Hive → Glory, the final act's
+paired boss is dealt at act generation from its own pool minus the first and reached by travelling
+to a row past the boss, and the boss relic the shipped build never had is gone. G1/G3/G6 now
+require the engine to *run* the transition (`scripts/verify_campaign_fidelity_gates.py` invokes the
+scenario tests, and verifies the filter matched real test names first); G2, G4 and G5 still FAIL
+and the harness still exits 1. approx-v1's declaration is kept verbatim with its digest, so old
+artifacts remain readable as what they were, and nothing was migrated or re-labelled.
+
+The cost is measured, not narrated: the act1 checkpoint (trained under approx-v1) walked the whole
+declared 10,000-seed partition and entered act 2 in **2** episodes, act 3 in **0**, deepest floor 19
+— under approx-v1 the same checkpoint reached act 2's boss on 25 seeds and cleared three acts once.
+The difference is the invented boss relic. Consequences: the training pipeline smoke is **10/11**
+(`episode_crosses_act_boundaries` is red, kept red), and the "+21 promotion / +16 holdout wins"
+reward-screen rule only ever applied to approx-v1 — its artifact now carries
+`result_applies_to_environment` because that screen no longer exists. Large-scale RL remains
+forbidden; the fidelity gate is now blocked by G2/G4/G5 and by policy strength, not by pools.
+
+Instrument hygiene that came with it: engine line citations re-pinned to the new build
+(66/66 resolve, `emulator_source_provenance_20260922.json`), the evidence manifest rebuilt
+(65 files), and `scripts/verify_report_claims.py` now scores **61/61** under the training venv —
+the three drifts it had been carrying (a never-passable act-ceiling expectation recorded against
+the two-act engine, the dead-end citation that had drifted, and the manifest) are closed by
+re-deriving them, not by relaxing them.

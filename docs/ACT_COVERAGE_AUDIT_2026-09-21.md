@@ -524,7 +524,7 @@ seq 4126/4127（被拒）与 seq 4130-4132（随后被接受）在状态暴露�
 那**不是打牌动作**，是历史批次开机引导阶段的循环（在 `run` 分段之外，闸门也不把它算进任何一局），
 本文不拿它当"玩家不合法"的证据，也不把它和局内动作混在一个总数里说事。
 
-## 12. 药水：两个动作根本不在动作空间里（一个已可修，一个卡在桥接）
+## 12. 药水：两个动作根本不在动作空间里（一个当场修好，一个要换桥接——桥接已在 §13 装上）
 
 产品层的说法是"算法不会丢药水，也不会局外用那些局内局外都能用的药水"。核实之后这两句都成立，
 而且比"没学会"更基本：**这两个动作从来没进过驱动的动作空间**。
@@ -555,7 +555,7 @@ seq 4126/4127（被拒）与 seq 4130-4132（随后被接受）在状态暴露�
 `McpMod.Compendium.cs:141-147` 也自陈只给已发现的药水 id，不给规则文本。
 于是规则写成**只在状态明确说可以时才动**：`usage` 缺失即不喝（不是猜，是不做没依据的动作）。
 候选桥接已加上 `usage = potion.Usage.ToString()`，见 `artifacts/sts2mcp-actionability/`
-（与 `rest_site.can_choose` 同一支、同样未安装）。
+（与 `rest_site.can_choose` 同一支）。**2026-09-21 晚已按授权安装**，安装与装后复验见 §13。
 
 策略版本因此从 `conservative-visible-v1` 升到 **`conservative-visible-v2`**，
 记录的规则是：+最大生命这类永久增益只要合法就喝；回复类只在生命低于 60% 且**人不站在休息点**时喝
@@ -593,3 +593,42 @@ seq 4126/4127（被拒）与 seq 4130-4132（随后被接受）在状态暴露�
 复算当下的结果（`ssb-20260921T133240Z-7eb0c916`，正在跑的第二局）：
 **11 项里 8 项已 PASS，含 `every_action_was_legal_and_acked`（posted=179，refused=0）**，
 剩下 3 项失败就是它确实还没走到的那三件（第三幕 1+1+2 的两个关底、终局、以及由它们合成的那条整局定义）。
+
+## 13. 桥接装上之后：休息点不再被拒，但"没有候选"这件事才刚开始被看见（2026-09-22 凌晨）
+
+§12 那句"候选桥接……未安装"已经推进到安装：
+
+| 项 | 事实 |
+| --- | --- |
+| 安装的候选 | `sts2mcp-potion-and-rest-actionability`（`rest_site.can_choose` + `potions[].usage`） |
+| 落盘方式 | `scripts/stage_sts2mcp.py` 暂存应用（`status: applied`），备份 `runs/sts2mcp_staging/backups/sts2mcp-20260921T153502Z-288868f1` |
+| 新 DLL | `730D60B154626F644EEC2FB5D0E7715871FA22D15BB2A8966C024DB90BFB3D72`，`previous_dll_sha256 = 0A3C1158…` 一并写进两份锁 |
+| 装后只读冒烟 | health / singleplayer / compendium 全部 200；真机状态里已能读到 `rest_site.can_choose` 与每瓶药水的 `usage` |
+| 监督器 preflight | `--dry-run` `result_code 0`，`mod_attestation.drifted_from_lock = ["CombatSolver"]`（operator 的自动更新，只记录不重钉） |
+
+**休息点的拒单归零了，但没有全绿**：安装后第一个批次
+（`scripts/census_action_refusals.py`）报 `choose_rest_option posted=8 refused=0`，
+`use_potion posted=1 refused=0`——§10/§11 那类"发出去就被打回"的关口这一项确实消失了。
+同一天里仍有 5 次 `rest_site: no legal visible candidates`，性质不同：那是**候选解码器在这一帧
+一个合法项都没找到**，动作根本没发出去，所以既不在 posted 也不在 refused 里。
+它当时是靠 `can_choose == true` 但 `options` 读不出可用项发生的（真机 act 2 floor 12/17/24/28、
+act 1 floor 8/12），驱动按既有预算重试并走过去了。
+
+这类"重试成功就当没发生"的缺口现在被记下来了：`RunCoverage.note_empty_candidates()`
+按 `state_type / act / floor` 记一行，闸门在 `every_action_was_legal_and_acked` 的明细里
+连带打印 `empty_candidates={...}`。11 项判据一项没减；被减掉的是"看不见"。
+
+**整局真机 trace 仍未拿到**，而且不是卡在休息点：批次
+`ssb-20260921T154141Z-60f4c2c0` 跑到第一局 act 2 floor 28、第二局 act 1 floor 8 之后，
+以 `status=failed result_code=4 stop_reason=game_lost_timeout` 结束
+（autoplay 与 fullauto_keeper 的退出码是 `0xC0000409`，桥接端点在收尾时连续超时）。
+分类是**客户端侧失败**，不是策略战死也不是实现卡死：驱动在那之前一直在正常推进并跨过幕界。
+已按同一参数重启无人值守采集（`ssb-20260921T170852Z-6952dc8b`，`--max-runs 8 --max-seconds 14400`），
+旧 trace 原样保留、不重写、不与新批次混算。
+
+同一轮把模拟器侧也推到了 **`sts2sim-campaign-fidelity-v2`**（G6+G1+G3 关闭，
+G2/G4/G5 仍开），它对本文结论的直接影响记在
+[保真度文档 §6](SIMULATOR_ACT_FIDELITY_2026-09-21.md)：删掉真游戏不发的 boss 遗物之后，
+act1 checkpoint 在 10,000 个声明种子里只有 2 局进第二幕、0 局进第三幕，
+`smoke_full_run_pipeline.py` 的第 11 项 `episode_crosses_act_boundaries` 因此转红（10/11）——
+标准未下调，红的是"当前没有任何 checkpoint 能在忠实环境里走到第三幕"这件事。

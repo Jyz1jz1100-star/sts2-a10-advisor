@@ -139,13 +139,21 @@ def check_run(
 
     posted = [raw for kind, raw in _actions(records) if kind == "action"]
     refused = [raw for kind, raw in _actions(records) if kind == "result" and raw.get("status") != "ok"]
+    empty_candidates: dict[str, int] = {}
+    for row in cov.get("empty_candidate_refusals", []):
+        key = f"{row.get('state_type')}@{row.get('act')}-{row.get('floor')}"
+        empty_candidates[key] = empty_candidates.get(key, 0) + 1
     add(
         "every_action_was_legal_and_acked",
         bool(posted) and len(refused) == 0,
         f"posted={len(posted)} refused={len(refused)}"
         # A clean pass must not be able to hide a run that spent its time
-        # holding, so the holds are printed next to the count that passed.
+        # holding, so the holds are printed next to the count that passed.  A
+        # screen the candidate contract found nothing to do on is reported the
+        # same way: it was retried, and a retry that worked is not a gap that
+        # never happened.
         f" waits={cov.get('waits_for_transition', {})}"
+        f" empty_candidates={empty_candidates}"
         + (f" first_refusals={[r.get('error') for r in refused[:3]]}" if refused else ""),
     )
     add(

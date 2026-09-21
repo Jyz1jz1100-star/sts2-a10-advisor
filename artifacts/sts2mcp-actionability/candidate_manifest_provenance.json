@@ -1,52 +1,63 @@
 {
- "absent_flag_policy": "The Python driver holds only on an explicit false, so this candidate is additive: with the older installed bridge nothing changes, and with it installed the refusal class is prevented rather than retried.",
- "binary_verification": {
-  "can_choose_in_candidate": true,
-  "can_choose_in_installed": false,
-  "is_victory_in_candidate": true,
-  "is_victory_in_installed": true,
-  "lineage": "installed hash equals the authorised sts2mcp-victory-flag candidate, and the candidate still carries is_victory, so the delta is two added fields rather than a different lineage",
-  "method": "searched the compiled assembly heaps in both UTF-8 and UTF-16LE; a presence check on metadata, not a claim about runtime behaviour",
-  "usage_string_in_candidate": true,
-  "usage_string_in_installed": true,
-  "usage_string_verdict": "NOT provable this way: the substring 'usage' already occurs in the installed assembly, so its presence says nothing about the new field.  The published key is verified by a live health/state smoke after an install, and nothing before that should claim it works."
- },
- "build": {
-  "command": "powershell -File third_party/STS2MCP-main/build.ps1 -GameDir \"G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\"  (with the repo's vendored SDK on PATH)",
-  "configuration": "Release",
-  "errors": 0,
-  "output_dir": "third_party/STS2MCP-main/out/STS2_MCP (never the game's mods directory)",
-  "sdk": ".tools/dotnet 9.0.317",
-  "warnings": 0
- },
- "built_at_utc": "2026-09-21T14:02:09.920727+00:00",
- "candidate_id": "sts2mcp-potion-and-rest-actionability",
- "dll_path": "artifacts\\sts2mcp-actionability\\STS2_MCP.dll",
- "dll_sha256": "730D60B154626F644EEC2FB5D0E7715871FA22D15BB2A8966C024DB90BFB3D72",
- "driver_side_hooks": {
-  "discard_then_buy": "advisor_core/live_choice_policy.potion_to_discard_for + policy_live._shop, works on the installed bridge",
-  "sip_a_potion_between_fights": "advisor_core/live_choice_policy.potion_to_sip_now, inert while usage is unpublished"
- },
- "install_requires": "explicit operator authorisation for this purpose, a game+port idle window, and scripts/stage_sts2mcp.py --apply; the previous authorisations were granted for the victory flag and for the decline-without-buying probe and are not treated as a general licence",
- "installed": false,
- "manifest_path": "artifacts\\sts2mcp-actionability\\STS2_MCP.json",
- "manifest_sha256": "F64EE11EBFA9F3CC9DFA89D99FA6125C594E3DE4A46AC5E1776327F7A80AA3C9",
- "not_consumed": [
-  "the operator's earlier DLL-swap authorisation"
- ],
- "pdb_sha256": "DCED3663C3B8DDA5026A44EE5A71FA9EF24061FEB3D81E9020AA1313ACF13C88",
- "purpose": "Publish the two preconditions an automated player cannot infer: whether a rest site can take a choice yet, and what each held potion's usage actually is.",
- "schema_version": 2,
- "source_delta": [
-  {
-   "change": "rest_site gains can_choose = (NRestSiteRoom.Instance is not null); each entry in player.potions gains usage = potion.Usage.ToString(). No route, action or other field touched; can_use_in_combat kept as-is so existing readers are unaffected.",
-   "file": "third_party/STS2MCP-main/McpMod.StateBuilder.cs"
+  "absent_flag_policy": "The Python driver holds only on an explicit false, so this candidate is additive: with the older installed bridge nothing changes, and with it installed the refusal class is prevented rather than retried.",
+  "binary_verification": {
+    "can_choose_in_candidate": true,
+    "can_choose_in_installed": false,
+    "is_victory_in_candidate": true,
+    "is_victory_in_installed": true,
+    "lineage": "installed hash equals the authorised sts2mcp-victory-flag candidate, and the candidate still carries is_victory, so the delta is two added fields rather than a different lineage",
+    "method": "searched the compiled assembly heaps in both UTF-8 and UTF-16LE; a presence check on metadata, not a claim about runtime behaviour",
+    "usage_string_in_candidate": true,
+    "usage_string_in_installed": true,
+    "usage_string_verdict": "NOT provable this way: the substring 'usage' already occurs in the installed assembly, so its presence says nothing about the new field.  The published key is verified by a live health/state smoke after an install, and nothing before that should claim it works."
+  },
+  "build": {
+    "command": "powershell -File third_party/STS2MCP-main/build.ps1 -GameDir \"G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\"  (with the repo's vendored SDK on PATH)",
+    "configuration": "Release",
+    "errors": 0,
+    "output_dir": "third_party/STS2MCP-main/out/STS2_MCP (never the game's mods directory)",
+    "sdk": ".tools/dotnet 9.0.317",
+    "warnings": 0
+  },
+  "built_at_utc": "2026-09-21T14:02:09.920727+00:00",
+  "candidate_id": "sts2mcp-potion-and-rest-actionability",
+  "dll_path": "artifacts\\sts2mcp-actionability\\STS2_MCP.dll",
+  "dll_sha256": "730D60B154626F644EEC2FB5D0E7715871FA22D15BB2A8966C024DB90BFB3D72",
+  "driver_side_hooks": {
+    "discard_then_buy": "advisor_core/live_choice_policy.potion_to_discard_for + policy_live._shop, works on the installed bridge",
+    "sip_a_potion_between_fights": "advisor_core/live_choice_policy.potion_to_sip_now, inert while usage is unpublished"
+  },
+  "install_requires": "explicit operator authorisation for this purpose, a game+port idle window, and scripts/stage_sts2mcp.py --apply; the previous authorisations were granted for the victory flag and for the decline-without-buying probe and are not treated as a general licence",
+  "installed": true,
+  "manifest_path": "artifacts\\sts2mcp-actionability\\STS2_MCP.json",
+  "manifest_sha256": "F64EE11EBFA9F3CC9DFA89D99FA6125C594E3DE4A46AC5E1776327F7A80AA3C9",
+  "not_consumed": [
+    "the operator's earlier DLL-swap authorisation"
+  ],
+  "pdb_sha256": "DCED3663C3B8DDA5026A44EE5A71FA9EF24061FEB3D81E9020AA1313ACF13C88",
+  "purpose": "Publish the two preconditions an automated player cannot infer: whether a rest site can take a choice yet, and what each held potion's usage actually is.",
+  "schema_version": 2,
+  "source_delta": [
+    {
+      "change": "rest_site gains can_choose = (NRestSiteRoom.Instance is not null); each entry in player.potions gains usage = potion.Usage.ToString(). No route, action or other field touched; can_use_in_combat kept as-is so existing readers are unaffected.",
+      "file": "third_party/STS2MCP-main/McpMod.StateBuilder.cs"
+    }
+  ],
+  "why_needed": {
+    "authority": "The refusal is the mod's own guard, so the guard is what gets published -- the same shape as can_proceed on the same screen and is_victory on game_over.",
+    "not_solved_by_a_driver_rule": "Waiting a fixed number of polls was measured and rejected: the refused frame at seq 4126 and the accepted frame at seq 4133 in ssb-20260921T124324Z-045dcccc are byte-identical in the fields the state exposes (same options, is_enabled true, can_proceed false).  No driver-side rule can separate them.",
+    "potion_usage": "can_use_in_combat is true for both CombatOnly and AnyTime, so the installed state cannot tell a potion that may be drunk between fights from one that may not. Measured on the real client: 鲜血药水 (heal) and 果汁 (+5 max HP) were held across 3,285 out-of-combat frames with no action available for them, and discard_potion/use_potion appear 0 times in the posted-action census of every recorded batch. AnyTime is 4 of the build's 64 potions.",
+    "problem": "BuildRestSiteState emits options from the RestSiteRoom *model* while ExecuteChooseRestOption (McpMod.Actions.cs:373-375) refuses while NRestSiteRoom.Instance is null.  Measured on this machine: 8 of 80 choose_rest_option posts recorded across the stored traces came back 'Rest site room is not open' (2 of 44 in the batches running today).  A full Act 1-3 run rests 5-7 times, so the full-run contract's 'every action was legal and acked' check is a coin flip on timing rather than a property of the player."
+  },
+  "installed_at_utc": "2026-09-21T15:35:03Z",
+  "install_command": "scripts/stage_sts2mcp.py --apply (batch stopped, game closed, port idle)",
+  "install_backup": "runs/sts2mcp_staging/backups/sts2mcp-20260921T153502Z-288868f1/backup_manifest.json",
+  "previous_dll_sha256": "0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5",
+  "post_install_verification": {
+    "preflight": "scripts/play.py --backend live --dry-run -> result_code 0, mod_attestation.drifted_from_lock = [\"CombatSolver\"] only",
+    "read_only_smoke": "GET / , /api/v1/singleplayer?format=json , /api/v1/compendium all 200",
+    "first_batch_action_census": "scripts/census_action_refusals.py on ssb-20260921T154141Z-60f4c2c0: choose_rest_option posted=8 refused=0, use_potion posted=1 refused=0, TOTAL posted=224 refused=2 (claim_reward 1, menu_select 1)",
+    "second_batch_action_census": "ssb-20260921T170852Z-08fd7767: TOTAL posted=259 refused=0",
+    "still_open": "the candidate codec still finds no actionable rest-site option on some frames (8 in the second batch); those are now recorded per act/floor by RunCoverage.note_empty_candidates instead of being retried invisibly"
   }
- ],
- "why_needed": {
-  "authority": "The refusal is the mod's own guard, so the guard is what gets published -- the same shape as can_proceed on the same screen and is_victory on game_over.",
-  "not_solved_by_a_driver_rule": "Waiting a fixed number of polls was measured and rejected: the refused frame at seq 4126 and the accepted frame at seq 4133 in ssb-20260921T124324Z-045dcccc are byte-identical in the fields the state exposes (same options, is_enabled true, can_proceed false).  No driver-side rule can separate them.",
-  "potion_usage": "can_use_in_combat is true for both CombatOnly and AnyTime, so the installed state cannot tell a potion that may be drunk between fights from one that may not. Measured on the real client: 鲜血药水 (heal) and 果汁 (+5 max HP) were held across 3,285 out-of-combat frames with no action available for them, and discard_potion/use_potion appear 0 times in the posted-action census of every recorded batch. AnyTime is 4 of the build's 64 potions.",
-  "problem": "BuildRestSiteState emits options from the RestSiteRoom *model* while ExecuteChooseRestOption (McpMod.Actions.cs:373-375) refuses while NRestSiteRoom.Instance is null.  Measured on this machine: 8 of 80 choose_rest_option posts recorded across the stored traces came back 'Rest site room is not open' (2 of 44 in the batches running today).  A full Act 1-3 run rests 5-7 times, so the full-run contract's 'every action was legal and acked' check is a coin flip on timing rather than a property of the player."
- }
 }

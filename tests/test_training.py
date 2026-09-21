@@ -327,19 +327,27 @@ class CampaignLabelTests(unittest.TestCase):
         self.assertEqual(payload["environment_version"], CAMPAIGN_ENVIRONMENT_VERSION)
         coverage = payload["content_coverage"]
         self.assertEqual(coverage["verdict"], "approximate")
-        self.assertEqual(coverage["result_tier"], "simulator_three_act_approx")
+        self.assertEqual(
+            coverage["result_tier"], "simulator_three_act_pools_and_pair_boss"
+        )
 
     def test_the_declaration_names_the_acts_the_shipped_game_actually_uses(self) -> None:
-        # Guards against the campaign quietly being re-described as real coverage:
-        # stage 2 is Hive and stage 3 is Glory, and neither is modelled here.
+        # Guards against the campaign quietly being re-described as real coverage: the
+        # pools are Hive and Glory from fidelity-v2 on, the events are still not, and
+        # neither fact may be dropped from the declaration.
         progression = CAMPAIGN_CONTENT_COVERAGE["real_progression"]
         self.assertEqual(progression["act_2"]["model"], "Hive")
         self.assertEqual(progression["act_3"]["model"], "Glory")
         self.assertEqual(progression["act_3"]["second_boss_at_ascension"], 10)
         stages = CAMPAIGN_CONTENT_COVERAGE["stages"]
-        self.assertTrue(stages["1"]["matches_real_game_act"])
-        self.assertFalse(stages["2"]["matches_real_game_act"])
-        self.assertFalse(stages["3"]["matches_real_game_act"])
+        for stage in ("1", "2", "3"):
+            self.assertTrue(
+                stages[stage]["encounter_pools_match_real_game_act"],
+                f"stage {stage} no longer says which act its encounters come from",
+            )
+        self.assertTrue(stages["1"]["event_pools_match_real_game_act"])
+        self.assertFalse(stages["2"]["event_pools_match_real_game_act"])
+        self.assertFalse(stages["3"]["event_pools_match_real_game_act"])
 
     def test_single_act_metrics_keep_the_pre_campaign_shape(self) -> None:
         metrics = evaluate_policy(
@@ -355,16 +363,22 @@ class CampaignLabelTests(unittest.TestCase):
         self.assertIsNone(metrics["content_coverage"])
         self.assertEqual(metrics["campaign_clears"], 0)
 
-    def test_the_four_result_tiers_are_named_and_kept_apart(self) -> None:
+    def test_the_result_tiers_are_named_and_kept_apart(self) -> None:
         tiers = RESULT_TIERS
         self.assertEqual(
             set(tiers),
             {
                 "simulator_single_act",
                 "simulator_three_act_approx",
+                "simulator_three_act_pools_and_pair_boss",
                 "simulator_three_act_content_verified",
                 "live_full_run",
             },
+        )
+        # A new tier must not swallow the one above it: v2 says out loud that it is
+        # not content-verified.
+        self.assertIn(
+            "not content-verified", tiers["simulator_three_act_pools_and_pair_boss"]
         )
         self.assertIn("live A10 win rate",
                       CAMPAIGN_CONTENT_COVERAGE["must_not_be_quoted_as"])

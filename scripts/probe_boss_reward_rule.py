@@ -32,8 +32,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT.parent / "third_party" / "slay-the-spire-2-emulator-main" / "src"))
 sys.path.insert(0, str(ROOT))
 
+from training.campaign_content import CAMPAIGN_ENVIRONMENT_VERSION
+
 REWARD_PHASE = "relic_reward"
 BOSS_NODE_TYPE = 6  # third_party RunConstants.cs:32
+
+# The screen this rule plays at is a relic of approx-v1: from
+# sts2sim-campaign-fidelity-v2 a boss clear grants no relic (RewardsSet.cs:245-261), so
+# `phase == relic_reward at a boss node` no longer occurs and this probe measures nothing
+# there. Its +/- win deltas stay approx-v1 results and are stamped as such.
+APPROX_V1_RELIC_SCREEN = "sts2sim-campaign-approx-v1"
 
 
 class RewardScreenRule:
@@ -163,6 +171,11 @@ def main() -> int:
             })
 
     payload = {
+        "schema_version": 1,
+        "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+        # A screen this rule can act on no longer exists in the live environment, so the
+        # number below belongs to the version it was measured on and to no other.
+        "result_applies_to_environment": APPROX_V1_RELIC_SCREEN,
         "aggregates": {
             "delta_judged_wins": ruled["wins"] - plain["wins"],
             "episodes": len(seeds),
@@ -201,7 +214,9 @@ def main() -> int:
             "result",
             "that the matched screen is the boss relic screen specifically: the adapter keys on "
             "phase=relic_reward and current_node_type=boss, which any boss relic award satisfies",
-            "anything about the shipped game"],
+            "anything about the shipped game",
+            "anything about an environment later than approx-v1: a boss grants no relic there, "
+            "so this rule has no state to act on and a re-run measures zero, not a lost gain"],
         "rule": {"argmax_elsewhere": True, "chosen": args.rule,
                  "screen": f"{REWARD_PHASE} at current_node_type={BOSS_NODE_TYPE}"},
         "scope": ("the seeds whose Act-2 boss clear went unjudged, replayed end to end under a "
