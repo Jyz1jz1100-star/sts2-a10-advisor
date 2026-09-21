@@ -11,8 +11,18 @@ emulator side points at the pools it actually reads.
 """
 from __future__ import annotations
 
+import hashlib
+import json
+from collections.abc import Iterable
+
 #: Bump when the campaign's *content* changes, so pre-change artifacts stay separable.
 CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-approx-v1"
+
+#: The name the Act 2 / Act 3 fidelity work must publish under.  It is reserved
+#: here so the first fidelity change lands on a new version rather than on this
+#: one -- approx-v1 is frozen below, and results from the two must never be
+#: averaged, re-judged, or continued from each other's checkpoints.
+FIDELITY_ENVIRONMENT_VERSION_BASE = "sts2sim-campaign-fidelity"
 
 #: The four result tiers that must never be quoted as one number.
 RESULT_TIERS = {
@@ -107,3 +117,87 @@ CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
         "evidence that a strategy can clear the shipped game",
     ],
 }
+
+
+class EnvironmentVersionError(RuntimeError):
+    """A version name is being reused for content it never declared."""
+
+
+def _canonical_digest(coverage: dict[str, object]) -> str:
+    canonical = json.dumps(
+        coverage, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+#: Frozen environments, keyed by the version string that will appear in an
+#: artifact.  The digest is pinned as a literal on purpose: recomputing it from
+#: the dictionary would let a content edit "verify" itself, which is exactly the
+#: failure being prevented -- an approximate result must not be able to become a
+#: fidelity result without saying so in the version.
+FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
+    "sts2sim-campaign-approx-v1": {
+        "frozen_at_utc": "2026-09-21T14:30:00+00:00",
+        "content_sha256": "13cbd87703407fe6f7c7c6621638653313c3dd015d26c4ad311cb0bce5e4933f",
+        "verdict": "approximate",
+        "result_tier": "simulator_three_act_approx",
+        "meaning": (
+            "Stage 1 is Overgrowth; stages 2 and 3 draw the Underdocks pools. Every "
+            "artifact carrying this name -- smoke, checkpoints, metrics, rolled "
+            "windows -- keeps that meaning permanently, including after G1-G6 land."
+        ),
+        "checkpoint_rule": (
+            "a checkpoint trained under this version may not be continued into a "
+            "differently-versioned environment without restating its provenance"
+        ),
+    },
+}
+
+
+def assert_content_declaration(
+    version: str, coverage: dict[str, object]
+) -> str:
+    """Return the coverage digest, refusing a frozen name whose content moved.
+
+    Called by anything that stamps an artifact, so the mistake this catches is
+    the expensive one: editing what the campaign contains while leaving the old
+    version string on the file, after which nothing on disk can tell the two
+    environments apart.
+    """
+    frozen = FROZEN_ENVIRONMENT_VERSIONS.get(version)
+    digest = _canonical_digest(coverage)
+    if frozen is None:
+        return digest
+    if str(coverage.get("verdict")) != str(frozen["verdict"]):
+        raise EnvironmentVersionError(
+            f"{version} is frozen with verdict {frozen['verdict']!r}; "
+            f"a declaration of {coverage.get('verdict')!r} is a different "
+            "environment and must carry a new environment_version"
+        )
+    if digest != str(frozen["content_sha256"]):
+        raise EnvironmentVersionError(
+            f"{version} is frozen at content_sha256 "
+            f"{frozen['content_sha256'][:16]}... but the declaration now reads "
+            f"{digest[:16]}... -- publish a new environment_version instead of "
+            "rewriting a frozen one"
+        )
+    return digest
+
+
+def assert_single_environment(versions: Iterable[str | None]) -> str:
+    """One version per comparison, or a named refusal.
+
+    Rollups, gate re-judgements and merge steps all take a list of artifacts, and
+    a set of two versions in that list is the silent event that makes an
+    approximate result and a fidelity result into one number.
+    """
+    named = {version if version is not None else "unlabelled" for version in versions}
+    if not named:
+        raise EnvironmentVersionError("no artifacts to compare")
+    if len(named) > 1:
+        raise EnvironmentVersionError(
+            "refusing to combine artifacts across environments: "
+            + ", ".join(sorted(named))
+        )
+    return next(iter(named))
+

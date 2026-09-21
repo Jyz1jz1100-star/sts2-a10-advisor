@@ -143,3 +143,31 @@
    （真机确实以 `event` + `is_ancient` 出现）。这条自我更正一并记录，避免以后把无关改动当成改进。
 3. 模拟器 `max_floors` 是死参数（`run_env.py:59/66` 存而不用），`config/training.toml:100 max_floors = 49`
    也是惰性的，且比 campaign 终局层 50 少 1。
+
+## 5. 这一版之后，G1-G6 由一台仪器判定，不再由本文判定
+
+`scripts/verify_campaign_fidelity_gates.py` 读引擎自己的 C# 表与函数体（不是读本文），
+可选地用可复现 checkpoint 走真 campaign 采样，逐门给出：真实来源 / 模拟器实现位置 /
+当前判据 / 是否通过 / 尚存差异。`--out` 落 JSON，退出码 0 只在六个硬门全过时出现。
+**没测到 = 不通过**（`not_measured` 不算绿）。
+
+冻结机制：`training/campaign_content.py` 里 approx-v1 的内容声明被钉了一个 sha256，
+带这个名字改内容会直接抛 `EnvironmentVersionError`；跨 environment 合并被
+`assert_single_environment` 与 `merge_reward_rule_slices.py` 拒掉。
+下一版保真环境必须叫 `sts2sim-campaign-fidelity-v2`（已在本模块预留）。
+
+2026-09-21 首次运行（静态判据）：**六门全 FAIL**，并且每台仪器都报告它读到了什么——
+例如 G3 的 `paired_final_act_boss_body` 直接印出第二 boss 是
+`UnderdocksBossEncounters` 里的"下一个 id"，G5 印出 `RollCardUpgrade` 的函数体
+`_ = rng.NextDouble(); return false;`。`tests/test_campaign_environment_versions.py`
+把"锚点必须还能在引擎里找到"钉成测试：正则失配时先红，不会把门判绿。
+
+### 本文两处需要按真机/真源码更正的地方
+
+1. 升级概率的豁免条件是 **`CardRarity.Rare` 不参与幕递增**（`CardFactory.cs:393-397`）：
+   普通与 uncommon 都吃 `CurrentActIndex * UpgradedCardOddScaling`（0.25，A8 Scarcity 下 0.125），
+   本文先前写成"稀有牌永不升级"过头了——Rare 只是不吃递增项。
+2. Hive/Glory 的弱怪在模拟器 id 空间里**并非都有独立条目**（例如实机
+   `ExoskeletonsWeak` 与 `ExoskeletonsNormal` 都落到 id 4），
+   所以即使 G1 把池子接对，弱/正常两档在部分怪上仍不可区分——这是接完 G1 之后
+   仍然存在的差异，必须留在 `still_differs` 里而不是被"池子接上了"一句话盖掉。

@@ -6,7 +6,11 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, Protocol
 
-from .campaign_content import CAMPAIGN_CONTENT_COVERAGE, CAMPAIGN_ENVIRONMENT_VERSION
+from .campaign_content import (
+    CAMPAIGN_CONTENT_COVERAGE,
+    CAMPAIGN_ENVIRONMENT_VERSION,
+    assert_content_declaration,
+)
 from .metrics import EpisodeMetric, EvaluationMetrics, summarize_episodes
 
 
@@ -201,7 +205,12 @@ def evaluate_policy(
     )
     if campaign:
         # A campaign number without its coverage declaration reads as a real
-        # three-act result, which is the one thing it is not.
+        # three-act result, which is the one thing it is not.  Asserting the
+        # declaration here is what stops a frozen environment's name being
+        # stamped onto content it never described.
+        assert_content_declaration(
+            CAMPAIGN_ENVIRONMENT_VERSION, CAMPAIGN_CONTENT_COVERAGE
+        )
         metrics = replace(
             metrics,
             environment_version=CAMPAIGN_ENVIRONMENT_VERSION,

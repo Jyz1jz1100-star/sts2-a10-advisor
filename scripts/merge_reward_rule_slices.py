@@ -72,6 +72,20 @@ def main() -> int:
                          "artifact would name one population and sum another")
     partition = partitions.pop()
 
+    # Environment, not just population: once the campaign's Act 2/3 content is
+    # fixed under a new version, an approximate artifact and a fidelity artifact
+    # describe different games, and summing their seeds produces a number that
+    # belongs to neither.  An absent field is its own label so a pre-versioning
+    # artifact cannot quietly join a versioned rollup.
+    environments = {
+        str(data.get("environment_version")) for data in slices
+    }
+    if len(environments) != 1:
+        raise SystemExit(
+            f"slices carry different environments {sorted(environments)}; refusing to "
+            "average an approximate environment with a fidelity one"
+        )
+
     if args.compare_group == "none":
         recorded_losses, baseline = [], None
     else:
