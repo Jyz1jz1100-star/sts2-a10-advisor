@@ -104,9 +104,12 @@ class RunCoverage:
                 self._pending_boss = None
         elif self._pending_boss is not None and self._player_alive(state):
             player = state.get("player") or {}
+            # The label names the screen that followed and the HP carried into
+            # it; it used to read "floor" here while printing HP, which invited
+            # exactly the wrong inference about where the boss sat.
             self.boss_cleared.setdefault(
                 self._pending_boss,
-                f"{state_type}@floor{player.get('hp', '?')}",
+                f"{state_type}:hp{player.get('hp', '?')}",
             )
             self._pending_boss = None
 

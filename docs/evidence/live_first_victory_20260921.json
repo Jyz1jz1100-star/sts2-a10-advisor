@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-09-21T11:10:28.063580Z",
+  "claim": "First real-client victory terminal observed, and the final act's second boss reached and cleared.",
+  "batch": "ssb-20260921T110424Z-1e547c75",
+  "track": "acceptance",
+  "trace": "runs\\solver_supervisor\\ssb-20260921T110424Z-1e547c75\\autoplay_trace.jsonl",
+  "trace_sha256": "dce8cd8e2dfd862356d7a14430887c42a509ed4e852e4c501d8a4ba70229a5b2",
+  "what_the_stream_covers": {
+    "schema_version": 1,
+    "started": true,
+    "acts_seen": [
+      3
+    ],
+    "acts_in_required_progression": [
+      3
+    ],
+    "ancients_by_act": {},
+    "ancients_covered_acts": [],
+    "boss_battles_by_act_floor": {
+      "3:48": [
+        "AEONGLASS_0"
+      ],
+      "3:49": [
+        "QUEEN_0"
+      ]
+    },
+    "bosses_cleared_by_act": {
+      "3": 2
+    },
+    "bosses_cleared": {
+      "3:48": "rewards:hp46",
+      "3:49": "card_select:hp21"
+    },
+    "bosses_covered_acts": [
+      3
+    ],
+    "required_bosses_per_act": {
+      "1": 1,
+      "2": 1,
+      "3": 2
+    },
+    "outcome": true,
+    "outcome_source": "bridge_is_victory_flag",
+    "terminal_floor": 49,
+    "proceed_bypasses": [],
+    "unhandled_screens": {},
+    "unhandled_screen_bypasses": [],
+    "unknown_screens": {},
+    "run_complete": false,
+    "sealed_by": "game_over"
+  },
+  "scope_limits": {
+    "run_complete_is_false_and_correctly": "This batch resumed a run already at act 3 floor 46, so its own continuous stream contains only Act 3. Acts 1 and 2 (and their Ancients) were walked in the preceding batch ssb-20260921T102537Z-2f872726. The ledger refuses to stitch the two together, so run_complete stays false rather than being inferred across a gap.",
+    "not_a_win_rate": "One observed clear is proof the path runs, not that it is reliable.",
+    "seed_mode": "observational; this seed is not reproducible and is not acceptance-grade cohort evidence"
+  },
+  "fake_merchant": {
+    "resolution": "cleared by the driver's proceed attempt, with no further bridge change",
+    "frames_on_the_screen": 2,
+    "why_no_new_action_was_needed": "BuildFakeMerchantState already ForceClicks the merchant button while the inventory is closed (McpMod.StateBuilder.cs:1521-1533), and ExecuteProceed closes an open inventory before clicking proceed (McpMod.Actions.cs:618-637); NFakeMerchant.OpenInventory wires InventoryClosed -> ShowProceedButton, so proceed becomes enabled one step later.",
+    "authorized_dll_swap_used": false,
+    "note_on_the_authorization": "The operator authorized another bridge replacement for this. It turned out unnecessary, and a rebuild of the reverted source tree is byte-identical to the installed DLL (0A3C115850B54522980A0AD0A01E092137E3B2407B03E6247AF4E65F79B7EBA5), so the installed bridge is unchanged and the authorization was not consumed."
+  },
+  "bosses_cleared_in_this_stream": {
+    "3:48": "rewards:hp46",
+    "3:49": "card_select:hp21"
+  },
+  "victory_signal": {
+    "field": "game_over.is_victory",
+    "value": true,
+    "consumer_reading": "bridge_is_victory_flag"
+  },
+  "second_final_act_boss": {
+    "node": "3:49",
+    "encounter": [
+      "QUEEN_0"
+    ],
+    "first_time_reached": true,
+    "matches_build_definition": "Glory's boss pool is QueenBoss/TestSubjectBoss/AeonglassBoss and SecondBossMapPoint sits one row past the boss"
+  }
+}
