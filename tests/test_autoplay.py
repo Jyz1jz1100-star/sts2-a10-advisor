@@ -11,6 +11,7 @@ from bridge.autoplay import (
     AutoPlayer,
     AutoplayClassifiedStop,
     RunIdentityError,
+    WaitForTransition,
     _require_continued_run_identity,
     _require_saved_run_identity,
     _to_payload,
@@ -165,6 +166,25 @@ class AutoplayDecisionTests(unittest.TestCase):
         renamed["event"]["event_id"] = "SOME_OTHER_EVENT"
         self.assertEqual(
             self.player.decide(named), self.player.decide(renamed)
+        )
+
+    def test_a_rest_site_that_cannot_choose_yet_is_waited_out(self) -> None:
+        """``can_choose`` is the bridge's own precondition for the choice.
+
+        8 of the 80 ``choose_rest_option`` posts recorded on this machine came
+        back ``Rest site room is not open``: the options come from the room
+        model, the click needs the room's UI node, and the second arrives a
+        moment after the first.  An older bridge sends no flag, and then the
+        driver must keep acting, so only an explicit false holds.
+        """
+        state = load("rest_site")
+        state["rest_site"]["can_choose"] = False
+        decision = self.player.decide(state)
+        self.assertIsInstance(decision, WaitForTransition)
+        state["rest_site"].pop("can_choose")
+        self.assertEqual(
+            self.player.decide({**state, "player": {"hp": 20, "max_hp": 80}}),
+            {"action": "choose_rest_option", "index": 0},
         )
 
     def test_rest_site_payload_uses_option_index(self) -> None:

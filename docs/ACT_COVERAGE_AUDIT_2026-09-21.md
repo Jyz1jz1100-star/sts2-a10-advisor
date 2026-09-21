@@ -441,3 +441,85 @@ track→子进程 `--mod-gate` 正确传递；未知 track 在启动前就拒。
 这跟上一轮 `is_victory` 是同一类小改动（同一套 `stage_sts2mcp` 安装/回滚路径），
 但它意味着**再一次替换已安装的桥接 DLL**——上一次的授权是针对胜负位那一个目的给的，
 我不把它当成对后续任意 DLL 替换的通用许可。
+
+## 11. 真机往前推到 Act 3 floor 49 之后，闸门自身又露出四个缺陷（2026-09-21 深夜）
+
+### 11.1 三个"动作根本不合法"的实现缺陷（已修）
+
+| 症状（来自 trace，不是推测） | 根因 | 处置 |
+| --- | --- | --- |
+| `stop_reason=unhandled_screen`，`detail="no rule and no continue control for screen 'card_select' at act 1 floor 5 after 11 frames"`，`coverage.deferred_to_combat={'NDeckEnchantSelectScreen': 11}` | 驱动用一张"认识的名字"白名单判断 `card_select` 归谁：名字不认识就交给战斗层。但局外的卡牌网格**根本没有战斗层这个接手人**，于是这一屏没人动，11 帧后停批 | 改成按真实构建自己的自动出牌注册表（`MegaCrit.Sts2.Core.AutoSlay.Handlers.Screens`，13 个 handler）来判定：`NDeckEnchantSelectScreen` 在它里面，所以是我们的；整个 `card_select` 家族里只有 `NCombatPileCardSelectScreen` 不在，只有它继续弃权。另外 `select_card` 是**开关**，所以走位改成"逐个点不同下标，直到屏幕自己的 `can_confirm` 亮起" |
+| 两次 `choose_event_option index 0` 被 mod 拒绝：`No event options available`（`PUNCH_OFF` act1/f11、`SLIPPERY_BRIDGE` act2/f20） | 事件的选项是**下一帧才渲染**的（同一局里 seq 37 是 0 个选项、seq 38 就变成 2 个），而驱动把"没选项"当成"选项 0" | 零个或全部锁住时不 POST，等下一帧。闸门里 `every_action_was_legal_and_acked` 不允许含这种被拒动作 |
+| 上一条若不修会更糟：`_unhandled_counts` 按**整批生命周期**统计每屏无规则帧 | 那样一个正在播动画的屏幕会慢慢耗光预算，把"看一眼动画"误判成"缺处理器"而停批 | 无规则计数改成按**相同帧连续**计数（decision_id 不变才算卡住），这才是"no rule and no continue control"本来的意思 |
+
+### 11.2 客户端自己会把整局卡死：`PunchOff` 的 VFX 空转（未修，只能命名 + 熔断）
+
+真机事实（全部来自被卡死那个进程留下的文件，不是复盘时的说法）：
+
+- 最后一个动作是 `choose_map_node index 0` → `Traveling to Unknown at (2,10)`，随后状态变成 `unknown`；此后 **10 秒内桥接不再响应**，两次 `GET /api/v1/singleplayer` 超时。
+- 客户端自己的日志 `godot2026-09-21T20.43.18.log`：**2,301,246,672 字节 / 22,044,517 行**，实测 **16,793,363 字节/秒**（3 秒涨 50,380,091 字节）；其中 `ERROR: Parameter "particles" is null.` 出现 **708,549 次**，含 `PunchOff` 的行 **2,368,137 行**，首次报错在第 8,386 行。
+- 反复出现的栈就是事件自己的循环：`PunchOff+<PunchEachOther>` ← `EventRoom.EnterInternal`，前面还夹着 `ERROR: Element limit reached. at: initialize_rid`。
+- 反编译对得上：`PunchOff.cs:30` 是 `EventLayoutType.Combat`，`:40` 允许它从 `TotalFloor >= 6` 出现，`:65` 是 fire-and-forget 的 `PunchEachOther()`，只有**离开房间**才取消，`:81-99` 每圈都要实例化 `vfx/vfx_attack_blunt` 和 `NHitSparkVfx.Create`。
+
+这不是策略死亡（HP 80/80 满血进房，一局没掉血就再也读不到状态），也不是本仓库的动作造成的。而且它**不是确定性的**：同一局后来在 act1/f11 又进了一次 `PUNCH_OFF`，这次正常返回了两个选项——所以触发条件是资源耗尽（`Element limit reached`）那一类，不能靠"避开这个事件"解决，何况事件节点本来就是交付目标要覆盖的内容。
+
+能做的只有两件，都落地了：
+
+1. **看门狗**：`scripts/supervise_solver_batch.py` 监测客户端自己那份 `godot.log` 的字节增速，超过 5 MB/s 且连续 4 个采样点，就以 `stop_reason=client_wedged` 停批。
+2. **冻结而不是杀进程**：`NtSuspendProcess`。杀掉可能正好落在游戏自己的存档写入里，而 operator 的红线是"不碰存档/profile"；挂起只让那个失控循环停下，窗口、进程、文件都在原地，人可以自行决定关还是恢复。
+
+### 11.3 观察者的死不再否决整局（acceptance 轨）
+
+`comparison` 子进程 5 秒桥接超时后退出，过去会把 `autoplay` 一起停掉（`result_code=5`），于是**验收局被一个取证件的日程否决**。现在 acceptance 轨记 `attestation_gaps=["comparison_observer_exited:<code>"]` 继续打牌；比对轨照旧致命——那条实验的自变量就是求解器，battles 就是交付物。
+
+### 11.4 最深的一局真机连续流死在 Act 3 floor 49——但它天生不是闸门 trace
+
+- 这一局最终 `game_over`：`{"is_victory": false}` at **act 3 / floor 49**，也就是决胜幕的关底层。此前它已经清过 `1:17`（第一幕关底）。这是本项目在真机上走到的最深位置。
+- 它**不能**充当 full-run 闸门证据，闸门自己就这么写：`FAIL starts_at_floor_one :: first act entry floor=10, acts=[1, 2]`；trace 里第一个动作是 `menu_select continue`。
+- 为什么必须 continue：存档里还压着一局未完成时，`start fresh` 被 mod 拒绝（`Singleplayer is not currently actionable`，日志里重试了 10 次），驱动只能走身份守卫的续档路径——"绝不静默覆盖别人的存档"是对的，但代价是**闸门要的那份从 Floor 1 起手的连续 trace，只有在上一局走到终局之后才拿得到**。`abandon_run` 是红线，不碰。
+- 所以上一局终局之后，驱动当场起了新的一局（act1/floor 2 起，`BURNING_BLOOD`+`PHIAL_HOLSTER`），这一局是从 Floor 1 开始的候选；但**它跑在修事件合法性之前的进程里**，所以只要再抽到一个"下一帧才出选项"的事件，它同样会被 `every_action_was_legal_and_acked` 拒绝。要不要这份 trace，取决于运气；要拿到确定的一份，就得等这个进程跑完、用已修的代码在"上一局刚终局"的时间窗里立刻起新批。
+
+### 11.5 第五个缺陷不是驱动能修的：休息点"能看不能点"（候选桥接已备好，未安装）
+
+真机统计（对本机全部留存 trace 逐条重算，不是印象）：`choose_rest_option` 一共 POST 80 次，
+**8 次被 `Rest site room is not open` 拒绝**；今天下午的两批里 44 次中 2 次。
+根因在桥接自己：`BuildRestSiteState` 的选项来自房间**模型**（`RestSiteRoom.Options`），
+而 `McpMod.Actions.cs:373-375` 的动作门槛是 `NRestSiteRoom.Instance`（UI 节点）——
+后者晚一点才就位。
+
+驱动侧修不了它，这一点也是量出来的：`ssb-20260921T124324Z-045dcccc` 里
+seq 4126/4127（被拒）与 seq 4130-4132（随后被接受）在状态暴露的字段上**逐字节相同**
+（同样的两个选项、`is_enabled: true`、`can_proceed: false`）。
+任何"多等几帧再点"的规则都是在拿时序赌，而不是在满足某个条件。
+
+为什么这件事值得单独一节：闸门第 7 项要求"每一次动作都合法且被确认"。
+一整局 A1-3 要休息 5-7 次，按上面 10% 的单次拒绝率，
+**不修这一项，PASS 与否主要由客户端时序决定，而不是由打牌的人决定。**
+
+已做（不改已安装的桥接）：
+
+- 源码候选：`rest_site` 增加 `can_choose = NRestSiteRoom.Instance is not null`，
+  就是把动作自己的门槛挂到状态上（与 `can_proceed`、`is_victory` 同一形状）。
+- 产物：`artifacts/sts2mcp-actionability/`，构建 0 warning / 0 error，
+  DLL `6DA7911EC0FA6838...`；程序集字符串堆核验：候选含 `can_choose`，
+  **当前安装的 DLL 不含 `can_choose` 但含 `is_victory`**——说明这一支与已安装那一支同源，
+  差别就是一个字段（`candidate_manifest_provenance.json`）。
+- 驱动侧已经先接上：`rest_site.can_choose` 明确为 `false` 才等待；
+  **字段缺失（现在的安装态）行为完全不变**，所以这是一次纯增量的候选，而不是先把驱动改成依赖一个读不到的字段。
+- 安装**没有**发生，也没法发生：`stage_sts2mcp.py` 在真机在跑的时候直接拒绝
+  （`SlayTheSpire2.exe is running; refusing bridge file mutation`），这正是它该有的样子。
+  前两次换 DLL 的授权分别是为"胜负位"和为"不买只走"给的，我不当成通用许可——
+  要装需要一次针对这个目的的授权，以及一个游戏空闲的窗口（停批 + 关游戏）。
+
+上面那两个数字不用相信本文，`scripts/census_action_refusals.py` 逐条重算本机所有留存 trace：
+
+```powershell
+.\.tools\python\cpython-3.12-windows-x86_64-none\python.exe scripts/census_action_refusals.py
+```
+
+它按"POST 与其响应"配对来数，今天这一轮的结果是
+`choose_rest_option posted=82 refused=8 (9.8%)`、`choose_map_node 583/18 (3.1%)`、
+`choose_event_option 295/12 (4.1%)`、`select_card 91/2 (2.2%)`。
+同一份输出里 `menu_select`、`proceed`、`set_ascension` 的拒绝率高达 74%/83%/100%，
+那**不是打牌动作**，是历史批次开机引导阶段的循环（在 `run` 分段之外，闸门也不把它算进任何一局），
+本文不拿它当"玩家不合法"的证据，也不把它和局内动作混在一个总数里说事。

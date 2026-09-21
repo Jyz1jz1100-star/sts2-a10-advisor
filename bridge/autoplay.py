@@ -716,6 +716,15 @@ class AutoPlayer:
             return WaitForTransition(
                 "map travel already acknowledged from this node"
             )
+        if (
+            state_type == "rest_site"
+            and (state.get("rest_site") or {}).get("can_choose") is False
+        ):
+            # The room's options are readable a moment before its UI node exists,
+            # and the mod refuses a choice in that window.  Absent the flag -- an
+            # older bridge -- behaviour is unchanged, because refusing to act on
+            # an unknown would strand every rest site.
+            return WaitForTransition("the rest site room cannot take a choice yet")
         payload: dict[str, Any] | None = None
         if state_type in _HEURISTIC_SCREENS:
             try:

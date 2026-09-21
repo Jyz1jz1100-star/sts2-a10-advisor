@@ -1,0 +1,44 @@
+{
+ "absent_flag_policy": "The Python driver holds only on an explicit false, so this candidate is additive: with the older installed bridge nothing changes, and with it installed the refusal class is prevented rather than retried.",
+ "binary_verification": {
+  "can_choose_in_candidate": true,
+  "can_choose_in_installed": false,
+  "is_victory_in_candidate": true,
+  "is_victory_in_installed": true,
+  "lineage": "the installed DLL's hash equals the authorised sts2mcp-victory-flag candidate, and this candidate keeps is_victory present, so the delta is one added field rather than a different lineage",
+  "method": "searched the compiled assembly string heaps (UTF-8 and UTF-16LE); a presence check on the metadata, not a claim about runtime behaviour"
+ },
+ "build": {
+  "command": "powershell -File third_party/STS2MCP-main/build.ps1 -GameDir \"G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\"  (with the repo's vendored SDK on PATH)",
+  "configuration": "Release",
+  "errors": 0,
+  "output_dir": "third_party/STS2MCP-main/out/STS2_MCP (never the game's mods directory)",
+  "sdk": ".tools/dotnet 9.0.317",
+  "warnings": 0
+ },
+ "built_at_utc": "2026-09-21T13:22:47.130162+00:00",
+ "candidate_id": "sts2mcp-actionability",
+ "dll_path": "artifacts\\sts2mcp-actionability\\STS2_MCP.dll",
+ "dll_sha256": "6DA7911EC0FA683859306731AF3696070A8DC12F4C9B7DC491EF1A6856BA8A21",
+ "install_requires": "explicit operator authorisation for this purpose, a game+port idle window, and scripts/stage_sts2mcp.py --apply; the previous authorisations were granted for the victory flag and for the decline-without-buying probe and are not treated as a general licence",
+ "installed": false,
+ "manifest_path": "artifacts\\sts2mcp-actionability\\STS2_MCP.json",
+ "manifest_sha256": "F64EE11EBFA9F3CC9DFA89D99FA6125C594E3DE4A46AC5E1776327F7A80AA3C9",
+ "not_consumed": [
+  "the operator's earlier DLL-swap authorisation"
+ ],
+ "pdb_sha256": "72331D6E96B15EEF2907389E9352F1828D172A3692EB58C36A3D02EFAF4BC93E",
+ "purpose": "Publish the rest site's own precondition so an automated player can tell 'options are readable' apart from 'a choice can be taken'.",
+ "schema_version": 2,
+ "source_delta": [
+  {
+   "change": "rest_site gains can_choose: NRestSiteRoom.Instance is not null.  No other field, route or action touched.",
+   "file": "third_party/STS2MCP-main/McpMod.StateBuilder.cs"
+  }
+ ],
+ "why_needed": {
+  "authority": "The refusal is the mod's own guard, so the guard is what gets published -- the same shape as can_proceed on the same screen and is_victory on game_over.",
+  "not_solved_by_a_driver_rule": "Waiting a fixed number of polls was measured and rejected: the refused frame at seq 4126 and the accepted frame at seq 4133 in ssb-20260921T124324Z-045dcccc are byte-identical in the fields the state exposes (same options, is_enabled true, can_proceed false).  No driver-side rule can separate them.",
+  "problem": "BuildRestSiteState emits options from the RestSiteRoom *model* while ExecuteChooseRestOption (McpMod.Actions.cs:373-375) refuses while NRestSiteRoom.Instance is null.  Measured on this machine: 8 of 80 choose_rest_option posts recorded across the stored traces came back 'Rest site room is not open' (2 of 44 in the batches running today).  A full Act 1-3 run rests 5-7 times, so the full-run contract's 'every action was legal and acked' check is a coin flip on timing rather than a property of the player."
+ }
+}
