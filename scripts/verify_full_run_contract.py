@@ -61,19 +61,41 @@ def _actions(records: list[dict[str, Any]]):
             yield record["event_type"], record["raw"]
 
 
-def check_run(records: list[dict[str, Any]], coverage: RunCoverage) -> dict[str, Any]:
-    """Name every contract item for one run's own ledger, pass or fail."""
+def check_run(
+    records: list[dict[str, Any]],
+    coverage: RunCoverage,
+    session: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Name every contract item for one run's own ledger, pass or fail.
+
+    ``session`` is the stream's provenance record.  A trace file is one process,
+    so it is hoisted by the caller and passed to every run in the file: read from
+    a run's own segment, only the first run of a batch could ever satisfy it, and
+    that is a property of where one record happens to sit rather than of the run.
+    """
     cov = coverage.coverage()
-    session = next((r.get("raw") or {} for r in records if r.get("event_type") == "session"), {})
+    if session is None:
+        session = next(
+            (r.get("raw") or {} for r in records if r.get("event_type") == "session"),
+            {},
+        )
     results = []
 
     def add(name: str, ok: bool, detail: str) -> None:
         results.append({"check": name, "passed": bool(ok), "detail": detail})
 
+    first_entry = coverage.act_entries.get(1)
     add(
         "starts_at_floor_one",
-        coverage.started and cov["acts_seen"][:1] == [1] and coverage.act_entries.get(1) == FIRST_FLOOR,
-        f"first act entry floor={coverage.act_entries.get(1)!r}, acts={cov['acts_seen']}",
+        # Floor 0 is the run before its first node -- a fresh start observed at
+        # Neow -- so it is the earliest evidence there is, not a mid-run join.  A
+        # continued run reports the floor it was saved at, which is >= 1, and
+        # anything above FIRST_FLOOR still refuses, as intended.
+        coverage.started
+        and cov["acts_seen"][:1] == [1]
+        and isinstance(first_entry, int)
+        and first_entry <= FIRST_FLOOR,
+        f"first act entry floor={first_entry!r}, acts={cov['acts_seen']}",
     )
     add(
         "three_acts_in_order",
@@ -158,6 +180,10 @@ def check_run(records: list[dict[str, Any]], coverage: RunCoverage) -> dict[str,
 
 def audit(path: Path) -> dict[str, Any]:
     records = _records(path)
+    stream_session = next(
+        (r.get("raw") or {} for r in records if r.get("event_type") == "session"),
+        {},
+    )
     # Segment on the terminal and on menu visits, exactly as the coverage auditor
     # does, so a run can never borrow evidence from its neighbour.  Records are
     # segmented too: a refusal from one run must not be charged to another, and
@@ -178,7 +204,7 @@ def audit(path: Path) -> dict[str, Any]:
             segments.append([record])
         ledgers[-1].observe(state)
     verdicts = [
-        check_run(segment, ledger)
+        check_run(segment, ledger, session=stream_session)
         for segment, ledger in zip(segments, ledgers)
         if ledger.acts_seen
     ]

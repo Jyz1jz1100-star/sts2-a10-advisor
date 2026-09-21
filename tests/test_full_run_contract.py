@@ -74,7 +74,16 @@ TERMINAL = {
 }
 
 
-def full_victory_run() -> list[dict]:
+def _resequence(records: list[dict], offset: int) -> list[dict]:
+    out = []
+    for record in records:
+        copy = dict(record)
+        copy["sequence"] = record["sequence"] + offset
+        out.append(copy)
+    return out
+
+
+def full_victory_run(first_floor: int = 1) -> list[dict]:
     """Floor 1 -> three acts, three ancients, 1+1+2 bosses, the game's victory.
 
     Every screen carries the action that moved it on and an acknowledged result:
@@ -83,7 +92,7 @@ def full_victory_run() -> list[dict]:
     """
     return [
         SESSION,
-        _state(1, "map", 1, 1),
+        _state(1, "map", 1, first_floor),
         _ancient(2, 1, 1, "NEOW"),
         _action(3, action="choose_event_option", index=0),
         _result(4),
@@ -207,6 +216,30 @@ class FullRunContractTests(unittest.TestCase):
         ]
         report = self.audit(full_victory_run() + dirty_tail)
         self.assertTrue(report["contract_satisfied"], report["all_runs"])
+
+
+    def test_a_fresh_start_observed_before_the_first_node_is_floor_one_eligible(self) -> None:
+        """A run captured at Neow reports floor 0, which is earlier than floor 1.
+
+        Only a saved run can report a floor above 1 at its first act frame, so
+        accepting 0 cannot admit a mid-run continuation -- while requiring exactly
+        1 disqualified the fresh runs, which is how a second run in a batch could
+        never attest a start it had genuinely played from the beginning.
+        """
+        best = self.audit(full_victory_run(first_floor=0))["best_run"]
+        self.assertEqual(failed_checks(best), [])
+
+    def test_a_later_run_in_the_same_file_still_carries_the_streams_provenance(self) -> None:
+        """The session record sits once per file; every run in it was played there."""
+        first = full_victory_run()
+        second = _resequence(full_victory_run(), 100)
+        report = self.audit(first + second)
+        self.assertEqual(report["runs_evaluated"], 2)
+        self.assertTrue(report["contract_satisfied"], report["all_runs"])
+        best = report["best_run"]
+        self.assertIn("provenance_bound_to_the_locked_build",
+                      [c["check"] for c in best["checks"]])
+        self.assertEqual(failed_checks(best), [])
 
 
 if __name__ == "__main__":
