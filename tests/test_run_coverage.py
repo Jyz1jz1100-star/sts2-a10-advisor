@@ -268,6 +268,34 @@ class ScriptedController:
         return {"status": "ok"}, None
 
 
+    def test_combat_owned_card_prompt_is_left_alone_and_recorded(self) -> None:
+        """A real refusal on 2026-09-21: NCombatPileCardSelectScreen carries no
+        ``battle`` key and the bridge has no action for it, so POSTing into it
+        can only come back as "No card selection screen is open"."""
+        player = AutoPlayer(controller=None)
+        state = {
+            "state_type": "card_select",
+            "card_select": {"screen_type": "NCombatPileCardSelectScreen",
+                            "can_confirm": False,
+                            "cards": [{"index": 0, "id": "EXPECT_A_FIGHT"}]},
+            "run": {"act": 3, "floor": 47},
+        }
+        self.assertIsNone(player.decide(state))
+        self.assertEqual(
+            player.coverage.coverage()["deferred_to_combat"],
+            {"NCombatPileCardSelectScreen": 1},
+        )
+
+    def test_serviceable_card_prompt_still_acts(self) -> None:
+        player = AutoPlayer(controller=None)
+        state = {
+            "state_type": "card_select",
+            "card_select": {"screen_type": "select", "can_confirm": True,
+                            "cards": [{"index": 0, "id": "STRIKE"}]},
+            "run": {"act": 1, "floor": 5},
+        }
+        self.assertEqual(player.decide(state), {"action": "confirm_selection"})
+
     def test_a_repeat_escape_is_recorded_and_bounded(self) -> None:
         """The second silent-skip path, seen firing on the 2026-09-21 live run.
 

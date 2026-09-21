@@ -769,6 +769,17 @@ class AutoPlayer:
         if state.get("battle") is not None:
             return None
         selection = state.get("card_select") or {}
+        # ``screen_type`` is the only honest discriminator here.  The bridge has
+        # no action path for combat-pile selection at all (select_card covers just
+        # the grid and choose-a-card overlays), and that prompt carries no
+        # ``battle`` key, so keying off ``battle`` alone made the driver POST an
+        # action the mod can only refuse.  Combat-owned prompts are left to the
+        # Combat Solver, and the abstention is recorded rather than dropped.
+        serviceable = {"select", "simple_select", "transform", "upgrade", "choose", "bundle"}
+        screen_type = str(selection.get("screen_type") or "")
+        if screen_type and screen_type not in serviceable:
+            self.coverage.note_deferred_to_combat(screen_type)
+            return None
         if selection.get("can_confirm"):
             self._last_step = None
             return {"action": "confirm_selection"}

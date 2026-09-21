@@ -63,6 +63,8 @@ class RunCoverage:
         self.proceed_bypasses: list[dict[str, Any]] = []
         #: screens that had no rule at all, keyed by type, from the first frame
         self.unhandled_screens: dict[str, list[dict[str, Any]]] = {}
+        #: prompts the driver left to the in-game combat owner, by screen type
+        self.deferred_to_combat: dict[str, int] = {}
         #: state_types that were seen but have no out-of-combat rule
         self.unknown_screens: dict[str, int] = {}
         self.outcome: bool | None = None
@@ -118,6 +120,15 @@ class RunCoverage:
 
         if action is not None and str(action.get("action") or "") == "proceed":
             self.note_bypass(state_type, act, floor, reason=str(action.get("_reason") or ""))
+
+    def note_deferred_to_combat(self, screen_type: str) -> None:
+        """Record a prompt deliberately left to the Combat Solver.
+
+        Abstaining is correct for some screens and a silent gap for others, so
+        the two must not look alike in the evidence.
+        """
+        key = str(screen_type)
+        self.deferred_to_combat[key] = self.deferred_to_combat.get(key, 0) + 1
 
     def note_unhandled(self, state_type: str, act, floor) -> None:
         """Record a screen with no rule the moment it is seen.
@@ -227,6 +238,7 @@ class RunCoverage:
                 if bypass["state_type"] not in RULED_SCREENS
             ],
             "unknown_screens": dict(self.unknown_screens),
+            "deferred_to_combat": dict(self.deferred_to_combat),
             # The one claim that must not be wrong: a run is complete only on the
             # game's own victory terminal with all three acts, all three ancients
             # and four boss clears in the same continuous stream.
