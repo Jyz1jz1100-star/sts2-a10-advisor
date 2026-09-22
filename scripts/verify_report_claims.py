@@ -67,8 +67,99 @@ def _metrics_payloads(scope=None, stage=None):
         yield path, payload
 
 
+#: Every metrics file on this machine belongs to exactly one named population, keyed on
+#: the `stage` the run itself recorded.  The Act-1 campaign study and the three-act
+#: campaign pilot are different experiments -- different objective, different act
+#: structure, different environment content -- so an aggregate over both is not evidence
+#: for either.  Populations are keyed on metadata rather than on directory so that
+#: "which study produced this" cannot be decided by where the file happens to sit.
+#:
+#: Membership is an explicit allow-list, deliberately not `stage != "full_run"`.  A
+#: negated predicate is a catch-all: the next stage anyone trains would fall into the
+#: Act-1 study and move its headline numbers while `unclassified` stayed at zero and
+#: looked clean.  Listing the stages means a new one lands in `unclassified`, which the
+#: claims fail on, so widening a historical population has to be a written choice.
+#:
+#: `None` is the twelve files written before the field existed. They are Act-1-era
+#: artifacts of the same floor curriculum, so they stay in that study; naming them here
+#: is what keeps that a stated fact rather than a side effect of a catch-all.
+METRICS_POPULATIONS = {
+    "act1_campaign_study": frozenset(
+        {"combat", "floor3", "floor6", "floor10", "act1", None}),
+    "campaign_pilot": frozenset({"full_run"}),
+}
+
+
+def _population_of(stage) -> list[str]:
+    """The populations a given `stage` claims membership in -- normally exactly one.
+
+    Shared with the index builder so the two cannot disagree about which study a file
+    belongs to; zero or two matches is what makes a file unclassified.
+    """
+    return [name for name, members in METRICS_POPULATIONS.items() if stage in members]
+
+
+def _metrics_populations():
+    """Partition every metrics file into its named population, with no remainder.
+
+    Returns ``(populations, unclassified)`` where populations maps a name to that
+    population's files.  Unclassified files are not silently counted anywhere: the
+    caller has to fail on them.
+    """
+    buckets = {name: [] for name in METRICS_POPULATIONS}
+    unclassified = []
+    for path, payload in _metrics_payloads():
+        matched = _population_of(payload.get("stage"))
+        if len(matched) != 1:
+            unclassified.append(path)
+            continue
+        buckets[matched[0]].append((path, payload))
+    return buckets, unclassified
+
+
+def _channel_census(files):
+    """Tabulate the three contract channels over one population's metrics files."""
+    current = legacy = 0
+    events = episodes = illegal = native_current = native_legacy = 0
+    for _path, payload in files:
+        reasons = payload.get("dead_end_reasons") or {}
+        native = int(reasons.get("native_rejection") or 0)
+        if "rejection_events" in payload:
+            current += 1
+            events += int(payload.get("rejection_events") or 0)
+            episodes += int(payload.get("episodes") or 0)
+            illegal += int(payload.get("illegal_actions") or 0)
+            native_current += native
+        else:
+            legacy += 1
+            native_legacy += native
+    return {
+        "metrics_files": current + legacy,
+        "metrics_files_current_schema": current,
+        "metrics_files_legacy_schema": legacy,
+        "episodes_current_schema": episodes,
+        "illegal_actions_total_current_schema": illegal,
+        "rejection_events_total_current_schema": events,
+        "rejections_per_episode_overall": (round(events / episodes, 4) if episodes else None),
+        "episodes_ended_by_native_rejection_current_schema": native_current,
+        "episodes_ended_by_native_rejection_legacy_schema": native_legacy,
+    }
+
+
 def claim_metrics_file_count():
-    return sum(1 for _ in _json_files("metrics"))
+    """Count the metrics corpus per named population, and refuse an unnamed remainder.
+
+    One total over two experiments is the thing that drifted when the campaign pilot
+    landed, and re-pinning it would have quietly restated the Act-1 study's population.
+    Splitting is only honest while nothing can fall between the buckets, so the
+    unclassified count is part of the checked value: a new stage fails here until it is
+    named, rather than being absorbed into whichever total happens to suit.
+    """
+    buckets, unclassified = _metrics_populations()
+    out = {name: len(files) for name, files in sorted(buckets.items())}
+    out["unclassified"] = len(unclassified)
+    out["total"] = sum(len(files) for files in buckets.values()) + len(unclassified)
+    return out
 
 
 def claim_act1_scope_file_and_episode_count():
@@ -1004,43 +1095,62 @@ def claim_ladder_lineage():
 
 
 def claim_contract_channels():
-    """Recompute the three contract channels instead of quoting the policy-side one alone.
+    """Recompute the three contract channels per population instead of quoting one total.
 
     The objective names "0 illegal actions", and on this stack that figure is partly
     structural: the default rejection mode re-asks the policy when the native layer refuses
     an advertised action, so the disagreements surface as rejection events rather than as
     illegal actions.  Both numbers, plus the legacy schema that counted them as episode
     endings, are re-derived here from every metrics file.
+
+    "Every" now means every file *of that population*. The Act-1 study's channels and the
+    campaign pilot's are tabulated apart and each compared to its own recorded snapshot,
+    so the campaign's episodes cannot move an Act-1 headline and cannot vanish from the
+    corpus either -- the union has to still equal the files on disk.
     """
     data = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
                       .read_text(encoding="utf-8"))
-    channels = data["channels"]
-    current = legacy = 0
-    events = episodes = illegal = native_current = native_legacy = 0
-    for _path, payload in _metrics_payloads():
-        reasons = payload.get("dead_end_reasons") or {}
-        native = int(reasons.get("native_rejection") or 0)
-        if "rejection_events" in payload:
-            current += 1
-            events += int(payload.get("rejection_events") or 0)
-            episodes += int(payload.get("episodes") or 0)
-            illegal += int(payload.get("illegal_actions") or 0)
-            native_current += native
-        else:
-            legacy += 1
-            native_legacy += native
-    return {
-        "policy_channel_is_zero": illegal == 0 and channels["illegal_actions_total_current_schema"] == 0,
-        "mask_engine_disagreements_are_counted": events > 0 and events == channels["rejection_events_total_current_schema"],
-        "file_population_matches": (current == channels["metrics_files_current_schema"]
-                                    and legacy == channels["metrics_files_legacy_schema"]),
-        "episode_total_matches": episodes == channels["episodes_current_schema"],
-        "ending_channel_split_matches": (
-            native_current == channels["episodes_ended_by_native_rejection_current_schema"] == 0
-            and native_legacy == channels["episodes_ended_by_native_rejection_legacy_schema"] > 0),
-        "per_episode_rate_matches": episodes and (
-            round(events / episodes, 4) == channels["rejections_per_episode_overall"]),
+    snapshots = data["populations"]
+    buckets, unclassified = _metrics_populations()
+    census = {name: _channel_census(files) for name, files in buckets.items()}
+    out = {
+        # A file the partition did not claim must not be invisible to the arithmetic.
+        "corpus_is_fully_classified": not unclassified,
     }
+    for name, recorded in snapshots.items():
+        actual = census.get(name)
+        if actual is None:
+            out[f"{name}_population_exists"] = False
+            continue
+        out[f"{name}_policy_channel_is_zero"] = (
+            actual["illegal_actions_total_current_schema"] == 0
+            and recorded["illegal_actions_total_current_schema"] == 0)
+        out[f"{name}_mask_engine_disagreements_are_counted"] = (
+            actual["rejection_events_total_current_schema"] > 0
+            and actual["rejection_events_total_current_schema"]
+            == recorded["rejection_events_total_current_schema"])
+        out[f"{name}_file_population_matches"] = (
+            actual["metrics_files_current_schema"] == recorded["metrics_files_current_schema"]
+            and actual["metrics_files_legacy_schema"] == recorded["metrics_files_legacy_schema"])
+        out[f"{name}_episode_total_matches"] = (
+            actual["episodes_current_schema"] == recorded["episodes_current_schema"])
+        out[f"{name}_per_episode_rate_matches"] = bool(
+            actual["episodes_current_schema"]) and (
+            actual["rejections_per_episode_overall"]
+            == recorded["rejections_per_episode_overall"])
+        # Current-schema runs never end on a native rejection; the legacy stack recorded
+        # them as episode endings. The "and more than zero" half is a property of a
+        # population that contains legacy files, not a law: a run recorded entirely on the
+        # current schema has zero by construction, and demanding otherwise would assert a
+        # fact about a population this pilot happens not to have.
+        legacy_endings = actual["episodes_ended_by_native_rejection_legacy_schema"]
+        has_legacy_files = actual["metrics_files_legacy_schema"] > 0
+        out[f"{name}_ending_channel_split_matches"] = (
+            actual["episodes_ended_by_native_rejection_current_schema"]
+            == recorded["episodes_ended_by_native_rejection_current_schema"] == 0
+            and legacy_endings == recorded["episodes_ended_by_native_rejection_legacy_schema"]
+            and (legacy_endings > 0) == has_legacy_files)
+    return out
 
 
 def claim_rejection_phase_attribution():
@@ -2794,7 +2904,20 @@ def claim_metrics_index_reviewability():
     for row in rows:
         vocabulary.update({k: int(v) for k, v in row["dead_end_reasons"].items()})
     channels = json.loads((ROOT / "docs/evidence/contract_channels_20260919.json")
-                          .read_text(encoding="utf-8"))["channels"]
+                          .read_text(encoding="utf-8"))["populations"]
+    # The index aggregates per population now, so this compares an index population
+    # against the channel snapshot for the same population. Comparing whole-index totals
+    # to a study-scoped snapshot is what made a second experiment's files move an Act-1
+    # headline; and the sums below are the guard the other way -- the populations have to
+    # still add up to the index, so nothing can be dropped to keep a number.
+    index_pops = (index.get("populations") or {})
+    act1 = index_pops.get("act1_campaign_study") or {}
+    population_sums_match = bool(act1) and all(
+        sum(int(index_pops[name].get(key) or 0)
+            for name in index_pops if name != "unclassified_stage") == aggregates[key]
+        for key in ("metrics_files", "metrics_files_current_schema",
+                    "metrics_files_legacy_schema", "episodes_current_schema",
+                    "rejection_events_current_schema"))
     dead_end = json.loads((ROOT / "docs/evidence/dead_end_vocabulary_20260919.json")
                           .read_text(encoding="utf-8"))
     files_rehashed_here = sum(1 for row in rows
@@ -2812,16 +2935,19 @@ def claim_metrics_index_reviewability():
         "index_aggregates_are_self_consistent": recomputed == {
             key: aggregates[key] for key in recomputed},
         "index_backs_the_contract_channel_numbers": (
-            aggregates["episodes_current_schema"]
-            == channels["episodes_current_schema"] == 39891
-            and aggregates["rejection_events_current_schema"]
-            == channels["rejection_events_total_current_schema"] == 18160
-            and aggregates["illegal_actions_current_schema"]
-            == channels["illegal_actions_total_current_schema"] == 0
-            and aggregates["metrics_files_current_schema"]
-            == channels["metrics_files_current_schema"]
-            and aggregates["metrics_files_legacy_schema"] == channels["metrics_files_legacy_schema"]
-            and aggregates["unclassified_dead_ends_total"] == 0),
+            act1.get("episodes_current_schema")
+            == channels["act1_campaign_study"]["episodes_current_schema"] == 39891
+            and act1.get("rejection_events_current_schema")
+            == channels["act1_campaign_study"]["rejection_events_total_current_schema"] == 18160
+            and act1.get("illegal_actions_current_schema")
+            == channels["act1_campaign_study"]["illegal_actions_total_current_schema"] == 0
+            and act1.get("metrics_files_current_schema")
+            == channels["act1_campaign_study"]["metrics_files_current_schema"]
+            and act1.get("metrics_files_legacy_schema")
+            == channels["act1_campaign_study"]["metrics_files_legacy_schema"]
+            and aggregates["unclassified_dead_ends_total"] == 0
+            and population_sums_match
+            and int((index_pops.get("unclassified_stage") or {}).get("metrics_files") or 0) == 0),
         "index_backs_the_dead_end_vocabulary": (
             dict(vocabulary) == dead_end["vocabulary"]
             == aggregates["dead_end_vocabulary"]),

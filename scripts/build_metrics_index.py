@@ -64,6 +64,35 @@ def main() -> int:
     for row in rows:
         for name, count in row["dead_end_reasons"].items():
             vocabulary[name] += int(count)
+
+    # The same partition the claims use, so an index total and a claim total cannot be
+    # two different arithmetic over the same files. `verify_report_claims` keys this on
+    # the `stage` each metrics file already records, and fails on any file it cannot
+    # place, so a new experiment shows up here as unclassified rather than as a nudge
+    # to an existing headline number.
+    populations: dict[str, dict[str, int]] = {}
+    # One membership rule, imported rather than restated, so the index and the claims
+    # cannot disagree about which study a file belongs to.
+    for name in sorted(V.METRICS_POPULATIONS):
+        members = [r for r in rows if name in V._population_of(r.get("stage"))]
+        cur = [r for r in members if r["has_rejection_events_field"]]
+        episodes = sum(int(r["episodes"] or 0) for r in cur)
+        events = sum(int(r["rejection_events"] or 0) for r in cur)
+        populations[name] = {
+            "metrics_files": len(members),
+            "metrics_files_current_schema": len(cur),
+            "metrics_files_legacy_schema": len(members) - len(cur),
+            "episodes_current_schema": episodes,
+            "illegal_actions_current_schema": sum(
+                int(r["illegal_actions"] or 0) for r in cur),
+            "rejection_events_current_schema": events,
+            "rejections_per_episode_overall": (round(events / episodes, 4) if episodes else None),
+        }
+    populations["unclassified_stage"] = {
+        "metrics_files": sum(
+            1 for r in rows if len(V._population_of(r.get("stage"))) != 1
+        ),
+    }
     payload = {
         "_comment": [
             "Committed index of the gitignored metrics files the campaign claims recompute from.",
@@ -85,6 +114,9 @@ def main() -> int:
             "unclassified_dead_ends_total": sum(
                 int(r["unclassified_dead_ends"] or 0) for r in rows),
         },
+        # Same partition the claims apply, so an index total and a claim total are one
+        # arithmetic over one file set rather than two that happen to agree today.
+        "populations": populations,
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "rows": rows,
         "scope": "every metrics JSON file present on this machine under runs/ and runtime/",

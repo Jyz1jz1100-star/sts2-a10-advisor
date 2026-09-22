@@ -7,16 +7,501 @@
     "Counts that grew during 2026-09-19 did so because this session's own",
     "evaluations added artifacts; the report is updated to the same figures."
   ],
-  "metrics_file_count": 282,
   "act1_scope_population": {
     "episodes": 46011,
     "files": 262
+  },
+  "action_mix_invariant": {
+    "band": [
+      0.667,
+      0.73
+    ],
+    "band_within_0p1": true,
+    "groups": 4,
+    "sample_sizes_sum": 171
+  },
+  "arrival_state_equivalence": {
+    "act_two_has_the_power_act_one_lacks": true,
+    "arrival_resources_predict_nothing_within_act_two": true,
+    "every_arrival_row_carries_every_resource": true,
+    "exactly_one_difference_favours_act_one": true,
+    "no_resource_favours_act_two": true,
+    "reproduction_of_the_committed_census_holds": true,
+    "the_nine_cross_act_differences_recompute": true
+  },
+  "arrivals_by_generated_act": {
+    "act1_overgrowth": "ok",
+    "act2_underdocks": "ok",
+    "arrivals_add_up": true,
+    "illegal_actions": 0,
+    "same_checkpoint": true
+  },
+  "block_economy": {
+    "fights": [
+      83,
+      9
+    ],
+    "losers_bleed_faster_both_conventions": true,
+    "no_group_enters_with_block": true,
+    "winners_all_won": true,
+    "winners_illegal_total": 0,
+    "winners_peak_block_higher": true
+  },
+  "boss_anatomy": {
+    "act1_boss_hp_tiers_sum": 83,
+    "damage_per_decision_recomputed": {
+      "act1_loss": "ok",
+      "act1_win": "empty",
+      "act2_loss": "ok",
+      "act2_win": "ok"
+    },
+    "group_sizes_sum": 162,
+    "illegal_actions_total": 0,
+    "no_act1_wins": true
+  },
+  "boss_clear_recoverability": {
+    "a_group_counts_only_if_it_replays_the_recorded_loss": true,
+    "every_recorded_loss_was_forked": true,
+    "every_winning_action_was_one_the_state_offered": true,
+    "no_lost_clear_was_structurally_unwinnable_at_that_screen": true,
+    "the_policy_took_no_available_win": true,
+    "the_verdict_declares_its_own_limit": true
+  },
+  "boss_completion_fork": {
+    "all_three_runs_fought_the_same_boss": true,
+    "card_screen_is_a_negative_control": true,
+    "leftmost_claim_truncates_in_every_sampled_loss": true,
+    "policy_choice_is_on_the_truncating_side": true,
+    "proceed_recovers_every_sampled_loss": true,
+    "relic_screen_splits_two_ways": true,
+    "sampled_losses_are_internally_consistent": true,
+    "truncating_run_is_a_false_negative": true
+  },
+  "boss_generality": {
+    "boss_decision_range": [
+      33,
+      63
+    ],
+    "end_turn_with_a_playable_card": 4,
+    "end_turns": 92,
+    "every_fight_ended_at_floor_17": true,
+    "fights": 9,
+    "illegal_actions": 0,
+    "won": 9,
+    "wound_locked_fights": 0
+  },
+  "boss_misexit_rate": {
+    "class_confined_to_generated_act2": true,
+    "contract_clean": true,
+    "floor17_completed_wins_match": true,
+    "gate_math_uses_the_live_config": true,
+    "head_tail_heterogeneity_is_real_in_the_data": true,
+    "independent_window_replicates_the_class": true,
+    "pooled_block_equals_its_parts": true,
+    "pooled_interval_recomputes": true,
+    "published_intervals_recompute": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "rows_add_up_per_act": true,
+    "second_checkpoint_adds_up": true,
+    "second_checkpoint_is_a_different_checkpoint": true,
+    "second_checkpoint_share_in_pooled_ci": true,
+    "seeds_enumerated": 10000,
+    "truncation_seed_list_matches_count": true,
+    "windows_compatible": true,
+    "windows_sum_to_partition": true
+  },
+  "boss_misexit_signature": {
+    "boss_emptied_covers_every_counted_run": true,
+    "boss_emptied_is_directly_observed": true,
+    "checkpoint_digests_match_the_files": true,
+    "counts_match_the_rate_artifact": true,
+    "every_sampled_run_conforms": true,
+    "more_than_one_act2_boss_tier_affected": true,
+    "none_was_judged_a_win": true,
+    "second_boss_encounter_also_affected": true,
+    "seed_sets_match_the_rate_artifact": true,
+    "zero_illegal_across_sampled_runs": true
+  },
+  "boss_reward_rule_end_to_end": {
+    "every_screen_the_rule_fired_on_had_already_won": true,
+    "no_pass_bought_a_win_with_a_contract_violation": true,
+    "the_rule_converts_every_lost_clear_in_both_checkpoint_groups": true,
+    "the_rule_costs_nothing_on_an_ordinary_window": true,
+    "the_rule_is_declared_as_a_hand_written_bound": true,
+    "the_window_had_nothing_to_convert_which_explains_the_zero_delta": true
+  },
+  "boss_reward_rule_generality": {
+    "both_groups_convert_exactly_their_recorded_seeds": true,
+    "both_groups_reproduce_their_recorded_win_baseline": true,
+    "neither_group_costs_a_win": true,
+    "no_win_was_bought_with_a_contract_violation": true,
+    "the_groups_compared_are_the_pre_registered_ones": true,
+    "the_two_groups_are_different_policies": true
+  },
+  "boss_reward_rule_holdout": {
+    "the_conversion_arithmetic_matches_the_truncation_drop": true,
+    "the_holdout_declares_the_same_clean_contracts": true,
+    "the_holdout_plain_rate_is_in_line_with_the_tuned_window": true,
+    "the_holdout_was_never_evaluated_before_this": true,
+    "the_rule_converts_on_the_holdout_and_costs_nothing": true
+  },
+  "boss_reward_rule_population": {
+    "no_win_was_bought_with_a_contract_violation": true,
+    "the_bound_declares_that_it_is_a_bound": true,
+    "the_converted_seeds_are_the_recorded_losses": true,
+    "the_partition_is_covered_once": true,
+    "the_plain_pass_reproduces_the_committed_baseline": true,
+    "the_rule_never_costs_a_win": true
+  },
+  "boss_reward_rule_window_self_consistency": {
+    "a_reconciliation_group_is_backed_by_a_pre_registered_seed_list": true,
+    "every_merged_artifact_names_the_window_it_rolled": true,
+    "the_four_windows_are_not_one_partition_wearing_four_labels": true,
+    "the_holdout_still_declares_no_baseline_to_match": true
+  },
+  "boss_win_anatomy": {
+    "all_act1_seeds": true,
+    "boss_decisions_median": 51,
+    "entry_hp_median": 80,
+    "illegal_actions_total": 0,
+    "nine_won": true,
+    "no_wound_hands": true,
+    "passivity_matches_generality_run": true
   },
   "campaign_truncation_class": {
     "episodes": 31400,
     "files": 114,
     "truncated": 51,
     "truncation_bearing_files_not_floor17": 0
+  },
+  "chained_act2_reachability": {
+    "every_chain_in_the_frontier_was_searched": true,
+    "every_route_ended_in_a_real_terminal_state": true,
+    "no_route_reached_the_act2_boss_or_a_win": true,
+    "replay_was_faithful": true,
+    "search_was_not_cut_by_its_budget": true,
+    "the_floor19_dead_end_is_not_a_matter_of_choice": true
+  },
+  "chained_frontier": {
+    "chained_into_act_two": 3,
+    "coverage_exact": true,
+    "deepest_chained_floor": 22,
+    "environment_truncated_alive": 2,
+    "illegal_actions_total": 0,
+    "population_grew_since_the_previous_sweep": true,
+    "population_is_recounted_not_asserted": true,
+    "skipped_are_contract_mismatch": true,
+    "the_frontier_is_not_budget_limited": true,
+    "wins_anywhere": 0
+  },
+  "chained_map_deadend": {
+    "only_the_contracts_synthetic_action_was_advertised": true,
+    "the_chained_dead_end_is_not_a_native_refusal": true,
+    "the_cited_engine_code_still_says_it": true,
+    "the_engine_offered_no_map_option_at_any_fork": true,
+    "the_evaluator_still_classifies_the_ending": true,
+    "two_alive_chains_were_forked": true
+  },
+  "chained_terminal_gates": {
+    "checkpoint_digests_match_the_files": true,
+    "depth_agrees_with_the_frontier_sweep": true,
+    "gates_clean_on_multi_act_path": true,
+    "no_chained_win": true,
+    "truncations_classified_and_map_exhausted": true
+  },
+  "contract_channels": {
+    "act1_campaign_study_ending_channel_split_matches": true,
+    "act1_campaign_study_episode_total_matches": true,
+    "act1_campaign_study_file_population_matches": true,
+    "act1_campaign_study_mask_engine_disagreements_are_counted": true,
+    "act1_campaign_study_per_episode_rate_matches": true,
+    "act1_campaign_study_policy_channel_is_zero": true,
+    "campaign_pilot_ending_channel_split_matches": true,
+    "campaign_pilot_episode_total_matches": true,
+    "campaign_pilot_file_population_matches": true,
+    "campaign_pilot_mask_engine_disagreements_are_counted": true,
+    "campaign_pilot_per_episode_rate_matches": true,
+    "campaign_pilot_policy_channel_is_zero": true,
+    "corpus_is_fully_classified": true
+  },
+  "dead_end_reason_census": {
+    "empty_action_mask": 50,
+    "files_with_reason_field": 49,
+    "native_rejection": 861,
+    "step_cap": 3
+  },
+  "dead_end_vocabulary": {
+    "acts_too_slowly_is_labelled": true,
+    "artifact_and_disk_agree_on_step_cap_files": true,
+    "cannot_act_is_labelled": true,
+    "legacy_and_current_native_rejection_still_split": true,
+    "nothing_is_unclassified": true,
+    "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": true,
+    "step_cap_is_act1_stage_only": true,
+    "the_one_label_outside_the_vocabulary_is_named": true,
+    "vocabulary_is_exactly_three_labels": true,
+    "vocabulary_matches_the_artifact": true
+  },
+  "empty_mask_endings": {
+    "every_ending_the_campaign_ever_recorded_was_located": true,
+    "every_episode_is_counted_once": true,
+    "every_named_truncation_in_the_rolled_files_is_located": true,
+    "no_ending_was_dropped_to_make_the_finding_clean": true,
+    "the_class_is_one_wall_not_a_scatter": true,
+    "the_engine_offered_no_action_at_any_located_ending": true,
+    "the_explained_walls_are_a_boss_cleared_into_an_empty_map": true,
+    "the_former_coverage_gap_was_an_instrument_limit": true,
+    "the_instrument_reports_its_own_health": true,
+    "the_labelling_layer_is_measured_not_assumed": true,
+    "the_player_was_alive_at_every_one": true,
+    "the_step_cap_endings_are_stalls_in_a_fight_not_at_a_boss": true
+  },
+  "emulator_act_ceiling": {
+    "act_count": 4,
+    "acts": [
+      "ActCount",
+      "ActFinal",
+      "ActOvergrowth",
+      "ActUnderdocks"
+    ],
+    "map_boss_row": 16,
+    "terminal_floor_single_act": 17
+  },
+  "emulator_source_provenance": {
+    "cited_files_match_their_recorded_digests": true,
+    "cited_lines_still_hold_the_recorded_text": true,
+    "engine_source_tree_digest_recomputes": true,
+    "every_citation_resolves_in_the_recorded_build": true,
+    "native_library_digest_recomputes": true,
+    "the_report_and_the_snapshot_agree_on_every_citation": true
+  },
+  "engine_findings_checklist": {
+    "channel_numbers_match": true,
+    "cited_artifacts_exist": true,
+    "complete_overcount_matches": true,
+    "event_exposure_numbers_match": true,
+    "misexit_magnitude_matches": true,
+    "phantom_slot_numbers_match": true,
+    "section_present": true,
+    "six_findings_listed": true,
+    "states_the_engine_was_not_edited": true,
+    "the_scripted_leak_is_measured_not_assumed": true,
+    "the_two_exceptions_are_the_hardcoded_floor_five_branch": true,
+    "upgrade_stub_numbers_match_the_census": true
+  },
+  "entry_hp_refutation": {
+    "correlation_matches": true,
+    "entry_hp_not_predictive_of_wins": true,
+    "high_hp_losers_still_short": true,
+    "losers_at_winners_hp": 14,
+    "tier_arrivals_sum_to_arrivals": true
+  },
+  "evidence_bundle_integrity": {
+    "bundle_root_recomputes": true,
+    "checkpoint_files_rehashed_here": 224,
+    "digests_and_sizes_recompute": true,
+    "every_citation_is_accounted_for": true,
+    "listing_matches_disk": true,
+    "manifest_excludes_itself": true,
+    "no_citation_is_loose": true
+  },
+  "evidence_matrix_totals": {
+    "act1_episodes": 40096,
+    "distinct_winning_seeds": 9,
+    "illegal_actions": 0,
+    "unclassified_dead_ends": 0,
+    "win_events": 9
+  },
+  "fanout_overnight_attestation": {
+    "attestation_gap_breakdown_is_17_plus_2_vs_2": true,
+    "every_metrics_path_is_in_the_committed_index": true,
+    "every_plan_row_carries_a_digest": true,
+    "fanout_shape_is_per_run_parallel_envs_12": true,
+    "planned_arm_runs_are_twenty_one": true,
+    "stage_shapes_are_19_act1_plus_the_two_rung_ladder": true,
+    "the_warm_start_attestation_gap_is_still_two_of_twenty_one": true,
+    "the_window_crosses_the_night": true,
+    "windows_overlap_so_arms_ran_together": true
+  },
+  "harness_self_description": {
+    "an_unrunnable_claim_is_tallied_separately_in_this_code": true,
+    "evidence_file_count_matches_the_manifest": true,
+    "gate_test_count_matches_the_quote": true,
+    "interpreter_caveat_is_documented": true,
+    "no_literal_bundle_root_survives_in_the_prose": true,
+    "report_quotes_the_live_claim_count_exactly_once": true
+  },
+  "holdout_partition_usage": {
+    "both_final_artifacts_are_the_same_first_200_seeds": true,
+    "every_reward_rule_conversion_lies_in_the_untouched_tail": true,
+    "the_holdout_label_discloses_the_prior_reads": true,
+    "the_narrow_glob_still_reports_zero_and_that_was_its_blind_spot": true,
+    "the_scans_recorded_two_wins_so_nothing_can_claim_that_window_was_never_read": true,
+    "the_seed_lists_and_the_aggregates_describe_the_same_wins": true,
+    "the_untouched_tail_carries_the_whole_gain_on_its_own": true,
+    "the_untouched_tail_is_the_partition_less_the_union_of_what_was_read": true
+  },
+  "ladder_lineage": {
+    "attested_arms_are_mutually_consistent": true,
+    "attested_arms_count": true,
+    "campaign_arms_lack_attestation": true,
+    "committed_rungs_are_a_subset_without_floor13": true,
+    "configured_rungs_match_the_live_config": true,
+    "parent_digests_recompute": true,
+    "smoke_ladder_edge_is_verifiable": true,
+    "smoke_ladder_stops_at_two_rungs": true
+  },
+  "ladder_promotion_ledger": {
+    "digests_rehashed_here": 34,
+    "five_campaign_evaluations_two_promotions": true,
+    "floor10_was_evaluated_once_and_rejected": true,
+    "floor13_has_no_run_at_all": true,
+    "floor3_promoted_and_floor6_never_rejudged": true,
+    "floor3s_live_verdict_still_reproduces": true,
+    "floor6_final_two_missed_only_on_boundary_rate": true,
+    "floor6_promoted_when_it_ran_under_a_lower_bar": true,
+    "no_gate_clause_was_scored_on_an_unrecorded_field": true,
+    "recomputation_used_the_repos_own_gate": true,
+    "the_promotion_predates_the_raise_that_now_rejects_it": true
+  },
+  "ladder_rungs": {
+    "act1": {
+      "decision_recorded": true,
+      "gate_passed": false,
+      "promotion_recorded_only_below_scale": false,
+      "ran": true
+    },
+    "floor10": {
+      "decision_recorded": false,
+      "gate_passed": false,
+      "promotion_recorded_only_below_scale": false,
+      "ran": true
+    },
+    "floor13": {
+      "decision_recorded": false,
+      "gate_passed": false,
+      "promotion_recorded_only_below_scale": false,
+      "ran": false
+    },
+    "floor3": {
+      "decision_recorded": true,
+      "gate_passed": true,
+      "promotion_recorded_only_below_scale": false,
+      "ran": true
+    },
+    "floor6": {
+      "decision_recorded": true,
+      "gate_passed": true,
+      "promotion_recorded_only_below_scale": false,
+      "ran": true
+    }
+  },
+  "map_deadend_short_circuits_before_the_refusal_census": {
+    "no_map_refusals_on_the_ordinary_promotion_population": true,
+    "refusals_on_the_chained_episode_come_from_elsewhere": true,
+    "shop_and_event_remain_the_only_ordinary_classes": true,
+    "the_census_counted_map_decisions_rather_than_omitting_them": true,
+    "the_chained_dead_end_sits_in_map_and_short_circuits_before_the_engine": true,
+    "the_layer_that_labelled_it_is_the_flat_env": true,
+    "the_two_populations_disagree_as_stated": true
+  },
+  "metrics_file_count": {
+    "act1_campaign_study": 282,
+    "campaign_pilot": 7,
+    "total": 289,
+    "unclassified": 0
+  },
+  "metrics_index_reviewability": {
+    "every_row_names_a_committed_relative_path": true,
+    "files_rehashed_here": 289,
+    "index_aggregates_are_self_consistent": true,
+    "index_backs_the_contract_channel_numbers": true,
+    "index_backs_the_dead_end_vocabulary": true,
+    "index_covers_this_machines_corpus_exactly": true,
+    "metrics_files_on_disk_here": 289
+  },
+  "objective_clause_audit": {
+    "act_1_to_3_clause_still_says_not_achieved": true,
+    "all_nine_clauses_listed": true,
+    "audit_section_present": true,
+    "conclusion_still_refuses_completion": true,
+    "dead_end_row_cites_the_population_the_identity_tested": true,
+    "dead_end_row_numbers_match_the_vocabulary_census": true,
+    "every_cited_claim_is_registered": true,
+    "every_cited_file_exists": true,
+    "fan_out_row_numbers_match_the_attestation": true,
+    "hash_chain_row_numbers_match_the_manifest": true,
+    "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": true,
+    "the_other_six_are_marked_achieved_with_limits": true,
+    "warm_start_ladder_still_says_partly": true,
+    "zero_illegal_row_numbers_match_the_channel_census": true
+  },
+  "opening_choice_position_pref": {
+    "but_it_is_usually_taken_when_offered": true,
+    "cards_agree_with_the_step_attribution_census": true,
+    "every_run_reaches_the_opening_screen": true,
+    "the_offering_is_observable_not_hidden": true,
+    "the_take_rate_depends_on_the_position": true,
+    "the_upgrade_relic_is_rarely_offered_at_all": true
+  },
+  "potion_slot_cost": {
+    "all_four_cells_are_populated": true,
+    "arrival_rate_gap_is_a_selection_marker": true,
+    "complete_alone_would_overstate_clears": true,
+    "every_clear_is_act2_generated": true,
+    "exposure_selects_for_potions_not_against_them": true,
+    "instrument_reproduces_the_terminal_census": true,
+    "phantom_slot_is_never_filled": true,
+    "rows_back_the_aggregates": true,
+    "shard_windows_cover_the_partition_without_overlap": true
+  },
+  "promoted_checkpoint_digests": {
+    "floor3": "ok",
+    "floor6": "ok"
+  },
+  "promotion_gate_refuses_unrecorded_inputs": {
+    "a_real_record_is_rejected_on_its_measurement": true,
+    "deleting_that_measurement_cannot_buy_a_pass": true,
+    "dropping_a_field_the_gate_never_reads_changes_nothing": true,
+    "the_default_is_never_printed_as_a_number": true,
+    "the_gate_names_the_four_clauses_at_risk": true,
+    "what_the_evaluator_writes_today_has_nothing_absent": true
+  },
+  "refusal_class_generality": {
+    "both_classes_reproduce_in_every_run": true,
+    "capacity_pattern_site_count_matches_the_source": true,
+    "census_shards_still_sum_to_the_pinned_split": true,
+    "event_7_is_the_same_capacity_bug_in_a_handled_event": true,
+    "mix_is_not_stable": true,
+    "more_than_one_checkpoint_and_stage": true,
+    "wrapper_is_clean_in_every_run": true
+  },
+  "refusal_root_cause": {
+    "cross_checks_the_phase_census": true,
+    "event_split_recomputes": true,
+    "every_shop_refusal_is_the_potion_capacity_case": true,
+    "no_shop_refusal_was_unaffordable": true,
+    "observed_events_are_all_inside_the_static_exposure": true,
+    "row_table_backs_the_aggregates": true,
+    "static_audit_counts_are_internally_consistent": true,
+    "the_engine_disagrees_with_itself_not_with_our_wrapper": true,
+    "the_two_named_clusters_match_their_source_branches": true
+  },
+  "rejection_phase_attribution": {
+    "aggregate_is_the_shard_sum": true,
+    "combat_and_boss_reward_screens_are_refusal_free": true,
+    "cross_checks_the_campaign_counter": true,
+    "decisions_total_is_the_sum_of_its_phases": true,
+    "per_phase_rates_are_what_the_report_quotes": true,
+    "potion_reward_is_not_an_engine_phase": true,
+    "refusals_confined_to_shop_and_event": true,
+    "single_checkpoint": true,
+    "the_reask_always_changed_the_action": true,
+    "windows_are_disjoint_five_hundred_seed_slices": true
   },
   "repo_wide_truncation_population": {
     "v1/original": {
@@ -35,370 +520,13 @@
       "truncated": 53
     }
   },
-  "v2_contract_sizes": {
-    "flat_action_size": 225,
-    "observation_size": 1739
-  },
-  "emulator_act_ceiling": {
-    "act_count": 4,
-    "acts": [
-      "ActCount",
-      "ActFinal",
-      "ActOvergrowth",
-      "ActUnderdocks"
-    ],
-    "map_boss_row": 16,
-    "terminal_floor_single_act": 17
-  },
-  "evidence_matrix_totals": {
-    "act1_episodes": 40096,
-    "win_events": 9,
-    "distinct_winning_seeds": 9,
-    "illegal_actions": 0,
-    "unclassified_dead_ends": 0
-  },
-  "win_ledger": {
-    "wins_reproduced": 9,
-    "wins_failed_to_reproduce": 0,
-    "rows": 5,
-    "two_runs_recorded_and_their_rows_hash_alike": true,
-    "the_recorded_rows_match_the_rows_this_file_carries": true,
-    "every_reproduced_win_is_a_clean_terminal_win": true,
-    "the_terminal_floor_agrees_with_the_engines_boss_row_constant": true
-  },
-  "ladder_rungs": {
-    "floor3": {
-      "ran": true,
-      "decision_recorded": true,
-      "gate_passed": true,
-      "promotion_recorded_only_below_scale": false
-    },
-    "floor6": {
-      "ran": true,
-      "decision_recorded": true,
-      "gate_passed": true,
-      "promotion_recorded_only_below_scale": false
-    },
-    "floor10": {
-      "ran": true,
-      "decision_recorded": false,
-      "gate_passed": false,
-      "promotion_recorded_only_below_scale": false
-    },
-    "floor13": {
-      "ran": false,
-      "decision_recorded": false,
-      "gate_passed": false,
-      "promotion_recorded_only_below_scale": false
-    },
-    "act1": {
-      "ran": true,
-      "decision_recorded": true,
-      "gate_passed": false,
-      "promotion_recorded_only_below_scale": false
-    }
-  },
-  "promoted_checkpoint_digests": {
-    "floor3": "ok",
-    "floor6": "ok"
-  },
-  "boss_anatomy": {
-    "group_sizes_sum": 162,
-    "act1_boss_hp_tiers_sum": 83,
-    "illegal_actions_total": 0,
-    "no_act1_wins": true,
-    "damage_per_decision_recomputed": {
-      "act1_loss": "ok",
-      "act1_win": "empty",
-      "act2_loss": "ok",
-      "act2_win": "ok"
-    }
-  },
-  "boss_win_anatomy": {
-    "nine_won": true,
-    "all_act1_seeds": true,
-    "illegal_actions_total": 0,
-    "entry_hp_median": 80,
-    "boss_decisions_median": 51,
-    "no_wound_hands": true,
-    "passivity_matches_generality_run": true
-  },
-  "entry_hp_refutation": {
-    "losers_at_winners_hp": 14,
-    "entry_hp_not_predictive_of_wins": true,
-    "high_hp_losers_still_short": true,
-    "correlation_matches": true,
-    "tier_arrivals_sum_to_arrivals": true
-  },
-  "action_mix_invariant": {
-    "groups": 4,
-    "band": [
-      0.667,
-      0.73
-    ],
-    "band_within_0p1": true,
-    "sample_sizes_sum": 171
-  },
-  "block_economy": {
-    "fights": [
-      83,
-      9
-    ],
-    "no_group_enters_with_block": true,
-    "winners_peak_block_higher": true,
-    "losers_bleed_faster_both_conventions": true,
-    "winners_all_won": true,
-    "winners_illegal_total": 0
-  },
-  "chained_frontier": {
-    "population_is_recounted_not_asserted": true,
-    "coverage_exact": true,
-    "skipped_are_contract_mismatch": true,
-    "chained_into_act_two": 3,
-    "deepest_chained_floor": 22,
-    "environment_truncated_alive": 2,
-    "wins_anywhere": 0,
-    "illegal_actions_total": 0,
-    "the_frontier_is_not_budget_limited": true,
-    "population_grew_since_the_previous_sweep": true
-  },
-  "terminal_floor_qualification": {
-    "act1_named_wins": 9,
-    "act1_wins_all_terminal": true,
-    "ledger_rows_reproduced": true,
-    "act2_wins_all_terminal": true,
-    "multi_act_clears_anywhere": 0,
-    "every_listed_act2_win_replays_as_a_terminal_boss_win": true,
-    "the_replay_covers_the_six_checked_the_day_before": true,
-    "the_replay_runs_on_the_weights_the_wins_were_enumerated_from": true,
-    "no_replayed_seed_lies_outside_the_declared_partition": true,
-    "the_68_win_promotion_population_replays_seed_for_seed": true,
-    "the_two_instruments_agree_per_act_not_only_in_total": true,
-    "the_population_replay_used_the_weights_the_rule_probe_used": true
-  },
-  "arrivals_by_generated_act": {
-    "arrivals_add_up": true,
-    "same_checkpoint": true,
-    "illegal_actions": 0,
-    "act1_overgrowth": "ok",
-    "act2_underdocks": "ok"
-  },
-  "terminal_census": {
-    "enumerated": 3500,
-    "arrivals_plus_below": true,
-    "arrival_outcomes_sum": true,
-    "illegal_actions": 0,
-    "unclassified_dead_ends": 0,
-    "distinct_winning_seeds": 25,
-    "boss_truncation_seeds": [
-      130012038
-    ],
-    "wilson_recomputed": {
-      "arrival": "ok",
-      "win_of_arrival": "ok",
-      "lock_of_arrival": "ok"
-    }
-  },
-  "boss_generality": {
-    "fights": 9,
-    "won": 9,
-    "boss_decision_range": [
-      33,
-      63
-    ],
-    "end_turns": 92,
-    "end_turn_with_a_playable_card": 4,
-    "wound_locked_fights": 0,
-    "illegal_actions": 0,
-    "every_fight_ended_at_floor_17": true
-  },
-  "stalemate_lock": {
-    "end_turn_decisions": 59681,
-    "play_card_decisions": 148,
-    "end_turn_with_a_playable_card": 0,
-    "end_turn_was_the_only_legal_action": 59678,
-    "tail_hand_is_five_wounds": true,
-    "tail_energy_at_max": true,
-    "tail_hp_fields_not_varying": true
-  },
-  "boss_completion_fork": {
-    "relic_screen_splits_two_ways": true,
-    "policy_choice_is_on_the_truncating_side": true,
-    "card_screen_is_a_negative_control": true,
-    "all_three_runs_fought_the_same_boss": true,
-    "truncating_run_is_a_false_negative": true,
-    "sampled_losses_are_internally_consistent": true,
-    "proceed_recovers_every_sampled_loss": true,
-    "leftmost_claim_truncates_in_every_sampled_loss": true
-  },
-  "dead_end_reason_census": {
-    "files_with_reason_field": 49,
-    "empty_action_mask": 50,
-    "step_cap": 3,
-    "native_rejection": 861
-  },
-  "boss_misexit_rate": {
-    "seeds_enumerated": 10000,
-    "rows_add_up_per_act": true,
-    "windows_sum_to_partition": true,
-    "floor17_completed_wins_match": true,
-    "truncation_seed_list_matches_count": true,
-    "class_confined_to_generated_act2": true,
-    "independent_window_replicates_the_class": true,
-    "pooled_block_equals_its_parts": true,
-    "pooled_interval_recomputes": true,
-    "windows_compatible": true,
-    "second_checkpoint_adds_up": true,
-    "second_checkpoint_is_a_different_checkpoint": true,
-    "second_checkpoint_share_in_pooled_ci": true,
-    "gate_math_uses_the_live_config": true,
-    "contract_clean": true,
-    "published_intervals_recompute": [
-      true,
-      true,
-      true,
-      true
-    ],
-    "head_tail_heterogeneity_is_real_in_the_data": true
-  },
-  "boss_misexit_signature": {
-    "every_sampled_run_conforms": true,
-    "seed_sets_match_the_rate_artifact": true,
-    "counts_match_the_rate_artifact": true,
-    "none_was_judged_a_win": true,
-    "zero_illegal_across_sampled_runs": true,
-    "second_boss_encounter_also_affected": true,
-    "checkpoint_digests_match_the_files": true,
-    "boss_emptied_is_directly_observed": true,
-    "boss_emptied_covers_every_counted_run": true,
-    "more_than_one_act2_boss_tier_affected": true
-  },
-  "chained_terminal_gates": {
-    "gates_clean_on_multi_act_path": true,
-    "truncations_classified_and_map_exhausted": true,
-    "no_chained_win": true,
-    "depth_agrees_with_the_frontier_sweep": true,
-    "checkpoint_digests_match_the_files": true
-  },
-  "ladder_lineage": {
-    "attested_arms_are_mutually_consistent": true,
-    "parent_digests_recompute": true,
-    "attested_arms_count": true,
-    "configured_rungs_match_the_live_config": true,
-    "committed_rungs_are_a_subset_without_floor13": true,
-    "campaign_arms_lack_attestation": true,
-    "smoke_ladder_edge_is_verifiable": true,
-    "smoke_ladder_stops_at_two_rungs": true
-  },
-  "contract_channels": {
-    "policy_channel_is_zero": true,
-    "mask_engine_disagreements_are_counted": true,
-    "file_population_matches": true,
-    "episode_total_matches": true,
-    "ending_channel_split_matches": true,
-    "per_episode_rate_matches": true
-  },
-  "rejection_phase_attribution": {
-    "aggregate_is_the_shard_sum": true,
-    "windows_are_disjoint_five_hundred_seed_slices": true,
-    "refusals_confined_to_shop_and_event": true,
-    "combat_and_boss_reward_screens_are_refusal_free": true,
-    "potion_reward_is_not_an_engine_phase": true,
-    "the_reask_always_changed_the_action": true,
-    "per_phase_rates_are_what_the_report_quotes": true,
-    "decisions_total_is_the_sum_of_its_phases": true,
-    "cross_checks_the_campaign_counter": true,
-    "single_checkpoint": true
-  },
-  "refusal_root_cause": {
-    "row_table_backs_the_aggregates": true,
-    "every_shop_refusal_is_the_potion_capacity_case": true,
-    "no_shop_refusal_was_unaffordable": true,
-    "the_engine_disagrees_with_itself_not_with_our_wrapper": true,
-    "event_split_recomputes": true,
-    "the_two_named_clusters_match_their_source_branches": true,
-    "observed_events_are_all_inside_the_static_exposure": true,
-    "static_audit_counts_are_internally_consistent": true,
-    "cross_checks_the_phase_census": true
-  },
-  "potion_slot_cost": {
-    "rows_back_the_aggregates": true,
-    "instrument_reproduces_the_terminal_census": true,
-    "every_clear_is_act2_generated": true,
-    "phantom_slot_is_never_filled": true,
-    "complete_alone_would_overstate_clears": true,
-    "exposure_selects_for_potions_not_against_them": true,
-    "all_four_cells_are_populated": true,
-    "arrival_rate_gap_is_a_selection_marker": true,
-    "shard_windows_cover_the_partition_without_overlap": true
-  },
-  "engine_findings_checklist": {
-    "section_present": true,
-    "misexit_magnitude_matches": true,
-    "complete_overcount_matches": true,
-    "phantom_slot_numbers_match": true,
-    "event_exposure_numbers_match": true,
-    "channel_numbers_match": true,
-    "cited_artifacts_exist": true,
-    "states_the_engine_was_not_edited": true,
-    "six_findings_listed": true,
-    "upgrade_stub_numbers_match_the_census": true,
-    "the_two_exceptions_are_the_hardcoded_floor_five_branch": true,
-    "the_scripted_leak_is_measured_not_assumed": true
-  },
-  "refusal_class_generality": {
-    "both_classes_reproduce_in_every_run": true,
-    "wrapper_is_clean_in_every_run": true,
-    "census_shards_still_sum_to_the_pinned_split": true,
-    "more_than_one_checkpoint_and_stage": true,
-    "mix_is_not_stable": true,
-    "event_7_is_the_same_capacity_bug_in_a_handled_event": true,
-    "capacity_pattern_site_count_matches_the_source": true
-  },
-  "evidence_bundle_integrity": {
-    "listing_matches_disk": true,
-    "digests_and_sizes_recompute": true,
-    "bundle_root_recomputes": true,
-    "manifest_excludes_itself": true,
-    "checkpoint_files_rehashed_here": 219,
-    "every_citation_is_accounted_for": true,
-    "no_citation_is_loose": true
-  },
-  "dead_end_vocabulary": {
-    "vocabulary_matches_the_artifact": true,
-    "vocabulary_is_exactly_three_labels": true,
-    "acts_too_slowly_is_labelled": true,
-    "cannot_act_is_labelled": true,
-    "nothing_is_unclassified": true,
-    "step_cap_is_act1_stage_only": true,
-    "legacy_and_current_native_rejection_still_split": true,
-    "artifact_and_disk_agree_on_step_cap_files": true,
-    "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": true,
-    "the_one_label_outside_the_vocabulary_is_named": true
-  },
   "report_exec_table_citations": {
     "every_row_has_a_verifiable_citation": true,
-    "unbacked_rows": [],
+    "no_row_still_claims_the_refuted_labelling_gap": true,
+    "row_count_is_the_expected_sixteen": true,
     "table_precedes_the_body": true,
     "the_two_rows_that_drifted_once_now_cite_files": true,
-    "no_row_still_claims_the_refuted_labelling_gap": true,
-    "row_count_is_the_expected_sixteen": true
-  },
-  "objective_clause_audit": {
-    "audit_section_present": true,
-    "all_nine_clauses_listed": true,
-    "act_1_to_3_clause_still_says_not_achieved": true,
-    "warm_start_ladder_still_says_partly": true,
-    "the_other_six_are_marked_achieved_with_limits": true,
-    "every_cited_file_exists": true,
-    "every_cited_claim_is_registered": true,
-    "conclusion_still_refuses_completion": true,
-    "fan_out_row_numbers_match_the_attestation": true,
-    "hash_chain_row_numbers_match_the_manifest": true,
-    "zero_illegal_row_numbers_match_the_channel_census": true,
-    "dead_end_row_numbers_match_the_vocabulary_census": true,
-    "dead_end_row_cites_the_population_the_identity_tested": true,
-    "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": true
+    "unbacked_rows": []
   },
   "retraction_ledger_integrity": {
     "closing_paragraph_count_matches_the_ledger": true,
@@ -408,206 +536,90 @@
     "the_ledger_row_count_is_the_pinned_number": true,
     "the_objective_clause_is_in_the_ledger_or_the_audit": true
   },
-  "metrics_index_reviewability": {
-    "index_aggregates_are_self_consistent": true,
-    "index_backs_the_contract_channel_numbers": true,
-    "index_backs_the_dead_end_vocabulary": true,
-    "every_row_names_a_committed_relative_path": true,
-    "files_rehashed_here": 282,
-    "index_covers_this_machines_corpus_exactly": true,
-    "metrics_files_on_disk_here": 282
+  "reward_fork_on_census_seeds": {
+    "both_artifacts_fork_the_phase_they_claim": true,
+    "every_variant_substituted_a_legal_action_only": true,
+    "the_card_screen_is_the_control_that_does_not": true,
+    "the_fork_was_found_on_every_seed": true,
+    "the_forked_seeds_are_ones_the_census_located": true,
+    "the_relic_screen_has_a_winning_action_for_every_seed": true
   },
-  "fanout_overnight_attestation": {
-    "planned_arm_runs_are_twenty_one": true,
-    "every_plan_row_carries_a_digest": true,
-    "every_metrics_path_is_in_the_committed_index": true,
-    "the_window_crosses_the_night": true,
-    "windows_overlap_so_arms_ran_together": true,
-    "fanout_shape_is_per_run_parallel_envs_12": true,
-    "stage_shapes_are_19_act1_plus_the_two_rung_ladder": true,
-    "the_warm_start_attestation_gap_is_still_two_of_twenty_one": true,
-    "attestation_gap_breakdown_is_17_plus_2_vs_2": true
+  "stalemate_lock": {
+    "end_turn_decisions": 59681,
+    "end_turn_was_the_only_legal_action": 59678,
+    "end_turn_with_a_playable_card": 0,
+    "play_card_decisions": 148,
+    "tail_energy_at_max": true,
+    "tail_hand_is_five_wounds": true,
+    "tail_hp_fields_not_varying": true
   },
-  "harness_self_description": {
-    "report_quotes_the_live_claim_count_exactly_once": true,
-    "gate_test_count_matches_the_quote": true,
-    "interpreter_caveat_is_documented": true,
-    "an_unrunnable_claim_is_tallied_separately_in_this_code": true,
-    "evidence_file_count_matches_the_manifest": true,
-    "no_literal_bundle_root_survives_in_the_prose": true
+  "terminal_census": {
+    "arrival_outcomes_sum": true,
+    "arrivals_plus_below": true,
+    "boss_truncation_seeds": [
+      130012038
+    ],
+    "distinct_winning_seeds": 25,
+    "enumerated": 3500,
+    "illegal_actions": 0,
+    "unclassified_dead_ends": 0,
+    "wilson_recomputed": {
+      "arrival": "ok",
+      "lock_of_arrival": "ok",
+      "win_of_arrival": "ok"
+    }
   },
-  "arrival_state_equivalence": {
-    "reproduction_of_the_committed_census_holds": true,
-    "every_arrival_row_carries_every_resource": true,
-    "the_nine_cross_act_differences_recompute": true,
-    "no_resource_favours_act_two": true,
-    "act_two_has_the_power_act_one_lacks": true,
-    "arrival_resources_predict_nothing_within_act_two": true,
-    "exactly_one_difference_favours_act_one": true
+  "terminal_floor_qualification": {
+    "act1_named_wins": 9,
+    "act1_wins_all_terminal": true,
+    "act2_wins_all_terminal": true,
+    "every_listed_act2_win_replays_as_a_terminal_boss_win": true,
+    "ledger_rows_reproduced": true,
+    "multi_act_clears_anywhere": 0,
+    "no_replayed_seed_lies_outside_the_declared_partition": true,
+    "the_68_win_promotion_population_replays_seed_for_seed": true,
+    "the_population_replay_used_the_weights_the_rule_probe_used": true,
+    "the_replay_covers_the_six_checked_the_day_before": true,
+    "the_replay_runs_on_the_weights_the_wins_were_enumerated_from": true,
+    "the_two_instruments_agree_per_act_not_only_in_total": true
+  },
+  "truncation_ledger": {
+    "closure_does_not_lean_on_the_unclassified_counter": true,
+    "every_stage_and_schema_resolves_to_zero": true,
+    "the_ledger_closes_on_every_current_schema_file": true,
+    "the_ledger_does_not_close_because_a_field_was_blank": true,
+    "the_legacy_exclusion_has_a_measured_cause": true,
+    "the_named_endings_equal_the_per_seed_census": true
   },
   "upgrade_source_accounting": {
-    "three_instruments_agree_on_upgrades_per_episode": true,
-    "event_contribution_recomputes_from_rows": true,
     "campfire_contribution_recomputes_from_rows": true,
-    "the_upgrade_option_was_never_missing_at_a_campfire": true,
-    "the_residual_is_named_not_hidden": true,
+    "event_contribution_recomputes_from_rows": true,
     "the_conditional_events_never_occurred": true,
-    "the_relic_candidate_measures_zero_because_it_was_never_offered": true
+    "the_relic_candidate_measures_zero_because_it_was_never_offered": true,
+    "the_residual_is_named_not_hidden": true,
+    "the_upgrade_option_was_never_missing_at_a_campfire": true,
+    "three_instruments_agree_on_upgrades_per_episode": true
   },
   "upgrade_step_attribution": {
     "books_close_with_removals": true,
-    "nothing_is_upgraded_at_reset": true,
-    "the_opening_screen_was_the_missing_channel": true,
-    "it_agrees_with_the_campfire_census_exactly": true,
-    "removals_are_not_zero_so_tracking_them_mattered": true,
     "fourth_instrument_on_the_same_mean": true,
-    "the_event_channel_is_bigger_than_the_source_classified_list": true
+    "it_agrees_with_the_campfire_census_exactly": true,
+    "nothing_is_upgraded_at_reset": true,
+    "removals_are_not_zero_so_tracking_them_mattered": true,
+    "the_event_channel_is_bigger_than_the_source_classified_list": true,
+    "the_opening_screen_was_the_missing_channel": true
   },
-  "opening_choice_position_pref": {
-    "every_run_reaches_the_opening_screen": true,
-    "the_upgrade_relic_is_rarely_offered_at_all": true,
-    "but_it_is_usually_taken_when_offered": true,
-    "the_take_rate_depends_on_the_position": true,
-    "cards_agree_with_the_step_attribution_census": true,
-    "the_offering_is_observable_not_hidden": true
+  "v2_contract_sizes": {
+    "flat_action_size": 225,
+    "observation_size": 1739
   },
-  "ladder_promotion_ledger": {
-    "recomputation_used_the_repos_own_gate": true,
-    "five_campaign_evaluations_two_promotions": true,
-    "floor3_promoted_and_floor6_never_rejudged": true,
-    "floor6_promoted_when_it_ran_under_a_lower_bar": true,
-    "the_promotion_predates_the_raise_that_now_rejects_it": true,
-    "no_gate_clause_was_scored_on_an_unrecorded_field": true,
-    "floor3s_live_verdict_still_reproduces": true,
-    "floor6_final_two_missed_only_on_boundary_rate": true,
-    "floor10_was_evaluated_once_and_rejected": true,
-    "floor13_has_no_run_at_all": true,
-    "digests_rehashed_here": 34
-  },
-  "promotion_gate_refuses_unrecorded_inputs": {
-    "the_gate_names_the_four_clauses_at_risk": true,
-    "a_real_record_is_rejected_on_its_measurement": true,
-    "deleting_that_measurement_cannot_buy_a_pass": true,
-    "the_default_is_never_printed_as_a_number": true,
-    "dropping_a_field_the_gate_never_reads_changes_nothing": true,
-    "what_the_evaluator_writes_today_has_nothing_absent": true
-  },
-  "emulator_source_provenance": {
-    "the_report_and_the_snapshot_agree_on_every_citation": true,
-    "every_citation_resolves_in_the_recorded_build": true,
-    "cited_files_match_their_recorded_digests": true,
-    "cited_lines_still_hold_the_recorded_text": true,
-    "engine_source_tree_digest_recomputes": true,
-    "native_library_digest_recomputes": true
-  },
-  "chained_map_deadend": {
-    "two_alive_chains_were_forked": true,
-    "the_engine_offered_no_map_option_at_any_fork": true,
-    "only_the_contracts_synthetic_action_was_advertised": true,
-    "the_evaluator_still_classifies_the_ending": true,
-    "the_cited_engine_code_still_says_it": true,
-    "the_chained_dead_end_is_not_a_native_refusal": true
-  },
-  "chained_act2_reachability": {
-    "every_chain_in_the_frontier_was_searched": true,
-    "the_floor19_dead_end_is_not_a_matter_of_choice": true,
-    "no_route_reached_the_act2_boss_or_a_win": true,
-    "search_was_not_cut_by_its_budget": true,
-    "replay_was_faithful": true,
-    "every_route_ended_in_a_real_terminal_state": true
-  },
-  "map_deadend_short_circuits_before_the_refusal_census": {
-    "the_census_counted_map_decisions_rather_than_omitting_them": true,
-    "no_map_refusals_on_the_ordinary_promotion_population": true,
-    "the_chained_dead_end_sits_in_map_and_short_circuits_before_the_engine": true,
-    "the_layer_that_labelled_it_is_the_flat_env": true,
-    "refusals_on_the_chained_episode_come_from_elsewhere": true,
-    "the_two_populations_disagree_as_stated": true,
-    "shop_and_event_remain_the_only_ordinary_classes": true
-  },
-  "empty_mask_endings": {
-    "every_episode_is_counted_once": true,
-    "the_engine_offered_no_action_at_any_located_ending": true,
-    "the_player_was_alive_at_every_one": true,
-    "the_class_is_one_wall_not_a_scatter": true,
-    "the_labelling_layer_is_measured_not_assumed": true,
-    "the_explained_walls_are_a_boss_cleared_into_an_empty_map": true,
-    "no_ending_was_dropped_to_make_the_finding_clean": true,
-    "the_instrument_reports_its_own_health": true,
-    "every_ending_the_campaign_ever_recorded_was_located": true,
-    "the_former_coverage_gap_was_an_instrument_limit": true,
-    "every_named_truncation_in_the_rolled_files_is_located": true,
-    "the_step_cap_endings_are_stalls_in_a_fight_not_at_a_boss": true
-  },
-  "reward_fork_on_census_seeds": {
-    "the_forked_seeds_are_ones_the_census_located": true,
-    "the_fork_was_found_on_every_seed": true,
-    "the_relic_screen_has_a_winning_action_for_every_seed": true,
-    "the_card_screen_is_the_control_that_does_not": true,
-    "both_artifacts_fork_the_phase_they_claim": true,
-    "every_variant_substituted_a_legal_action_only": true
-  },
-  "boss_clear_recoverability": {
-    "every_recorded_loss_was_forked": true,
-    "a_group_counts_only_if_it_replays_the_recorded_loss": true,
-    "no_lost_clear_was_structurally_unwinnable_at_that_screen": true,
-    "the_policy_took_no_available_win": true,
-    "every_winning_action_was_one_the_state_offered": true,
-    "the_verdict_declares_its_own_limit": true
-  },
-  "boss_reward_rule_end_to_end": {
-    "the_rule_converts_every_lost_clear_in_both_checkpoint_groups": true,
-    "the_rule_costs_nothing_on_an_ordinary_window": true,
-    "every_screen_the_rule_fired_on_had_already_won": true,
-    "the_window_had_nothing_to_convert_which_explains_the_zero_delta": true,
-    "no_pass_bought_a_win_with_a_contract_violation": true,
-    "the_rule_is_declared_as_a_hand_written_bound": true
-  },
-  "boss_reward_rule_population": {
-    "the_plain_pass_reproduces_the_committed_baseline": true,
-    "the_converted_seeds_are_the_recorded_losses": true,
-    "the_rule_never_costs_a_win": true,
-    "no_win_was_bought_with_a_contract_violation": true,
-    "the_partition_is_covered_once": true,
-    "the_bound_declares_that_it_is_a_bound": true
-  },
-  "boss_reward_rule_generality": {
-    "both_groups_reproduce_their_recorded_win_baseline": true,
-    "both_groups_convert_exactly_their_recorded_seeds": true,
-    "the_two_groups_are_different_policies": true,
-    "neither_group_costs_a_win": true,
-    "no_win_was_bought_with_a_contract_violation": true,
-    "the_groups_compared_are_the_pre_registered_ones": true
-  },
-  "truncation_ledger": {
-    "the_ledger_closes_on_every_current_schema_file": true,
-    "the_named_endings_equal_the_per_seed_census": true,
-    "closure_does_not_lean_on_the_unclassified_counter": true,
-    "every_stage_and_schema_resolves_to_zero": true,
-    "the_legacy_exclusion_has_a_measured_cause": true,
-    "the_ledger_does_not_close_because_a_field_was_blank": true
-  },
-  "boss_reward_rule_holdout": {
-    "the_holdout_was_never_evaluated_before_this": true,
-    "the_rule_converts_on_the_holdout_and_costs_nothing": true,
-    "the_conversion_arithmetic_matches_the_truncation_drop": true,
-    "the_holdout_declares_the_same_clean_contracts": true,
-    "the_holdout_plain_rate_is_in_line_with_the_tuned_window": true
-  },
-  "holdout_partition_usage": {
-    "the_narrow_glob_still_reports_zero_and_that_was_its_blind_spot": true,
-    "both_final_artifacts_are_the_same_first_200_seeds": true,
-    "the_scans_recorded_two_wins_so_nothing_can_claim_that_window_was_never_read": true,
-    "every_reward_rule_conversion_lies_in_the_untouched_tail": true,
-    "the_untouched_tail_is_the_partition_less_the_union_of_what_was_read": true,
-    "the_holdout_label_discloses_the_prior_reads": true,
-    "the_seed_lists_and_the_aggregates_describe_the_same_wins": true,
-    "the_untouched_tail_carries_the_whole_gain_on_its_own": true
-  },
-  "boss_reward_rule_window_self_consistency": {
-    "a_reconciliation_group_is_backed_by_a_pre_registered_seed_list": true,
-    "every_merged_artifact_names_the_window_it_rolled": true,
-    "the_four_windows_are_not_one_partition_wearing_four_labels": true,
-    "the_holdout_still_declares_no_baseline_to_match": true
+  "win_ledger": {
+    "every_reproduced_win_is_a_clean_terminal_win": true,
+    "rows": 5,
+    "the_recorded_rows_match_the_rows_this_file_carries": true,
+    "the_terminal_floor_agrees_with_the_engines_boss_row_constant": true,
+    "two_runs_recorded_and_their_rows_hash_alike": true,
+    "wins_failed_to_reproduce": 0,
+    "wins_reproduced": 9
   }
 }
