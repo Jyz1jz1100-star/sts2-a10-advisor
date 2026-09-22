@@ -2643,6 +2643,19 @@ The full-run contract (task 8) and an episode that reaches act 3 in the faithful
 (task 21) remain open; the deepest acceptance attempt still ends on the client's own
 `Handle is not initialized` crash, which is operator-owned and not re-pinned, patched or disabled.
 
+### Update, same evening: the deepest acceptance run reached the shipped campaign's ending screen
+
+Batch `ssb-20260922T082137Z-a6886c18` stopped as `autoplay_classified_stop` with
+`no rule and no continue control for screen 'event' at act 3 floor 49 after 11 frames`. The trace holds
+20 `THE_ARCHITECT` frames: twelve with `options: []` while the room builds, then real options at index
+0 with two different titles. So this is not the client crashing and not the rest-site window -- the run
+got to the shipped ending and our live choice policy has no rule for it, which is a policy coverage
+gap (task 27). It is also a designed divergence: the simulator lists TheArchitect as `not_modelled`,
+so a passing gate set does not imply the live ending is handled. The next batch
+(`ssb-20260922T103218Z-0f7ccf99`) starts with the rest-site hold in place, so this one is the first
+where that fix can be confirmed.
+
+
 ## 2026-09-22 (evening): G4 and G5 close — the six hard fidelity gates pass for the first time
 
 **`sts2sim-campaign-fidelity-v4`** (declaration digest `d7c9dece…`, tier
