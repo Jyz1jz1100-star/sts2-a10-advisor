@@ -2922,3 +2922,39 @@ This supersedes nothing above it except the framing: the pilot section already c
 "the boss is the wall" to "attrition is the wall, the boss is second". This says the attrition
 is monster-fight attrition, and names the one unmeasured thing that could make it our fault
 rather than the policy's.
+
+## What the 71% die of, answered: the difficulty is A10, so it is the policy (2026-09-23)
+
+The previous section left two explanations open and named the measurement that would choose. It
+has now been made, and it closes in favour of the policy -- after first refuting the hypothesis
+this section was written to defend.
+
+Enemy HP and damage are extracted from the locked build's own model classes
+(`scripts/extract_data.py` -> `Generated/Enemies.g.cs`), taking the values out of
+`AscensionHelper.GetValueIfAscension(level, ascensionValue, fallbackValue)`. The emulator applies
+no ascension check of its own -- `Ascension` appears nowhere in its C# -- so which of the two
+numbers the extractor keeps decides the difficulty the environment fights at. It keeps the
+**first**: `Fogmog` is 78 rather than 74, its intents 9 and 16 rather than 8 and 14. At A10 every
+one of those levels is active, so the first argument is exactly what the shipped game uses. The
+guess that the emulator was silently playing Act 1 at a *softer* difficulty is wrong, and wrong
+in the direction that would have mattered: `MinHp > MaxHp` appears in 0 of 106 enemies, which is
+what a mis-ordered pair would have produced, so the ascended values are being taken consistently
+rather than by luck.
+
+Therefore: dying to an ordinary floor-6 monster with a 14.9-card unupgraded deck happens in a
+world whose combat numbers are the target's. That is a strategy result, not an environment
+defect, and it upgrades the pilot's conclusion from "scale is not the answer" to "the answer is
+the fights the campaign is losing before it ever reaches a boss".
+
+One genuine artifact surfaced on the way, and it is a legibility problem rather than a fidelity
+one: `Moves` is empty for **106 of 106** extracted enemies -- the attack-intent regex matched
+nothing, so the field never populates and every enemy's behaviour comes from the hand-written
+`EnemyAI.cs`. Nothing reads the column, but a generated file whose only behavioural column is
+always blank invites exactly the mistake this section nearly made: reading it as "enemy damage is
+not modelled" when it is modelled, elsewhere.
+
+Corollary worth holding: `not_modelled` item 9 ("the double boss is unconditional, which is A10
+and nothing else") and item 10 stay LOW and MEDIUM. Item 9 now has a positive reason rather than
+a scope argument -- unconditional is not merely fine for an A10 target, it is how the A10 combat
+values get applied at all. Removing the ascension conditionality would not be a simplification,
+it would be a downgrade to A0.
