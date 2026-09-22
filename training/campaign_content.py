@@ -19,7 +19,7 @@ import json
 from collections.abc import Iterable
 
 #: Bump when the campaign's *content* changes, so pre-change artifacts stay separable.
-CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-fidelity-v2"
+CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-fidelity-v3"
 
 #: The base name the fidelity line publishes under.  approx-v1 is frozen below, and
 #: results from the two must never be averaged, re-judged, or continued from each
@@ -38,6 +38,24 @@ RESULT_TIERS_AT_APPROX_V1 = {
     "live_full_run": "the real client, victory screen observed; not achieved",
 }
 
+#: The tier set as it read when fidelity-v2 was frozen, kept as a literal so v2's
+#: pinned digest cannot move when v3 adds a tier.
+RESULT_TIERS_AT_FIDELITY_V2 = {
+    "simulator_single_act": "one act per seed; every pre-2026-09-20 artifact",
+    "simulator_three_act_approx": "three stages, Act 1 content reused for stages 2 and 3",
+    "simulator_three_act_content_verified": (
+        "requires Hive and Glory pools, a per-act Ancient, and a boss-to-boss exit; "
+        "no artifact in this repository is at this tier yet"
+    ),
+    "live_full_run": "the real client, victory screen observed; not achieved",
+    "simulator_three_act_pools_and_pair_boss": (
+        "each stage draws the act the shipped campaign defines (Overgrowth -> Hive -> Glory), "
+        "the final act's paired boss is a map row past the first, and no boss relic is "
+        "invented; per-act Ancients, per-act map shape and the reward/upgrade "
+        "distributions are still not real, so this tier is not content-verified"
+    ),
+}
+
 #: The result tiers that must never be quoted as one number.
 RESULT_TIERS = {
     **RESULT_TIERS_AT_APPROX_V1,
@@ -46,6 +64,12 @@ RESULT_TIERS = {
         "the final act's paired boss is a map row past the first, and no boss relic is "
         "invented; per-act Ancients, per-act map shape and the reward/upgrade "
         "distributions are still not real, so this tier is not content-verified"
+    ),
+    "simulator_three_act_pools_ancients_and_pair_boss": (
+        "G1+G2+G3+G6 closed: per-act encounter pools, the act's own ancient met on entry "
+        "with its real option pools, a travelled-to second boss, and no invented boss "
+        "relic. Per-act map shape (G4) and the upgrade/reward distributions (G5) are "
+        "still not real, so this tier is still not content-verified"
     ),
 }
 
@@ -137,11 +161,13 @@ CAMPAIGN_CONTENT_COVERAGE_APPROX_V1: dict[str, object] = {
     ],
 }
 
-#: The campaign published by the fidelity line: G6 + G1 + G3, nothing else.
-CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
+#: G6 + G1 + G3, nothing else. Frozen on 2026-09-22 when fidelity-v3 took the live
+#: version: kept verbatim, with its tier set copied rather than referenced, so an
+#: artifact stamped v2 still means exactly what it meant the day it was written.
+CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2: dict[str, object] = {
     "verdict": "approximate",
     "result_tier": "simulator_three_act_pools_and_pair_boss",
-    "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+    "environment_version": "sts2sim-campaign-fidelity-v2",
     "summary": (
         "Each stage draws the act the shipped campaign defines: stage 1 Overgrowth, stage 2 "
         "Hive, stage 3 Glory, with no cross-act draw. The final act's paired boss is dealt at "
@@ -212,7 +238,7 @@ CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
         "so those two weak slots draw the normal encounter",
     ],
     "real_progression": REAL_PROGRESSION,
-    "result_tiers": RESULT_TIERS,
+    "result_tiers": RESULT_TIERS_AT_FIDELITY_V2,
     "may_be_quoted_as": [
         "a three-act campaign whose stages draw the shipped game's own acts",
         "a paired-boss final act with a real route decision between the two fights",
@@ -223,6 +249,123 @@ CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
         "live A10 win rate",
         "evidence that a strategy can clear the shipped game",
         "a per-act Ancient or a real Act 2/Act 3 event pool",
+    ],
+}
+
+#: The campaign published by the fidelity line as of 2026-09-22: G6 + G1 + G3 + G2.
+CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
+    "verdict": "approximate",
+    "result_tier": "simulator_three_act_pools_ancients_and_pair_boss",
+    "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+    "summary": (
+        "Each stage draws the act the shipped campaign defines (Overgrowth -> Hive -> Glory) and "
+        "stands the run in front of that act's own ancient before its map is walkable, offering "
+        "the three candidates the ancient's real option pools produce. The final act's paired "
+        "boss is dealt at act generation from its own pool minus the first and reached by "
+        "travelling to a row past the boss, and the boss relic the engine invented is gone. That "
+        "closes G6, G1, G3 and G2. G4 (per-act map shape) and G5 (upgrade odds and boss reward "
+        "distributions) are still open, so this environment is closer to the game without yet "
+        "being content-verified."
+    ),
+    "gates_closed": [
+        "G6_no_boss_relic_reward",
+        "G1_act_pools",
+        "G3_second_boss_structure",
+        "G2_ancients",
+    ],
+    "gates_open": ["G4_map_shape", "G5_reward_and_upgrade_distribution"],
+    "stages": {
+        "1": {
+            "encounter_pools": "Overgrowth weak/normal/elite/boss",
+            "event_pools": "Overgrowth events",
+            "ancient": "Neow, on the run-start screen",
+            "encounter_pools_match_real_game_act": True,
+            "event_pools_match_real_game_act": True,
+            "ancient_matches_real_game_act": True,
+            "evidence": "Core/Run/RunConstants.cs Overgrowth* tables; "
+                        "Models.Acts/Overgrowth.cs:29-32",
+        },
+        "2": {
+            "encounter_pools": "Hive weak/normal/elite/boss",
+            "event_pools": "Underdocks events (G4/G5 territory, unchanged here)",
+            "ancient": "Pael or Tezcatara, met on entering the act",
+            "encounter_pools_match_real_game_act": True,
+            "event_pools_match_real_game_act": False,
+            "ancient_matches_real_game_act": "partial",
+            "ancient_note": "Orobas is excluded: Hive.cs:110-115 hides it until its epoch is "
+                            "revealed and the emulator has no unlock progression, so drawing it "
+                            "would claim a progression the engine does not model",
+            "evidence": "Core/Run/RunConstants.cs Hive* + Pael/Tezcatara option pools, from "
+                        "Models.Acts/Hive.cs:27-33,110-116 and Events/{Pael,Tezcatara}.cs",
+        },
+        "3": {
+            "encounter_pools": "Glory weak/normal/elite/boss, twice over at the boss row",
+            "event_pools": "Underdocks events (G4/G5 territory, unchanged here)",
+            "ancient": "Nonupeipe, Tanx or Vakuu, met on entering the act",
+            "encounter_pools_match_real_game_act": True,
+            "event_pools_match_real_game_act": False,
+            "ancient_matches_real_game_act": True,
+            "second_boss": {
+                "dealt_at": "act generation, from GloryBossEncounters minus the first boss",
+                "reached_by": "a map node one row past the boss, travelled to through the "
+                              "normal map path with the run's own HP, potions, deck, relics "
+                              "and gold",
+                "evidence": "Core/Run/RunMapGenerator.cs GenerateSecondBoss()/OpenSecondBossRow() "
+                            "for RunManager.cs:685-690 and StandardActMap.cs:88-91,231-234",
+            },
+            "evidence": "Core/Run/RunConstants.cs Glory* + Nonupeipe/Tanx/Vakuu option pools, "
+                        "from Models.Acts/Glory.cs:26-32 and Events/{Nonupeipe,Tanx,Vakuu}.cs",
+        },
+    },
+    "rewards": {
+        "boss": "gold + a potion roll + cards, no relic -- RewardsSet.cs:245-261",
+        "elite": "the only combat clear that grants a relic",
+        "ancient": "three relic candidates drawn one per option pool, exactly as each "
+                   "ancient's GenerateInitialOptions does; DistinguishedCape carries its "
+                   "ThatDecreasesMaxHp(9m) price",
+        "final_act_boss": "the shipped build gives the final act's boss an empty RewardsSet "
+                          "(RewardsSet.cs:65-74); the engine still hands out its standard "
+                          "post-combat screen, which is a G5 residual, not a closure",
+    },
+    "not_modelled": [
+        "per-act map shape: all three stages use the same 16-row map with the boss at row 16, "
+        "where the build defines 15/14/13 rooms with the boss at 16/15/14 (G4 open)",
+        "per-act room counts and encounter-fill counts (real weak 3/2/2, normal 12/12/11)",
+        "Hive and Glory event pools: acts 2 and 3 still draw the Underdocks event list",
+        "card upgrade odds by act and the composition of boss rewards (G5 open)",
+        "Orobas as an act 2 ancient: hidden behind OrobasEpoch in the build, and the emulator "
+        "models no unlock state, so it is excluded rather than dealt unconditionally",
+        "the deck-conditional ancient options that need counts this engine does not track: "
+        "Pael's claw/tooth (Goopy-enchanted, removable cards), Nonupeipe's BeautifulBracelet "
+        "and Tanx's TriBoomerang (Swift-/Instinct-enchanted cards). Their pools without the "
+        "extra are offered, so the distribution of those three ancients is narrower than the "
+        "game's, not merely different",
+        "SeaGlass's other-character binding: Orobas offers it as itself because the emulator "
+        "has one playable character",
+        "Hook.ShouldAllowAncient: when the build's hook disallows an ancient the screen "
+        "collapses to a single PROCEED, which the emulator never does",
+        "an out-of-combat death: an ancient's max-health price can take a real run to zero, "
+        "and this engine floors it at 1 health instead of ending the run",
+        "AscensionLevel: the double boss is unconditional here, which is A10 and nothing else",
+        "any per-act or per-floor difficulty scaling",
+        "TheArchitect: the real run ends in an EventRoom after the second boss "
+        "(RunManager.cs:1207-1246); the engine ends it with a cleared flag",
+        "ExoskeletonsWeak and DevotedSculptorWeak: the emulator has no separate weak variant, "
+        "so those two weak slots draw the normal encounter",
+    ],
+    "real_progression": REAL_PROGRESSION,
+    "result_tiers": RESULT_TIERS,
+    "may_be_quoted_as": [
+        "a three-act campaign whose stages draw the shipped game's own acts",
+        "a paired-boss final act with a real route decision between the two fights",
+        "each act's own ancient, with its real relic candidates, on entry",
+        "a regression control against approx-v1 and fidelity-v2 artifacts",
+    ],
+    "must_not_be_quoted_as": [
+        "content-verified three-act coverage",
+        "live A10 win rate",
+        "evidence that a strategy can clear the shipped game",
+        "the real Act 2/Act 3 event pools or map shape",
     ],
 }
 
@@ -247,6 +390,9 @@ def _canonical_digest(coverage: dict[str, object]) -> str:
 #: contains without bumping the version trips the digest, not a comment.
 _FIDELITY_V2_DIGEST = "512b6157e70bd501f88c0d8862d8bcd83873f8733d5bdae629ffadda66aa80c5"
 
+#: Pinned the same way, from the declaration below.
+_FIDELITY_V3_DIGEST = "6e84c9e77499fd8253be9b97fd8d893c4a4602b6853779b315883159bd0a47d4"
+
 FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
     "sts2sim-campaign-approx-v1": {
         "frozen_at_utc": "2026-09-21T14:30:00+00:00",
@@ -264,8 +410,9 @@ FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
             "differently-versioned environment without restating its provenance"
         ),
     },
+
     "sts2sim-campaign-fidelity-v2": {
-        "frozen_at_utc": "2026-09-22T00:40:00+00:00",
+        "frozen_at_utc": "2026-09-22T06:30:00+00:00",
         "content_sha256": _FIDELITY_V2_DIGEST,
         "verdict": "approximate",
         "result_tier": "simulator_three_act_pools_and_pair_boss",
@@ -281,6 +428,30 @@ FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
             "policy was trained on no longer exists in this environment"
         ),
     },
+    "sts2sim-campaign-fidelity-v3": {
+        "frozen_at_utc": "2026-09-22T06:30:00+00:00",
+        "content_sha256": _FIDELITY_V3_DIGEST,
+        "verdict": "approximate",
+        "result_tier": "simulator_three_act_pools_ancients_and_pair_boss",
+        "gates_closed": [
+            "G6_no_boss_relic_reward",
+            "G1_act_pools",
+            "G3_second_boss_structure",
+            "G2_ancients",
+        ],
+        "meaning": (
+            "Four of six hard gates: acts draw their own encounter pools, each act's own "
+            "ancient is met on entry with its real relic candidates, the paired boss is a "
+            "travelled-to map row, and no boss relic is invented. G4 (map shape, event "
+            "pools) and G5 (upgrade odds, boss reward composition) are open, and several "
+            "deck-conditional ancient options are not dealt at all."
+        ),
+        "checkpoint_rule": (
+            "a fidelity-v2 checkpoint may be continued only with its own metrics kept "
+            "separate: v2 never offered an act ancient, so an act-2/3 resource policy "
+            "trained there has not seen a decision that exists here"
+        ),
+    },
 }
 
 #: The declaration each frozen version was stamped with.  ``assert_content_declaration``
@@ -289,7 +460,8 @@ FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
 #: declaration has moved on.
 FROZEN_ENVIRONMENT_DECLARATIONS: dict[str, dict[str, object]] = {
     "sts2sim-campaign-approx-v1": CAMPAIGN_CONTENT_COVERAGE_APPROX_V1,
-    "sts2sim-campaign-fidelity-v2": CAMPAIGN_CONTENT_COVERAGE,
+    "sts2sim-campaign-fidelity-v2": CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2,
+    "sts2sim-campaign-fidelity-v3": CAMPAIGN_CONTENT_COVERAGE,
 }
 
 

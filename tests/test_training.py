@@ -328,7 +328,7 @@ class CampaignLabelTests(unittest.TestCase):
         coverage = payload["content_coverage"]
         self.assertEqual(coverage["verdict"], "approximate")
         self.assertEqual(
-            coverage["result_tier"], "simulator_three_act_pools_and_pair_boss"
+            coverage["result_tier"], "simulator_three_act_pools_ancients_and_pair_boss"
         )
 
     def test_the_declaration_names_the_acts_the_shipped_game_actually_uses(self) -> None:
@@ -348,6 +348,16 @@ class CampaignLabelTests(unittest.TestCase):
         self.assertTrue(stages["1"]["event_pools_match_real_game_act"])
         self.assertFalse(stages["2"]["event_pools_match_real_game_act"])
         self.assertFalse(stages["3"]["event_pools_match_real_game_act"])
+
+    def test_the_declaration_says_which_ancient_each_act_meets(self) -> None:
+        # G2's whole content is per-act Ancients, so a declaration that stops naming them
+        # has quietly reopened the gate -- and act 2 may never read as a clean pass, because
+        # the engine draws only two of the build's three candidates.
+        stages = CAMPAIGN_CONTENT_COVERAGE["stages"]
+        self.assertEqual(stages["1"]["ancient_matches_real_game_act"], True)
+        self.assertEqual(stages["3"]["ancient_matches_real_game_act"], True)
+        self.assertEqual(stages["2"]["ancient_matches_real_game_act"], "partial")
+        self.assertIn("Orobas", stages["2"]["ancient_note"])
 
     def test_single_act_metrics_keep_the_pre_campaign_shape(self) -> None:
         metrics = evaluate_policy(
@@ -371,15 +381,18 @@ class CampaignLabelTests(unittest.TestCase):
                 "simulator_single_act",
                 "simulator_three_act_approx",
                 "simulator_three_act_pools_and_pair_boss",
+                "simulator_three_act_pools_ancients_and_pair_boss",
                 "simulator_three_act_content_verified",
                 "live_full_run",
             },
         )
         # A new tier must not swallow the one above it: v2 says out loud that it is
-        # not content-verified.
-        self.assertIn(
-            "not content-verified", tiers["simulator_three_act_pools_and_pair_boss"]
-        )
+        # not content-verified, and v3 -- which closes G2 and changes nothing else --
+        # has to say the same, because a name that sounds further along is not a gate.
+        for tier in ("simulator_three_act_pools_and_pair_boss",
+                     "simulator_three_act_pools_ancients_and_pair_boss"):
+            with self.subTest(tier=tier):
+                self.assertIn("not content-verified", tiers[tier])
         self.assertIn("live A10 win rate",
                       CAMPAIGN_CONTENT_COVERAGE["must_not_be_quoted_as"])
 

@@ -2592,3 +2592,54 @@ Instrument hygiene that came with it: engine line citations re-pinned to the new
 the three drifts it had been carrying (a never-passable act-ceiling expectation recorded against
 the two-act engine, the dead-end citation that had drifted, and the manifest) are closed by
 re-deriving them, not by relaxing them.
+
+> **Superseded one paragraph later, by the same project.** "66/66 resolve" was true and meaningless:
+> the snapshot hashes whatever line the report already carried, so re-publishing after the v2 engine
+> edits recorded new text at old numbers and 25 of those 66 pointers slid off the code their own
+> prose describes. See the next section; the v2 numbers above are kept because they are what was
+> published then, not because they were right.
+
+## 2026-09-22 (midday): fidelity-v3 closes G2, and the v2 publication's citations turn out to be broken
+
+**Gate state.** `sts2sim-campaign-fidelity-v3` (declaration digest `6e84c9e7…`) deals each act its
+own Ancient — Neow at the run start, Pael or Tezcatara in Hive, Nonupeipe / Tanx / Vakuu in Glory —
+presented *before* the next act's map, offering one candidate from each of that Ancient's three
+pools, and charging the relic that costs max HP. Orobas stays out because the build gates it behind
+an epoch the emulator does not model, so act 2 is declared `"partial"` rather than `true`. Gates over
+10,000 declared seeds: **G1 / G2 / G3 / G6 PASS, G4 / G5 FAIL**, `published_gates_passed=true`,
+`hard_gate_passed=false`. Large-scale RL stays forbidden.
+
+**Strength did not move**, and nothing was re-labelled to suggest it did: same 10,000 seeds enter
+act 2 in 2 episodes and act 3 in 0, deepest floor 19, pipeline smoke still **10/11** with
+`episode_crosses_act_boundaries` red. A gate that adds a screen cannot add win rate.
+
+**The finding of this pass is about our own verification, not the engine.** Regenerating the
+provenance snapshot and diffing it against `emulator_source_provenance_20260920.json` showed
+**25 of 66** `*.cs:line` citations no longer sit on the code the report claims, three of them on
+unrelated code entirely (a boss-row claim pinned to an event-id line, a `hasPotionSlot` claim pinned
+to `}`, and a bare `:2263` the regex never even hashed). Cause: the snapshot is re-hashed from the
+numbers already in the prose, so `emulator_source_provenance` detects *the engine changing* and not
+*a pointer sliding* — which is why v2 shipped 61/61 green with broken citations. Repaired by
+re-pinning 33 pointers (53 occurrences) against the 09-20 text, each required to contain an anchor
+-- a fragment of the code its prose claims -- with the whole batch refused if one anchor misses. The
+table and its three checks now live in `tests/test_emulator_provenance.py::CitationAnchorTests`
+(`runtime/` is gitignored, so the repair script itself is not a deliverable), and the four pointers
+whose code genuinely changed were rewritten in prose rather than nudged.
+
+**Still not fixed, on purpose:** roughly 170 further `*.cs:line` references in `docs/STATUS.md`,
+`docs/ACT_COVERAGE_AUDIT_2026-09-21.md`, `docs/SIMULATOR_ACT_FIDELITY_2026-09-21.md` and
+`scripts/*.py` docstrings carry no digest of any kind and moved with these same edits. They were
+not audited this pass; the report that is snapshot-pinned was.
+
+**Verification state.** Engine 224/224; contract suite 629 tests and the training-venv suite 132
+tests, both green via `scripts/test.ps1`; claims verifier **61/61** against
+`docs/evidence/emulator_source_provenance_20260922_v3.json` and a rebuilt 68-file manifest
+(each publication keeps its own snapshot; frozen evidence is not overwritten).
+
+**Live machine.** `ssb-20260922T060426Z-3e522007` is still collecting unattended; the watchdog fix
+from this morning held in the field — three bridge-outage probes were classified
+`bridge_unresponsive` with `process_alive` and restored within 0.9-2.8 s instead of killing the run.
+The full-run contract (task 8) and an episode that reaches act 3 in the faithful environment
+(task 21) remain open; the deepest acceptance attempt still ends on the client's own
+`Handle is not initialized` crash, which is operator-owned and not re-pinned, patched or disabled.
+

@@ -78,13 +78,16 @@
 
 `--backend sim` 转发到 `scripts/probe_three_act_campaign.py`，scope 是
 `simulator_three_act`，并自动带上 `environment_version` 与 `content_coverage`。
-2026-09-22 起当前版本是 **`sts2sim-campaign-fidelity-v2`**（verdict 仍是 `approximate`）：
+2026-09-22 起当前版本是 **`sts2sim-campaign-fidelity-v3`**（verdict 仍是 `approximate`）：
 第二、三幕不再抽 Underdocks 换皮池，而是各抽自己那一幕 —— Overgrowth → Hive → Glory
-（`ActModel.cs:510-515`），最终幕的配对 boss 改成"先回地图、再走到 boss 之后那一行"，
-并且删掉了真实游戏根本不发的 boss 遗物奖励。这关闭了 G6/G1/G3；**G2（每幕先古之民）、
-G4（每幕地图形状）、G5（升级概率与 boss 奖励分布）仍然不真实**，模拟器也没有任何一幕
-有先古之民。旧版本号 `sts2sim-campaign-approx-v1` 已被摘要冻结：带这个标签的历史产物
-永远表示"二、三幕是换皮"，两种环境的产物不得平均、不得互判、不得续档。
+（`ActModel.cs:510-515`），进幕时先站到**那一幕自己的先古之民**面前（`StandardActMap.cs:333-338`
+把每幕起点设成先古节点；候选来自各先古真实选项池，其中第二幕只在 Pael / Tezcatara 之间抽——
+Orobas 要 epoch 解锁，模拟器没有解锁进度，所以第二幕按 `partial` 声明而不是当作已对齐），最终幕的配对 boss 改成"先回地图、
+再走到 boss 之后那一行"，并且删掉了真实游戏根本不发的 boss 遗物奖励。
+这关闭了 G6/G1/G3/G2；**G4（每幕地图形状与 2/3 幕事件池）、G5（升级概率与 boss 奖励分布）
+仍然不真实**。历史版本号 `sts2sim-campaign-approx-v1` 与 `sts2sim-campaign-fidelity-v2`
+都已被摘要冻结：带这些名字的产物永远表示它们当时的内容，三种环境的产物不得平均、
+不得互判、不得续档。
 幕区间与真机的对照只用已核实的坐标：真机 act 1/2/3 的 boss 节点分别在 **floor 17 / 33 / 48**
 （2026-09-20 trace 重算，`docs/evidence/live_run_coverage_20260920.json`），模拟器的幕带是
 1–17 / 18–33 / 34–50（`RunConstants.cs` 的 `MapBossRow = 16` 推出，第三幕多的 1 层是配对 boss）。

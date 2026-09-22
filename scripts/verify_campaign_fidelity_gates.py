@@ -38,6 +38,7 @@ MAP_GENERATOR = EMULATOR / "src" / "Sts2Emulator" / "Core" / "Run" / "RunMapGene
 REWARD_GENERATOR = EMULATOR / "src" / "Sts2Emulator" / "Core" / "Run" / "RunRewardGenerator.cs"
 RUN_ENGINE = EMULATOR / "src" / "Sts2Emulator" / "Core" / "Run" / "RunEngine.cs"
 ENCOUNTER_TABLE = EMULATOR / "src" / "sts2_gym" / "env.py"
+ANCIENT_CHOICES = EMULATOR / "src" / "Sts2Emulator" / "Core" / "Run" / "RunAncientChoices.cs"
 
 #: Encounter ids the emulator actually assigns, resolved by name so the numbers
 #: are never copied by hand.
@@ -202,12 +203,58 @@ def measure_gates(
                           "per-act pool scenario",
     }
 
+    map_text = _text(MAP_GENERATOR)
+    ancient_dealt = re.search(
+        r"private static void GenerateActAncient\(RunState state\)\s*\{"
+        r"(?P<body>.*?)\n    \}",
+        map_text,
+        re.S,
+    )
+    ancient_body = (
+        re.sub(r"\s+", " ", ancient_dealt.group("body")).strip() if ancient_dealt else ""
+    )
+    choices = _text(ANCIENT_CHOICES)
+    offers = re.search(
+        r"public static int\[\] Offer\(RunState state, GameRng rng\)\s*\{"
+        r"(?P<body>.*?)\n    \}",
+        choices,
+        re.S,
+    )
+    offers_body = re.sub(r"\s+", " ", offers.group("body")).strip() if offers else ""
+    # Each of the three acts the campaign can enter must be dispatched to its own
+    # ancient, and the act's pool must be the real one: a screen that exists but only
+    # ever shows Neow is the approx-v1 situation wearing a new name.
+    acts_dispatched = all(
+        name in offers_body
+        for name in ("AncientNonupeipe", "AncientTanx", "AncientVakuu",
+                      "AncientPael", "AncientTezcatara")
+    ) and "AncientOrobas" not in ancient_body
+    pools_are_the_builds = all(
+        name in choices
+        for name in (
+            "OrobasOptionPool1", "PaelOptionPool1", "TezcataraOptionPool1",
+            "NonupeipeOptionPool", "TanxBaseOptionPool", "VakuuPool1",
+        )
+    )
+    presents_on_entry = "EnterActAncient()" in _text(RUN_ENGINE)
+    static_shape = bool(
+        ancient_dealt and acts_dispatched and pools_are_the_builds and presents_on_entry
+    )
     gates["G2_ancients"] = {
         "real": REAL_ANCIENTS,
-        "engine": "no per-act Ancient event exists: the only ancient screen is the "
-                  "run-start one (campaign_content 'not_modelled'); RunMapGenerator "
-                  "event lists are the two fixed tables at :123-188",
-        "passed": False,
+        "engine": {
+            "generate_act_ancient_body": ancient_body or "not found",
+            "offer_dispatch_body": offers_body or "not found",
+            "ancient_dealt_per_act": bool(ancient_dealt),
+            "every_hive_and_glory_ancient_dispatched": acts_dispatched,
+            "pools_are_the_builds": pools_are_the_builds,
+            "entry_presents_it_before_the_map": presents_on_entry,
+        },
+        # G2 is a claim about a transition (enter an act -> meet its ancient -> choose
+        # from its pools), so the engine's own scenario has to have walked it; see
+        # SCENARIO_TESTS.
+        "passed": static_shape and bool((scenario or {}).get("G2_ancients")),
+        "scenario": scenario_note(scenario, "G2_ancients"),
     }
 
     shape_text = _text(RUN_CONSTANTS)
@@ -348,6 +395,11 @@ def scenario_note(scenario: dict[str, Any] | None, gate: str) -> dict[str, Any]:
 SCENARIO_TESTS: dict[str, list[str]] = {
     "G1_act_pools": [
         "EveryCampaignActDrawsFromItsOwnPools",
+    ],
+    "G2_ancients": [
+        "ClearingAnActBossMeetsTheNextActsAncientBeforeItsMap",
+        "GloryActsAncientOffersThreeOfItsOwnCandidates",
+        "DistinguishedCape_ChargesNineMaxHealth_WhenAnAncientOffersIt",
     ],
     "G3_second_boss_structure": [
         "FinalActDealsItsPairedBoss_AtActGeneration_ExcludingTheFirst",
@@ -775,7 +827,12 @@ def main() -> int:
             sample["label"] = args.sample_label
         apply_dynamic_sample(gates, ids, sample)
 
-    v2_gates = ("G1_act_pools", "G3_second_boss_structure", "G6_no_boss_relic_reward")
+    published_gates = (
+        "G1_act_pools",
+        "G2_ancients",
+        "G3_second_boss_structure",
+        "G6_no_boss_relic_reward",
+    )
     payload = {
         "schema_version": 1,
         "environment_version": _current_version(),
@@ -784,10 +841,11 @@ def main() -> int:
         "gates": gates,
         "engine_scenario": scenario,
         "dynamic_sample": sample,
-        # What fidelity-v2 was allowed to publish on.  The exit code is still the
-        # six-gate verdict: closing three of them must not quietly turn the tool
-        # into a three-gate tool.
-        "fidelity_v2_gates_passed": all(bool(gates[g].get("passed")) for g in v2_gates),
+        # What the published version was allowed to claim.  The exit code is still
+        # the six-gate verdict: closing four of them must not quietly turn the tool
+        # into a four-gate tool.
+        "published_gates_passed": all(bool(gates[g].get("passed")) for g in published_gates),
+        "published_gates": list(published_gates),
         "hard_gate_passed": all(bool(g.get("passed")) for g in gates.values()),
     }
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
@@ -797,7 +855,7 @@ def main() -> int:
     for name in sorted(gates):
         gate = gates[name]
         print(f"{'PASS' if gate.get('passed') else 'FAIL'} {name}")
-    print(f"fidelity_v2_gates_passed={payload['fidelity_v2_gates_passed']}")
+    print(f"published_gates_passed={payload['published_gates_passed']}")
     print(f"hard_gate_passed={payload['hard_gate_passed']}")
     return 0 if payload["hard_gate_passed"] else 1
 

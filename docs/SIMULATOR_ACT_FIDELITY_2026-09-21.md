@@ -264,3 +264,70 @@ fidelity-v2 上走过 10,000 个声明过的种子，只有 **2** 局进入第�
    产物现在带 `result_applies_to_environment`，重跑只会量到 0，不会量到"少赢了 21 局"。
 3. 下一版（G2/G4/G5）不能拿 v2 的任何强度数字当结论，也不能拿 v1 的数字当 v2 的对照，
    两边产物由 `assert_single_environment` 分开。
+
+## 8. fidelity-v3 的落地记录（2026-09-22）
+
+这一版只做 G2，外加一件在发布卫生检查里挖出来的事（8.3），那件比 G2 本身重要。
+
+### 8.1 G2 实现成了什么
+
+* **每一幕在生成自己房间时就抽定自己的先古**（`RunMapGenerator.GenerateActAncient`，
+  走 up-front 流——形状来自 `StandardActMap.cs:333-338` 把 Ancient 与 boss、配对 boss 放在
+  同一个块里，以及 `ActModel.cs:344-348` 在 boss 旁放下本幕先古）。act 1 仍是开局的 Neow，
+  act 2 是 Pael / Tezcatara，act 3 是 Nonupeipe / Tanx / Vakuu 三选一。
+* **打赢 boss、进入下一幕时先见到先古，再拿到地图**：`RunEngine.EnterActAncient()` 挂在
+  `AdvanceToNextAct()` 末尾并置 `Phase = Ancient`。四个原有引擎测试从"跨幕后应是 Map"改成
+  "跨幕后应是 Ancient，选完才是 Map"——屏幕顺序本身就是这一门的判据。
+* **候选项按 build 的三个池各出一张**（`RunAncientChoices.Offer`），并且真的收钱/收血：
+  DistinguishedCape 扣 9 点 HP 上限、且不允许把健康的局压到 1 点以下。
+* **Orobas 被排除，并写明为什么**：`Hive.cs:110-115` 要 epoch 解锁才把它放进池子，
+  而模拟器没有解锁进度，抽它等于谎报"这一局打过谁"。所以 act 2 在声明里是
+  `ancient_matches_real_game_act = "partial"` 而不是 `true`；`ShouldAllowAncient` 可能把三选一
+  塌成单个 PROCEED、以及卡组相关的候选（NutritiousSoup / PrismaticGem）没建模，也都写在
+  `not_modelled` 里。
+
+### 8.2 判据与实测
+
+* G2 静态腿四项（每幕抽定、入口先于地图、Hive/Glory 都有 dispatch、池子是 build 的那六个）
+  之外，场景腿跑 3 个引擎测试：`ClearingAnActBossMeetsTheNextActsAncientBeforeItsMap`、
+  `GloryActsAncientOffersThreeOfItsOwnCandidates`、
+  `DistinguishedCape_ChargesNineMaxHealth_WhenAnAncientOffersIt`（3/3 通过，`--list-tests`
+  先确认过滤器点得到它们）。
+* 一万个声过名的种子走完真 campaign：**G1 / G2 / G3 / G6 PASS，G4 / G5 仍 FAIL**，
+  `published_gates_passed=true`、`hard_gate_passed=false`，六门退出码仍是 1。
+  产物 `docs/evidence/campaign_fidelity_gates_20260922_v3.json`，
+  环境摘要 `6e84c9e7…`（`sts2sim-campaign-fidelity-v3`）。
+* **强度一点没变**：进入第二幕的仍是 2 局、第三幕 0 局、最深 floor 19，
+  `scripts/smoke_full_run_pipeline.py` 第 11 项仍红（10/11）。G2 只多了一扇门，
+  不会让旧 checkpoint 变得更能打——把"屏幕多了"读成"策略变强"是这类发布最容易犯的错。
+
+### 8.3 引用完整性：一次全绿里的 25 处坏指针
+
+做 v3 的 provenance 重算时，把新快照与 `emulator_source_provenance_20260920.json`
+逐条对齐，发现 **66 条引用里 25 条的行号已经不在它自己声称的那段代码上**。其中至少三处
+正文与钉到的完全不是同一段：`RunMapGenerator.cs` 的 189 行（正文说"boss 所在那一行"、
+钉到事件 id 列表）、`RunEngine.cs` 的 727 行（正文说 `hasPotionSlot`、钉到一个 `}`）、
+以及裸写的 `:2263`（正文说某个事件臂调 `AddPotion`、那行早就不是了）。
+
+机制很清楚：**快照是拿正文现有行号重新哈希的**。引擎长了几十行而正文没跟着挪时，
+哈希记到新行上，六项检查全绿。`emulator_source_provenance` 抓的是"引擎换了"，
+抓不到"引用滑了"——所以 v2 发布是带着 25 处坏指针出去的，而 `verify_report_claims.py`
+当时报的是 61/61。
+
+修法与约束：
+
+* 33 处引用（53 个出现点）按 09-20 记录的文本重钉；**每一处都要通过一个锚点**——
+  目标行必须真的含正文声称的那段代码，任一处不满足就整批拒写。
+  规则落在 `tests/test_emulator_provenance.py` 的 `CitationAnchorTests`，
+  因为 `runtime/` 在 gitignore 里，脚本本身不算交付物。
+* 裸行号（`:2263`、`同文件 1922-1923`）连 `*.cs:行` 的正则都不匹配，是这批滑动里最安静的一类；
+  两处改写成了带文件名的形式（进快照受管集合），其余留在表里、由测试核对它上下文借用的文件名没变。
+* 语义真的被 v2/v3 改掉的四处（`AdvanceAfterRelicReward` 的 boss 分支、`terminalFloor` 的表达式、
+  开局抛硬币外层的战役覆盖、`AdvanceAfterNode`）不是"挪数字"，正文已按现在的代码改写并注明
+  是哪一版动的，approx-v1 的读法保留在句子里当历史。
+
+**已知没修的**：`docs/STATUS.md`、`docs/ACT_COVERAGE_AUDIT_2026-09-21.md` 与本文自身的
+`*.cs:行` 引用（合计约一百七十处）没有摘要校验，v3 挪动的那些行同样影响它们；本轮只逐条核对了
+被快照钉住的那一份报告。这条不是"以后再说"的客套：下一次发布前，谁引用了引擎行号，
+就得先按同样带锚点的办法走一遍。
+

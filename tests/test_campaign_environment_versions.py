@@ -1,7 +1,8 @@
 """A frozen environment keeps its meaning, and a gate cannot pass on text alone.
 
-The campaign is stamped ``sts2sim-campaign-fidelity-v2``; before it, every artifact
-carried ``sts2sim-campaign-approx-v1``.  Three things have to stay true: nobody may
+The campaign is stamped ``sts2sim-campaign-fidelity-v3``; before it, every artifact carried
+``sts2sim-campaign-approx-v1``, and fidelity v2 froze a declaration that G2 was still open.
+Three things have to stay true: nobody may
 edit what a frozen version *contains* while keeping its name (history would become
 unreadable), the retired approximate declaration has to stay readable as what it was,
 and a hard fidelity gate may not close on a probe that only read source text -- a
@@ -20,6 +21,8 @@ from pathlib import Path
 from training.campaign_content import (
     CAMPAIGN_CONTENT_COVERAGE,
     CAMPAIGN_CONTENT_COVERAGE_APPROX_V1,
+    CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2,
+    FROZEN_ENVIRONMENT_DECLARATIONS,
     CAMPAIGN_ENVIRONMENT_VERSION,
     FROZEN_ENVIRONMENT_DECLARATIONS,
     FROZEN_ENVIRONMENT_VERSIONS,
@@ -84,6 +87,19 @@ class FrozenEnvironmentTests(unittest.TestCase):
             FROZEN_ENVIRONMENT_VERSIONS[CAMPAIGN_ENVIRONMENT_VERSION]["content_sha256"],
         )
 
+    def test_the_retired_fidelity_version_stays_readable_as_what_it_was(self) -> None:
+        """v2 said "no per-act Ancient"; that has to stay true of v2's label."""
+        entry = FROZEN_ENVIRONMENT_VERSIONS["sts2sim-campaign-fidelity-v2"]
+        v2 = FROZEN_ENVIRONMENT_DECLARATIONS["sts2sim-campaign-fidelity-v2"]
+        self.assertEqual(entry["gates_closed"],
+                         ["G6_no_boss_relic_reward", "G1_act_pools", "G3_second_boss_structure"])
+        self.assertEqual(v2["gates_open"],
+                         ["G2_ancients", "G4_map_shape", "G5_reward_and_upgrade_distribution"])
+        self.assertIn("a per-act Ancient or a real Act 2/Act 3 event pool",
+                      v2["must_not_be_quoted_as"])
+        self.assertNotEqual(entry["content_sha256"],
+                           FROZEN_ENVIRONMENT_VERSIONS[CAMPAIGN_ENVIRONMENT_VERSION]["content_sha256"])
+
     def test_the_retired_approximate_version_stays_readable_as_approximate(self) -> None:
         """fidelity-v2 supersedes approx-v1 without rewriting it.
 
@@ -100,14 +116,21 @@ class FrozenEnvironmentTests(unittest.TestCase):
         self.assertNotEqual(entry["content_sha256"],
                             FROZEN_ENVIRONMENT_VERSIONS[CAMPAIGN_ENVIRONMENT_VERSION]["content_sha256"])
 
-    def test_the_published_version_closes_three_gates_and_claims_no_more(self) -> None:
+    def test_the_published_version_closes_four_gates_and_claims_no_more(self) -> None:
         self.assertEqual(
-            CAMPAIGN_CONTENT_COVERAGE["gates_closed"],
-            ["G6_no_boss_relic_reward", "G1_act_pools", "G3_second_boss_structure"],
+            sorted(CAMPAIGN_CONTENT_COVERAGE["gates_closed"]),
+            sorted(
+                [
+                    "G6_no_boss_relic_reward",
+                    "G1_act_pools",
+                    "G3_second_boss_structure",
+                    "G2_ancients",
+                ]
+            ),
         )
         self.assertEqual(
             sorted(CAMPAIGN_CONTENT_COVERAGE["gates_open"]),
-            ["G2_ancients", "G4_map_shape", "G5_reward_and_upgrade_distribution"],
+            ["G4_map_shape", "G5_reward_and_upgrade_distribution"],
         )
         # Closing three gates is not closing the environment: the verdict stays
         # approximate until every hard gate is shut.
@@ -133,7 +156,7 @@ class FrozenEnvironmentTests(unittest.TestCase):
 
     def test_an_unfrozen_version_may_declare_anything(self) -> None:
         digest = assert_content_declaration(
-            "sts2sim-campaign-fidelity-v3", {"verdict": "content_verified"}
+            "sts2sim-campaign-fidelity-v4", {"verdict": "content_verified"}
         )
         self.assertEqual(len(digest), 64)
 
@@ -351,7 +374,7 @@ class FidelityHarnessTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
             payload = json.loads(out.read_text(encoding="utf-8"))
             self.assertFalse(payload["hard_gate_passed"])
-            self.assertFalse(payload["fidelity_v2_gates_passed"])
+            self.assertFalse(payload["published_gates_passed"])
             self.assertEqual(payload["environment_version"], CAMPAIGN_ENVIRONMENT_VERSION)
 
 

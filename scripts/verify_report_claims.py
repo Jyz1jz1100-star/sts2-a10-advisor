@@ -154,8 +154,10 @@ def claim_evidence_matrix_totals():
 #: regenerated after every engine edit (scripts/build_emulator_provenance.py); the
 #: line numbers the campaign cites drift with the build, and re-pinning them here is
 #: what keeps "the cited code still says it" a check instead of a stale claim.
+#: Each publication gets its own file: the older snapshots are the record of what the
+#: engine looked like when those findings were read, not drafts to be overwritten.
 EMULATOR_SOURCE_PROVENANCE = (
-    ROOT / "docs/evidence/emulator_source_provenance_20260922.json"
+    ROOT / "docs/evidence/emulator_source_provenance_20260922_v3.json"
 )
 
 def claim_win_ledger():
@@ -184,7 +186,7 @@ def claim_win_ledger():
                 and all(int(row["unclassified_dead_ends"]) == 0 for row in recorded_wins)
                 and all(int(row["truncations"]) == 0 for row in recorded_wins)
                 and len({int(row["seed"]) for row in recorded_wins}) == 9),
-            # The +1 from boss row to terminal floor is RunEngine.cs:1986-1989, whose text is
+            # The +1 from boss row to terminal floor is RunEngine.cs:2114-2117, whose text is
             # hash-pinned by the provenance claim; a snippet only carries 90 characters, so this reads
             # the constant from the snippet and takes the relation from that pinned citation.
             "the_terminal_floor_agrees_with_the_engines_boss_row_constant": (
@@ -1350,6 +1352,9 @@ def claim_refusal_class_generality():
             and all(v["all_match_the_capacity_signature"] for v in event7.values() if v["rows"])
             and all({int(base) for base in v["bases"]} <= {1} for v in event7.values())),
         "capacity_pattern_site_count_matches_the_source": (
+            # These are the positions the 2026-09-19 audit wrote into its own artifact, so they are
+            # 09-19 line numbers on purpose: this checks that the frozen record still reads the same,
+            # not that the engine still has that code there (the report's live pointers do that).
             data["capacity_pattern"]["sites_testing_capacity_as_any_empty_slot"]
             == ["RunEngine.cs:727", "RunEngine.cs:3519"]
             and data["capacity_pattern"]["sites_testing_holding_a_potion"]
@@ -1938,9 +1943,11 @@ def claim_chained_map_deadend():
             == fork["branches"][0]["rejection_events_after_step"]
             and fork["branches"][0]["dead_end_label"] == "empty_action_mask" for fork in forks),
         "the_cited_engine_code_still_says_it": (
-            "MapNodeTypes" in engine_text("RunEngine.cs", 690, 695)
-            and "ChooseMapNode" in engine_text("RunEngine.cs", 970, 970)
-            and "NodeNone" in engine_text("RunMapGenerator.cs", 1127, 1139)),
+            # The same three pointers the report carries, read from the same build the report's
+            # provenance snapshot hashed -- a match here that disagrees with the report is a bug.
+            "MapNodeTypes" in engine_text("RunEngine.cs", 696, 701)
+            and "ChooseMapNode" in engine_text("RunEngine.cs", 973, 973)
+            and "NodeNone" in engine_text("RunMapGenerator.cs", 1162, 1174)),
     }
 
 
