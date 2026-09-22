@@ -2568,6 +2568,10 @@ what was removed is the blind spot. The same batch then died on the client side
 (`stop_reason=game_lost_timeout`, children at `0xC0000409`) after reaching act 2 floor 28, so the
 continuous Floor 1 → victory trace is still not obtained. Collection was relaunched unattended.
 
+[_Corrected 2026-09-23: the exit code in that sentence is ours, not the client's. The
+client problem behind it was real -- six bridge dropouts, then a 6.0 s one -- but see
+"Correction: the \"client-side crash\" was our own stop command, everywhere".]
+
 **`sts2sim-campaign-fidelity-v2` is published, and it is not a scoring result.** G6, G1 and G3
 are closed in the engine, not in the prose: acts draw Overgrowth → Hive → Glory, the final act's
 paired boss is dealt at act generation from its own pool minus the first and reached by travelling
@@ -2807,6 +2811,11 @@ Steam is off-limits. **The Floor 1 → victory attempt is idle, not running.** T
 thing the next batch has to confirm is the Act-3 ending on live hardware with all three
 driver fixes in place.
 
+[_Corrected 2026-09-23: there was no crash in this batch. The comparison child exited 1 on a
+strict mod-gate refusal of the CombatSolver auto-update, and the fastfail codes are the
+supervisor tearing down its own siblings -- 56 of 56 across every batch ever recorded. See
+the correction section at the end of this file.]
+
 ## 2026-09-22 (late night): the first campaign pilot ran, and it answers its own question
 
 `config/pilot_campaign.toml`, run
@@ -2992,3 +3001,45 @@ So the sequence from here is: get the client up, re-run the bounded campaign arm
 that can clear Act 1, and only then decide whether the flat curve was capacity, reward, or
 opponent strength. What is settled and does not need re-litigating: the maps walk (200 seeds, all
 three acts), the combat numbers are the target's own A10 values, and 8M steps moved nothing.
+
+
+## Correction: the "client-side crash" was our own stop command, everywhere
+
+Two places in this file blame a client crash on child exit code `0xC0000409`. Neither was
+evidenced by that code, and the whole-batch census says why: across all 33 supervisor batches
+that ever reported `3221225786` (= `0xC0000409`, `STATUS_FAIL_FAST_EXCEPTION`) there are 56 such
+child exits, and **all 56 are preceded by a `child_stop_requested` or `child_kill` for that same
+component**. Zero fastfail exits stand alone. On Windows that code is what one of these children
+looks like when the supervisor pulls it, so it has been reporting "we stopped it" and being read
+as "it died".
+
+Went back to the two batches that were cited:
+
+* `ssb-20260922T120507Z-5452d8e5` -- the comparison child exited **1**, with
+  `VersionLockError: Mod bytes differ from the pin and this track compares mods ... CombatSolver`.
+  That is the strict mod gate refusing the Workshop auto-update, which is the designed behaviour
+  on a comparison track, not a crash. The supervisor then stopped the other two and they took the
+  fastfail code. The line "and `Slay the Spire 2.exe` is not running" described the aftermath of
+  our own teardown.
+* `ssb-20260921T154141Z-60f4c2c0` -- here something real did happen: the bridge went dark six
+  times for ~0.5-0.7 s and then for 6.0 s, tripping `game_lost_timeout`. That is the
+  unresponsive-client class already recorded under the live-machine constraints, and it is the
+  only evidence of a client problem in this pair. The `0xC0000409` on its children is still ours.
+
+What this changes, and what it does not. It removes a piece of *evidence*, not a defect: the
+client has genuinely died twice, and both are on record as Windows crash dumps
+(`%LOCALAPPDATA%/CrashDumps/SlayTheSpire2.exe.113728.dmp`, 2026-09-22T04:12Z, and
+`SlayTheSpire2.exe.30544.dmp`, 2026-09-14) with the client log's last lines an
+`InvalidOperationException: Handle is not initialized` from
+`CombatSolver.SolverOverlay.RefreshControls <- SolverController.RefreshSearchProgress <-
+SolverDispatcher._Process` at a combat-room transition. That is a real, unfixed, operator-owned
+class -- CombatSolver auto-updates and is not to be re-pinned, patched or disabled -- and it is
+the reason the continuous trace has not been banked. What the exit code can no longer do is
+*count* those deaths: 0xC0000409 over-counts them, because it also appears on every batch where
+the client was fine and we simply pulled the plug. A client death is evidenced by a dump or by
+`game_lost_timeout`, never by a child exit code.
+
+Separately, the gate that fired in the first batch above only exists on comparison tracks, where
+a moving CombatSolver correctly invalidates a before/after measurement. The acceptance track --
+the one collecting the Floor 1 -> victory attempt -- runs `mod_gate=attest`, records the drift and
+keeps playing, so solver auto-updates no longer stop collection.
