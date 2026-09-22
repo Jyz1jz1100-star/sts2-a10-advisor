@@ -1,0 +1,196 @@
+{
+ "build": "public-beta-v0.111.0",
+ "captured": true,
+ "screen": "event_closing",
+ "note": "The room after its last accepted choice: no candidate and no exit yet. Labeled its own screen so the fixture sweep, which asserts every decision screen enumerates at least one legal action, does not read a transitional frame as a decision point.",
+ "source": "live_traces/ssb-20260922T082137Z-a6886c18/autoplay_trace.jsonl act 3 floor 49 frame 2026-09-22T09:18:26.892+00:00",
+ "state": {
+  "event": {
+   "body": null,
+   "event_id": "THE_ARCHITECT",
+   "event_name": "建筑师",
+   "in_dialogue": false,
+   "is_ancient": false,
+   "options": []
+  },
+  "player": {
+   "block": 0,
+   "character": "铁甲战士",
+   "character_id": "IRONCLAD",
+   "gold": 108,
+   "hp": 23,
+   "max_hp": 78,
+   "max_potion_slots": 2,
+   "potions": [
+    {
+     "can_use_in_combat": true,
+     "description": "获得2点敏捷。",
+     "id": "DEXTERITY_POTION",
+     "keywords": [
+      {
+       "description": "敏捷会增加从卡牌中获得的格挡。",
+       "name": "敏捷"
+      }
+     ],
+     "name": "敏捷药水",
+     "slot": 0,
+     "target_type": "AnyPlayer",
+     "usage": "CombatOnly"
+    }
+   ],
+   "relics": [
+    {
+     "counter": null,
+     "description": "在战斗结束时，回复6点生命。",
+     "id": "BURNING_BLOOD",
+     "keywords": [],
+     "name": "燃烧之血"
+    },
+    {
+     "counter": 1,
+     "description": "每3场普通战斗，随机升级你牌组中的一张牌。",
+     "id": "FISHING_ROD",
+     "keywords": [],
+     "name": "钓鱼竿"
+    },
+    {
+     "counter": 2,
+     "description": "每3个回合，获得[ironclad_energy_icon.png]。",
+     "id": "HAPPY_FLOWER",
+     "keywords": [
+      {
+       "description": "能量用于打出你手牌中的卡牌。",
+       "name": "能量"
+      }
+     ],
+     "name": "开心小花"
+    },
+    {
+     "counter": null,
+     "description": "如果你在战斗结束时生命值等于或低于50%，回复12点生命。",
+     "id": "MEAT_ON_THE_BONE",
+     "keywords": [],
+     "name": "带骨肉"
+    },
+    {
+     "counter": null,
+     "description": "在每场战斗开始时，获得4层覆甲。",
+     "id": "GORGET",
+     "keywords": [
+      {
+       "description": "在你的回合结束时获得格挡。覆甲会在你的回合开始时减少1层。",
+       "name": "覆甲"
+      },
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "护喉甲"
+    },
+    {
+     "counter": null,
+     "description": "在你的回合开始时，消耗你手牌中的1张牌并获得1点力量。",
+     "id": "TOASTY_MITTENS",
+     "keywords": [
+      {
+       "description": "在战斗结束前移除。",
+       "name": "消耗"
+      },
+      {
+       "description": "力量会增加攻击牌造成的伤害。",
+       "name": "力量"
+      }
+     ],
+     "name": "烘焙手套"
+    },
+    {
+     "counter": null,
+     "description": "在每场战斗开始时，获得1点力量。",
+     "id": "VAJRA",
+     "keywords": [
+      {
+       "description": "力量会增加攻击牌造成的伤害。",
+       "name": "力量"
+      }
+     ],
+     "name": "金刚杵"
+    },
+    {
+     "counter": null,
+     "description": "当你的生命值低于或等于50%时，你额外获得3点力量",
+     "id": "RED_SKULL",
+     "keywords": [
+      {
+       "description": "力量会增加攻击牌造成的伤害。",
+       "name": "力量"
+      }
+     ],
+     "name": "红头骨"
+    },
+    {
+     "counter": null,
+     "description": "你可以在休息处进行烹饪。",
+     "id": "MEAT_CLEAVER",
+     "keywords": [
+      {
+       "description": "在休息处从你的牌组中移除2张牌并获得5点最大生命。",
+       "name": "烹饪"
+      }
+     ],
+     "name": "切肉刀"
+    },
+    {
+     "counter": null,
+     "description": "你每次将抽牌堆洗牌时，获得6点格挡。",
+     "id": "THE_ABACUS",
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "算盘"
+    },
+    {
+     "counter": null,
+     "description": "在每场战斗开始时，获得8点活力。",
+     "id": "AKABEKO",
+     "keywords": [
+      {
+       "description": "你的下一张攻击牌伤害增加。",
+       "name": "活力"
+      }
+     ],
+     "name": "赤牛"
+    },
+    {
+     "counter": null,
+     "description": "在你的第二回合开始时，获得14点格挡。",
+     "id": "HORN_CLEAT",
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "船夹板"
+    },
+    {
+     "counter": null,
+     "description": "多余的能量可以留到下一回合。",
+     "id": "ICE_CREAM",
+     "keywords": [],
+     "name": "冰淇淋"
+    }
+   ],
+   "status": []
+  },
+  "run": {
+   "act": 3,
+   "ascension": 10,
+   "floor": 49
+  },
+  "state_type": "event"
+ }
+}

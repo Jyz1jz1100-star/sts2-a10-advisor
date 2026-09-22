@@ -873,6 +873,14 @@ class AutoPlayer:
             freed = self._potion_room_to_free(state, payload)
             if freed is not None:
                 return freed
+        if payload is None and state_type == "event" and not _screen_can_proceed(state):
+            # An event room with no candidate and no exit is mid-transition, in one of two
+            # directions: the room has not built its options yet, or it is closing after a choice we
+            # already made. THE_ARCHITECT did the latter at act 3 floor 49 for 8 frames -- 3.7 s --
+            # and the run read that as a missing handler and stopped the deepest live run this
+            # project has recorded. Waiting is bounded by the caller's stall watchdog, so an event
+            # that really never presents anything is still named.
+            return WaitForTransition("the event room offers no candidate and no exit yet")
         if payload is None and state_type != "map" and _screen_can_proceed(state):
             # continue buttons after an applied choice (rest result, shop,
             # claimed rewards, ...): the screen itself says it can advance.

@@ -143,12 +143,12 @@ class AutoplayDecisionTests(unittest.TestCase):
         """
         state = load("event")
         state["event"]["options"] = []
-        self.assertIsNone(self.player.decide(state))
+        self.assertIsInstance(self.player.decide(state), WaitForTransition)
         state["event"]["options"] = [
             {"index": 0, "title": "顺从", "is_locked": True},
             {"index": 1, "title": "我能打倒他们", "is_locked": True},
         ]
-        self.assertIsNone(self.player.decide(state))
+        self.assertIsInstance(self.player.decide(state), WaitForTransition)
 
     def test_neow_prefers_card_removal(self) -> None:
         state = load("event")  # fixture is the NEOW screen
@@ -222,6 +222,43 @@ class AutoplayDecisionTests(unittest.TestCase):
         }
         with self.assertRaises(MissingStateError):
             self.player.decide(legacy)
+
+    def test_the_ending_screen_takes_the_candidate_it_offers(self) -> None:
+        """THE_ARCHITECT offered one option at a time, and we took each one.
+
+        Frame captured from the real client at act 3 floor 49 by
+        ``ssb-20260922T082137Z-a6886c18`` -- the deepest live run this project has recorded.
+        """
+        state = load("event_the_architect_offer")
+        self.assertEqual(state["run"], {"act": 3, "ascension": 10, "floor": 49})
+        self.assertEqual(state["event"]["event_id"], "THE_ARCHITECT")
+        choosable = [o for o in state["event"]["options"] if o.get("is_locked") is not True]
+        # The index is derived from the candidate set, not pinned: this screen offered exactly one.
+        self.assertEqual(len(choosable), 1)
+        self.assertEqual(
+            self.player.decide(state), {"action": "choose_event_option", "index": 0}
+        )
+
+    def test_the_ending_closing_frame_is_a_wait_not_an_unhandled_screen(self) -> None:
+        """After its last choice the room shows nothing for a while, and that is not a missing handler.
+
+        The run above chose 威胁, then 继续 twice -- each the only legal candidate, each accepted --
+        and then sat in frames like this one for 8 polls. ``_event_choice`` returns None while a room
+        shows no candidate, and None was read as "no rule for this screen", so our own watchdog
+        stopped the batch 3.7 s into the ending animation. The stall watchdog still bounds it.
+        """
+        state = load("event_the_architect_closing")
+        self.assertEqual(state["event"]["options"], [])
+        self.assertIsInstance(self.player.decide(state), WaitForTransition)
+
+    def test_a_screen_with_no_rule_at_all_is_still_not_waited_away(self) -> None:
+        """Negative control: the hold is scoped to event rooms, not a mute button for unknown content."""
+        unknown = {
+            "state_type": "mystery_room",
+            "mystery_room": {"options": []},
+            "run": {"act": 1, "floor": 5},
+        }
+        self.assertIsNone(self.player.decide(unknown))
 
     def test_rest_site_payload_uses_option_index(self) -> None:
         state = load("rest_site")
