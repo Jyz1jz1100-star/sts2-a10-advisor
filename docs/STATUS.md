@@ -2884,3 +2884,41 @@ until someone re-derives the census, the committed index, the manifest and the c
 prose **together**, in one deliberate change that says which population each quoted number
 belongs to. Re-pinning the count to 289 because the pilot happened to add files is the
 papering-over this project exists to refuse, so it is left undone and named here.
+
+## Follow-up: what the 71% actually die of, and which known gap that is (2026-09-23)
+
+Measured with the collected campaign checkpoint over 120 promotion seeds, recording the node
+type the run ends on: of the deaths at floor 9 or below, **77 are on ordinary Monster nodes and
+17 on Elites**; from floor 10 up it is 12 Monster / 10 Boss / 4 Elite. Mean deck size at an
+early death is 14.9 cards -- a starting deck plus roughly five, at 0% upgrade chance because
+Act 1 rewards never upgrade (fidelity-v4's own G5). So the campaign is losing to *routine*
+fights around floor 6, with a deck that has barely grown, not to the boss and not to elites.
+
+Two explanations fit, and this section does not pick one, because the measurement that would
+pick one does not exist here:
+
+1. **The collected combat policy is weak.** It was trained under approx-v1, in a softer
+   campaign, and 8M steps of the new world moved the mean final floor from 7.77 to 8.04.
+   The real client clears this same locked build at A10 end to end -- but its fights are
+   played by the in-game Combat Solver, not by this network, so that proves the content is
+   beatable and says nothing about our policy. The two differ in exactly the variable in
+   question, which is why the live trace cannot settle it either way.
+2. **Act 1's early floors are harder here than in the shipped build.** Enemy base HP is not
+   invented -- `CreateEnemy` reads `GeneratedData.Enemies` and takes a unique value through
+   the port of `SetUniqueMonsterHpValue`'s niche RNG -- but the shipped build also scales by
+   floor and by ascension, and `not_modelled` item 10 records that no per-act or per-floor
+   difficulty scaling is modelled. Whether a floor-6 monster therefore hits a 15-card
+   unupgraded Ironclad harder or easier than the game does is a question no gate currently
+   answers: G1 fixes *which* encounters appear, G4 the map, G5 rewards and upgrade odds.
+   None of them touches what an encounter is worth in damage and health.
+
+What would decide it, and is the next measurement rather than a new gate: compare the
+emulator's act-1 floor-5-to-9 encounters' HP and damage intent against the same encounters in
+the locked build, the way G5 did for upgrade odds. If they agree, the campaign's problem is
+the policy and training is the answer; if the emulator is the harder one, 71% of episodes are
+dying to a difficulty that is ours, and no amount of training on it is a product result.
+
+This supersedes nothing above it except the framing: the pilot section already corrected
+"the boss is the wall" to "attrition is the wall, the boss is second". This says the attrition
+is monster-fight attrition, and names the one unmeasured thing that could make it our fault
+rather than the policy's.
