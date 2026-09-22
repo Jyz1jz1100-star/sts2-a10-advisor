@@ -513,6 +513,10 @@ def plan(config: V2TrainingConfig, project_root: Path,
                 "timesteps": stage.timesteps,
                 "parallel_envs": stage.parallel_envs,
                 "max_floor": stage.max_floor,
+                # Which world the episodes come from. `scope` is derived from this now,
+                # but a plan that records only the label could be re-read as evidence of
+                # a three-act run by someone who does not know the label was hardcoded.
+                "campaign": stage.campaign,
                 # A filtered train list changes what the stage trains *on*, so it
                 # has to be attestable after the fact: the digest identifies the
                 # exact list, and per_worker tells a reader how many episodes the
