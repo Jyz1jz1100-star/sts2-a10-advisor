@@ -2806,3 +2806,72 @@ than launching it, so bringing the client up is an operator action, and raising 
 Steam is off-limits. **The Floor 1 → victory attempt is idle, not running.** The first
 thing the next batch has to confirm is the Act-3 ending on live hardware with all three
 driver fixes in place.
+
+## 2026-09-22 (late night): the first campaign pilot ran, and it answers its own question
+
+`config/pilot_campaign.toml`, run
+`v2curriculum-20260922T123855Z`. 8,000,000 steps over 4 checkpoints, 12 envs, 2.45 h
+wall clock, fps 635 → 908. Warm-started from the promoted act1 checkpoint
+(`step_000004000032.zip`, sha `f514ffa3…`, recorded with its digest in `plan.json`, which
+now also carries `campaign` because a label is not provenance). Algorithm and reward
+blocks copied verbatim from that arm, so `campaign` is the only degree of freedom.
+
+**The training system works.** value_loss 63.3 → 1.35, explained_variance 0.001 → 0.94,
+entropy_loss −1.30 → −0.66 (contracting, not collapsing), approx_kl 0.007 → 0.011,
+clip_fraction steady at ~0.08, `illegal_actions = 0`, `truncation_rate = 0.000`,
+`unclassified_dead_ends = 0` on every one of the seven metric files. Nothing structural
+surfaced, which is precisely what the pilot was for.
+
+**The policy did not progress.** Baseline and final evaluated on the *same* 500 promotion
+seeds in campaign mode, deterministic:
+
+| | mean final floor | max floor | wins | acts crossed |
+|---|---|---|---|---|
+| warm start | 7.77 | 17 | 0 | 0 / 500 |
+| after 8M campaign steps | 8.04 | 17 | 0 | 0 / 500 |
+
++0.27 of a floor on a 49-floor campaign. Reproducibility check, not a rounding
+excuse: evaluating `step_000008000016.zip` here returns mean floor 8.04 against the
+trainer's own 8.036 for that file, so the checkpoint → evaluation path holds to three
+decimals. The 7.93 in `promotion.json` is a different policy — SB3's `final.zip` saved at
+8,011,776 steps after the run crossed its budget. Both numbers are right; they are not the
+same artefact, and a hand-written reference to either has to name which file it came from.
+
+**Where it dies, and why scale is not the answer.** The death-floor histogram peaks at floor 6
+(floors 5-8 hold 290 of the 500) with 24/500 at floor 17 and **nothing past it**. Floor 17 is the Act 1 boss.
+So acts 2 and 3 contribute almost no gradient: 8M steps of "campaign" RL is overwhelmingly
+Act-1 experience with a longer horizon bolted on. That is also why the smoke's crossing
+seeds needed a reach-directed list -- the campaign past the first boss is not something this
+policy distribution reaches by sampling.
+
+The wall is therefore not new and not a campaign defect. The shipped act1 promotion gate
+demands a 35% true-terminal win rate, and no checkpoint on disk has ever cleared Act 1 at
+anything like that, so the campaign arm inherited a policy that reaches the boss and loses
+to it. Brute-forcing an exploration wall at ~0% clear rate with 500M steps is the move this
+pilot exists to advise against, and it advises against it clearly.
+
+**Recommendation, as a measurement rather than a plan:** do not scale. The trainable target
+is the Act-1 boss fight -- longevity inside it, not floor count, not step efficiency -- and
+the campaign arm should be re-run at this same bounded size against any checkpoint that can
+clear floor 17 on the promotion seeds at all, so acts 2-3 start contributing. Two caveats
+carried forward from the run design: `step_cost` at 0.01/step reaches −48 over a 4800-step
+horizon against a +60 win, so a policy that learns to end episodes early would be a reward
+result and not a failure to learn the game (nothing here shows that -- truncation is 0.000
+and episodes terminate in death, not in the horizon); and the two MEDIUM `not_modelled`
+entries sit on the ancient-relic decision class, which acts 2-3 exposure would be needed to
+test at all.
+
+**One thing this run broke on purpose, and what not to do about it.** The claims gate went
+61/61 → 58/61 the moment the pilot's 7 metrics files landed, because three claims recompute
+over *every* metrics file under `runs/` and `runtime/` and pin the corpus they were derived
+from (282 files, 39,891 episodes, 18,160 rejections). Nothing became false about the old
+corpus; the aggregates simply started including 2,500 campaign episodes that were not part
+of the population those headline numbers describe.
+
+Rebuilding the index and manifest was tried and made it **worse** -- it added two further
+drifts (`evidence_bundle_integrity`, `objective_clause_audit`) by re-hashing a bundle whose
+prose quotes the old totals -- and was reverted. Leaving the gate red is the correct state
+until someone re-derives the census, the committed index, the manifest and the campaign
+prose **together**, in one deliberate change that says which population each quoted number
+belongs to. Re-pinning the count to 289 because the pilot happened to add files is the
+papering-over this project exists to refuse, so it is left undone and named here.
