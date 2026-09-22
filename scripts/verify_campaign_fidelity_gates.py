@@ -556,6 +556,11 @@ SCENARIO_TESTS: dict[str, list[str]] = {
         "EnteringTheNextAct_StartsItOneFloorAfterTheActJustCleared",
         "EachAct_QueuesItsOwnRestsAndOnlyFiveElitesAndThreeShops",
         "HiveAndGlory_DrawTheirOwnEventsAndNotTheUnderdocksList",
+        # Rows, rooms and queues are all shape. A map with the right shape and no legal
+        # path through it still passes every one of them, and it is exactly the failure
+        # this environment has produced once before (Act 2 dead-ended at floors 19/22
+        # under the pre-G4 generator). Measured from the graph, not from a policy roll.
+        "EveryCampaignActMap_IsWalkableToItsOwnBoss",
     ],
     "G5_reward_and_upgrade_distribution": [
         "CampaignFinalActBoss_DealsNoRewardsAndConsumesNoRewardDraw",

@@ -448,3 +448,23 @@ Nothing in this table was obtained by relaxing a gate. The two entries most like
 argued as HIGH on principle (8 and 10) are the two the environment's own tier statement
 already refuses to overclaim, and the pilot metrics that would re-tag them are named so
 the judgement can be revisited with data instead of re-litigated with prose.
+
+## 11. 每一幕的地图走不走得通（2026-09-23，与策略无关）
+
+pilot 的死亡层分布停在 17，而"没人到过 act 3"这句话此前只有一种证据：策略自己走不到。
+这是拿强度证据回答流程问题。唯一记录过的可走性结论（`chained_act2_reachability_20260920.json`：
+15 条路线里 6 条撞上映擎地图死端，第 19/22 层）是在 G4 重写每幕地图**之前**测的，已经作废。
+
+`RunEngineTests.EveryCampaignActMap_IsWalkableToItsOwnBoss` 直接对生成出来的图做 BFS：从入口行
+沿 `RunMapNode.Children` 走，问每一幕自己的 boss 行（16/15/14）可达不可达，完全不碰战斗。200 个
+种子 × 3 幕全部可达。配对 boss 另说：它在生成图里**根本不存在**——`OpenSecondBossRow` 要等第一
+个 boss 被清掉才建点建边（这才是 shipped 构建的形状，`StandardActMap.cs:88-91`、`:231-234`），
+所以"生成的图到不了第 15 行"是恒真的废话；我第一版就是这么写的，200/200 全红，抓到的是我自己
+问错了问题。改成断言"清掉 boss #1 之后那一行确实被打开并连上"。
+
+非空验证做了破坏性的一次：把 boss 行前一行的 children 全清空，测试必须变红（确实变红），然后恢复。
+一个永远不可能失败的可达性测试比没有更糟。
+
+结论：**act 2、act 3 在 v4 下是走得到的**。所以"0/10,000 到 act 3"现在可以放心归给强度而不是
+流程，而 G4 从此把可走性算作它自己的证据之一——在此之前它只量行数、房间数和 boss 层号，一张
+形状全对但走不通的图能通过它每一道检查。
