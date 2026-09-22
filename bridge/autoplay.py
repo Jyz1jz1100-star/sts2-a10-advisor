@@ -596,6 +596,36 @@ def _screen_can_proceed(state: dict[str, Any]) -> bool:
 _FRAME_ENVELOPE = frozenset({"state_type", "run", "player", "room_type"})
 
 
+#: How many cards a selection screen asks for, read off its own prompt: the build
+#: formats `CardSelectorPrefs.Prompt` into the screen's bottom label, so "选择3张牌来附魔。"
+#: is the game stating its own MinSelect.  An ASCII digit or a Chinese numeral.
+_CARDS_REQUESTED_RE = re.compile(
+    r"(?:选择|choose|select)\s*(\d+|[一二三四五六七八九十]+)", re.IGNORECASE
+)
+_CHINESE_NUMERALS = {
+    "一": 1, "二": 2, "三": 3, "四": 4, "五": 5,
+    "六": 6, "七": 7, "八": 8, "九": 9, "十": 10,
+}
+
+
+def _cards_requested(selection: dict[str, Any]) -> int:
+    """How many cards this selection screen asks for, or 0 when it never says.
+
+    Zero means "no requirement read", and the walk then does what it has always done:
+    honour ``can_confirm``. Falling back to a guessed count instead would let an
+    unparseable prompt strand the run selecting cards a screen never asked for, which
+    is a new way to fail rather than a fix -- the repeat guard still catches it.
+    """
+    prompt = str(selection.get("prompt") or "")
+    match = _CARDS_REQUESTED_RE.search(prompt)
+    if not match:
+        return 0
+    token = match.group(1)
+    if token.isdigit():
+        return max(1, int(token))
+    return _CHINESE_NUMERALS.get(token, 0)
+
+
 def _is_bare_frame(state: dict[str, Any]) -> bool:
     """True when the bridge named no screen and shipped no screen payload.
 
@@ -963,12 +993,23 @@ class AutoPlayer:
     def _card_select_choice(self, state: dict[str, Any]) -> dict[str, Any] | None:
         """Out-of-combat card selection (Neow/event/shop/removal/enchant): toggling UI.
 
-        ``select_card`` TOGGLES the highlight, then ``confirm_selection``
-        commits it — ``can_confirm`` in the state is the truth signal.  Some
-        screens require SEVERAL picks before it lights up and the exposed state
-        carries no per-card selected flag, so the driver walks distinct indices
-        and stops the moment the screen itself says it can confirm.  In-combat
-        card selections carry a ``battle`` key and belong to the Combat Solver.
+        ``select_card`` TOGGLES the highlight and ``confirm_selection`` commits it.  The
+        exposed state carries no per-card selected flag, so the driver walks distinct
+        indices and commits when the screen both says it can confirm *and* has been
+        shown the number of cards it asked for.
+
+        The second half is not decoration.  ``can_confirm`` is the confirm button's own
+        enabled state, and on an enchant grid that button is enabled before anything is
+        picked -- where it is wired to ``PreviewSelection``, not to
+        ``ConfirmSelection`` (NDeckEnchantSelectScreen.cs:223-226, :288-297), so
+        clicking it commits nothing until the cards are there.  Reading it alone made
+        the walk confirm an empty three-card selection four times in a row on live act 2
+        floor 30, each answered ``ok`` with nothing moved, until the repeat guard
+        stopped the batch.  The build's own auto-player selects first for exactly this
+        reason: DeckEnchantScreenHandler.cs clicks cards while no preview is up and the
+        confirm is not enabled, up to ``min(count, 5)`` of them.
+
+        In-combat card selections carry a ``battle`` key and belong to the Combat Solver.
         """
         if state.get("battle") is not None:
             return None
@@ -985,21 +1026,22 @@ class AutoPlayer:
         if screen_type in _COMBAT_OWNED_CARD_SELECT_SCREENS:
             self.coverage.note_deferred_to_combat(screen_type)
             return None
-        if selection.get("can_confirm"):
-            self._last_step = None
-            self._card_select_screen = None
-            self._card_select_picks = set()
-            return {"action": "confirm_selection"}
         cards = [
             c for c in selection.get("cards") or [] if isinstance(c, dict)
         ]
-        if not cards:
-            return None
         run = state.get("run") or {}
         identity = (screen_type, run.get("act"), run.get("floor"), len(cards))
         if identity != self._card_select_screen:
             self._card_select_screen = identity
             self._card_select_picks = set()
+        wanted = min(_cards_requested(selection), len(cards))
+        if selection.get("can_confirm") and len(self._card_select_picks) >= wanted:
+            self._last_step = None
+            self._card_select_screen = None
+            self._card_select_picks = set()
+            return {"action": "confirm_selection"}
+        if not cards:
+            return None
         unpicked = [
             c for c in cards if int(c.get("index", -1)) not in self._card_select_picks
         ]

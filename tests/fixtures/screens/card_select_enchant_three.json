@@ -1,0 +1,472 @@
+{
+ "build": "public-beta-v0.111.0",
+ "captured": true,
+ "screen": "card_select",
+ "note": "NDeckEnchantSelectScreen asking for THREE cards, with can_confirm already true and no preview up. Live act 2 floor 30, batch ssb-20260922T103218Z-0f7ccf99 seq 10665: the driver trusted can_confirm, posted confirm_selection with nothing picked, the client accepted and did not advance, and the batch stopped on the repeat guard.",
+ "source": "live_traces/ssb-20260922T103218Z-0f7ccf99/autoplay_trace.jsonl act 2 floor 30 frame 10665",
+ "state": {
+  "card_select": {
+   "can_cancel": false,
+   "can_confirm": true,
+   "cards": [
+    {
+     "cost": "1",
+     "description": "造成6点伤害。",
+     "id": "STRIKE_IRONCLAD",
+     "index": 0,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "打击",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "1",
+     "description": "造成6点伤害。",
+     "id": "STRIKE_IRONCLAD",
+     "index": 1,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "打击",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "1",
+     "description": "造成6点伤害。",
+     "id": "STRIKE_IRONCLAD",
+     "index": 2,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "打击",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "1",
+     "description": "造成6点伤害。",
+     "id": "STRIKE_IRONCLAD",
+     "index": 3,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "打击",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "1",
+     "description": "获得5点格挡。",
+     "id": "DEFEND_IRONCLAD",
+     "index": 4,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "防御",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "获得5点格挡。",
+     "id": "DEFEND_IRONCLAD",
+     "index": 5,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "防御",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "获得5点格挡。",
+     "id": "DEFEND_IRONCLAD",
+     "index": 6,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "防御",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "获得5点格挡。",
+     "id": "DEFEND_IRONCLAD",
+     "index": 7,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "防御",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "2",
+     "description": "造成8点伤害。 给予2层易伤。",
+     "id": "BASH",
+     "index": 8,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "易伤的生物从攻击中受到的伤害增加50%。",
+       "name": "易伤"
+      }
+     ],
+     "name": "痛击",
+     "rarity": "Basic",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "2",
+     "description": "造成14点伤害。 你打出的下一张攻击牌耗能变为0[ironclad_energy_icon.png]。",
+     "id": "UNRELENTING",
+     "index": 9,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "无情猛攻",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "1",
+     "description": "将你在每回合打出的第三张攻击牌的复制品加入你的手牌。",
+     "id": "JUGGLING",
+     "index": 10,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "杂耍",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Power"
+    },
+    {
+     "cost": "1",
+     "description": "打出抽牌堆顶部的牌并将其消耗。",
+     "id": "HAVOC",
+     "index": 11,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在战斗结束前移除。",
+       "name": "消耗"
+      }
+     ],
+     "name": "破灭",
+     "rarity": "Common",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "2",
+     "description": "获得12点格挡。 你在这个回合每受到一次攻击，都会对攻击者造成4点伤害。",
+     "id": "FLAME_BARRIER",
+     "index": 12,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "火焰屏障",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "0",
+     "description": "失去1点生命。 消耗1张牌。 获得1点力量。",
+     "id": "BRAND",
+     "index": 13,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在战斗结束前移除。",
+       "name": "消耗"
+      },
+      {
+       "description": "力量会增加攻击牌造成的伤害。",
+       "name": "力量"
+      }
+     ],
+     "name": "烙印",
+     "rarity": "Rare",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "0",
+     "description": "抽3张牌。 你在本回合内不能再抽任何牌。",
+     "id": "BATTLE_TRANCE",
+     "index": 14,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "战斗专注",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "造成6点伤害。 抽牌直到你抽到一张非攻击牌。",
+     "id": "PILLAGE",
+     "index": 15,
+     "is_upgraded": false,
+     "keywords": [],
+     "name": "劫掠",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Attack"
+    },
+    {
+     "cost": "2",
+     "description": "获得30点格挡。 消耗。",
+     "id": "IMPERVIOUS",
+     "index": 16,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      },
+      {
+       "description": "在战斗结束前移除。",
+       "name": "消耗"
+      }
+     ],
+     "name": "岿然不动",
+     "rarity": "Rare",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "获得8点格挡。 如果你在本回合消耗过卡牌，则额外获得8点格挡。",
+     "id": "EVIL_EYE",
+     "index": 17,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在战斗结束前移除。",
+       "name": "消耗"
+      },
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "邪眼",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "获得8点格挡。 如果你在本回合消耗过卡牌，则额外获得8点格挡。",
+     "id": "EVIL_EYE",
+     "index": 18,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "在战斗结束前移除。",
+       "name": "消耗"
+      },
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "邪眼",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Skill"
+    },
+    {
+     "cost": "1",
+     "description": "有易伤状态的敌人额外受到25%的伤害。",
+     "id": "CRUELTY",
+     "index": 19,
+     "is_upgraded": false,
+     "keywords": [
+      {
+       "description": "易伤的生物从攻击中受到的伤害增加50%。",
+       "name": "易伤"
+      }
+     ],
+     "name": "残酷",
+     "rarity": "Uncommon",
+     "star_cost": null,
+     "type": "Power"
+    }
+   ],
+   "preview_showing": false,
+   "prompt": "选择3张牌来附魔。",
+   "screen_type": "NDeckEnchantSelectScreen"
+  },
+  "player": {
+   "block": 0,
+   "character": "铁甲战士",
+   "character_id": "IRONCLAD",
+   "gold": 209,
+   "hp": 74,
+   "max_hp": 86,
+   "max_potion_slots": 2,
+   "potions": [
+    {
+     "can_use_in_combat": true,
+     "description": "从3张随机技能牌中选择1张加入你的手牌。这张牌在本回合可以免费打出。",
+     "id": "SKILL_POTION",
+     "keywords": [],
+     "name": "技能药水",
+     "slot": 0,
+     "target_type": "AnyPlayer",
+     "usage": "CombatOnly"
+    },
+    {
+     "can_use_in_combat": true,
+     "description": "将你弃牌堆中的一张牌放入你的手牌。这张牌在本回合可以免费打出。",
+     "id": "LIQUID_MEMORIES",
+     "keywords": [],
+     "name": "液态记忆",
+     "slot": 1,
+     "target_type": "AnyPlayer",
+     "usage": "CombatOnly"
+    }
+   ],
+   "relics": [
+    {
+     "counter": null,
+     "description": "在战斗结束时，回复6点生命。",
+     "id": "BURNING_BLOOD",
+     "keywords": [],
+     "name": "燃烧之血"
+    },
+    {
+     "counter": null,
+     "description": "拾起时，获得150金币。",
+     "id": "GOLDEN_PEARL",
+     "keywords": [],
+     "name": "金色珍珠"
+    },
+    {
+     "counter": null,
+     "description": "每场战斗开始时获得10点格挡。",
+     "id": "ANCHOR",
+     "keywords": [
+      {
+       "description": "在下个回合前，阻挡伤害。",
+       "name": "格挡"
+      }
+     ],
+     "name": "锚"
+    },
+    {
+     "counter": null,
+     "description": "在每场战斗开始时，给于所有敌人1层虚弱。",
+     "id": "RED_MASK",
+     "keywords": [
+      {
+       "description": "虚弱的生物造成的攻击伤害减少25%。",
+       "name": "虚弱"
+      }
+     ],
+     "name": "红面具"
+    },
+    {
+     "counter": null,
+     "description": "当你的生命值低于或等于50%时，你额外获得3点力量",
+     "id": "RED_SKULL",
+     "keywords": [
+      {
+       "description": "力量会增加攻击牌造成的伤害。",
+       "name": "力量"
+      }
+     ],
+     "name": "红头骨"
+    },
+    {
+     "counter": null,
+     "description": "如果你在拥有未花费的[ironclad_energy_icon.png]情况下结束回合，则下个回合额外获得[ironclad_energy_icon.png][ironclad_energy_icon.png]。",
+     "id": "PAELS_TEARS",
+     "keywords": [
+      {
+       "description": "能量用于打出你手牌中的卡牌。",
+       "name": "能量"
+      }
+     ],
+     "name": "佩尔之泪"
+    },
+    {
+     "counter": null,
+     "description": "在每场战斗开始时，获得1点力量。",
+     "id": "VAJRA",
+     "keywords": [
+      {
+       "description": "力量会增加攻击牌造成的伤害。",
+       "name": "力量"
+      }
+     ],
+     "name": "金刚杵"
+    },
+    {
+     "counter": null,
+     "description": "在每场战斗开始时，获得1点敏捷。",
+     "id": "ODDLY_SMOOTH_STONE",
+     "keywords": [
+      {
+       "description": "敏捷会增加从卡牌中获得的格挡。",
+       "name": "敏捷"
+      }
+     ],
+     "name": "意外光滑的石头"
+    },
+    {
+     "counter": null,
+     "description": "拾起时，从你的牌组中选择至多3张牌，附魔：伶俐。",
+     "id": "KIFUDA",
+     "keywords": [
+      {
+       "description": "获得3点格挡。",
+       "name": "伶俐"
+      }
+     ],
+     "name": "木札"
+    }
+   ],
+   "status": []
+  },
+  "run": {
+   "act": 2,
+   "ascension": 10,
+   "floor": 30
+  },
+  "state_type": "card_select"
+ }
+}

@@ -51,6 +51,11 @@ CLEAN_RECORD = {
     "mean_final_hp_fraction": 0.5,
     "dead_end_reasons": {},
     "final_floor_histogram": {"6": 500},
+    # Presence, not value: this is a single-act record, so nothing crossed and 0 is
+    # what was measured. A record that omits the key entirely must be told apart from
+    # one that measured zero, which is the whole reason this fixture spells out fields
+    # the floor6 gate never reads.
+    "episodes_that_crossed_an_act_boundary": 0,
     "unclassified_dead_ends": 0,
     "defect_truncation_rate": 0.02,
     "rejection_events": 0,

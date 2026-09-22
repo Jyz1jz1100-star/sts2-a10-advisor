@@ -311,6 +311,76 @@ class AutoplayDecisionTests(unittest.TestCase):
             self.player.decide(state), {"action": "confirm_selection"}
         )
 
+    def test_an_enchant_screen_that_wants_three_cards_is_shown_three(self) -> None:
+        """``can_confirm`` is lit before anything is picked on this screen, so it cannot be the trigger.
+
+        The walk assumed `can_confirm` means "enough cards are selected" -- true for a
+        removal screen, where the confirm button is the thing that commits. On
+        NDeckEnchantSelectScreen the shipped screen enables its confirm as soon as the
+        grid exists (`NDeckEnchantSelectScreen.RefreshConfirmButtonVisibility`), and
+        what the button actually does at that point is open a preview
+        (`_confirmButton` is wired to `PreviewSelection`, only the preview's own button
+        to `ConfirmSelection`). The build's auto-player selects first for the same
+        reason: `DeckEnchantScreenHandler` clicks cards while no preview is up and the
+        confirm is not enabled, up to min(count, 5) of them.
+
+        Live act 2 floor 30, batch ssb-20260922T103218Z-0f7ccf99: the driver posted
+        confirm_selection four times against a "选择3张牌来附魔" grid with nothing
+        selected, the client answered ok every time and moved nothing, the proceed
+        escape was refused ("No proceed button available or enabled"), and the batch
+        stopped on its own repeat guard.
+        """
+        state = load("card_select_enchant_three")
+        state.pop("battle", None)
+        self.assertEqual(state["card_select"]["screen_type"], "NDeckEnchantSelectScreen")
+        self.assertEqual(state["card_select"]["prompt"], "选择3张牌来附魔。")
+        self.assertTrue(state["card_select"]["can_confirm"])
+        self.assertFalse(state["card_select"]["preview_showing"])
+        for expected in (0, 1, 2):
+            payload = self.player.decide(state)
+            self.assertEqual(payload["action"], "select_card", expected)
+            self.assertEqual(payload["index"], expected, expected)
+        # Three shown -- now, and only now, does the confirm belong.
+        self.assertEqual(self.player.decide(state), {"action": "confirm_selection"})
+
+    def test_the_three_picks_are_the_conservative_fillers_not_the_deck(self) -> None:
+        """An enchant is a gift, so it goes on the cards least missed. Same rule as one-pick."""
+        state = load("card_select_enchant_three")
+        state.pop("battle", None)
+        picks = []
+        for _ in range(3):
+            payload = self.player.decide(state)
+            if payload["action"] == "select_card":
+                picks.append(state["card_select"]["cards"][payload["index"]]["id"])
+        self.assertEqual(picks.count("STRIKE_IRONCLAD"), 3, picks)
+
+    def test_a_one_pick_screen_still_commits_after_its_single_pick(self) -> None:
+        """Negative control: the count is read per screen, not fixed at three.
+
+        The removal grid the fixture library already carries asks for one card, and the
+        enchant at act 1 floor 3 of the same batch asked for one and committed fine. A
+        rule that demanded three everywhere would strand both.
+        """
+        state = load("card_select")
+        state.pop("battle", None)
+        self.assertEqual(state["card_select"]["prompt"], "选择1张牌来移除。")
+        self.assertEqual(
+            self.player.decide(state), {"action": "select_card", "index": 0}
+        )
+        state["card_select"]["can_confirm"] = True
+        self.assertEqual(self.player.decide(state), {"action": "confirm_selection"})
+
+    def test_a_prompt_without_a_count_falls_back_to_the_old_confirm_rule(self) -> None:
+        """Negative control: reading the count must not become a new way to get stuck.
+
+        If the prompt cannot be parsed the walk has to keep the behaviour it has always
+        had -- honour `can_confirm` -- rather than select forever on a guess.
+        """
+        state = load("card_select_enchant_three")
+        state.pop("battle", None)
+        state["card_select"]["prompt"] = "选择牌来附魔。"
+        self.assertEqual(self.player.decide(state), {"action": "confirm_selection"})
+
     def test_in_combat_card_select_belongs_to_the_mod(self) -> None:
         state = load("card_select")
         state["battle"] = {"round": 3}
