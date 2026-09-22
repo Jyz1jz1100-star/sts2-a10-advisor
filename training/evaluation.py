@@ -107,6 +107,7 @@ def evaluate_policy(
             terminated = False
             truncated = False
             step_capped = False
+            max_act: int | None = None
             info = dict(reset_info)
             while not (terminated or truncated):
                 mask = env.action_masks()
@@ -132,6 +133,15 @@ def evaluate_policy(
                 observation, reward, terminated, truncated, info = env.step(action)
                 total_reward += float(reward)
                 steps += 1
+                # The deepest act this episode has actually been *in*. `act` below
+                # is read once at reset and is a property of the map the seed was
+                # dealt, so a campaign run that beats the Act 1 boss and dies in
+                # Hive still reports act=1 -- and no floor number separates that from
+                # a run that never left Act 1, because act 1 ends on floor 16 or 17
+                # and act 2 starts on the floor after it.
+                step_act = _act_number(info)
+                if step_act is not None and (max_act is None or step_act > max_act):
+                    max_act = step_act
                 # Filter-mode reports its absorbed native-rejection count as a
                 # cumulative per-episode field on every step's info.
                 rejection_events = max(
@@ -185,6 +195,11 @@ def evaluate_policy(
                     illegal_actions=illegal_actions,
                     final_floor=(int(final_floor) if final_floor is not None else None),
                     act=act,
+                    # An episode that never saw an act on a step (single-act mode,
+                    # or a run that ended on the reset frame) ended where it started:
+                    # max_act == act, and the boundary count correctly calls that no
+                    # crossing rather than leaving it unmeasured.
+                    max_act=(max_act if max_act is not None else act),
                     encounter=(str(encounter) if encounter is not None else None),
                     boundary_reached=boundary,
                     dead_end_reason=(str(dead_end) if dead_end is not None else None),

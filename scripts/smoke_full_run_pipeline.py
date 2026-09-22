@@ -121,14 +121,28 @@ def main() -> int:
           f"steps={len(rewards)} min={min(rewards):.3f} max={max(rewards):.3f} "
           f"|finite|={finite} bounded={bounded}", results)
 
-    # 4. one episode must be able to cross act boundaries.  A random walker dying
-    # in Act 1 proves nothing about the mechanism, so this is judged by the one
-    # seed this repository can reproduce a three-act walk on: an episode that ends
-    # at floor >= 34 necessarily crossed two boundaries inside itself.
-    boundary_seed = 130008177
+    # 4. One episode must cross an act boundary inside itself, and the training
+    # stack must be the thing that carries it.
+    #
+    # This check used to ask whether seed 130008177 ended at floor >= 34. That is a
+    # question about how strong one particular Act-1 checkpoint is, asked of a smoke
+    # whose whole purpose is whether the machinery works -- so it has been red since
+    # fidelity-v2 removed the invented boss relic (that seed's deepest floor went
+    # 50 -> 19, then 15 under v4) while the boundary mechanism it names was, and is,
+    # intact. Depth is a strength number and belongs in the report, not in the verdict.
+    #
+    # What is measured now is the act an episode was actually *in*, which is not the
+    # act it was dealt: `act` is read at reset, so a run that beats the Act 1 boss and
+    # dies in Hive reported act=1 and looked identical to one that never left. The
+    # seeds are the four the v4 gate sweep measured as crossing, and the control is
+    # the same walk in single-act mode, where no number of good play can produce a
+    # crossing -- so a counter that reads crossings from deep floors fails here.
     ckpt_path = ROOT / ("runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/"
                         "checkpoints/step_000004000032.zip")
-    if ckpt_path.is_file():
+    crossing_seed_file = ROOT / "data/seeds/act_boundary_crossing_v4.json"
+    if ckpt_path.is_file() and crossing_seed_file.is_file():
+        crossing_decl = json.loads(crossing_seed_file.read_text(encoding="utf-8"))
+        crossing_seeds = [int(seed) for seed in crossing_decl["seeds"]]
         # The checkpoint was trained behind the V2 observation expansion (width
         # 1739), so feeding it the flat 199-wide env would be a shape error, not
         # a result.  Reuse the curriculum's own factory rather than a parallel one.
@@ -143,17 +157,46 @@ def main() -> int:
         probe_metrics = evaluate_policy(
             probe_model,
             env_factory=v2_factory,
-            seeds=[boundary_seed], stage="full_run", split="checkpoint",
+            seeds=crossing_seeds, stage="full_run", split="checkpoint",
             scope="simulator_full_run", checkpoint=ckpt_path,
             max_steps_per_episode=4800, campaign=True,
         ).to_dict()
+        flat_metrics = evaluate_policy(
+            probe_model,
+            env_factory=v2_factory,
+            seeds=crossing_seeds[:2], stage="full_run", split="checkpoint",
+            scope="simulator_full_run", checkpoint=ckpt_path,
+            max_steps_per_episode=4800, campaign=False,
+        ).to_dict()
+        crossed_n = int(probe_metrics.get("episodes_that_crossed_an_act_boundary") or 0)
+        control_n = int(flat_metrics.get("episodes_that_crossed_an_act_boundary") or 0)
+        # Every one of the four must carry: a check that passed on one of four would
+        # be reporting the luckiest seed, and the control must be capable of saying
+        # zero, or it is not a control.
+        crossed = crossed_n == len(crossing_seeds) and control_n == 0
         reached = int(probe_metrics.get("max_final_floor") or 0)
-        crossed = reached >= 34
-        detail = (f"one episode from the reproducible campaign checkpoint reached floor "
-                  f"{reached} (act 3 starts at 34); campaign_clears="
-                  f"{probe_metrics.get('campaign_clears')}")
+        detail = (
+            f"{crossed_n}/{len(crossing_seeds)} of the four v4-measured crossing seeds "
+            f"ended in a deeper act than they started, in the training stack itself; "
+            f"single-act control crosses={control_n}; deepest floor reached={reached}, "
+            f"campaign_clears={probe_metrics.get('campaign_clears')} -- act-3 reach "
+            f"and any win are strength, not this contract"
+        )
     else:
-        crossed, detail = False, f"no checkpoint at {ckpt_path}"
+        crossed, detail = False, (
+            f"missing {ckpt_path.name} or {crossing_seed_file.name}: the crossing "
+            "seeds are a measurement, so without them this is unmeasured, not clean"
+        )
+    if crossed and crossing_decl.get("environment_version") != CAMPAIGN_ENVIRONMENT_VERSION:
+        # These seeds were measured as crossings in one environment. A new version
+        # has to re-measure them, not inherit a pass from the old one -- which is
+        # the same rule the checkpoint split already follows, applied to a seed list.
+        crossed = False
+        detail = (
+            f"crossing seeds are declared for {crossing_decl.get('environment_version')!r} "
+            f"but the environment is now {CAMPAIGN_ENVIRONMENT_VERSION!r}; re-measure them "
+            f"before this check can pass again. {detail}"
+        )
     check("episode_crosses_act_boundaries", crossed, detail, results)
 
     info_keys = sorted(k for k in info if k in {"player_won", "run_cleared", "act_index"})

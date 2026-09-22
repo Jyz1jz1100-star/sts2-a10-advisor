@@ -10,7 +10,7 @@ from pathlib import Path
 from .seeds import seed_digest
 from .wilson import wilson_interval
 
-METRICS_SCHEMA_VERSION = 6
+METRICS_SCHEMA_VERSION = 7
 
 
 @dataclass(frozen=True)
@@ -30,6 +30,13 @@ class EpisodeMetric:
     #: coin flip, so an evaluation configured as "act1" really spans two acts unless
     #: this is recorded; without it the aggregate cannot say which act a win was in.
     act: int | None = None
+    #: The deepest act this one episode was actually *in*, which is not the act it
+    #: started in. `act` is read once at reset, so a campaign episode that beats the
+    #: Act 1 boss and dies in Hive reports act=1 and floor=18 and looks, in the
+    #: aggregate, identical to an episode that never left Act 1 -- which is how the
+    #: training stack could not answer "can an episode cross an act boundary" about
+    #: its own rollouts. None when the simulator published no act at all.
+    max_act: int | None = None
     encounter: str | None = None
     #: V2 curriculum stages promote on reaching their floor boundary (or a
     #: true terminal win), not on run completion alone.
@@ -92,6 +99,11 @@ class EvaluationMetrics:
     #: reported a floor at all -- metrics written before schema 4 simply lack the
     #: key, so absence is never read as "zero runs reached that floor".
     final_floor_histogram: dict[int, int] = field(default_factory=dict)
+    #: Episodes that ended in a deeper act than the one they were generated in.
+    #: This is the act-boundary count, and it is not derivable from any floor
+    #: number: act 1 ends on floor 16 or 17 and act 2 starts on the floor after it,
+    #: so depth alone cannot say which side of the boundary an episode died on.
+    episodes_that_crossed_an_act_boundary: int = 0
     #: Truncated episodes carrying neither a simulator dead-end label nor a
     #: curriculum boundary.  V2 promotion requires this to be zero: every
     #: abnormal ending must be attributable.
@@ -228,6 +240,19 @@ def summarize_episodes(
             "winning_seeds": [episode.seed for episode in bucket if episode.won],
         }
     seeds = [episode.seed for episode in episodes]
+    # Episodes that crossed at least one act boundary *inside themselves*: the act
+    # they were in when it ended is deeper than the act they were generated in.
+    # Counted off max_act, because final_floor alone cannot tell a campaign run that
+    # beat the Act 1 boss from one that died on the last floor of Act 1 -- both
+    # report act 1 -- and the boundary count is the number that says whether this
+    # training stack can carry a run across an act at all.
+    crossed_act_boundaries = sum(
+        1
+        for episode in episodes
+        if episode.act is not None
+        and episode.max_act is not None
+        and int(episode.max_act) > int(episode.act)
+    )
     winning_seeds = [episode.seed for episode in episodes if episode.won]
     checkpoint_path = Path(checkpoint)
     checkpoint_sha256 = None
@@ -271,6 +296,7 @@ def summarize_episodes(
         ),
         dead_end_reasons=dict(sorted(dead_end_reasons.items())),
         final_floor_histogram=final_floor_histogram,
+        episodes_that_crossed_an_act_boundary=crossed_act_boundaries,
         unclassified_dead_ends=unclassified_dead_ends,
         defect_truncation_rate=(truncations - boundary_truncations) / len(episodes),
         rejection_events=rejection_events,

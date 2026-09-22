@@ -92,6 +92,49 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(metrics.max_final_floor, 16)
         self.assertEqual(metrics.final_floor_histogram, {6: 2, 16: 2})
 
+    def test_a_crossing_is_counted_by_the_act_it_ended_in_not_the_floor(self) -> None:
+        """Act 1 ends on floor 16 or 17 and Act 2 starts on the next one, so a floor cannot tell the two apart.
+
+        ``act`` is read at reset, which made every campaign episode report the act it
+        was *dealt*, so an episode that beat the Act 1 boss and died in Hive was
+        indistinguishable from one that never left. This is the count the full-run
+        training smoke now judges its act-boundary contract on, so both directions have
+        to be pinned: a crossing that happened has to be seen, and the same episode
+        that merely got deep has to be seen as not one.
+        """
+        def episode(seed, act, max_act, floor):
+            return EpisodeMetric(
+                seed=seed, won=False, terminated=False, truncated=True,
+                steps=200, episode_return=1.0, illegal_actions=0,
+                final_floor=floor, act=act, max_act=max_act,
+            )
+
+        crossed = summarize_episodes(
+            [episode(1, 1, 2, 18), episode(2, 1, 2, 19)],
+            stage="full_run", split="checkpoint", scope="simulator_full_run",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(crossed.episodes_that_crossed_an_act_boundary, 2)
+
+        # Negative control, and the sharper of the two: both floor 17, one of them
+        # actually left Act 1. Were the count derived from the floor it would report
+        # the same thing for both, which is precisely the mistake being fixed.
+        stayed = summarize_episodes(
+            [episode(1, 1, 1, 17), episode(2, 1, 2, 17)],
+            stage="full_run", split="checkpoint", scope="simulator_full_run",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(stayed.episodes_that_crossed_an_act_boundary, 1)
+        self.assertEqual(stayed.max_final_floor, 17)
+
+        # An episode whose act was never published is not a crossing either.
+        unknown = summarize_episodes(
+            [episode(1, None, None, 30)],
+            stage="full_run", split="checkpoint", scope="simulator_full_run",
+            checkpoint="c.zip", deterministic=True,
+        )
+        self.assertEqual(unknown.episodes_that_crossed_an_act_boundary, 0)
+
     def test_episodes_without_a_floor_leave_the_histogram_absent_not_zero(self) -> None:
         # An empty histogram means "no episode reported a floor", never "zero runs
         # died on every floor"; the two must not be conflated downstream.
@@ -166,8 +209,10 @@ class MetricsTests(unittest.TestCase):
         # Deliberately a literal, not METRICS_SCHEMA_VERSION: bumping the schema
         # has to be a decision someone makes here. 4 adds final_floor_histogram,
         # 5 adds by_act (an act1 stage spans both emulator acts per seed), 6 adds
-        # winning_seeds so a single reviewable win can be named and re-run.
-        self.assertEqual(metrics.schema_version, 6)
+        # winning_seeds so a single reviewable win can be named and re-run, 7 adds
+        # max_act / episodes_that_crossed_an_act_boundary because `act` is read at
+        # reset and could not say that a run which beat the Act 1 boss had left it.
+        self.assertEqual(metrics.schema_version, 7)
 
     def test_boundary_wilson_and_hp_metrics(self) -> None:
         """Review item 4: boundary Wilson lower bound + final HP fraction."""
