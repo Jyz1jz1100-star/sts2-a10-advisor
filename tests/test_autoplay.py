@@ -292,6 +292,44 @@ class AutoplayDecisionTests(unittest.TestCase):
         }
         self.assertIsNone(self.player.decide(named_but_unmodelled))
 
+    def test_menu_options_are_read_whatever_shape_the_bridge_sends(self) -> None:
+        """The main menu lists strings; the singleplayer mode list lists objects.
+
+        Crashed live 2026-09-22 in the acceptance batch's first minute, on a client left
+        sitting in the singleplayer submenu by the batch before it: the batch that died had
+        already navigated off `main`, and the branch that reads menu options had only ever
+        been exercised against the main menu's bare strings.
+        """
+        from bridge.autoplay import _menu_option_names
+
+        self.assertEqual(
+            _menu_option_names({"options": ["continue", "new_run", "back"]}),
+            {"continue", "new_run", "back"},
+        )
+        self.assertEqual(
+            _menu_option_names({
+                "options": [
+                    {"name": "standard", "enabled": True},
+                    {"name": "daily", "enabled": True},
+                    {"name": "custom", "enabled": False},
+                    {"name": "back", "enabled": True},
+                ]
+            }),
+            {"standard", "daily", "back"},
+        )
+
+    def test_an_option_that_does_not_report_enabled_is_still_selectable(self) -> None:
+        """Negative control: a bridge that never reports the flag must not lose its menu."""
+        from bridge.autoplay import _menu_option_names
+
+        self.assertEqual(
+            _menu_option_names({"options": [{"name": "standard"}, {"name": "daily"}]}),
+            {"standard", "daily"},
+        )
+        # An unlabelled entry is not a name to click, and neither is a missing list.
+        self.assertEqual(_menu_option_names({"options": [{"enabled": True}]}), set())
+        self.assertEqual(_menu_option_names({}), set())
+
     def test_rest_site_payload_uses_option_index(self) -> None:
         state = load("rest_site")
         state["player"] = {"hp": 20, "max_hp": 80}

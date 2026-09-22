@@ -626,6 +626,34 @@ def _cards_requested(selection: dict[str, Any]) -> int:
     return _CHINESE_NUMERALS.get(token, 0)
 
 
+def _menu_option_names(state: dict[str, Any]) -> set[str]:
+    """The menu options a click may actually be aimed at.
+
+    The bridge shapes these two different ways depending on the screen: the main menu
+    lists bare strings, while the singleplayer mode list returns objects carrying the
+    name alongside whether the entry is selectable at all. Reading either with ``set()``
+    raises on the second -- the dict is unhashable -- so the shape has to be unwrapped
+    before the names are compared, and the enabled flag has to be honoured, because a
+    greyed-out mode is not a candidate and clicking it is the same class of defect as
+    posting a card that is not in hand.
+
+    A missing ``enabled`` reads as selectable: an older bridge that never reports it must
+    keep behaving exactly as it did rather than strand the driver with no options.
+    """
+    names: set[str] = set()
+    for option in state.get("options") or []:
+        if isinstance(option, dict):
+            name = option.get("name")
+            if name is None:
+                continue
+            if option.get("enabled", True) is False:
+                continue
+            names.add(str(name))
+        elif isinstance(option, str):
+            names.add(option)
+    return names
+
+
 def _is_bare_frame(state: dict[str, Any]) -> bool:
     """True when the bridge named no screen and shipped no screen payload.
 
@@ -1576,7 +1604,7 @@ class AutoPlayer:
                                 expected_decision_id=decision_id,
                             )
                         else:
-                            options = set(state.get("options") or [])
+                            options = _menu_option_names(state)
                             saved = None
                             if "continue" in options:
                                 # A saved run may belong to another character,
