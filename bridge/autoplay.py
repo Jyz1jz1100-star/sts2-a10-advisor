@@ -592,6 +592,31 @@ def _screen_can_proceed(state: dict[str, Any]) -> bool:
     )
 
 
+#: What every frame carries, named screen or not.
+_FRAME_ENVELOPE = frozenset({"state_type", "run", "player", "room_type"})
+
+
+def _is_bare_frame(state: dict[str, Any]) -> bool:
+    """True when the bridge named no screen and shipped no screen payload.
+
+    Every screen the bridge can name carries a container under its own key -- a
+    ``map`` frame has ``map``, a reward frame has ``rewards``.  A poll that lands
+    between two rooms gets a frame with the run, the player and nothing else, and
+    reports ``state_type: unknown`` because there is genuinely no room to name:
+    17 of them in the deepest live run, one or two at most per node, each followed
+    by a frame that did name its screen.
+
+    The distinction this exists to keep is between *moment* and *content*.  A bare
+    frame is a moment, so waiting on it is the only move that neither posts into a
+    screen that may not exist nor reports a gap where none was.  An ``unknown``
+    that does carry a payload is unmodelled content, and has to keep failing the
+    way unmodelled content fails.
+    """
+    return state.get("state_type") == "unknown" and not (
+        set(state) - _FRAME_ENVELOPE
+    )
+
+
 class AutoPlayer:
     def __init__(
         self,
@@ -881,6 +906,10 @@ class AutoPlayer:
             # project has recorded. Waiting is bounded by the caller's stall watchdog, so an event
             # that really never presents anything is still named.
             return WaitForTransition("the event room offers no candidate and no exit yet")
+        if payload is None and _is_bare_frame(state):
+            # No screen at all, not a screen with no rule: hold, and let the same
+            # watchdog name it if the client never comes back.
+            return WaitForTransition("the client reported no screen on this frame")
         if payload is None and state_type != "map" and _screen_can_proceed(state):
             # continue buttons after an applied choice (rest result, shop,
             # claimed rewards, ...): the screen itself says it can advance.

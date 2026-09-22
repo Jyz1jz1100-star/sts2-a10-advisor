@@ -83,6 +83,26 @@ def _resequence(records: list[dict], offset: int) -> list[dict]:
     return out
 
 
+def _session_end(unhandled_screens=None, waits=None) -> dict:
+    """The batch summary the driver writes when it stops, for the run above.
+
+    Shaped like the real artifact (``bridge.autoplay`` writes it as the
+    ``session_end`` record's ``summary.runs``), and keyed to the fixture run by
+    the same ``acts_seen`` and ``terminal_floor`` the replay derives.
+    """
+    run = {
+        "acts_seen": [1, 2, 3],
+        "terminal_floor": 49,
+        "unhandled_screens": unhandled_screens or {},
+        "waits_for_transition": waits or {},
+    }
+    return {
+        "event_type": "session_end",
+        "raw": {"detail": "test", "summary": {"runs": [run]}},
+        "sequence": 99,
+    }
+
+
 def full_victory_run(first_floor: int = 1) -> list[dict]:
     """Floor 1 -> three acts, three ancients, 1+1+2 bosses, the game's victory.
 
@@ -264,6 +284,40 @@ class FullRunContractTests(unittest.TestCase):
         self.assertIn("provenance_bound_to_the_locked_build",
                       [c["check"] for c in best["checks"]])
         self.assertEqual(failed_checks(best), [])
+
+    def test_a_screen_the_driver_could_not_decide_fails_the_skip_item(self) -> None:
+        """The driver's own ledger is a second source, and the replay has to read it.
+
+        ``note_unhandled`` fires at decision time and is not derivable from a state
+        frame -- nothing was posted, nothing was refused, the screen simply had no
+        rule -- so replaying the states alone rebuilt a clean ledger and the item
+        that reads "no screen skipped without a rule" passed on the trace whose own
+        last line was ``unhandled_screen: no rule and no continue control for screen
+        'event' at act 3 floor 49``.  Recorded at
+        runs/solver_supervisor/ssb-20260922T082137Z-a6886c18.
+        """
+        records = full_victory_run() + [_session_end({"event": [{"act": 3, "floor": 49}]})]
+        best = self.audit(records)["best_run"]
+        self.assertIn("no_screen_skipped_without_a_rule", failed_checks(best))
+
+    def test_a_run_the_driver_held_off_on_says_so_in_the_legality_detail(self) -> None:
+        """A held frame is legal, but a run that spent its time holding must be able to say so."""
+        records = full_victory_run() + [
+            _session_end({}, waits={"the event room offers no candidate and no exit yet": 8})
+        ]
+        best = self.audit(records)["best_run"]
+        self.assertNotIn("every_action_was_legal_and_acked", failed_checks(best))
+        detail = next(
+            c["detail"] for c in best["checks"]
+            if c["check"] == "every_action_was_legal_and_acked"
+        )
+        self.assertIn("'the event room offers no candidate and no exit yet': 8", detail)
+
+    def test_a_clean_run_still_passes_with_the_drivers_ledger_attached(self) -> None:
+        """Negative control: reading the second source must not become a new way to fail."""
+        records = full_victory_run() + [_session_end()]
+        best = self.audit(records)["best_run"]
+        self.assertEqual(failed_checks(best), [], [c["detail"] for c in best["checks"]])
 
 
 if __name__ == "__main__":

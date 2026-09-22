@@ -260,6 +260,38 @@ class AutoplayDecisionTests(unittest.TestCase):
         }
         self.assertIsNone(self.player.decide(unknown))
 
+    def test_a_frame_that_names_no_screen_is_held(self) -> None:
+        """A poll between two rooms is a moment, not a missing handler.
+
+        17 frames of the deepest live run arrived as ``state_type: unknown`` with
+        nothing but the run and the player on them -- act 1 floor 9 twice, act 2
+        floor 24 twice, and one or two at most at every other node -- each one
+        followed by a frame that did name its screen. The driver had no rule for
+        them, posted nothing, and the contract's gap census recorded each as a
+        screen skipped without a rule.
+        """
+        bare = {
+            "state_type": "unknown",
+            "room_type": None,
+            "run": {"act": 2, "floor": 24, "ascension": 10},
+            "player": {"hp": 49, "max_hp": 80, "character_id": "IRONCLAD"},
+        }
+        self.assertIsInstance(self.player.decide(bare), WaitForTransition)
+
+    def test_an_unknown_that_does_carry_a_payload_is_still_a_gap(self) -> None:
+        """Negative control: only a frame with no screen at all is a moment.
+
+        An ``unknown`` carrying a container is content the bridge could not name,
+        which is the one thing the unhandled budget exists to stop a batch on.
+        """
+        named_but_unmodelled = {
+            "state_type": "unknown",
+            "weird_room": {"options": [{"index": 0}]},
+            "run": {"act": 2, "floor": 24},
+            "player": {"hp": 49, "max_hp": 80},
+        }
+        self.assertIsNone(self.player.decide(named_but_unmodelled))
+
     def test_rest_site_payload_uses_option_index(self) -> None:
         state = load("rest_site")
         state["player"] = {"hp": 20, "max_hp": 80}

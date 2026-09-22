@@ -61,10 +61,50 @@ def _actions(records: list[dict[str, Any]]):
             yield record["event_type"], record["raw"]
 
 
+def _driver_ledgers(records: list[dict[str, Any]]) -> dict[Any, dict[str, Any]]:
+    """Index the per-run ledgers the driver wrote when it stopped, by run identity.
+
+    Replaying the state frames rebuilds what happened *to* the run, but not what the
+    driver made of it: an unhandled screen posts nothing and refuses nothing, so it
+    leaves no mark a replay can find, and a held frame is by definition an action
+    that was not taken.  Both live only in the ``session_end`` summary the batch
+    writes, which is the second source those two items need -- without it
+    ``no_screen_skipped_without_a_rule`` cannot fail, and it duly passed on the
+    trace whose last line read ``unhandled_screen ... screen 'event' at act 3 floor 49``.
+
+    A run the driver never recorded is absent here, which is what the items report;
+    two runs sharing one identity disqualify the key rather than guess between them.
+    """
+    ledgers: dict[Any, dict[str, Any]] = {}
+    wrote_summary = False
+    for record in records:
+        if record.get("event_type") != "session_end":
+            continue
+        wrote_summary = True
+        summary = (record.get("raw") or {}).get("summary") or {}
+        for run in summary.get("runs") or []:
+            if not isinstance(run, dict):
+                continue
+            key = (tuple(run.get("acts_seen") or ()), run.get("terminal_floor"))
+            if key in ledgers:
+                del ledgers[key]
+            else:
+                ledgers[key] = run
+    # Two runs sharing one identity is ambiguous, so the key is dropped and both
+    # runs are reported as unrecorded rather than matched to whichever came last.
+    return ledgers, wrote_summary
+
+
+def _ledger_key(cov: dict[str, Any]) -> tuple:
+    return (tuple(cov.get("acts_seen") or ()), cov.get("terminal_floor"))
+
+
 def check_run(
     records: list[dict[str, Any]],
     coverage: RunCoverage,
     session: dict[str, Any] | None = None,
+    driver_ledger: dict[str, Any] | None = None,
+    has_driver_ledgers: bool = False,
 ) -> dict[str, Any]:
     """Name every contract item for one run's own ledger, pass or fail.
 
@@ -72,6 +112,11 @@ def check_run(
     so it is hoisted by the caller and passed to every run in the file: read from
     a run's own segment, only the first run of a batch could ever satisfy it, and
     that is a property of where one record happens to sit rather than of the run.
+
+    ``driver_ledger`` is this run's row of the ``session_end`` summary, matched by
+    ``_driver_ledgers``; ``has_driver_ledgers`` says whether the stream carried a
+    ``session_end`` at all, which is how a trace stopped mid-batch is told apart
+    from a run the driver found nothing to remark on.
     """
     cov = coverage.coverage()
     if session is None:
@@ -143,6 +188,11 @@ def check_run(
     for row in cov.get("empty_candidate_refusals", []):
         key = f"{row.get('state_type')}@{row.get('act')}-{row.get('floor')}"
         empty_candidates[key] = empty_candidates.get(key, 0) + 1
+    # The holds come off the driver's row, not off the replay: a frame the driver
+    # deliberately left alone posted nothing, so the replayed ledger is empty here
+    # for every trace on disk, and the counter that exists to keep a clean pass
+    # from hiding a run that spent its time holding had nothing to show.
+    waits = (driver_ledger or {}).get("waits_for_transition") or cov.get("waits_for_transition")
     add(
         "every_action_was_legal_and_acked",
         bool(posted) and len(refused) == 0,
@@ -152,14 +202,27 @@ def check_run(
         # screen the candidate contract found nothing to do on is reported the
         # same way: it was retried, and a retry that worked is not a gap that
         # never happened.
-        f" waits={cov.get('waits_for_transition', {})}"
+        f" waits={waits}"
         f" empty_candidates={empty_candidates}"
         + (f" first_refusals={[r.get('error') for r in refused[:3]]}" if refused else ""),
     )
+    # An unhandled screen posts nothing and refuses nothing, so a replay of the
+    # states cannot see one; it survives only in the row the driver wrote when the
+    # batch stopped.  Union the two, and say so when the stream carried a summary
+    # this run is absent from -- a run the driver never described is not a run the
+    # driver found clean.
+    unhandled: dict[str, list] = {k: list(v) for k, v in cov["unhandled_screens"].items()}
+    for screen, frames in ((driver_ledger or {}).get("unhandled_screens") or {}).items():
+        known = {json.dumps(f, sort_keys=True) for f in unhandled.get(screen, [])}
+        unhandled.setdefault(screen, []).extend(
+            f for f in frames if json.dumps(f, sort_keys=True) not in known
+        )
     add(
         "no_screen_skipped_without_a_rule",
-        not cov["unhandled_screen_bypasses"] and not cov["unhandled_screens"],
-        f"bypasses={cov['unhandled_screen_bypasses']} unhandled={list(cov['unhandled_screens'])}",
+        not cov["unhandled_screen_bypasses"] and not unhandled
+        and (driver_ledger is not None or not has_driver_ledgers),
+        f"bypasses={cov['unhandled_screen_bypasses']} unhandled={unhandled}"
+        + ("" if driver_ledger is not None or not has_driver_ledgers else " driver_ledger=missing"),
     )
     add(
         "provenance_bound_to_the_locked_build",
@@ -196,7 +259,7 @@ def audit(path: Path) -> dict[str, Any]:
     # does, so a run can never borrow evidence from its neighbour.  Records are
     # segmented too: a refusal from one run must not be charged to another, and
     # a clean run must not inherit a neighbour's legality by sharing a file.
-    ledgers: list[RunCoverage] = [RunCoverage()]
+    ledgers_list: list[RunCoverage] = [RunCoverage()]
     segments: list[list[dict[str, Any]]] = [[]]
     for record in records:
         current = len(segments) - 1
@@ -205,15 +268,20 @@ def audit(path: Path) -> dict[str, Any]:
         if not isinstance(state, dict):
             continue
         state_type = str(state.get("state_type") or "unknown")
-        if ledgers[current].closed and state_type in ("menu", "game_over"):
+        if ledgers_list[current].closed and state_type in ("menu", "game_over"):
             continue
-        if ledgers[current].closed:
-            ledgers.append(RunCoverage())
+        if ledgers_list[current].closed:
+            ledgers_list.append(RunCoverage())
             segments.append([record])
-        ledgers[-1].observe(state)
+        ledgers_list[-1].observe(state)
+    driver_rows, wrote_summary = _driver_ledgers(records)
     verdicts = [
-        check_run(segment, ledger, session=stream_session)
-        for segment, ledger in zip(segments, ledgers)
+        check_run(
+            segment, ledger, session=stream_session,
+            driver_ledger=driver_rows.get(_ledger_key(ledger.coverage())),
+            has_driver_ledgers=wrote_summary,
+        )
+        for segment, ledger in zip(segments, ledgers_list)
         if ledger.acts_seen
     ]
     best = max(verdicts, key=lambda v: sum(c["passed"] for c in v["checks"]), default=None)
