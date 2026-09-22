@@ -632,3 +632,42 @@ G2/G4/G5 仍开），它对本文结论的直接影响记在
 act1 checkpoint 在 10,000 个声明种子里只有 2 局进第二幕、0 局进第三幕，
 `smoke_full_run_pipeline.py` 的第 11 项 `episode_crosses_act_boundaries` 因此转红（10/11）——
 标准未下调，红的是"当前没有任何 checkpoint 能在忠实环境里走到第三幕"这件事。
+
+## 14. 两个真机批次死法的根因：一个是我写的锁，一个是我写的判据（2026-09-22）
+
+§13 记了两个失败现象（`game_lost_timeout` 和一次 `travel_no_effect` 前身）。按根因逐个查完，结论是**两个都是我这一侧的实现缺陷**，不是客户端随机抽风：
+
+### 14.1 一次"已确认却没发生"的移动，被我自己的锁变成了必死
+
+证据（`ssb-20260921T170852Z-08fd7767`，act 2 floor 26，位置 `(3,8)` Treasure）：
+
+| 事实 | 出处 |
+| --- | --- |
+| 驱动发出 `choose_map_node index=0`，桥接回 `Traveling to RestSite at (4,9)`，status ok | trace seq 8817/8818 |
+| 此后 **588 帧**（约 1 秒一帧）客户端仍报同一个 `(3,8)`，同一个唯一选项，读状态一直成功 | trace seq 8819–9406 |
+| 整场会话客户端日志有 320 条 `Player vote changed ->MapVote`，**(4,9) 一条也没有** | `%APPDATA%/SlayTheSpire2/logs/godot2026-09-21T23.37.27.log` |
+| 驱动每帧都持锁等待，5 分钟后以 `stalled: map travel already acknowledged from this node` 停批 | 同批 `autoplay_trace.jsonl` 的 `session_end` |
+
+`_map_travel_committed` 的语义是"这笔已确认的移动别重发"，但它的**释放条件是"位置变了"**——而"位置不变"正是移动被静默吞掉时唯一能看到的现象。于是这个防重复移动的锁，恰好把静默失败变成确定性的 5 分钟死锁；原有的"同一动作重复 3 次退化成 proceed"兜底也永远轮不到，因为持锁时根本不发请求。
+
+已按根因修：持锁有了**结算窗口**（`travel_settle_seconds=8.0`，本机实测的正常过渡远小于它），窗口内是等待，窗口外重发同一合法选项并**记入覆盖账**（`travel_reposts`：幕/层/起点/终点/第几次/等了多久），重发预算（`max_travel_reposts=2`）用尽仍未离开节点，就以 `travel_no_effect` 停批，理由里直接带上 `(3,8) → (4,9)` 与等待秒数。客户端一旦离开该节点，锁与重发预算一起清零。这不是把症状压掉：静默失败的**事实**被交到底层去查（桥接为什么回 ok 而不投票），驱动侧的职责变成了"不把它伪装成等待，也不无限重试"。
+
+### 14.2 `game_lost` 用端口回答，而端口不是存活性的证据
+
+统计了 18 个批次的探针中断：健康批次里最长的一次**自行恢复**的中断是 **17.9 秒**（多个批次 10–14 秒），而监督器的判死阈值是 `game_loss_grace_seconds = 5.0`；同一个信号在驱动侧的预算是 **180 秒**。也就是说，两层用同一根探针看同一件事，阈值差 36 倍，而更严的那层有权停批——`ssb-20260921T154141Z-60f4c2c0` 正是一次 6.015 秒的中断被判为"游戏丢了"，杀掉了一个还能继续跑的批次（游戏进程与桥接在那之后仍正常应答）。
+
+已修：判死现在**要求进程真的没了**。进程还在而端口不回 = `bridge_unresponsive`，记录中断时长与 `process_alive`，超过 `bridge_outage_timeout_seconds = 300` 才以 `bridge_unresponsive_timeout` / `EXIT_BRIDGE_UNRESPONSIVE(12)` 结束——仍然有界，但不再把"游戏在忙"当成"游戏没了"。阈值与退出码都写进批次 `status.json` 的 `game` 段（含 `loss_requires_dead_process`），事后能从产物里读出当时是用哪条判据杀的批。
+
+需要说清的边界：我**没有**证明 16:15Z 那次中断一定不是真掉线——修之前那套仪器本来就无法区分二者，这正是它的缺陷。修完之后，同类事件会直接自证是哪一种。
+
+### 14.3 顺带发现：客户端自己在第三幕的商店里抛过异常
+
+同一份客户端日志里，act 3（`MapVote gen: 3`，即验收轨里确实有整局走到了第三幕的地图和商店）打开商人房时抛出：
+
+```
+[ERROR] System.NullReferenceException ... NMerchantCard.DoRelicFlash()
+   at MegaCrit.Sts2.Core.Helpers.TaskHelper.LogTaskExceptions(Task task)
+```
+
+这是**真机自身的**异常（游戏自己 catch 并记日志，不是桥接或驱动抛的），分类是客户端故障而非策略失败或实现缺陷。它没有终止批次（批次停在 14.1 的死锁上），所以本轮只登记不处置；如果后面某次整局验收被卡在商店界面，这条就是第一顺位的嫌疑人。
+

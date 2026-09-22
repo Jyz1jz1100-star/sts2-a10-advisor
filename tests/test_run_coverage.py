@@ -338,7 +338,7 @@ class SilentSkipBoundsTests(unittest.TestCase):
         coverage = player.coverage.coverage()
         self.assertEqual(
             coverage["waits_for_transition"],
-            {"map travel already acknowledged from this node": 5},
+            {"map travel acknowledged, waiting for the client to leave the node": 5},
         )
         self.assertEqual(coverage["unhandled_screens"], {})
 

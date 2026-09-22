@@ -610,12 +610,22 @@ class AutoPlayer:
         bridge_unavailable_timeout_seconds: float = 180.0,
         max_consecutive_failures: int = 60,
         max_total_failures: int = 600,
+        clock: Any = None,
+        travel_settle_seconds: float = 8.0,
+        max_travel_reposts: int = 2,
     ):
         self.controller = controller
         self.policy = LiveHeuristicPolicy()
         self.max_runs = max_runs
         self.max_actions = max_actions
         self.poll = poll
+        # A travel the bridge acknowledges is not a travel that happened.  The hold
+        # below therefore has a deadline: after the settle window the same legal
+        # option is re-posted a bounded number of times, and a node that still will
+        # not be left ends the batch by name instead of stalling until the watchdog.
+        self._clock = clock or time.monotonic
+        self._travel_settle_seconds = float(travel_settle_seconds)
+        self._max_travel_reposts = int(max_travel_reposts)
         # Retry budgets: every retry re-reads fresh state first; when a budget
         # is exhausted the batch ends as a classified stop instead of a crash.
         self._failure_backoff = failure_backoff
@@ -655,6 +665,9 @@ class AutoPlayer:
         #: reporting that map while the travel animation plays, and posting a
         #: second choose_map_node into it is a move the state no longer offers
         self._map_travel_committed: str | None = None
+        self._map_travel_payload: dict[str, Any] | None = None
+        self._travel_acked_at: float | None = None
+        self._travel_reposts = 0
         self._max_unhandled_per_screen = 10
         self.runs_started = 0
         self.consecutive_failures = 0
@@ -701,6 +714,56 @@ class AutoPlayer:
         self._seed_continue_required = False
 
     # ------------------------------------------------------------- decisions
+    def _map_travel_pending(self, state: dict[str, Any]) -> Any:
+        """The client still reports the node an acknowledged travel left.
+
+        Either the transition is in flight -- normal for a few hundred ms, and the
+        reason this hold exists -- or the layer below accepted the request and never
+        performed it, which is what a deadline can tell apart from a wait.  A silent
+        no-op is re-posted (the same option is still the legal one) a bounded number of
+        times, each re-post recorded; then it stops the batch by name rather than
+        burning the 5-minute stall watchdog on it.
+        """
+        waited = (self._clock() - self._travel_acked_at) if self._travel_acked_at else 0.0
+        if waited < self._travel_settle_seconds:
+            return WaitForTransition("map travel acknowledged, waiting for the client to leave the node")
+        run = state.get("run") or {}
+        map_block = state.get("map") or {}
+        options = map_block.get("next_options") or []
+        payload = self._map_travel_payload or {}
+        index = payload.get("index")
+        target = next((o for o in options if isinstance(o, dict) and o.get("index") == index), None)
+        source = map_block.get("current_position") or {}
+
+        def _coord(node: Any) -> str:
+            if not isinstance(node, dict):
+                return "?"
+            return f"({node.get('col')},{node.get('row')})"
+
+        if self._travel_reposts >= self._max_travel_reposts or not payload:
+            self._classified_stop(
+                "travel_no_effect",
+                f"map travel from {_coord(source)} to {_coord(target)} "
+                f"({_coord(source)} is still reported) was acknowledged "
+                f"{self._travel_reposts + 1} time(s) and the client never left the node "
+                f"after {waited:.1f}s (act {run.get('act')} floor {run.get('floor')})",
+            )
+        self._travel_reposts += 1
+        self.coverage.note_travel_repost(
+            run.get("act"), run.get("floor"),
+            source=source,
+            destination={k: target.get(k) for k in ("col", "row", "type")} if target else {},
+            attempt=self._travel_reposts,
+            waited_seconds=waited,
+        )
+        self._travel_acked_at = self._clock()
+        print(
+            f"[autoplay] travel acknowledged but the client is still on this node; "
+            f"re-posting ({self._travel_reposts}/{self._max_travel_reposts}) {payload}",
+            flush=True,
+        )
+        return dict(payload)
+
     def decide(
         self, state: dict[str, Any]
     ) -> dict[str, Any] | WaitForTransition | None:
@@ -716,10 +779,17 @@ class AutoPlayer:
         if state_type == "event" and event.get("in_dialogue"):
             # post-choice dialogue: advance until real options return
             return {"action": "advance_dialogue"}
-        if state_type == "map" and _map_position(state) == self._map_travel_committed:
-            return WaitForTransition(
-                "map travel already acknowledged from this node"
-            )
+        if state_type == "map":
+            position = _map_position(state)
+            if position != self._map_travel_committed:
+                # The client left the node: the acknowledged travel did land, so
+                # neither the lock nor the re-post budget carries over to the next one.
+                self._map_travel_committed = None
+                self._map_travel_payload = None
+                self._travel_acked_at = None
+                self._travel_reposts = 0
+            else:
+                return self._map_travel_pending(state)
         if (
             state_type == "rest_site"
             and (state.get("rest_site") or {}).get("can_choose") is False
@@ -1567,6 +1637,9 @@ class AutoPlayer:
                         # refused one leaves the map genuinely open, and the
                         # next poll must be free to try again.
                         self._map_travel_committed = _map_position(state)
+                        self._map_travel_payload = dict(payload)
+                        self._travel_acked_at = self._clock()
+                        self._travel_reposts = 0
                         self._stall_since = None
             except SeedAllocationExhausted:
                 # Exhaustion is a clean, auditable stop.  Never fall through

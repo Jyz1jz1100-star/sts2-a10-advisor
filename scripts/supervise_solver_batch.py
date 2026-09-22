@@ -84,6 +84,9 @@ EXIT_RUN_TIMEOUT = 8
 EXIT_PARTIAL = 9
 EXIT_PREFLIGHT_FAILED = 10
 EXIT_CLIENT_WEDGED = 11
+#: The client process is alive but its bridge never answered again.  Distinct from
+#: ``EXIT_GAME_LOST`` because the two have different causes and different fixes.
+EXIT_BRIDGE_UNRESPONSIVE = 12
 
 # Mirrors ``bridge.autoplay.EXIT_CLASSIFIED_STOP``: the autoplay child ended
 # itself on purpose for a recorded reason (stale state, bridge unavailable).
@@ -330,6 +333,13 @@ class SupervisorConfig:
     poll_seconds: float = 0.5
     game_wait_seconds: float = 60.0
     game_loss_grace_seconds: float = 5.0
+    #: How long the bridge may stay unanswered while the client process is *alive*.
+    #: A busy game loop -- a deep Combat Solver search, a room preload, a save write --
+    #: blocks the mod's HTTP thread for seconds, and healthy batches on this machine
+    #: have shown recovered outages of up to 17.9 s, so an outage is not a loss.  The
+    #: bound is still finite: a client that is alive but never answers again ends the
+    #: batch, under its own reason code rather than pretending the game vanished.
+    bridge_outage_timeout_seconds: float = 300.0
     #: The client's own log is a diagnostic file, not a stream: a healthy session
     #: wrote 9.2 MB across a whole day of batches.  A rate this high means the
     #: game loop is pouring the same failing call every frame, which starves the
@@ -412,6 +422,7 @@ class SupervisorConfig:
             "poll_seconds",
             "game_wait_seconds",
             "game_loss_grace_seconds",
+            "bridge_outage_timeout_seconds",
             "graceful_timeout_seconds",
         ):
             if float(getattr(self, name)) < 0:
@@ -1196,6 +1207,7 @@ class BatchSupervisor:
         *,
         popen_factory: Callable[..., Any] = subprocess.Popen,
         game_probe: Callable[..., bool] = probe_game,
+        client_process_alive: Callable[[], bool] | None = None,
         clock: Callable[[], float] = time.monotonic,
         sleep: Callable[[float], None] = time.sleep,
         comparison_output_dir: Path | None = None,
@@ -1203,6 +1215,11 @@ class BatchSupervisor:
         self.config = config
         self.popen_factory = popen_factory
         self.game_probe = game_probe
+        #: Whether the game process exists.  A port that is not answering is the game
+        #: being busy -- Combat Solver searches and room preloads both block the mod's
+        #: HTTP thread for seconds at a time -- whereas a vanished process is the game
+        #: being gone. Only the second may end a batch quickly.
+        self.client_process_alive = client_process_alive or (lambda: bool(client_pids()))
         self.clock = clock
         self.sleep = sleep
         self.batch_dir = config.output_root / config.batch_id
@@ -1388,6 +1405,8 @@ class BatchSupervisor:
                 "health_path": self.config.health_path,
                 "wait_seconds": self.config.game_wait_seconds,
                 "loss_grace_seconds": self.config.game_loss_grace_seconds,
+                "bridge_outage_timeout_seconds": self.config.bridge_outage_timeout_seconds,
+                "loss_requires_dead_process": True,
             },
             #: Touch this path to ask a running batch to end at its next poll.
             "stop_file": str(self.config.resolved_stop_file),
@@ -1873,21 +1892,39 @@ class BatchSupervisor:
 
             if not self._probe():
                 now = self.clock()
+                alive = self.client_process_alive()
                 if game_missing_since is None:
                     game_missing_since = now
-                    self._log("game_lost", grace_seconds=self.config.game_loss_grace_seconds)
-                if now - game_missing_since >= self.config.game_loss_grace_seconds:
+                    # Two names for two facts: the process is gone, or the port is
+                    # not answering while the process is right there.
+                    self._log(
+                        "game_lost" if not alive else "bridge_unresponsive",
+                        grace_seconds=self.config.game_loss_grace_seconds,
+                        process_alive=alive,
+                    )
+                missing = now - game_missing_since
+                if alive:
+                    if missing >= self.config.bridge_outage_timeout_seconds:
+                        self.stop_reason = "bridge_unresponsive_timeout"
+                        self._log("bridge_unresponsive_timeout", missing_seconds=round(missing, 3))
+                        self._stop_children(self.stop_reason)
+                        self._finalize_stop()
+                        return EXIT_BRIDGE_UNRESPONSIVE
+                elif missing >= self.config.game_loss_grace_seconds:
                     self.stop_reason = "game_lost_timeout"
                     self._log(
                         "game_lost_timeout",
-                        missing_seconds=round(now - game_missing_since, 3),
+                        missing_seconds=round(missing, 3),
                     )
                     self._stop_children("game_lost_timeout")
                     self._finalize_stop()
                     return EXIT_GAME_LOST
             else:
                 if game_missing_since is not None:
-                    self._log("game_restored", missing_seconds=round(self.clock() - game_missing_since, 3))
+                    self._log(
+                        "game_restored",
+                        missing_seconds=round(self.clock() - game_missing_since, 3),
+                    )
                 game_missing_since = None
 
             wedge = self._sample_client_log()

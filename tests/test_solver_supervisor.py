@@ -12,6 +12,7 @@ from unittest.mock import patch
 import scripts.supervise_solver_batch as supervise_solver_batch
 from scripts.supervise_solver_batch import (
     EXIT_CHILD_FAILED,
+    EXIT_BRIDGE_UNRESPONSIVE,
     EXIT_CLIENT_WEDGED,
     EXIT_GAME_LOST,
     EXIT_GAME_WAIT_TIMEOUT,
@@ -566,7 +567,7 @@ class LifecycleTests(unittest.TestCase):
             ]
             self.assertTrue(any(row["event"] == "child_exited" and row.get("exit_code") == 17 for row in events))
 
-    def test_game_loss_stops_live_children_with_distinct_result(self) -> None:
+    def test_a_vanished_client_stops_live_children_with_distinct_result(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             clock = FakeClock()
@@ -577,6 +578,7 @@ class LifecycleTests(unittest.TestCase):
                 config,
                 popen_factory=popen,
                 game_probe=lambda _config: next(probes, False),
+                client_process_alive=lambda: False,
                 clock=clock,
                 sleep=clock.sleep,
             )
@@ -586,6 +588,72 @@ class LifecycleTests(unittest.TestCase):
             status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
             self.assertEqual(status["stop_reason"], "game_lost_timeout")
             self.assertEqual(status["status"], "failed")
+
+    def test_a_busy_but_alive_client_is_not_declared_lost(self) -> None:
+        """One HTTP timeout is the game being busy; a vanished process is the game being gone.
+
+        Measured on this machine: healthy batches show probe outages that recovered after
+        up to 17.9 s, while the driver's own budget for the same symptom is 180 s.  A 5 s
+        loss verdict therefore killed live batches (ssb-20260921T154141Z-60f4c2c0) during
+        ordinary hitching, so the verdict needs the process, not the port.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None)
+            # Up front so the batch reaches supervision, then unanswered forever.
+            probes = iter([True] + [False] * 4000)
+            config = _config(
+                root, clock, game_loss_grace_seconds=5.0, bridge_outage_timeout_seconds=300.0
+            )
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: next(probes, False),
+                client_process_alive=lambda: True,
+                clock=clock,
+                sleep=clock.sleep,
+            )
+
+            result = supervisor.run()
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertNotEqual(
+                result, EXIT_GAME_LOST, "an unresponsive port on a live client is not a lost game"
+            )
+            self.assertEqual(result, EXIT_BRIDGE_UNRESPONSIVE)
+            self.assertEqual(status["stop_reason"], "bridge_unresponsive_timeout")
+            events = [
+                json.loads(line)
+                for line in supervisor.supervisor_log_path.read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertTrue(
+                any(row["event"] == "bridge_unresponsive" for row in events),
+                "the outage has to be visible in the batch record even though it is not a loss",
+            )
+            self.assertFalse(
+                any(row["event"] == "game_lost_timeout" for row in events),
+                "the client process never went away, so the loss verdict must not fire",
+            )
+
+    def test_a_vanished_client_still_ends_the_batch_quickly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=None)
+            probes = iter([True] + [False] * 4000)
+            config = _config(root, clock, game_loss_grace_seconds=5.0)
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: next(probes, False),
+                client_process_alive=lambda: False,
+                clock=clock,
+                sleep=clock.sleep,
+            )
+
+            self.assertEqual(supervisor.run(), EXIT_GAME_LOST)
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["stop_reason"], "game_lost_timeout")
 
     def test_operator_stop_is_graceful_and_returns_stopped_code(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

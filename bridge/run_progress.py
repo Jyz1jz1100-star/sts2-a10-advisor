@@ -62,6 +62,7 @@ class RunCoverage:
         #: every generic proceed, with the screen and position it dismissed
         self.proceed_bypasses: list[dict[str, Any]] = []
         self.empty_candidate_refusals: list[dict[str, Any]] = []
+        self.travel_reposts: list[dict[str, Any]] = []
         #: screens that had no rule at all, keyed by type, from the first frame
         self.unhandled_screens: dict[str, list[dict[str, Any]]] = {}
         #: prompts the driver left to the in-game combat owner, by screen type
@@ -184,6 +185,27 @@ class RunCoverage:
             {"state_type": state_type, "act": act, "floor": floor, "error": error}
         )
 
+    def note_travel_repost(
+        self, act, floor, *, source: dict, destination: dict, attempt: int, waited_seconds: float
+    ) -> None:
+        """Record a map travel that was acknowledged and still did not happen.
+
+        The bridge answers ``Traveling to ...`` with status ok while the client can
+        stay on the departure node; the driver re-posts such a travel a bounded number
+        of times.  Each of those re-posts is a defect report about the layer below, so
+        it is recorded rather than absorbed into "waiting for a transition".
+        """
+        self.travel_reposts.append(
+            {
+                "act": act,
+                "floor": floor,
+                "from": source,
+                "to": destination,
+                "attempt": attempt,
+                "waited_seconds": round(waited_seconds, 3),
+            }
+        )
+
     def note_unknown_screen(self, state_type: str) -> None:
         if state_type != "unknown":
             return
@@ -263,6 +285,7 @@ class RunCoverage:
             "terminal_floor": self.terminal_floor,
             "proceed_bypasses": list(self.proceed_bypasses),
             "empty_candidate_refusals": list(self.empty_candidate_refusals),
+            "travel_reposts": list(self.travel_reposts),
             "unhandled_screens": {
                 key: list(frames) for key, frames in sorted(self.unhandled_screens.items())
             },

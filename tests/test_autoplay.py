@@ -1225,6 +1225,94 @@ class PotionActionTests(unittest.TestCase):
         self.assertEqual(self.player.decide(state), {"action": "proceed"})
 
 
+class MapTravelNoEffectTests(unittest.TestCase):
+    """A travel the bridge acknowledges but the client never performs.
+
+    Live evidence (ssb-20260921T170852Z-08fd7767, act 2 floor 26): the mod answered
+    ``Traveling to RestSite at (4,9)`` with status ok, and the client then reported the
+    same map position for 588 consecutive polls -- the client's own log never recorded a
+    ``MapVote`` for (4,9) in the whole session, though it recorded 320 others.  The hold
+    that exists to avoid double-travelling turned that silent no-op into a 5-minute stall
+    death, so the hold needs a deadline and the deadline needs an escape that is reported.
+    """
+
+    SETTLE = 8.0
+
+    def setUp(self) -> None:
+        self.now = 1000.0
+        self.player = AutoPlayer(
+            controller=None,
+            clock=lambda: self.now,
+            travel_settle_seconds=self.SETTLE,
+            max_travel_reposts=2,
+        )
+        self.stalled = {
+            "state_type": "map",
+            "run": {"act": 2, "floor": 26},
+            "player": {"hp": 60, "max_hp": 80, "potions": []},
+            "map": {
+                "current_position": {"col": 3, "row": 8, "type": "Treasure"},
+                "next_options": [
+                    {"index": 0, "col": 4, "row": 9, "type": "RestSite",
+                     "leads_to": [{"col": 3, "row": 10, "type": "Monster"}]}
+                ],
+            },
+        }
+        self.player._map_travel_committed = json.dumps(
+            self.stalled["map"]["current_position"], sort_keys=True
+        )
+        self.player._map_travel_payload = {"action": "choose_map_node", "index": 0}
+        self.player._travel_acked_at = self.now
+
+    def _advance(self, seconds: float) -> None:
+        self.now += seconds
+
+    def test_a_travel_still_settling_is_waited_on_without_reposting(self) -> None:
+        self._advance(self.SETTLE - 1.0)
+        decision = self.player.decide(self.stalled)
+        self.assertIsInstance(decision, WaitForTransition)
+        self.assertNotIn("repost", str(decision.reason).lower())
+
+    def test_a_silent_noop_travel_is_reposted_and_recorded(self) -> None:
+        self._advance(self.SETTLE + 1.0)
+        decision = self.player.decide(self.stalled)
+        self.assertEqual(decision, {"action": "choose_map_node", "index": 0})
+        rows = self.player.coverage.coverage()["travel_reposts"]
+        self.assertEqual(len(rows), 1, rows)
+        self.assertEqual((rows[0]["act"], rows[0]["floor"]), (2, 26))
+        self.assertEqual(rows[0]["from"], {"col": 3, "row": 8, "type": "Treasure"})
+        self.assertEqual(rows[0]["to"], {"col": 4, "row": 9, "type": "RestSite"})
+
+    def test_reposting_is_bounded_and_the_deadlock_is_named(self) -> None:
+        for attempt in range(2):
+            self._advance(self.SETTLE + 1.0)
+            self.assertEqual(
+                self.player.decide(self.stalled),
+                {"action": "choose_map_node", "index": 0},
+                f"attempt {attempt}",
+            )
+        self._advance(self.SETTLE + 1.0)
+        with self.assertRaises(AutoplayClassifiedStop) as caught:
+            self.player.decide(self.stalled)
+        self.assertEqual(caught.exception.reason, "travel_no_effect")
+        self.assertIn("(3,8)", caught.exception.detail)
+        self.assertIn("(4,9)", caught.exception.detail)
+        self.assertEqual(len(self.player.coverage.coverage()["travel_reposts"]), 2)
+
+    def test_leaving_the_node_clears_the_lock_so_the_next_travel_is_free(self) -> None:
+        self.stalled["map"]["current_position"] = {"col": 4, "row": 9, "type": "RestSite"}
+        self.stalled["map"]["next_options"] = [
+            {"index": 0, "col": 3, "row": 10, "type": "Monster"}
+        ]
+        self._advance(self.SETTLE + 5.0)
+        self.assertEqual(
+            self.player.decide(self.stalled), {"action": "choose_map_node", "index": 0}
+        )
+        self.assertEqual(self.player.coverage.coverage()["travel_reposts"], [])
+        self.assertIsNone(self.player._map_travel_committed)
+        self.assertEqual(self.player._travel_reposts, 0)
+
+
 class CrystalSphereTests(unittest.TestCase):
     """The Crystal Sphere is a screen with its own actions, not a dead end.
 
