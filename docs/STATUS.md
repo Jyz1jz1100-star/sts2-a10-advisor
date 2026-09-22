@@ -2692,3 +2692,117 @@ now started before that edit, so the confirmation belongs to the next one. The F
 attempt continues unattended.
 
 
+
+## 2026-09-22 (night): the last three red points close, and the pilot's precondition turns out not to exist
+
+Closure pass on the four main lines. Six commits. Battery re-run against
+`sts2sim-campaign-fidelity-v4`, nothing relaxed to get there — two of the checks got
+*stricter*, and one of them immediately flipped a PASS to a FAIL on the flagship trace.
+
+**THE_ARCHITECT is closed on the driver side, and the reason it stopped was us.** The
+deepest live run this project has recorded (`ssb-20260922T082137Z-a6886c18`, act 3
+floor 49) had already cleared **both** Act 3 bosses and eight of the eleven contract
+items; it stopped because an event room between two of its own frames offers neither a
+candidate nor an exit, and `decide()` returned `None`, which the driver reads as "no
+rule for this screen". It is now a bounded hold, with two frames captured from that same
+run as fixtures (the offer, which has exactly one candidate and is taken, and the
+closing frame, which is waited on) and a negative control proving that a screen with no
+rule at all still returns `None`. Whether the game's own victory flag becomes observable
+after the last step is **not yet proven** — that needs one live run walked through the
+ending, and the client is currently down (below).
+
+**The rest-site hold is verified fixed on real hardware**, and as a differential rather
+than a unit test. Across three consecutive batches under the same candidate contract:
+22 refusals, then 18, then **0**, while deliberate holds went 3, then 7, then **25**
+across 12 distinct campfires in all three acts. The refusals did not get rarer, they
+moved into the hold; `the rest site is spent and shows no exit yet` accounts for 22 of
+the 25.
+
+**Two contract items were found to be unable to fail, and now can.**
+`verify_full_run_contract.py` rebuilds coverage by replaying the trace's state frames —
+correctly, so a run cannot borrow a neighbour's evidence — but an unhandled screen posts
+nothing and a held frame is by definition an action that was *not* taken, so neither
+leaves a mark a replay can find. `no_screen_skipped_without_a_rule` therefore passed on
+the trace whose own final line reads `unhandled_screen … screen 'event' at act 3 floor
+49`, and the hold counter that exists to stop a clean pass hiding a run that spent its
+time waiting printed `waits={}` for every trace on disk. Both now read the driver's own
+per-run ledger out of the `session_end` summary, keyed by act set and terminal floor; a
+stream that carried a summary with no row for this run fails rather than reading clean.
+The immediate effect on the flagship trace is 9/11 → **8/11**, and the census it now
+names includes **17 frames that reported no screen at all** — a poll landing between two
+rooms, which the driver had been classifying as unmodelled content. Those are held on
+now, scoped to frames carrying no screen payload: an `unknown` that *does* have a
+container is still unmodelled content and still fails the way unmodelled content fails.
+
+**Smoke item 11 was the wrong instrument, not a broken world.** Its name is
+`episode_crosses_act_boundaries`; it asked whether one seed reached floor 34, which is a
+statement about how far one Act-1 checkpoint walks. It has been red since fidelity-v2
+deleted the invented boss relic (that seed's deepest floor went 50, then 19, then 15)
+while the mechanism it is named for was never broken. It could not have measured that
+mechanism either: `act` is read once at reset, so every campaign episode reported the act
+it was *dealt*, and no floor separates the two cases, because Act 1 ends on floor 16 or
+17 and Act 2 starts on the very next one. Metrics schema 7 now carries the deepest act an
+episode was actually in. The check walks the four seeds the v4 gate sweep measured as
+crossing, requires all four to carry in the training stack, and re-runs them in
+single-act mode as a control that must report zero. **11/11**, with deepest floor 19 and
+`campaign_clears=0` still printed in the detail — depth is strength, and it is reported
+rather than hidden. The seed list is tracked under `data/seeds/` together with the
+environment version it was measured in, so a version change invalidates an inherited
+pass instead of carrying it.
+
+**A new live blocker, caught by the collection run and fixed the same night.** The batch
+started at 10:32Z stopped itself at act 2 floor 30: an enchant grid asking for three
+cards had `can_confirm` true with nothing selected, the driver confirmed an empty
+selection four times, each post answered `ok` with nothing moved, the proceed escape was
+refused (`No proceed button available or enabled`), and the repeat guard stopped the
+batch. The shipped screen enables that button before any pick and wires it to
+`PreviewSelection`, not `ConfirmSelection` (`NDeckEnchantSelectScreen.cs:223-226`,
+`:288-297`); the build's own auto-player selects first for exactly that reason
+(`DeckEnchantScreenHandler.cs`, up to `min(count, 5)`). The walk now reads the required
+count off the screen's own prompt — the build formatting `CardSelectorPrefs.Prompt` into
+its bottom label — shows that many distinct cards, preferring the same basic Strikes a
+one-pick enchant already went for, and only then confirms. An unparseable prompt keeps
+the old behaviour instead of guessing, which is the case a control pins and the case my
+first version of this fix got wrong.
+
+**Battery, re-run tonight.** Engine 239/239; contract suite 643; training-venv suite
+132; G1–G6 **6/6 with `hard_gate_passed=true`**, reproduced on a fresh four-seed walk
+this evening and consistent with the committed 10,000-seed artifact
+(`docs/evidence/campaign_fidelity_gates_20260922_v4.json`); 36 anchored engine citations
+still on their hashed build; report claims **61/61** under the training venv after the
+schema bump.
+
+## The pilot's precondition is a gap, and it is not the model
+
+The directive asked for a bounded production-scale full-run pilot. Reading the trainer
+before spending the budget found that **the training rollouts never run the campaign at
+all.** `campaign` exists in exactly one place in the training stack — a keyword on
+`evaluate_policy` — and in none of `training/curriculum.py`, `training/v2_curriculum.py`,
+`training/config.py` or `training/v2_config.py`. The env wrapper forwards `options` to
+`reset` and SB3 passes `options=None` during collection, so every collected episode is a
+single-act draw. `config/training.toml` does declare a `full_run` stage with
+`max_floors = 49` and scope `simulator_full_run`, which is what makes this easy to miss:
+the *scope* says three acts while the *collector* does half of one.
+
+A pilot launched today would therefore optimise Act-1 episodes, label them full-run, and
+answer "did the policy learn?" with a measurement of something else — precisely the
+structural problem the pilot exists to catch, and it would have surfaced as flat act-3
+arrival attributed to the network. This is also why no training artifact has ever reached
+Act 3: the branch was never collectable, not never winnable.
+
+Minimal fix, scoped and **not yet done**: a `campaign` flag on the stage config, threaded
+into the collector's `reset` options (the wrapper already forwards them), leaving the
+checkpoint/promotion/final seed ranges and the environment stamping as they are — roughly
+the shape of the evaluation-side flag it mirrors. Until it lands the pilot should not be
+started, and the RL start conditions below are marked against that.
+
+## Live collection is blocked on the client, and was not rescued
+
+After the card-select fix landed I started the next batch (`ssb-20260922T120507Z-5452d8e5`)
+so the fixed driver would be the one collecting. Its children exited within a second with
+`0xC0000409` — the client-side crash already tracked separately — and
+`Slay the Spire 2.exe` is not running. `autostart/supervisor.py` waits for the game rather
+than launching it, so bringing the client up is an operator action, and raising it through
+Steam is off-limits. **The Floor 1 → victory attempt is idle, not running.** The first
+thing the next batch has to confirm is the Act-3 ending on live hardware with all three
+driver fixes in place.

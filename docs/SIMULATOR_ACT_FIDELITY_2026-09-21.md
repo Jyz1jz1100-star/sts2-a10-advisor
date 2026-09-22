@@ -409,3 +409,42 @@ v4 的引擎改动又挪走了全部引用行号，这次按 §8 的规矩走：
 `emulator_source_provenance` 六项在 71 条引用上重算相符，声明检查 61/61。
 
 
+
+## 10. Training-risk classification of the v4 `not_modelled` list (2026-09-22 night)
+
+The closure directive asked for one thing from this list, and explicitly not for more
+fidelity work: tag each entry by whether it can systematically mislead a policy that
+trains here. Scale is the game's own — LOW is "no evidence it changes the policy",
+MEDIUM is "plausibly changes it, re-check against live data after the first run", HIGH is
+"known to make the training objective wrong".
+
+Read out of `training/campaign_content.py`, the v4 declaration, in that file's order.
+No entry is argued up or down to reach a verdict; the two that hurt most are the ones
+still open.
+
+| # | not_modelled entry | risk | why, and what would change the tag |
+|---|---|---|---|
+| 1 | Placement can fall short of the queue (a Glory map came out with 4 elites, a Hive map with 5 rests) | **LOW** | The shipped generator runs the same prune/repair pass, and the equality over 24 seeds is *measured* rather than assumed from the build, so this is the game's own variance and not our distortion of it. Re-tag if live maps turn out to place elites more densely than the emulator's pass allows. |
+| 2 | The unknown node's re-roll on entry (`RunManager.cs:935`, `UnknownMapPointOdds`) | **MEDIUM** | An Unknown that would become a monster, treasure, shop or elite never does here, so the branch a policy learns to value is narrower than the game's. It cannot teach a *wrong* response to a state it does show, which is why it is not HIGH; it under-trains a branch. Re-check by comparing live unknown-node outcomes against the emulator's after the first pilot. |
+| 3 | The generator's map shape node for node (seven paths, crossover rejection, three assignment passes, column shift) | **LOW** | Ported, and the gate is judged on rows, room counts and the two independently measured boss-floor sets (17/33/48 on both sides) rather than on claiming map-for-map identity. Connectivity is exercised by real walks, not asserted. |
+| 4 | Orobas as an act 2 ancient (hidden behind `OrobasEpoch`, and no unlock state is modelled) | **LOW** | Excluded rather than dealt unconditionally, which is the honest direction for a gap: the act-2 ancient decision still exists with its other candidates. It removes an option; it does not invent one. |
+| 5 | Deck-conditional ancient options needing counts this engine does not track (Pael's claw/tooth, Nonupeipe's BeautifulBracelet, Tanx's TriBoomerang) | **MEDIUM** | Three of the six acts'-ancients decisions get narrower candidate sets than the game's. That lands directly on the decision class the trainable gap lives in — what an ancient screen is worth — so it is the entry most likely to be re-tagged after a pilot, and the one to compare first against live ancient screens. |
+| 6 | SeaGlass's other-character binding (Orobas offers it as itself, one playable character) | **LOW** | Single-character scope is a stated boundary of this whole environment, not a distortion inside it. |
+| 7 | `Hook.ShouldAllowAncient` collapsing a disallowed ancient to a single PROCEED | **LOW** | A rare real-game branch is simply absent. Absent branches cost coverage, not correctness. |
+| 8 | Out-of-combat death: an ancient's max-health price can end a real run; this engine floors it at 1 HP | **MEDIUM** | The only entry that makes the emulator *more forgiving than the game at a decision the policy is being asked to learn*, which is the shape a systematic bias takes. Held at MEDIUM on measurement, not on hope: every ancient screen in today's live traces was arrived at with at least 80% of max HP, so the floor has never had anything to hide. The check that moves it is the pilot's minimum-HP-at-ancient distribution — if a policy trained here ever learns to walk into a price it could not survive, this is HIGH and the floor has to go. |
+| 9 | `AscensionLevel`: the double boss is unconditional, which is A10 and nothing else | **LOW** | The product target *is* A10. The entry is a scoping statement, and it is exact for that scope. |
+| 10 | No per-act or per-floor difficulty scaling, and no `SwarmingElites` (A2's 8 elites) | **MEDIUM** | The campaign is A10-shaped in boss count and reward odds but not in enemy scaling, so late-act fights are probably softer than the shipped game's. This is the largest single reason the tier deliberately sits below `content_verified`, and the reason strength read off this environment must be confirmed live rather than assumed. |
+| 11 | `TheArchitect`: the real run ends in an EventRoom after the second boss; the engine ends it on a cleared flag | **LOW** for training | The ending carries no trainable decision, and both forms terminate the episode. It is *not* low on the live path — that screen is where the deepest real run stopped, and the driver now handles it (see STATUS 2026-09-22 night). Listed here so the two are not confused: the simulator gap is cosmetic, the client gap was load-bearing. |
+| 12 | `ExoskeletonsWeak` and `DevotedSculptorWeak` have no separate weak variant, so those slots draw the normal encounter | **LOW** | Two weak slots per act fight a stronger variant than the game would put there. It biases early difficulty slightly *up*, which is the safe direction, and G1 already reports it as a residual difference rather than a pass. |
+
+**No entry is HIGH.** Two of them — the deck-conditional ancient candidates and the
+floored out-of-combat death — sit on the same decision class (what an ancient screen is
+worth), so the first pilot should be read with those two in mind rather than treated as
+settling them. Difficulty scaling without an ascension model is the broadest gap on the
+list and is already priced into the result tier: a number from this environment says what
+the campaign contains, not that the game is that easy.
+
+Nothing in this table was obtained by relaxing a gate. The two entries most likely to be
+argued as HIGH on principle (8 and 10) are the two the environment's own tier statement
+already refuses to overclaim, and the pilot metrics that would re-tag them are named so
+the judgement can be revisited with data instead of re-litigated with prose.
