@@ -39,6 +39,12 @@ class StageConfig:
     experimental: bool
     promotion: PromotionConfig
     promotion_probe_every_steps: int = 0
+    #: Ask the simulator for the three-act campaign walk instead of the single act it
+    #: draws per seed. Off by default because every stage written before it exists is a
+    #: single-act stage, and because the flag has to cover collection *and* the
+    #: in-training evaluations: a policy that trains on campaign episodes and is scored
+    #: on single-act ones produces two different worlds under one scope name.
+    campaign: bool = False
 
 
 @dataclass(frozen=True)
@@ -136,6 +142,7 @@ def load_training_config(path: Path) -> TrainingConfig:
             experimental=bool(table.get("experimental", False)),
             promotion=promotion,
             promotion_probe_every_steps=int(table.get("promotion_probe_every_steps", 0)),
+            campaign=bool(table.get("campaign", False)),
         )
         _validate_stage(stage)
         stages.append(stage)
@@ -209,6 +216,17 @@ def load_training_config(path: Path) -> TrainingConfig:
 def _validate_stage(stage: StageConfig) -> None:
     if stage.environment not in {"combat", "run"}:
         raise ValueError(f"stage {stage.name}: environment must be combat or run")
+    if stage.campaign and stage.environment != "run":
+        # There is no act structure inside a single fight, so a campaign combat stage
+        # would be a typo that silently changes what the run stage beside it means.
+        raise ValueError(f"stage {stage.name}: campaign requires environment = 'run'")
+    if stage.campaign and stage.max_floors and stage.max_floors < 49:
+        # A campaign walk cannot reach the paired boss of the final act inside a
+        # single-act floor ceiling; capping it there would collect half a campaign and
+        # score it as one. 49 is where the shipped build's second final-act boss sits.
+        raise ValueError(
+            f"stage {stage.name}: campaign needs max_floors >= 49, got {stage.max_floors}"
+        )
     integer_values = (
         stage.timesteps,
         stage.parallel_envs,

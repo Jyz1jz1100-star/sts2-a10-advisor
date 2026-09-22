@@ -652,6 +652,136 @@ class FakeSavingPolicy:
         Path(str(path) + ".zip").write_bytes(b"fake checkpoint")
 
 
+_HAS_GYMNASIUM = (
+    __import__("importlib.util", fromlist=["x"]).find_spec("gymnasium") is not None
+)
+
+
+class CampaignCollectionTests(unittest.TestCase):
+    """A campaign stage must collect campaigns, and a single-act stage must not start to.
+
+    `campaign` lived only on ``evaluate_policy``, and SB3 resets with ``options=None``,
+    so the full_run stage trained on single-act episodes while every one of its
+    artefacts said ``simulator_full_run``. That is not a weak policy, it is a stage that
+    was never asking for the world it is named after -- and it is why no training
+    artifact had ever reached Act 3.
+    """
+
+    @staticmethod
+    def _stage(**overrides):
+        from training.config import StageConfig
+
+        base = dict(
+            name="full_run",
+            environment="run",
+            timesteps=1000,
+            parallel_envs=1,
+            checkpoint_every_steps=500,
+            checkpoint_eval_episodes=1,
+            promotion_eval_episodes=1,
+            max_episode_steps=40,
+            max_floors=49,
+            initialize_from_previous=False,
+            experimental=False,
+            promotion=PromotionConfig(
+                min_episodes=1,
+                min_win_rate=0.0,
+                min_wilson_lower=0.0,
+                max_truncation_rate=1.0,
+                max_illegal_actions=0,
+            ),
+        )
+        base.update(overrides)
+        return StageConfig(**base)
+
+    @staticmethod
+    def _record_env():
+        import gymnasium as gym
+        import numpy as np
+
+        class Env(gym.Env):
+            """Minimal stand-in: the only thing under test is what reset was asked for."""
+
+            def __init__(self):
+                super().__init__()
+                self.resets: list[dict | None] = []
+
+            def reset(self, *, seed=None, options=None):
+                self.resets.append(options)
+                return np.zeros(3, dtype=np.float32), {"act": 1}
+
+            def action_masks(self):
+                return np.array([True, False, False])
+
+            def step(self, action):
+                return np.zeros(3, dtype=np.float32), 0.0, False, False, {}
+
+            def close(self):
+                pass
+
+        return Env()
+
+    def _collect(self, stage):
+        from training.curriculum import _training_environment_factory
+
+        class Gym:
+            def __init__(self, env):
+                self.env = env
+
+            def Sts2RunEnv(self, **kwargs):
+                return self.env
+
+        holder = self._record_env()
+        initialize = _training_environment_factory(
+            stage, Gym(holder), SeedPartition("train", 0, 100), rank=0, workers=1
+        )
+        wrapped = initialize()
+        for _ in range(3):
+            wrapped.reset()
+        return list(holder.resets)
+
+    @unittest.skipUnless(_HAS_GYMNASIUM, "the collector is built by gymnasium")
+    def test_a_campaign_stage_asks_for_the_campaign_on_every_reset(self) -> None:
+        seen = self._collect(self._stage(campaign=True))
+        self.assertTrue(seen, "the wrapper never reset, so nothing was collected")
+        for options in seen:
+            self.assertEqual((options or {}).get("campaign"), True, options)
+
+    @unittest.skipUnless(_HAS_GYMNASIUM, "the collector is built by gymnasium")
+    def test_a_single_act_stage_still_gets_no_campaign_option(self) -> None:
+        """Negative control, and the half that keeps act1/floor3 artifacts comparable."""
+        seen = self._collect(self._stage(name="act1", max_floors=16, campaign=False))
+        for options in seen:
+            self.assertNotIn("campaign", options or {}, options)
+
+    def test_the_shipped_full_run_stage_is_the_one_declaring_campaign(self) -> None:
+        config = load_training_config(Path("config/training.toml"))
+        self.assertTrue(config.stage("full_run").campaign)
+        for name in ("combat", "act1"):
+            self.assertFalse(config.stage(name).campaign, name)
+
+    def test_campaign_cannot_be_declared_on_a_ceiling_that_stops_mid_campaign(self) -> None:
+        """A floor ceiling below the final act's second boss collects half a campaign and scores it as one."""
+        from training.config import _validate_stage
+
+        with self.assertRaises(ValueError) as caught:
+            _validate_stage(self._stage(campaign=True, max_floors=17))
+        self.assertIn("max_floors", str(caught.exception))
+
+        _validate_stage(self._stage(campaign=True, max_floors=49))
+
+    def test_a_combat_stage_cannot_ask_for_a_campaign(self) -> None:
+        from training.config import _validate_stage
+
+        with self.assertRaises(ValueError) as caught:
+            _validate_stage(
+                self._stage(
+                    name="combat", environment="combat", max_floors=None, campaign=True
+                )
+            )
+        self.assertIn("combat", str(caught.exception))
+
+
 class EarlyPromotionTests(unittest.TestCase):
     def _callback(self, directory: str, stage, model, promotion_seeds):
         from training.curriculum import _callback_class

@@ -101,6 +101,11 @@ def _training_environment_factory(
             actual_seed = stream.next() if seed is None else seed
             self._steps = 0
             self._empty_mask_pending = False
+            # SB3 resets with options=None, so this is the only place a stage can ask
+            # for the campaign -- which is why a campaign stage used to collect
+            # single-act episodes while every artefact said simulator_full_run.
+            if stage.campaign:
+                options = {**(options or {}), "campaign": True}
             observation, info = self.env.reset(seed=actual_seed, options=options)
             self._last_observation = observation
             self._last_info = dict(info)
@@ -200,6 +205,7 @@ def _callback_class(base_callback: type):
                 checkpoint=checkpoint,
                 experimental=self.stage.experimental,
                 max_steps_per_episode=self.stage.max_episode_steps,
+                campaign=self.stage.campaign,
             )
             metrics_path = self.stage_dir / "metrics" / f"{stem}.json"
             atomic_write_json(metrics_path, metrics.to_dict())
@@ -241,6 +247,7 @@ def _callback_class(base_callback: type):
                 checkpoint=checkpoint.with_suffix(".zip"),
                 experimental=self.stage.experimental,
                 max_steps_per_episode=self.stage.max_episode_steps,
+                campaign=self.stage.campaign,
             )
             atomic_write_json(
                 self.stage_dir / "metrics" / f"{stem}.json", metrics.to_dict()
@@ -374,6 +381,7 @@ def _train_stage(
             checkpoint=final_checkpoint,
             experimental=stage.experimental,
             max_steps_per_episode=stage.max_episode_steps,
+            campaign=stage.campaign,
         )
         atomic_write_json(stage_dir / "metrics" / "promotion.json", metrics.to_dict())
         decision = decide_promotion(metrics, stage.promotion)

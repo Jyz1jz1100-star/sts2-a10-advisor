@@ -63,10 +63,16 @@ class V2StageConfig:
     #: and final partitions stay ranges, so a filtered arm remains comparable
     #: with the unfiltered ones.
     train_seeds_file: str | None = None
+    #: Collect and score the three-act campaign walk rather than the single act the
+    #: simulator deals per seed. The reset chain already forwards this down to the
+    #: native layer; nothing above it was ever asking.
+    campaign: bool = False
 
     @property
     def scope(self) -> str:
-        return "simulator_act1"
+        # A campaign stage's episodes are not act-1 episodes, and labelling them
+        # simulator_act1 is what let a full-run arm be read as an Act-1 one.
+        return "simulator_full_run" if self.campaign else "simulator_act1"
 
 
 @dataclass(frozen=True)
@@ -155,6 +161,7 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
             ),
             max_episode_steps=int(_require(table, "max_episode_steps", int)),
             max_floor=(int(table["max_floor"]) if "max_floor" in table else None),
+            campaign=bool(table.get("campaign", False)),
             initialize_from_previous=bool(table.get("initialize_from_previous", False)),
             train_seeds_file=(
                 None if "train_seeds_file" not in table

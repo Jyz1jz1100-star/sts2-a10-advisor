@@ -91,6 +91,10 @@ max_illegal_actions = 0
 
 [stages.full_run]
 environment = "run"
+# Collect and score the three-act walk. Without this the simulator draws one act per
+# seed, so the stage trains single-act episodes under a simulator_full_run scope --
+# which is what every full-run number before 2026-09-22 was measuring.
+campaign = true
 timesteps = 500000000
 parallel_envs = 12
 checkpoint_every_steps = 5000000

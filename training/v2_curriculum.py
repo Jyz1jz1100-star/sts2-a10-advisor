@@ -182,6 +182,11 @@ def _training_environment_factory(
 
         def reset(self, *, seed=None, options=None):
             actual_seed = stream.next() if seed is None else seed
+            # SB3 calls reset with no options between episodes, so this is the only
+            # place a stage can ask the simulator for the three-act walk. The chain
+            # below already forwards options all the way to the native reset.
+            if stage.campaign:
+                options = {**(options or {}), "campaign": True}
             return self.env.reset(seed=actual_seed, options=options)
 
         def action_masks(self):
@@ -253,6 +258,10 @@ def _callback_class(base_callback: type):
                 scope=self.stage.scope,
                 checkpoint=checkpoint,
                 max_steps_per_episode=self.stage.max_episode_steps,
+                # The same flag the collector uses: a policy trained on campaign
+                # episodes has to be scored on campaign episodes, or the checkpoint
+                # curve and the promotion gate describe different worlds.
+                campaign=self.stage.campaign,
             )
             payload = metrics.to_dict()
             payload["v2"] = {
