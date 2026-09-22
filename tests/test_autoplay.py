@@ -24,6 +24,7 @@ from bridge.trace_controller import (
 )
 from advisor_core.live_candidate_codec import EmptyCandidateError
 from advisor_core.live_candidate_codec import LiveCandidateContractError
+from advisor_core.live_candidate_codec import MissingStateError
 
 FIXTURES = Path(__file__).parent / "fixtures" / "screens"
 
@@ -187,6 +188,40 @@ class AutoplayDecisionTests(unittest.TestCase):
             self.player.decide({**state, "player": {"hp": 20, "max_hp": 80}}),
             {"action": "choose_rest_option", "index": 0},
         )
+
+    def test_a_spent_rest_site_waits_for_its_exit_instead_of_reporting_no_candidates(self) -> None:
+        """The client clears the option list on select and only later enables Proceed.
+
+        All 21 `empty_candidate_refusals` in batch ssb-20260922T060426Z-3e522007 were this window:
+        every empty frame followed its own accepted `choose_rest_option`. The shipped build
+        legitimately publishes the room spent -- `RestSiteSynchronizer.ChooseOption` clears
+        `restSite.options` under `ShouldDisableRemainingRestSiteOptions`, and
+        `NRestSiteRoom.AfterSelectingOptionAsync` awaits `HideChoices` plus the heal VFX before
+        `ShowProceedButton()`. So `options: []` with `can_proceed: false` is "nothing to choose yet,
+        no exit yet", not a screen with no legal move: recording it cost ~1 s per rest site and made
+        eight clean episodes look like 21 flow defects.
+        """
+        spent = {
+            "state_type": "rest_site",
+            "rest_site": {"can_choose": True, "can_proceed": False, "options": []},
+            "run": {"act": 1, "floor": 16},
+        }
+        self.assertIsInstance(self.player.decide(spent), WaitForTransition)
+
+        # The same frame once the exit is up is a decision, not a wait.
+        spent["rest_site"]["can_proceed"] = True
+        self.assertEqual(self.player.decide(spent), {"action": "proceed"})
+
+        # An older bridge that publishes no `can_proceed` is still refused: an absent flag must not
+        # become a licence to idle, or a genuinely empty room stops being visible. The codec demands
+        # the field outright, so the refusal is a contract error rather than an empty candidate list.
+        legacy = {
+            "state_type": "rest_site",
+            "rest_site": {"can_choose": True, "options": []},
+            "run": {"act": 2, "floor": 29},
+        }
+        with self.assertRaises(MissingStateError):
+            self.player.decide(legacy)
 
     def test_rest_site_payload_uses_option_index(self) -> None:
         state = load("rest_site")

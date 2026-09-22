@@ -687,4 +687,27 @@ act1 checkpoint 在 10,000 个声明种子里只有 2 局进第二幕、0 局进
   审计的产出就是引用，引用只跟自己的快照一致等于没审。现在每处挪动必须过一个锚点，
   锚点表连同它的测试一起进了 `tests/test_emulator_provenance.py`。
 
+## 16. 休息点"无可显示候选"：21 条全是我们自己的判据错（2026-09-22 下午）
+
+§13 记下"没有候选"这件事第一次被看见之后，跑完的验收批次
+`ssb-20260922T060426Z-3e522007` 在 8 局里记了 **21** 条
+`rest_site: no legal visible candidates`（act 1 的 7/8/9/11/16 层、act 2 的 29 层等）。
+流式核对 trace 的结论是**实现缺陷，21 条无一例外**：每一条都紧跟在它自己那次被接受的
+`choose_rest_option` 之后，而客户端在选项被选中时就清空 `rest_site.options`
+（`RestSiteSynchronizer.ChooseOption` → `ShouldDisableRemainingRestSiteOptions`），
+`ShowProceedButton()` 要等 `HideChoices` 加治疗特效之后才出现。
+所以那一帧是"已花掉、出口还没开"的合法过渡态，不是决策点；驱动却拿它去问候选生成器，
+于是每次休息点多花 1 秒退避、并把八局干净的局记成 21 条流程缺陷。
+
+这不是 §11.5/§12/§13 那条老原因：那 42 个空帧里 `can_choose` 全部为 `true`，而 `can_choose`
+的守卫在本次批次里另外只单独触发过 4 次。同一族（未建模的休息点窗口），不同的判据、不同的窗口。
+
+修法是把 hold 扩到这一形状，而不是给候选生成器放宽标准：`can_choose is False`，或者 `options`
+为空**且** `can_proceed` 明确为 `false` → `WaitForTransition`，沿用已有的停滞看门狗与
+`waits_for_transition` 计数，真卡住的休息点仍然会被点名；`can_proceed` 缺失（旧桥接）仍然落到
+生成器那里被拒绝——缺字段不等于获准空转。判据与三种情形都进了 `tests/test_autoplay.py`。
+
+还没被证实的：正在跑的批次早于这次修改，所以"下一批 rest_site 空候选归零"要等它跑完才算数；
+在那之前这一条只能写成**已修待验**，不是已验证。
+
 

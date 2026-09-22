@@ -1,7 +1,7 @@
 """A frozen environment keeps its meaning, and a gate cannot pass on text alone.
 
-The campaign is stamped ``sts2sim-campaign-fidelity-v3``; before it, every artifact carried
-``sts2sim-campaign-approx-v1``, and fidelity v2 froze a declaration that G2 was still open.
+The campaign is stamped ``sts2sim-campaign-fidelity-v4``; before it came
+``sts2sim-campaign-approx-v1``, then fidelity-v2 (G6+G1+G3), then fidelity-v3 (G2).
 Three things have to stay true: nobody may
 edit what a frozen version *contains* while keeping its name (history would become
 unreadable), the retired approximate declaration has to stay readable as what it was,
@@ -24,6 +24,7 @@ from training.campaign_content import (
     CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2,
     FROZEN_ENVIRONMENT_DECLARATIONS,
     CAMPAIGN_ENVIRONMENT_VERSION,
+    RESULT_TIERS,
     FROZEN_ENVIRONMENT_DECLARATIONS,
     FROZEN_ENVIRONMENT_VERSIONS,
     EnvironmentVersionError,
@@ -116,7 +117,7 @@ class FrozenEnvironmentTests(unittest.TestCase):
         self.assertNotEqual(entry["content_sha256"],
                             FROZEN_ENVIRONMENT_VERSIONS[CAMPAIGN_ENVIRONMENT_VERSION]["content_sha256"])
 
-    def test_the_published_version_closes_four_gates_and_claims_no_more(self) -> None:
+    def test_the_published_version_closes_the_gates_it_claims_and_no_more(self) -> None:
         self.assertEqual(
             sorted(CAMPAIGN_CONTENT_COVERAGE["gates_closed"]),
             sorted(
@@ -125,19 +126,23 @@ class FrozenEnvironmentTests(unittest.TestCase):
                     "G1_act_pools",
                     "G3_second_boss_structure",
                     "G2_ancients",
+                    "G4_map_shape",
+                    "G5_reward_and_upgrade_distribution",
                 ]
             ),
         )
-        self.assertEqual(
-            sorted(CAMPAIGN_CONTENT_COVERAGE["gates_open"]),
-            ["G4_map_shape", "G5_reward_and_upgrade_distribution"],
-        )
-        # Closing three gates is not closing the environment: the verdict stays
-        # approximate until every hard gate is shut.
+        self.assertEqual(sorted(CAMPAIGN_CONTENT_COVERAGE["gates_open"]), [])
+        # All six hard gates closed is still not the tier above: the verdict stays
+        # approximate, and the ladder's own text says what is missing (no ascension model,
+        # no unknown-node re-roll, no TheArchitect exit, placement short of the queue).
         self.assertEqual(CAMPAIGN_CONTENT_COVERAGE["verdict"], "approximate")
         self.assertNotEqual(
             CAMPAIGN_CONTENT_COVERAGE["result_tier"],
             "simulator_three_act_content_verified",
+        )
+        self.assertIn(
+            "not content-verified",
+            RESULT_TIERS[CAMPAIGN_CONTENT_COVERAGE["result_tier"]],
         )
 
     def test_editing_frozen_content_under_the_same_name_raises(self) -> None:
@@ -155,8 +160,10 @@ class FrozenEnvironmentTests(unittest.TestCase):
         self.assertIn("different environment", str(caught.exception))
 
     def test_an_unfrozen_version_may_declare_anything(self) -> None:
+        # A name nobody has frozen yet: v4 is registered now, so a test that reused it would be
+        # asserting that a frozen label accepts arbitrary content, which is the opposite of the rule.
         digest = assert_content_declaration(
-            "sts2sim-campaign-fidelity-v4", {"verdict": "content_verified"}
+            "sts2sim-campaign-fidelity-v5", {"verdict": "content_verified"}
         )
         self.assertEqual(len(digest), 64)
 
@@ -200,8 +207,10 @@ class FidelityHarnessTests(unittest.TestCase):
         self.assertIn(
             "IsGloryAct", second_boss["engine"]["generate_second_boss_body"]
         )
-        self.assertIn(
-            "MapBossRow + 1", second_boss["engine"]["generate_second_boss_body"]
+        self.assertTrue(
+            "MapBossRow + 1" in second_boss["engine"]["generate_second_boss_body"]
+            or "ActBossRow + 1" in second_boss["engine"]["generate_second_boss_body"],
+            "the paired boss is no longer dealt one row past its act's boss",
         )
         self.assertIn(
             "SecondBossCoord", second_boss["engine"]["open_second_boss_row_body"]

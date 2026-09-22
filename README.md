@@ -78,19 +78,25 @@
 
 `--backend sim` 转发到 `scripts/probe_three_act_campaign.py`，scope 是
 `simulator_three_act`，并自动带上 `environment_version` 与 `content_coverage`。
-2026-09-22 起当前版本是 **`sts2sim-campaign-fidelity-v3`**（verdict 仍是 `approximate`）：
+2026-09-22 起当前版本是 **`sts2sim-campaign-fidelity-v4`**（verdict 仍是 `approximate`）：
 第二、三幕不再抽 Underdocks 换皮池，而是各抽自己那一幕 —— Overgrowth → Hive → Glory
 （`ActModel.cs:510-515`），进幕时先站到**那一幕自己的先古之民**面前（`StandardActMap.cs:333-338`
 把每幕起点设成先古节点；候选来自各先古真实选项池，其中第二幕只在 Pael / Tezcatara 之间抽——
 Orobas 要 epoch 解锁，模拟器没有解锁进度，所以第二幕按 `partial` 声明而不是当作已对齐），最终幕的配对 boss 改成"先回地图、
-再走到 boss 之后那一行"，并且删掉了真实游戏根本不发的 boss 遗物奖励。
-这关闭了 G6/G1/G3/G2；**G4（每幕地图形状与 2/3 幕事件池）、G5（升级概率与 boss 奖励分布）
-仍然不真实**。历史版本号 `sts2sim-campaign-approx-v1` 与 `sts2sim-campaign-fidelity-v2`
-都已被摘要冻结：带这些名字的产物永远表示它们当时的内容，三种环境的产物不得平均、
-不得互判、不得续档。
-幕区间与真机的对照只用已核实的坐标：真机 act 1/2/3 的 boss 节点分别在 **floor 17 / 33 / 48**
-（2026-09-20 trace 重算，`docs/evidence/live_run_coverage_20260920.json`），模拟器的幕带是
-1–17 / 18–33 / 34–50（`RunConstants.cs` 的 `MapBossRow = 16` 推出，第三幕多的 1 层是配对 boss）。
+再走到 boss 之后那一行"，并且删掉了真实游戏根本不发的 boss 遗物奖励。v4 再补两件事：**每一幕生成
+自己的地图**（15/14/13 房间、boss 行 16/15/14、每幕自己的休息/未知/精英/商店队列与事件池，
+不再是三幕共用 16 行 + Underdocks 事件表），以及**升级概率与奖励构成按幕/按房间类型走**
+（0% / 12.5% / 25%，稀有卡永不升级、且抽签先于判定；最终幕 boss 什么都不发，连药水那一抽也不消耗）。
+**六项硬保真门 G1–G6 至此全部 PASS**（`hard_gate_passed=true`，第一次）。这不等于"已与客户端逐节点
+验证等价"：仍然没有 Ascension 模型、Unknown 进场再抽签、TheArchitect 结局、两个 weak 遭遇变体，
+且短地图里放置可以少于队列——这些留在声明的 `not_modelled` 里，tier 也因此停在
+`content_verified` 之下。历史版本号 `sts2sim-campaign-approx-v1`、`...-fidelity-v2`、
+`...-fidelity-v3` 都已被摘要冻结：带这些名字的产物永远表示它们当时的内容，不同环境的产物
+不得平均、不得互判、不得续档。
+幕区间与真机的对照现在两边都是推出来的并且相等：真机 act 1/2/3 的 boss 节点在 **floor 17 / 33 / 48**
+（2026-09-20 trace 实测，`docs/evidence/live_run_coverage_20260920.json`），模拟器按每幕深度累加
+同样得到 17 / 33 / 48（v4 之前用 `MapBossRow * Act + 1`，第三幕会算成 49）；配对 boss 在 48 之后
+那一行，即 floor 49。
 它是模拟器结论，不是实机 A10 成绩，也不替代 `full_run` 的真实整局验收。逐幕证据见
 [逐幕覆盖审计](docs/ACT_COVERAGE_AUDIT_2026-09-21.md)，六门保真度的度量与判据见
 [模拟器幕内容保真度](docs/SIMULATOR_ACT_FIDELITY_2026-09-21.md)。

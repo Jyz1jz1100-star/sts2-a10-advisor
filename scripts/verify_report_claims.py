@@ -157,7 +157,7 @@ def claim_evidence_matrix_totals():
 #: Each publication gets its own file: the older snapshots are the record of what the
 #: engine looked like when those findings were read, not drafts to be overwritten.
 EMULATOR_SOURCE_PROVENANCE = (
-    ROOT / "docs/evidence/emulator_source_provenance_20260922_v3.json"
+    ROOT / "docs/evidence/emulator_source_provenance_20260922_v4.json"
 )
 
 def claim_win_ledger():
@@ -186,7 +186,7 @@ def claim_win_ledger():
                 and all(int(row["unclassified_dead_ends"]) == 0 for row in recorded_wins)
                 and all(int(row["truncations"]) == 0 for row in recorded_wins)
                 and len({int(row["seed"]) for row in recorded_wins}) == 9),
-            # The +1 from boss row to terminal floor is RunEngine.cs:2114-2117, whose text is
+            # The +1 from boss row to terminal floor is RunEngine.cs:2131-2134, whose text is
             # hash-pinned by the provenance claim; a snippet only carries 90 characters, so this reads
             # the constant from the snippet and takes the relation from that pinned citation.
             "the_terminal_floor_agrees_with_the_engines_boss_row_constant": (
@@ -1945,9 +1945,9 @@ def claim_chained_map_deadend():
         "the_cited_engine_code_still_says_it": (
             # The same three pointers the report carries, read from the same build the report's
             # provenance snapshot hashed -- a match here that disagrees with the report is a bug.
-            "MapNodeTypes" in engine_text("RunEngine.cs", 696, 701)
-            and "ChooseMapNode" in engine_text("RunEngine.cs", 973, 973)
-            and "NodeNone" in engine_text("RunMapGenerator.cs", 1162, 1174)),
+            "MapNodeTypes" in engine_text("RunEngine.cs", 698, 703)
+            and "ChooseMapNode" in engine_text("RunEngine.cs", 975, 975)
+            and "NodeNone" in engine_text("RunMapGenerator.cs", 1123, 1135)),
     }
 
 

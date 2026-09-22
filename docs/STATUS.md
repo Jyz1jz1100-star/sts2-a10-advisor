@@ -2643,3 +2643,39 @@ The full-run contract (task 8) and an episode that reaches act 3 in the faithful
 (task 21) remain open; the deepest acceptance attempt still ends on the client's own
 `Handle is not initialized` crash, which is operator-owned and not re-pinned, patched or disabled.
 
+## 2026-09-22 (evening): G4 and G5 close — the six hard fidelity gates pass for the first time
+
+**`sts2sim-campaign-fidelity-v4`** (declaration digest `d7c9dece…`, tier
+`simulator_three_act_campaign_shape_and_rewards`). Gates over the declared 10,000-seed partition:
+**G1/G2/G3/G4/G5/G6 all PASS**, `published_gates_passed=true`, `hard_gate_passed=true` — the first
+time that field has been true. Evidence:
+`docs/evidence/campaign_fidelity_gates_20260922_v4.json`; engine 239/239, contract suite 630 and
+training-venv 132 green, claims verifier 61/61 against
+`emulator_source_provenance_20260922_v4.json` (71 citations, all resolving) and a 70-file manifest.
+
+G4 gave each act its own map — 15/14/13 rooms with the boss on its own row, per-act rest/unknown
+queues, 5 elites and 3 shops instead of a shared 16-row shape with 8 elites, and each act's own
+event pool — and the terminal floor is now that act's boss row counted from the floor its act
+started on. That arithmetic yields boss floors **17 / 33 / 48**, which is what the real client's
+traces recorded; the old `MapBossRow * Act + 1` said 49 for act 3 and demanded floor 33 from
+single-act Underdocks runs that only have 17 floors, which is where the recorded
+`empty_action_mask` wall came from. G5 rolled card upgrades at the act's own odds (0/12.5/25% at
+A10, never for Rare, drawn before the check, and keyed on the act's index *within the run* so
+Underdocks is still an Act 1), paid the A10 boss gold, and made the final act's boss deal an empty
+RewardsSet — no gold, no cards, not even the potion draw.
+
+**What 6/6 does not mean**: the tier stops below `content_verified`, and `not_modelled` keeps the
+reasons (no ascension model, no unknown-node re-roll, no TheArchitect exit, two weak variants
+absent, placement that can fall short of the queue). Strength did not follow the gates: same 10,000
+seeds reach act 2 in **4** episodes (up from 2, because the terminal floor stopped lying) and act 3
+in **0**, deepest floor 19, pipeline smoke still **10/11**.
+
+**Live machine**: the rest-site refusals were root-caused and they were ours — the client clears
+`rest_site.options` when an option is taken and only enables Proceed after the heal VFX, and our
+driver asked the codec for candidates on exactly that transient frame, 21 times. The hold in
+`bridge/autoplay.py` now waits on `options: []` with `can_proceed: false` (an absent
+`can_proceed` still refuses, so a truly empty room stays visible), with a test. The batch running
+now started before that edit, so the confirmation belongs to the next one. The Floor 1 → victory
+attempt continues unattended.
+
+

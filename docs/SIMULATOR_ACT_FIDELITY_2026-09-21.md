@@ -331,3 +331,81 @@ fidelity-v2 上走过 10,000 个声明过的种子，只有 **2** 局进入第�
 被快照钉住的那一份报告。这条不是"以后再说"的客套：下一次发布前，谁引用了引擎行号，
 就得先按同样带锚点的办法走一遍。
 
+## 9. fidelity-v4 的落地记录（2026-09-22）：G4 + G5，六门全绿
+
+`sts2sim-campaign-fidelity-v4`（声明摘要 `d7c9dece…`，tier
+`simulator_three_act_campaign_shape_and_rewards`）。这一版把最后两门关掉，
+所以 `hard_gate_passed` 第一次为 `True`；下面按"真规则 → 引擎改成什么 → 量到什么"记。
+
+### 9.1 G4：每一幕生成自己的地图
+
+读到的真规则推翻了三处旧假设：**列数固定 7**（`StandardActMap.cs:19`），只有行数按幕变；
+所谓"weak 3/2/2、normal 12/12/11"是**队列长度**而不是池子大小；`elites` 是 5 而不是引擎里的 8。
+
+* 行数：`BaseNumberOfRooms` 15/14/13（`Overgrowth.cs:56`、`Hive.cs:56`、`Glory.cs:52`，
+  Underdocks 15）→ boss 行 16/15/14，宝藏行 −7、强制休息行 −1 全部跟着本幕深度走
+  （`RunConstants.MapRoomsForAct/MapBossRowFor/MapWeakDrawsFor`）。
+* 队列：精英 5、商店 3（`MapPointTypeCounts.cs:17-24`）、休息 N(7,1)[6,7] / N(6,1)[6,7] /
+  `{5,6}`（`Overgrowth.cs:156`、`Hive.cs:122`、`Glory.cs:111`）、未知 N(12,1)[10,14] 且 2/3 幕各减一
+  （`Hive.cs:123`、`Glory.cs:112`）。
+* 事件池：每幕 `自有 + 共享 18` 洗牌（`ActModel.cs:288,307`）。Act 1 原来还少 4 个共享事件；
+  2/3 幕原来直接走 Underdocks 列表。epoch 未解锁的 `ColorfulPhilosophers` / `Reflections` /
+  `TrashHeap` 与 Orobas 同样**不发**，理由写进声明。
+* 层数账：`terminalFloor` 从 `MapBossRow * Act + 1` 改成 `ActStartFloor + ActBossRow`，
+  起始层在跨幕时累加。
+
+**差分证据**：改完之后引擎几何推算出的 boss 层号是 **17 / 33 / 48**，与真机 trace 实测的
+`boss_battles_by_act_floor`（同一份 `live_run_coverage_20260920.json`）**逐幕相等**——
+旧乘式在第三幕给 49。这一条是 G4 静态腿里唯一的"对客户端"检查，其余判据仍是对 C# 源码：
+门的场景腿跑 `EachCampaignAct_GeneratesItsOwnMapRows`、
+`EnteringTheNextAct_StartsItOneFloorAfterTheActJustCleared`、
+`EachAct_QueuesItsOwnRestsAndOnlyFiveElitesAndThreeShops`、
+`HiveAndGlory_DrawTheirOwnEventsAndNotTheUnderdocksList`。
+
+**顺手被解释掉的一件事**：旧乘式要求一个 17 层的非战役 Underdocks 局去够 33 层，
+这正是 `empty_action_mask` 那堵墙的来源——记录在案的 49 个 Act 2 floor 17 截断，
+不是策略打不过，也不是地图真没路，而是终止条件写错。改完之后同一批种子里进第二幕从 2 局变成 4 局。
+
+### 9.2 G5：升级概率与奖励构成
+
+* **升级概率按幕**（`CardFactory.cs:387-409`）：战斗奖励传进去的基率是 0，每幕加
+  `UpgradedCardOddScaling`（A10 走 Scarcity = 0.125，`:23-24`）乘**本 run 内的 0 基幕序**，
+  所以 0% / 12.5% / 25%；抽卡**先于**一切判定（`:389`），一张不可能升级的卡也要占一次抽签；
+  **稀有卡不参与**（`:393`）；商店卡传的是一个极低的基率，等于永不升级（`:81,101`）。
+  幕序取"本 run 内序号"而不是 act 枚举：Underdocks 是替换 `list[0]` 的**另一条第一幕**
+  （`ActModel.cs:498-507`），把枚举当幕序会给每个单幕 Underdocks 局第二幕的概率，
+  悄悄给旧产物所在环境重新定价。
+* **最终幕 boss 什么都不发**：`RewardsSet.cs:68-74` 在生成任何奖励之前 return，
+  连药水那一抽都不消耗。引擎原来在这里照发金币+药水+三张卡+遗物屏，与 G6 删掉的 boss 遗物同类。
+  现在 `HasPendingRewards` 为空即当场结算节点，不再开屏。
+* **A10 金币**：Monster 7–15、Elite 26–33、Boss 75（`EncounterModel.cs:44-80` 的
+  10-20/35-45/100 乘 Poverty 的 0.75）。引擎此前精英与普通已是缩水后的值，boss 却仍发 100。
+* 稀有度概率（regular .0149/.37、elite .05/.4、boss 全稀有）与漂移偏移本就已经实现，
+  本轮只是被逐条核对过；同时把一张手抄的 144 条"卡 id → 稀有度"表删了，改读生成的卡表
+  （核对过：144 条与生成表**零不一致**，奖励池 84 张全覆盖）。
+* 场景腿：`CampaignFinalActBoss_DealsNoRewardsAndConsumesNoRewardDraw`（含"连抽签都不消耗"这条
+  最尖的判据）、`EarlierActCampaignBoss_DealsRareCardsNoRelicAndTheAscensionTenGold`、
+  `CampaignRewardCards_UpgradeAtTheActsOwnOdds`、`RareRewardCards_NeverUpgrade_EvenInAnActThatRollsUpgradeOdds`、
+  `SingleActRunRewardCards_NeverUpgrade_BecauseEverySingleActRunIsActOne`。
+
+### 9.3 六门全绿不等于验证等价
+
+tier 特意停在 `content_verified` 下面，`not_modelled` 里留着：没有 Ascension 模型（配对 boss
+在这里是常量）、Unknown 节点进场再抽签未建模、TheArchitect 结局未建模、两个 weak 遭遇变体缺数据、
+**放置可以少于队列**（24 个种子里第三幕出现过 4 精英、第二幕出现过 5 休息——剪枝/补点只从可改的
+Monster 节点补，这条是量出来的，不是从 build 推的）。所以"6/6 PASS"说的是六项硬内容判据齐了，
+不代表模拟器与客户端逐节点相同；`live A10 win rate` 依旧在 `must_not_be_quoted_as` 里。
+
+强度侧照实记：一万个声明过的种子，进第二幕 4 局、第三幕 0 局、最深 floor 19、非法动作 0，
+冒烟第 11 项仍红。六门齐了不等于策略能打。
+
+### 9.4 §8 那条规则第一次被执行
+
+v4 的引擎改动又挪走了全部引用行号，这次按 §8 的规矩走：锚点表成为**唯一真值**
+（`tests/test_emulator_provenance.py::CITATION_ANCHORS`），报告跟着它挪。
+先试"就近配对"时它把两条指错了位置（就近不是同一性），于是 35 对映射改成显式写出、
+由锚点判对错——
+一条 `GetOrCreate` 的锚点把我引到的 284 行纠正成 234 行，正是这套办法该有的样子。
+`emulator_source_provenance` 六项在 71 条引用上重算相符，声明检查 61/61。
+
+

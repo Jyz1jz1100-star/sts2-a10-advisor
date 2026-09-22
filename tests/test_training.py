@@ -328,7 +328,7 @@ class CampaignLabelTests(unittest.TestCase):
         coverage = payload["content_coverage"]
         self.assertEqual(coverage["verdict"], "approximate")
         self.assertEqual(
-            coverage["result_tier"], "simulator_three_act_pools_ancients_and_pair_boss"
+            coverage["result_tier"], "simulator_three_act_campaign_shape_and_rewards"
         )
 
     def test_the_declaration_names_the_acts_the_shipped_game_actually_uses(self) -> None:
@@ -346,8 +346,13 @@ class CampaignLabelTests(unittest.TestCase):
                 f"stage {stage} no longer says which act its encounters come from",
             )
         self.assertTrue(stages["1"]["event_pools_match_real_game_act"])
-        self.assertFalse(stages["2"]["event_pools_match_real_game_act"])
-        self.assertFalse(stages["3"]["event_pools_match_real_game_act"])
+        self.assertTrue(stages["2"]["event_pools_match_real_game_act"])
+        self.assertTrue(stages["3"]["event_pools_match_real_game_act"])
+        # G4's content, claimed per stage: if a stage stops naming its own rows and queues,
+        # the declaration has quietly gone back to one map for all three acts.
+        for stage in ("1", "2", "3"):
+            self.assertIn("map_shape", stages[stage])
+            self.assertIn("room_queues", stages[stage])
 
     def test_the_declaration_says_which_ancient_each_act_meets(self) -> None:
         # G2's whole content is per-act Ancients, so a declaration that stops naming them
@@ -382,15 +387,17 @@ class CampaignLabelTests(unittest.TestCase):
                 "simulator_three_act_approx",
                 "simulator_three_act_pools_and_pair_boss",
                 "simulator_three_act_pools_ancients_and_pair_boss",
+                "simulator_three_act_campaign_shape_and_rewards",
                 "simulator_three_act_content_verified",
                 "live_full_run",
             },
         )
-        # A new tier must not swallow the one above it: v2 says out loud that it is
-        # not content-verified, and v3 -- which closes G2 and changes nothing else --
-        # has to say the same, because a name that sounds further along is not a gate.
+        # A new tier must not swallow the one above it: v2, v3 and v4 each say out loud that
+        # they are not content-verified, so a rung that closes more gates still cannot borrow
+        # the claim of the rung above.
         for tier in ("simulator_three_act_pools_and_pair_boss",
-                     "simulator_three_act_pools_ancients_and_pair_boss"):
+                     "simulator_three_act_pools_ancients_and_pair_boss",
+                     "simulator_three_act_campaign_shape_and_rewards"):
             with self.subTest(tier=tier):
                 self.assertIn("not content-verified", tiers[tier])
         self.assertIn("live A10 win rate",

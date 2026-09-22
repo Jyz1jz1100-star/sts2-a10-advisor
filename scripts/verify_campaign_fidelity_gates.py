@@ -140,6 +140,57 @@ def pool_tables() -> dict[str, list[int]]:
     return tables
 
 
+LIVE_COVERAGE = ROOT / "docs" / "evidence" / "live_run_coverage_20260920.json"
+
+
+def live_measured_boss_floors() -> dict[int, int]:
+    """The boss floors the shipped client actually showed, read out of the stored live traces.
+
+    This is the only ground truth in the repository that did not come from reading C#: a real run on
+    a real machine recorded ``1:17``, ``2:33`` and ``3:48``. Anything the simulator claims about map
+    depth has to agree with it, so an act whose floor was never observed is simply absent here -- and
+    a missing act fails the gate rather than passing by silence.
+    """
+    try:
+        payload = json.loads(LIVE_COVERAGE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+    seen: dict[int, set[int]] = {}
+    for trace in payload.get("traces") or []:
+        for run in trace.get("runs") or []:
+            for key in run.get("boss_battles_by_act_floor") or {}:
+                act, _, floor = str(key).partition(":")
+                if act.isdigit() and floor.isdigit():
+                    seen.setdefault(int(act), set()).add(int(floor))
+    return {act: floors.pop() for act, floors in seen.items() if len(floors) == 1}
+
+
+def engine_boss_floors(shape_text: str) -> dict[int, int]:
+    """The boss floors the engine's own per-act geometry implies.
+
+    Rooms per act come from ``MapRoomsForAct`` (StandardActMap.cs:81 + the acts' own
+    ``BaseNumberOfRooms``), the boss sits one row below the last room row, and each act starts one
+    floor after the previous act's boss. Pinned to that expression's shape on purpose: if the source
+    is rewritten, this returns {} and G4 fails, instead of quietly comparing against numbers the
+    harness made up.
+    """
+    match = re.search(
+        r"MapRoomsForAct\(int act, bool campaign\)\s*=>\s*"
+        r"!campaign \|\| act <= 1 \? (\d+) : act == 2 \? (\d+) : (\d+);",
+        shape_text,
+    )
+    if not match:
+        return {}
+
+    floors: dict[int, int] = {}
+    start = 1
+    for act, rooms in enumerate((int(g) for g in match.groups()), start=1):
+        floors[act] = start + rooms + 1
+        start = floors[act] + 1
+    return floors
+
+
 def measure_gates(
     ids: dict[str, int],
     tables: dict[str, list[int]],
@@ -258,17 +309,71 @@ def measure_gates(
     }
 
     shape_text = _text(RUN_CONSTANTS)
-    boss_row = re.search(r"MapBossRow\s*=\s*(\d+)", shape_text)
-    rest_rule = re.search(r"NextGaussianInt\(([^)]*)\)", _text(MAP_GENERATOR))
+    gen_text = _text(MAP_GENERATOR)
+    engine_rooms = re.search(
+        r"MapRoomsForAct\(int act, bool campaign\)\s*=>\s*(?P<expr>[^;]+);", shape_text
+    )
+    elite_rooms = re.search(r"MapEliteRooms\s*=\s*(\d+)", shape_text)
+    shop_rooms = re.search(r"MapShopRooms\s*=\s*(\d+)", shape_text)
+    weak_draws = re.search(r"MapWeakDrawsFor\(int act, bool campaign\)\s*=>\s*(?P<expr>[^;]+);",
+                           shape_text)
+    pool_fn = re.search(r"public static int\[\] EventPoolFor\(RunState state\)(?P<body>.*?)\n    \}",
+                        shape_text, re.S)
+    engine_shape = {
+        "rooms_expression": re.sub(r"\s+", " ", engine_rooms.group("expr")).strip()
+        if engine_rooms else "not found",
+        "MapEliteRooms": elite_rooms.group(1) if elite_rooms else None,
+        "MapShopRooms": shop_rooms.group(1) if shop_rooms else None,
+        "weak_draw_expression": re.sub(r"\s+", " ", weak_draws.group("expr")).strip()
+        if weak_draws else "not found",
+        "event_pool_is_per_act": bool(pool_fn)
+        and all(
+            name in pool_fn.group("body")
+            for name in ("EventZenWeaver", "EventTinkerTime", "EventWoodCarvings",
+                         "EventWelcomeToWongos")
+        )
+        # and the three epoch-gated events are absent, which is the documented exclusion rather than
+        # a pool that quietly claims unlocks the emulator does not model.
+        and not any(
+            name in pool_fn.group("body")
+            for name in ("EventColorfulPhilosophers", "EventReflections", "EventTrashHeap")
+        ),
+        "rest_draw_is_per_act": "NextInt(5, 7)" in gen_text
+        and "6 : 7" in gen_text,
+        "unknown_draw_takes_one_away_in_acts_2_and_3": bool(
+            re.search(r"NextGaussianInt\(12, 1, 10, 14\)\s*-", gen_text)
+        ),
+    }
+    # The differential the whole exercise is for: the shipped client's own measured boss floors, from
+    # a real trace, against the floors this engine's geometry now implies. The trace records
+    # ``1:17 / 2:33 / 48`` because that is what the client showed; the old flat 16-row map implied
+    # 49 for act 3 and 33 for a one-act Underdocks run that only has 17 floors.
+    measured = live_measured_boss_floors()
+    implied = engine_boss_floors(shape_text)
+    shape_matches_live = bool(measured) and measured == implied
+    static_shape = all(
+        (
+            bool(engine_rooms),
+            engine_shape["MapEliteRooms"] == "5",
+            engine_shape["MapShopRooms"] == "3",
+            engine_shape["event_pool_is_per_act"],
+            engine_shape["rest_draw_is_per_act"],
+            engine_shape["unknown_draw_takes_one_away_in_acts_2_and_3"],
+            shape_matches_live,
+        )
+    )
     gates["G4_map_shape"] = {
         "real": REAL_SHAPE,
         "engine": {
-            "MapBossRow": boss_row.group(1) if boss_row else None,
-            "rest_rule": f"NextGaussianInt({rest_rule.group(1)})" if rest_rule else None,
-            "per_act_differences": "none: every value is a single const shared by the "
-                                   "three stages (RunConstants.cs:12-18)",
+            **engine_shape,
+            "boss_floors_implied_by_the_engine_geometry": implied or "not derivable",
+            "boss_floors_measured_on_the_real_client": measured or "no live trace recorded them",
+            "geometry_matches_the_live_measurement": shape_matches_live,
         },
-        "passed": False,
+        # Same rule as G1-G3 and G6: a structural gate closes on the state machine having walked it
+        # (SCENARIO_TESTS) as well as on the source saying so.
+        "passed": static_shape and bool((scenario or {}).get("G4_map_shape")),
+        "scenario": scenario_note(scenario, "G4_map_shape"),
     }
 
     reward_text = _text(REWARD_GENERATOR)
@@ -283,20 +388,54 @@ def measure_gates(
         re.S,
     )
     upgrade_body = re.sub(r"\s+", " ", upgrade_stub.group("body")).strip() if upgrade_stub else ""
-    upgrade_returns_false = "return false" in upgrade_body
-    act_scaling_present = bool(
-        upgrade_stub
-        and re.search(r"CurrentAct|state\.Act", upgrade_body)
+    # The stub being caught is one that draws and then ignores the draw, so the test is whether the
+    # roll reaches the result -- not whether the body contains `return false`, which a real roll has
+    # twice (rare, and a card that cannot upgrade).
+    upgrade_returns_false = "return roll" not in upgrade_body
+    upgrade_body_clean = re.sub(r"\s+", " ", upgrade_body)
+    rewards_head = re.search(
+        r"public static void GenerateCombatRewards\(\s*RunState state\s*\)\s*\{"
+        r"(?P<body>.*?)\n    \}",
+        reward_text,
+        re.S,
+    )
+    rewards_source = rewards_head.group("body") if rewards_head else ""
+    odds_constant = re.search(r"UpgradeOddsPerActIndex\s*=\s*([0-9.]+)", reward_text)
+    engine_upgrade = {
+        "RollCardUpgrade_definition_found": bool(upgrade_stub),
+        "RollCardUpgrade_body": upgrade_body or "not found",
+        # CardFactory.cs:387-409 in order: the draw is consumed first, Rare keeps the base chance of
+        # 0, and the act adds its own scaling. A roll that returns false unconditionally is the stub
+        # this gate exists to catch, so each clause is checked separately rather than as one regex.
+        "draw_consumed_before_the_check": bool(
+            re.search(r"double roll = rng\.Next", upgrade_body)
+            # "before the check", not "at the start of the body": the file's comment lines sit first.
+            and upgrade_body.index("double roll = rng.Next")
+            < (upgrade_body.index("return") if "return" in upgrade_body else len(upgrade_body))
+        ),
+        "rare_cards_excluded": "RarityRare" in upgrade_body_clean,
+        "act_scaling_present": bool(
+            upgrade_stub and re.search(r"actIndex|state\.Act", upgrade_body)),
+        "odds_constant": odds_constant.group(1) if odds_constant else None,
+        "final_act_boss_deals_no_rewards": "ActFinal" in rewards_source
+        and "ClearRewardScreen(state);\n            return;" in rewards_source,
+        "boss_gold_at_ascension_ten": bool(re.search(r"NextInt\(75, 76\)", reward_text)),
+    }
+    static_upgrade = (
+        engine_upgrade["RollCardUpgrade_definition_found"]
+        and not upgrade_returns_false
+        and engine_upgrade["draw_consumed_before_the_check"]
+        and engine_upgrade["rare_cards_excluded"]
+        and engine_upgrade["act_scaling_present"]
+        and engine_upgrade["odds_constant"] == "0.125"
+        and engine_upgrade["final_act_boss_deals_no_rewards"]
+        and engine_upgrade["boss_gold_at_ascension_ten"]
     )
     gates["G5_reward_and_upgrade_distribution"] = {
-        "real": UPGRADE_ODDS_RULE,
-        "engine": {
-            "RollCardUpgrade_definition_found": bool(upgrade_stub),
-            "RollCardUpgrade_body": upgrade_body or "not found",
-            "act_index_scaling": act_scaling_present,
-            "site": "RunRewardGenerator.cs:1127-1131",
-        },
-        "passed": bool(upgrade_stub) and not upgrade_returns_false and act_scaling_present,
+        "real": UPGRADE_ODDS_RULE + " | " + BOSS_REWARD_RULE,
+        "engine": engine_upgrade,
+        "passed": static_upgrade and bool((scenario or {}).get("G5_reward_and_upgrade_distribution")),
+        "scenario": scenario_note(scenario, "G5_reward_and_upgrade_distribution"),
     }
 
     combat_rewards = re.search(
@@ -333,7 +472,9 @@ def measure_gates(
         and "IsGloryAct" in dealt_body
         and "state.BossEncounterId" in dealt_body
         and "NextItem" in dealt_body
-        and "MapBossRow + 1" in dealt_body
+        # The row is the act's own since G4, so either spelling of "one row past the boss" is the
+        # claim; parenthesised because a bare `and ... or ...` would let the last term stand alone.
+        and ("MapBossRow + 1" in dealt_body or "ActBossRow + 1" in dealt_body)
     )
     row_past_boss = bool(
         row and "SecondBossCoord" in row_body and "AddEdge" in row_body
@@ -409,6 +550,19 @@ SCENARIO_TESTS: dict[str, list[str]] = {
     "G6_no_boss_relic_reward": [
         "OnlyAnEliteClearGrantsARelic_BossesNeverDo",
         "CampaignActTransition_NeedsNoRelicScreenToHappen",
+    ],
+    "G4_map_shape": [
+        "EachCampaignAct_GeneratesItsOwnMapRows",
+        "EnteringTheNextAct_StartsItOneFloorAfterTheActJustCleared",
+        "EachAct_QueuesItsOwnRestsAndOnlyFiveElitesAndThreeShops",
+        "HiveAndGlory_DrawTheirOwnEventsAndNotTheUnderdocksList",
+    ],
+    "G5_reward_and_upgrade_distribution": [
+        "CampaignFinalActBoss_DealsNoRewardsAndConsumesNoRewardDraw",
+        "EarlierActCampaignBoss_DealsRareCardsNoRelicAndTheAscensionTenGold",
+        "CampaignRewardCards_UpgradeAtTheActsOwnOdds",
+        "RareRewardCards_NeverUpgrade_EvenInAnActThatRollsUpgradeOdds",
+        "SingleActRunRewardCards_NeverUpgrade_BecauseEverySingleActRunIsActOne",
     ],
 }
 

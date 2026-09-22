@@ -799,6 +799,19 @@ class AutoPlayer:
             # older bridge -- behaviour is unchanged, because refusing to act on
             # an unknown would strand every rest site.
             return WaitForTransition("the rest site room cannot take a choice yet")
+        rest_site = state.get("rest_site") or {}
+        if (
+            state_type == "rest_site"
+            and not rest_site.get("options")
+            and rest_site.get("can_proceed") is False
+        ):
+            # Spent, and the exit is not up yet: choosing clears `options` under
+            # ShouldDisableRemainingRestSiteOptions, then the room awaits HideChoices and the heal
+            # VFX before ShowProceedButton (NRestSiteRoom.AfterSelectingOptionAsync). The codec is
+            # right to refuse a candidate list this empty -- the frame just is not a decision point,
+            # and asking it 21 times read as 21 flow defects. `is False` keeps an older bridge that
+            # publishes no `can_proceed` on the refusing path, where a truly stuck room must surface.
+            return WaitForTransition("the rest site is spent and shows no exit yet")
         if state_type in ("map", "rest_site"):
             # A potion the state says can be drunk between fights, drunk when the
             # recorded rule says it is worth it.  With the installed bridge the

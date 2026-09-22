@@ -19,7 +19,7 @@ import json
 from collections.abc import Iterable
 
 #: Bump when the campaign's *content* changes, so pre-change artifacts stay separable.
-CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-fidelity-v3"
+CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-fidelity-v4"
 
 #: The base name the fidelity line publishes under.  approx-v1 is frozen below, and
 #: results from the two must never be averaged, re-judged, or continued from each
@@ -70,6 +70,16 @@ RESULT_TIERS = {
         "with its real option pools, a travelled-to second boss, and no invented boss "
         "relic. Per-act map shape (G4) and the upgrade/reward distributions (G5) are "
         "still not real, so this tier is still not content-verified"
+    ),
+    "simulator_three_act_campaign_shape_and_rewards": (
+        "all six hard gates closed: on top of fidelity-v3, each act generates its own map "
+        "depth, room queues and event pool, rewards and card-upgrade odds follow the act and "
+        "the room type, and the boss floors the geometry implies are the ones the real client "
+        "measured (17/33/48). It is still *not* the tier above: no ascension model, no "
+        "unknown-node re-roll, no TheArchitect exit, two weak encounter variants absent from "
+        "the build's data, and room placement that can fall short of the queue -- so this tier is "
+        "still not content-verified: a number from here says what the campaign contains, not that "
+        "it is verified equal to the shipped game"
     ),
 }
 
@@ -253,10 +263,14 @@ CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2: dict[str, object] = {
 }
 
 #: The campaign published by the fidelity line as of 2026-09-22: G6 + G1 + G3 + G2.
-CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
+#: The campaign published as fidelity-v3 on 2026-09-22 (G6+G1+G3+G2), copied verbatim from the
+#: live declaration of that date and pinned by digest below: v3 stamped artifacts walked a map
+#: whose three acts shared one 16-row shape and an Underdocks event list, which v4 no longer
+#: does, so a v3 artifact must keep saying what v3 was.
+CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V3: dict[str, object] = {
     "verdict": "approximate",
     "result_tier": "simulator_three_act_pools_ancients_and_pair_boss",
-    "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+    "environment_version": "sts2sim-campaign-fidelity-v3",
     "summary": (
         "Each stage draws the act the shipped campaign defines (Overgrowth -> Hive -> Glory) and "
         "stands the run in front of that act's own ancient before its map is walkable, offering "
@@ -354,7 +368,14 @@ CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
         "so those two weak slots draw the normal encounter",
     ],
     "real_progression": REAL_PROGRESSION,
-    "result_tiers": RESULT_TIERS,
+    "result_tiers": {
+        'simulator_single_act': 'one act per seed; every pre-2026-09-20 artifact',
+        'simulator_three_act_approx': 'three stages, Act 1 content reused for stages 2 and 3',
+        'simulator_three_act_content_verified': 'requires Hive and Glory pools, a per-act Ancient, and a boss-to-boss exit; no artifact in this repository is at this tier yet',
+        'live_full_run': 'the real client, victory screen observed; not achieved',
+        'simulator_three_act_pools_and_pair_boss': "each stage draws the act the shipped campaign defines (Overgrowth -> Hive -> Glory), the final act's paired boss is a map row past the first, and no boss relic is invented; per-act Ancients, per-act map shape and the reward/upgrade distributions are still not real, so this tier is not content-verified",
+        'simulator_three_act_pools_ancients_and_pair_boss': "G1+G2+G3+G6 closed: per-act encounter pools, the act's own ancient met on entry with its real option pools, a travelled-to second boss, and no invented boss relic. Per-act map shape (G4) and the upgrade/reward distributions (G5) are still not real, so this tier is still not content-verified",
+    },
     "may_be_quoted_as": [
         "a three-act campaign whose stages draw the shipped game's own acts",
         "a paired-boss final act with a real route decision between the two fights",
@@ -366,6 +387,154 @@ CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
         "live A10 win rate",
         "evidence that a strategy can clear the shipped game",
         "the real Act 2/Act 3 event pools or map shape",
+    ],
+}
+
+CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
+    "verdict": "approximate",
+    "result_tier": "simulator_three_act_campaign_shape_and_rewards",
+    "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+    "summary": (
+        "Each act generates its own map: 15/14/13 rooms with the boss one row below the last "
+        "room row (16/15/14), its own weak/normal fill counts, 5 elites and 3 shops, its own "
+        "rest and unknown queues, and its own event pool (the act's events plus the shared "
+        "eighteen). The boss floors that implies -- 17/33/48 -- are the floors the real client "
+        "was measured at. Card upgrades roll at the act's own odds (0% / 12.5% / 25% at A10, "
+        "never for Rare cards, one draw per offered card taken before the check), and the final "
+        "act's boss deals an empty RewardsSet exactly as the build does, resolving its node with "
+        "no screen at all. That closes G4 and G5, so all six hard gates pass. The tier stays "
+        "below content-verified: no ascension model, no unknown-node re-roll, no TheArchitect "
+        "exit, two weak encounter variants the build does not have here, and placement that can "
+        "fall short of the queued room count in the shorter acts."
+    ),
+    "gates_closed": [
+        "G6_no_boss_relic_reward",
+        "G1_act_pools",
+        "G3_second_boss_structure",
+        "G2_ancients",
+        "G4_map_shape",
+        "G5_reward_and_upgrade_distribution",
+    ],
+    "gates_open": [],
+    "stages": {
+        "1": {
+            "encounter_pools": "Overgrowth weak/normal/elite/boss",
+            "event_pools": "Overgrowth events + the shared 18 (four of which Act 1 was "
+                           "missing before)",
+            "ancient": "Neow, on the run-start screen",
+            "map_shape": "15 rooms, boss on row 16, treasure row 9, forced final rest row 15",
+            "room_queues": "3 weak, 12 normal, 5 elite, 3 shop, N(7,1)[6,7] rests, "
+                           "10-14 unknown",
+            "encounter_pools_match_real_game_act": True,
+            "event_pools_match_real_game_act": True,
+            "ancient_matches_real_game_act": True,
+            "evidence": "Core/Run/RunConstants.cs Overgrowth* tables; "
+                        "Models.Acts/Overgrowth.cs:29-32",
+        },
+        "2": {
+            "encounter_pools": "Hive weak/normal/elite/boss",
+            "event_pools": "Hive events + the shared 18, minus the epoch-gated "
+                           "ColorfulPhilosophers",
+            "ancient": "Pael or Tezcatara, met on entering the act",
+            "map_shape": "14 rooms, boss on row 15, treasure row 8, forced final rest row 14",
+            "room_queues": "2 weak, 12 normal, 5 elite, 3 shop, N(6,1)[6,7] rests, 9-13 unknown",
+            "encounter_pools_match_real_game_act": True,
+            "event_pools_match_real_game_act": True,
+            "ancient_matches_real_game_act": "partial",
+            "ancient_note": "Orobas is excluded: Hive.cs:110-115 hides it until its epoch is "
+                            "revealed and the emulator has no unlock progression, so drawing it "
+                            "would claim a progression the engine does not model",
+            "evidence": "Core/Run/RunConstants.cs Hive* + Pael/Tezcatara option pools, from "
+                        "Models.Acts/Hive.cs:27-33,110-116 and Events/{Pael,Tezcatara}.cs",
+        },
+        "3": {
+            "encounter_pools": "Glory weak/normal/elite/boss, twice over at the boss row",
+            "event_pools": "Glory events + the shared 18, minus the epoch-gated Reflections",
+            "ancient": "Nonupeipe, Tanx or Vakuu, met on entering the act",
+            "map_shape": "13 rooms, boss on row 14, paired boss on row 15, treasure row 7, "
+                          "forced final rest row 13",
+            "room_queues": "2 weak, 11 normal, 5 elite, 3 shop, {5,6} rests, 9-13 unknown",
+            "encounter_pools_match_real_game_act": True,
+            "event_pools_match_real_game_act": True,
+            "ancient_matches_real_game_act": True,
+            "second_boss": {
+                "dealt_at": "act generation, from GloryBossEncounters minus the first boss",
+                "reached_by": "a map node one row past the boss, travelled to through the "
+                              "normal map path with the run's own HP, potions, deck, relics "
+                              "and gold",
+                "evidence": "Core/Run/RunMapGenerator.cs GenerateSecondBoss()/OpenSecondBossRow() "
+                            "for RunManager.cs:685-690 and StandardActMap.cs:88-91,231-234",
+            },
+            "evidence": "Core/Run/RunConstants.cs Glory* + Nonupeipe/Tanx/Vakuu option pools, "
+                        "from Models.Acts/Glory.cs:26-32 and Events/{Nonupeipe,Tanx,Vakuu}.cs",
+        },
+    },
+    "rewards": {
+        "boss": "gold + a potion roll + cards, no relic -- RewardsSet.cs:245-261",
+        "elite": "the only combat clear that grants a relic",
+        "ancient": "three relic candidates drawn one per option pool, exactly as each "
+                   "ancient's GenerateInitialOptions does; DistinguishedCape carries its "
+                   "ThatDecreasesMaxHp(9m) price",
+        "final_act_boss": "no rewards at all, and not even the potion draw: the engine returns "
+                          "before generating anything, as RewardsSet.cs:68-74 does, and the "
+                          "node resolves on the win itself",
+        "gold": "Monster 7-15, Elite 26-33, Boss 75 -- EncounterModel.cs:44-80's 10-20 / "
+                "35-45 / 100 times Poverty's 0.75 (AscensionHelper.cs:12), which is what A10 "
+                "means; the boss used to pay the un-scaled 100",
+        "upgrade_odds": "0% / 12.5% / 25% by act at A10 (CardFactory.cs:23-24,395-396), drawn "
+                        "per offered card before the check is made (:389), never for Rare cards "
+                        "(:393); shop cards pass a base chance so low they can never upgrade "
+                        "(:81,101)",
+        "rarity": "regular .0149 rare / .37 uncommon, elite .05 / .4, boss all-rare "
+                  "(CardRarityOdds.cs:111-151) with the drift offset the build carries",
+    },
+    "not_modelled": [
+        "placement is not always the queue: the prune/repair pass tops up only from modifiable "
+        "Monster nodes, so over 24 seeds a Glory map came out with 4 elites and a Hive map with "
+        "5 rests. The shipped generator runs the same pass; the equality is measured here rather "
+        "than assumed from the build",
+        "the unknown node's re-roll on entry (RunManager.cs:935 with UnknownMapPointOdds): an "
+        "Unknown that becomes a monster, treasure, shop or elite is not modelled, so the event "
+        "distribution counted here is narrower than the game's",
+        "the shipped generator's map shape node for node: seven paths, crossover rejection, "
+        "three assignment passes and the column shift are ported, but G4 is judged on rows, "
+        "room counts and the measured boss floors, not on comparing maps to the client's",
+        "Orobas as an act 2 ancient: hidden behind OrobasEpoch in the build, and the emulator "
+        "models no unlock state, so it is excluded rather than dealt unconditionally",
+        "the deck-conditional ancient options that need counts this engine does not track: "
+        "Pael's claw/tooth (Goopy-enchanted, removable cards), Nonupeipe's BeautifulBracelet "
+        "and Tanx's TriBoomerang (Swift-/Instinct-enchanted cards). Their pools without the "
+        "extra are offered, so the distribution of those three ancients is narrower than the "
+        "game's, not merely different",
+        "SeaGlass's other-character binding: Orobas offers it as itself because the emulator "
+        "has one playable character",
+        "Hook.ShouldAllowAncient: when the build's hook disallows an ancient the screen "
+        "collapses to a single PROCEED, which the emulator never does",
+        "an out-of-combat death: an ancient's max-health price can take a real run to zero, "
+        "and this engine floors it at 1 health instead of ending the run",
+        "AscensionLevel: the double boss is unconditional here, which is A10 and nothing else",
+        "any per-act or per-floor difficulty scaling, and AscensionLevel.SwarmingElites (A2), "
+        "which queues 8 elites instead of 5 (MapPointTypeCounts.cs:15-19)",
+        "TheArchitect: the real run ends in an EventRoom after the second boss "
+        "(RunManager.cs:1207-1246); the engine ends it with a cleared flag",
+        "ExoskeletonsWeak and DevotedSculptorWeak: the emulator has no separate weak variant, "
+        "so those two weak slots draw the normal encounter",
+    ],
+    "real_progression": REAL_PROGRESSION,
+    "result_tiers": RESULT_TIERS,
+    "may_be_quoted_as": [
+        "a three-act campaign whose stages draw the shipped game's own acts",
+        "a paired-boss final act with a real route decision between the two fights",
+        "each act's own ancient, with its real relic candidates, on entry",
+        "a regression control against approx-v1, fidelity-v2 and fidelity-v3 artifacts",
+    ],
+    "must_not_be_quoted_as": [
+        "content-verified three-act coverage",
+        "live A10 win rate",
+        "evidence that a strategy can clear the shipped game",
+        "the shipped generator's per-node map shapes",
+        "a content-verified three-act campaign -- the tier above this one is where that claim "
+        "would live, and it is still unattained",
     ],
 }
 
@@ -392,6 +561,9 @@ _FIDELITY_V2_DIGEST = "512b6157e70bd501f88c0d8862d8bcd83873f8733d5bdae629ffadda6
 
 #: Pinned the same way, from the declaration below.
 _FIDELITY_V3_DIGEST = "6e84c9e77499fd8253be9b97fd8d893c4a4602b6853779b315883159bd0a47d4"
+
+#: Pinned from the declaration below, which is the live one until the next version bumps it.
+_FIDELITY_V4_DIGEST = "d7c9dece05bdde79d626fe05f7890bf10597a91cc95e4b7dafecb8abda072fa3"
 
 FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
     "sts2sim-campaign-approx-v1": {
@@ -452,6 +624,34 @@ FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
             "trained there has not seen a decision that exists here"
         ),
     },
+    "sts2sim-campaign-fidelity-v4": {
+        "frozen_at_utc": "2026-09-22T09:58:00+00:00",
+        "content_sha256": _FIDELITY_V4_DIGEST,
+        "verdict": "approximate",
+        "result_tier": "simulator_three_act_campaign_shape_and_rewards",
+        "gates_closed": [
+            "G6_no_boss_relic_reward",
+            "G1_act_pools",
+            "G3_second_boss_structure",
+            "G2_ancients",
+            "G4_map_shape",
+            "G5_reward_and_upgrade_distribution",
+        ],
+        "meaning": (
+            "All six hard gates close: each act also generates its own map depth, room queues "
+            "and event pool, rewards and upgrade odds follow the act and the room type, and the "
+            "boss floors the geometry implies are the ones the real client measured (17/33/48). "
+            "It is still not the tier above: no ascension model, no unknown-node re-roll, no "
+            "TheArchitect exit, two weak variants absent, and placement can fall short of the "
+            "queue in the shorter acts."
+        ),
+        "checkpoint_rule": (
+            "a fidelity-v3 checkpoint enters a different map here -- acts 2 and 3 are one and two "
+            "rows shallower and their event pools are their own -- so its act-2/3 state visitation "
+            "may not be read as coverage of this environment; v3 rewards were also richer, because "
+            "the final-act boss dealt a screen this build does not"
+        ),
+    },
 }
 
 #: The declaration each frozen version was stamped with.  ``assert_content_declaration``
@@ -461,7 +661,8 @@ FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
 FROZEN_ENVIRONMENT_DECLARATIONS: dict[str, dict[str, object]] = {
     "sts2sim-campaign-approx-v1": CAMPAIGN_CONTENT_COVERAGE_APPROX_V1,
     "sts2sim-campaign-fidelity-v2": CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2,
-    "sts2sim-campaign-fidelity-v3": CAMPAIGN_CONTENT_COVERAGE,
+    "sts2sim-campaign-fidelity-v3": CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V3,
+    "sts2sim-campaign-fidelity-v4": CAMPAIGN_CONTENT_COVERAGE,
 }
 
 

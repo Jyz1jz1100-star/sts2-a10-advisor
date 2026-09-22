@@ -76,6 +76,13 @@ try {
     & $pythonPath -m unittest @smallOnly -v
     if ($LASTEXITCODE -ne 0) { throw "Contract tests failed with exit code $LASTEXITCODE" }
 
+    # Engine citations are a green signal the suite otherwise would not see: the provenance
+    # snapshot re-hashes whatever line the report already names, so a pointer can slide off its
+    # own claim with every other check passing. This gate reads the anchor table and adjudicates.
+    Write-Host "== engine citation anchors =="
+    & $pythonPath scripts/verify_engine_citations.py
+    if ($LASTEXITCODE -ne 0) { throw "Engine citation anchors drifted (exit $LASTEXITCODE)" }
+
     $trainingPythonWasConfigured = -not [string]::IsNullOrWhiteSpace($env:STS2_TRAINING_PYTHON)
     $trainingPython = $env:STS2_TRAINING_PYTHON
     if (-not $trainingPythonWasConfigured) {
