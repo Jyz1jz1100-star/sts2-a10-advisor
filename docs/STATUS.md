@@ -2958,3 +2958,37 @@ and nothing else") and item 10 stay LOW and MEDIUM. Item 9 now has a positive re
 a scope argument -- unconditional is not merely fine for an A10 target, it is how the A10 combat
 values get applied at all. Removing the ascension conditionality would not be a simplification,
 it would be a downgrade to A0.
+
+## The pilot's curve, read properly: flat, not slow (2026-09-23)
+
+The first reading compared one baseline against one final checkpoint. The run actually recorded
+four evaluation points on the same 200-episode checkpoint split, and they are worth more than
+the two-point version:
+
+| steps | mean final floor | reached the Act-1 boss | mean return |
+|---|---|---|---|
+| 2.0M | 7.54 | 3/200 | -28.71 |
+| 4.0M | 7.10 | 2/200 | -28.74 |
+| 6.0M | 7.49 | 4/200 | -28.91 |
+| 8.0M | 7.56 | 10/200 | -29.02 |
+
+No trend, and `mean_return` drifts *down* while `value_loss` falls 63.3 -> 1.35 and
+`explained_variance` climbs 0.001 -> 0.94. The critic is modelling the reward accurately; the
+actor is not converting that into a better outcome. That combination is the specific signature
+that distinguishes "needs more steps" from "more steps of this signal will not help", and it is
+the second one.
+
+Two honest limits on that. 8M steps is roughly 325 PPO updates at n_steps=2048 x 12 envs, which
+is not a large budget in the abstract -- the claim is that the four points show no direction, not
+that the model is saturated. And the reward's shape was not measured here: potential-based
+shifting means reaching floor 17 before dying is worth roughly +10 over dying at floor 7, so the
+gradient toward depth exists on paper, which is exactly why "the reward is wrong" cannot be
+asserted from this table either. The number that would separate those is a difficulty the
+environment can actually demonstrate: how the same policy does at the fights it is losing when
+play is not the variable -- and the live client, which has the Combat Solver playing those same
+A10-valued fights, is the only thing on this machine that can.
+
+So the sequence from here is: get the client up, re-run the bounded campaign arm against a policy
+that can clear Act 1, and only then decide whether the flat curve was capacity, reward, or
+opponent strength. What is settled and does not need re-litigating: the maps walk (200 seeds, all
+three acts), the combat numbers are the target's own A10 values, and 8M steps moved nothing.
