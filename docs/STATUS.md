@@ -2837,18 +2837,27 @@ decimals. The 7.93 in `promotion.json` is a different policy — SB3's `final.zi
 8,011,776 steps after the run crossed its budget. Both numbers are right; they are not the
 same artefact, and a hand-written reference to either has to name which file it came from.
 
-**Where it dies, and why scale is not the answer.** The death-floor histogram peaks at floor 6
-(floors 5-8 hold 290 of the 500) with 24/500 at floor 17 and **nothing past it**. Floor 17 is the Act 1 boss.
-So acts 2 and 3 contribute almost no gradient: 8M steps of "campaign" RL is overwhelmingly
-Act-1 experience with a longer horizon bolted on. That is also why the smoke's crossing
-seeds needed a reach-directed list -- the campaign past the first boss is not something this
-policy distribution reaches by sampling.
+**Where it dies, and why scale is not the answer.** Over all 500 promotion episodes: 41 die
+before floor 5, **355 (71%) between floors 5 and 9**, 80 between 10 and 16, 24 (4.8%) reach
+floor 17 -- the Act 1 boss -- and **none get past it**.
 
-The wall is therefore not new and not a campaign defect. The shipped act1 promotion gate
-demands a 35% true-terminal win rate, and no checkpoint on disk has ever cleared Act 1 at
-anything like that, so the campaign arm inherited a policy that reaches the boss and loses
-to it. Brute-forcing an exploration wall at ~0% clear rate with 500M steps is the move this
-pilot exists to advise against, and it advises against it clearly.
+An earlier draft of this section called the Act-1 boss the wall. That was wrong, and wrong
+in the way that matters most: it came from the gate sweep's 200 `deepest_episode_rows`, which
+are the deepest 200 of 10,000, so of course they end at the boss -- selecting on depth and
+then reporting where the depth stops. The pilot's own histogram is the unbiased view, and it
+says the campaign never gets going: nearly three quarters of episodes die in the first third
+of Act 1, eight floors short of the thing they were supposedly failing at. The boss is the
+*second* wall, behind the first one that removes 71% of runs before they can see it.
+
+So acts 2 and 3 contribute almost no gradient -- 8M steps of "campaign" RL is Act-1 early
+game with a longer horizon bolted on -- and no campaign content past the first boss is being
+sampled at all. Brute-forcing that with 500M steps is the move this pilot exists to advise
+against, and it advises against it clearly.
+
+The shipped act1 promotion gate demands a 35% true-terminal win rate; no checkpoint on disk
+has ever come close, so the campaign arm inherited that ceiling rather than creating a new
+one. What to attack next is the attrition, not the boss: the corridor through Act 1's first
+nine floors, which is where 71% of the campaign's episodes actually end.
 
 **Recommendation, as a measurement rather than a plan:** do not scale. The trainable target
 is the Act-1 boss fight -- longevity inside it, not floor count, not step efficiency -- and
