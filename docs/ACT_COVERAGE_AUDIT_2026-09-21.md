@@ -628,7 +628,7 @@ act 1 floor 8/12），驱动按既有预算重试并走过去了。
 
 同一轮把模拟器侧也推到了 **`sts2sim-campaign-fidelity-v2`**（G6+G1+G3 关闭，
 G2/G4/G5 仍开），它对本文结论的直接影响记在
-[保真度文档 §6](SIMULATOR_ACT_FIDELITY_2026-09-21.md)：删掉真游戏不发的 boss 遗物之后，
+[保真度文档 §7](SIMULATOR_ACT_FIDELITY_2026-09-21.md)：删掉真游戏不发的 boss 遗物之后，
 act1 checkpoint 在 10,000 个声明种子里只有 2 局进第二幕、0 局进第三幕，
 `smoke_full_run_pipeline.py` 的第 11 项 `episode_crosses_act_boundaries` 因此转红（10/11）——
 标准未下调，红的是"当前没有任何 checkpoint 能在忠实环境里走到第三幕"这件事。

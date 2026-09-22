@@ -155,7 +155,7 @@
 带这个名字改内容会直接抛 `EnvironmentVersionError`；跨 environment 合并被
 `assert_single_environment` 与 `merge_reward_rule_slices.py` 拒掉。
 下一版保真环境必须叫 `sts2sim-campaign-fidelity-v2`（已在本模块预留）。
-2026-09-22 已按下文 §6 发布，approx-v1 的声明与摘要原样保留。
+2026-09-22 已按下文 §7 发布，approx-v1 的声明与摘要原样保留。
 
 2026-09-21 首次运行（静态判据）：**六门全 FAIL**，并且每台仪器都报告它读到了什么——
 例如 G3 的 `paired_final_act_boss_body` 直接印出第二 boss 是
@@ -173,7 +173,45 @@
    所以即使 G1 把池子接对，弱/正常两档在部分怪上仍不可区分——这是接完 G1 之后
    仍然存在的差异，必须留在 `still_differs` 里而不是被"池子接上了"一句话盖掉。
 
-## 6. fidelity-v2 的落地记录（2026-09-22）
+## 6. G2 的实现依据（已按源码钉死，尚未实现）
+
+先把"要造什么"写清楚，避免下一轮凭印象发明：
+
+* **每幕起点就是先古之民节点**：`StandardActMap.cs:333-338` 在同一段里同时给出
+  `BossMapPoint = Boss`、`StartingMapPoint = Ancient`、`SecondBossMapPoint = Boss`；
+  `ActMap.cs:88-92` 又把 Ancient 与 Boss 一起当作"不受网格边界约束的点"。
+  也就是说真实游戏不是"某一幕里随机一个事件房是先古之民"，而是**进场必会遇见它**。
+* **每幕抽哪一个**：`ActModel.cs:345-348`
+  `_rooms.Ancient = rng.NextItem(GetUnlockedAncients(unlockState).Concat(_sharedAncientSubset ?? []))`，
+  与 boss 抽取同流同位置。池子：Overgrowth 只有 `Neow`（`Overgrowth.cs:29-32`）；
+  Hive 是 `Orobas / Pael / Tezcatara`（`Hive.cs:27-33`），且 `Hive.cs:110-115`
+  在 `OrobasEpoch` 未揭示时把 Orobas 摘掉；Glory 是 `Nonupeipe / Tanx / Vakuu`
+  （`Glory.cs:26-32`，`Glory.cs:104` 无额外解锁裁剪）；共享子集（Darv）只给 2/3 幕
+  （`RunManager.cs:669-676` 跳过第一幕）。模拟器没有 unlock/epoch 状态，所以接入时
+  必须把"Orobas 是否可能出现在 2 幕"写进 residual，而不是悄悄全给或悄悄全不给。
+* **候选是什么**：六个先古之民的 `AllPossibleOptions` 全部以
+  `RelicOption<X>` 为主体（`Orobas.cs:19-47`、`Pael.cs:16-30`、`Tezcatara.cs:25-39`、
+  `Nonupeipe.cs:29-43`、`Tanx.cs:27-41`、`Vakuu.cs:18-29`），
+  另有少量专属项（`PrismaticGem`、`SeaGlass`、`PaelsClaw/Tooth/Legion/Growth`、
+  `BeautifulBracelet`、`TriBoomerang`）。这意味着模拟器现有的先古屏
+  （`RunPhase.Ancient` + `State.NeowOptions[]` + `ApplyAncientChoice(relicId)`，
+  `RunEngine.cs:23/904-912/1412`）足以承载"候选=遗物 id、效果=给遗物"这一半；
+  专属项需要各自的实现，属于 G2 的第二半。
+* **一次给几个候选、怎么选**：`AncientEventModel.cs:179-198` 把
+  `GenerateInitialOptions()` 的结果作为 `GeneratedOptions`，而各先古自己给出**恰好 3 个**：
+  `Orobas.cs:167-195` 把 `OptionPool1`（3 件遗物）与"海玻璃/棱镜宝石"特殊项合成一袋后
+  `Rng.NextItem`，再各自 `NextItem(OptionPool2)`、`NextItem(OptionPool3)`；
+  `Vakuu.cs:119-137` 是三池各自 `UnstableShuffle` 后取 `[0]`。
+  也就是说"每幕先古之民 = 从三个池子里各出一个候选的三选一"，与模拟器已有的开局 Neow
+  三选一（`State.NeowOptions[]`）同形——G2 可以沿这条既有通道实现，不必新造屏幕。
+* **两条必须留痕的越界风险**：`Hook.ShouldAllowAncient`（`AncientEventModel.cs:181`）为假时
+  真实游戏只给一个 PROCEED；`NeowsBones` 之类的解锁门槛也会改变候选。模拟器没有 hook/unlock
+  状态，接入时这两点要写进 `not_modelled`，不能让"三选一永远成立"被当成已核实。
+
+G2 的验收不变：三幕各自的先古之民真的可遇见、候选合法、效果进入观测；
+不会因为"名字改了"算通过。
+
+## 7. fidelity-v2 的落地记录（2026-09-22）
 
 这一版只做 G6 + G1 + G3，改动全在引擎里，不在文档里：
 
