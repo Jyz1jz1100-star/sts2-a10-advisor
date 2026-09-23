@@ -1153,11 +1153,18 @@ class AutoPlayer:
             "y": int(cell.get("y", 0)),
         }
 
-    def _treasure_step(self, state: dict[str, Any]) -> dict[str, Any]:
+    def _treasure_step(self, state: dict[str, Any]) -> dict[str, Any] | WaitForTransition:
         treasure = state.get("treasure") or {}
         if treasure.get("relics") and self._last_step != ("treasure", "claim"):
             self._last_step = ("treasure", "claim")
             return {"action": "claim_treasure_relic", "index": 0}
+        if not treasure.get("can_proceed"):
+            # Refused live at act 1 floor 10 of ssb-20260922T170535Z-0e43b211:
+            # an empty chest with no exit offered yet is the reward drain still
+            # resolving, not a screen to close.  ``proceed`` there is a refusal
+            # the client answers, and the retry that follows is the same
+            # decision -- so the screen says when it may be left.
+            return WaitForTransition("the chest offers no relic and no exit yet")
         return {"action": "proceed"}
 
     def _bundle_step(self) -> dict[str, Any]:
@@ -1599,10 +1606,19 @@ class AutoPlayer:
                         screen = str(state.get("menu_screen") or "")
                         if screen not in ("main", "singleplayer"):
                             # settings/compendium/etc: walk back toward the main menu
-                            self.controller.send_action(
-                                {"action": "menu_select", "option": "back"},
-                                expected_decision_id=decision_id,
-                            )
+                            # -- but only along a door the menu itself lists.  This
+                            # refused twice live in ssb-20260922T170535Z-0e43b211
+                            # ("Back button not available") because the assumption
+                            # "not a screen I recognise, therefore it has a back
+                            # button" is not the same statement; the option list is
+                            # the only evidence about the current screen.
+                            if "back" in _menu_option_names(state):
+                                self.controller.send_action(
+                                    {"action": "menu_select", "option": "back"},
+                                    expected_decision_id=decision_id,
+                                )
+                            else:
+                                time.sleep(self.poll)
                         else:
                             options = _menu_option_names(state)
                             saved = None

@@ -599,6 +599,22 @@ class AutoplayDecisionTests(unittest.TestCase):
         second = self.player.decide(state)  # same screen after the claim
         self.assertEqual(second, {"action": "proceed"})
 
+    def test_treasure_holds_until_the_chest_offers_an_exit(self) -> None:
+        """An empty chest that cannot proceed yet is a transition, not a screen to close.
+
+        Refused live at act 1 floor 10 of ssb-20260922T170535Z-0e43b211: the rule
+        used to post ``proceed`` unconditionally, and the client answered "No
+        proceed button available or enabled" twice.
+        """
+        from bridge.autoplay import WaitForTransition
+
+        draining = {"state_type": "treasure", "treasure": {"relics": [], "can_proceed": False}}
+        self.assertIsInstance(self.player.decide(draining), WaitForTransition)
+
+        openable = {"state_type": "treasure", "treasure": {"relics": [], "can_proceed": True}}
+        self.player._last_step = None
+        self.assertEqual(self.player.decide(openable), {"action": "proceed"})
+
     def test_bundle_select_then_confirm(self) -> None:
         state = load("bundle_select")
         self.assertEqual(
