@@ -9,8 +9,11 @@
 # "is there a direction at all" is answered with a trend rather than two endpoints.
 #
 # Deliberately NOT changed, and each is a separate arm with a separate reason:
-#   * step_cost -- see the interpretation block at the bottom; it is the leading suspect for
-#     the pilot's drift and changing it here would confound the one thing this run measures.
+#   * step_cost -- see the interpretation block at the bottom. It was written here as the
+#     leading suspect for the pilot's drift; GPT-6-Astra pointed out on 2026-09-23 that the
+#     arithmetic behind that fear was wrong, and the correction is in the block below. It is
+#     still not touched by this arm, now because it is a weaker hypothesis than it looked, not
+#     a stronger one.
 #   * initialisation -- the clean init-isolation harness
 #     (scripts/compare_pretrained_vs_vanilla_ppo.py) does not thread the campaign flag into
 #     its evaluation factory, so using it today would score an Act-1 run as a full_run, the
@@ -104,11 +107,15 @@ start = 2008020000
 count = 10000
 
 # ---------------------------------------------------------------- interpretation
-# step_cost is the one term whose meaning changes with episode length. At 1600 steps an
-# Act-1 walk pays at most -16 against a +60 win; at a 4800-step campaign horizon the same
-# 0.01/step can reach -48, which is no longer a nudge toward efficiency but a competing
-# objective against walking deep at all. It is left untouched here because changing the
-# reward and the world in one step would make the pilot's curve unreadable.
+# step_cost was suspected of fighting depth. That suspicion was stated as: at a
+# 4800-step campaign horizon, 0.01 per step can total -48 against a +60 win. The number is
+# right and the inference was wrong -- returns are discounted at gamma = 0.995, so the
+# present value of a continuing -0.01 per step is bounded by 0.01 / (1 - 0.995) = -2.0,
+# about 3% of the +60 win, not 80% of it. Episode length still distorts comparisons
+# between episodes of different lengths, which is why the death-floor and truncation
+# distributions below are the first thing to read; it does not make quitting early the
+# rational policy, and step_cost is no longer the leading explanation for the pilot's
+# drift. (Caught by GPT-6-Astra on 2026-09-23; the arm is unchanged either way.)
 #
 # So the first thing to read off this run is the truncation and death-floor
 # distribution, not the win rate: a policy that learns to end episodes early is a
