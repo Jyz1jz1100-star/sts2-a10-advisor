@@ -745,6 +745,59 @@ class FailureConvergenceTests(unittest.TestCase):
             self.assertIn("comparison_observer_lost", events)
             self.assertNotIn("comparison_failed", events)
 
+    def test_acceptance_observer_finishing_its_budget_is_not_a_veto_either(self) -> None:
+        """The witness ending on purpose must not cancel the thing it witnesses.
+
+        ssb-20260922T170535Z-0e43b211: the comparison child exited 0 having walked its
+        50 battles, which classified as ``partial``, and the supervisor tore the batch
+        down while the run collector was mid-Act-2 -- the deepest live attempt of the
+        night stopped because its observer had finished watching.  The same file already
+        grants this to an observer that *dies*; the success path just never got the rule.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            game_logs = root / "game-logs"
+            game_logs.mkdir()
+            (game_logs / "godot.log").write_text("log\n", encoding="utf-8")
+            clock = FakeClock()
+            popen = FakePopen(comparison_code=0, autoplay_code=0)
+            config = _config(root, clock, track="acceptance")
+            supervisor = BatchSupervisor(
+                config,
+                popen_factory=popen,
+                game_probe=lambda _config: True,
+                clock=clock,
+                sleep=clock.sleep,
+                comparison_output_dir=root / "comparison",
+            )
+            _write_comparison_artifacts(
+                supervisor, status="partial", stopped_reason="max_battles"
+            )
+
+            result = supervisor.run()
+            status = json.loads(supervisor.status_path.read_text(encoding="utf-8"))
+            # The batch is still reported partial, and correctly so: the witness
+            # really did only gather partial evidence.  What changed is *why* it
+            # ends -- the run collector is no longer cut off to deliver that
+            # verdict, so the deliverable is the driver's own quota, not the
+            # observer's battle budget.
+            self.assertEqual(status["stop_reason"], "autoplay_completed")
+            self.assertEqual(status["exit_codes"]["autoplay"], 0)
+            self.assertEqual(
+                status["attestation_gaps"], ["comparison_observer_exited:0:partial"]
+            )
+            events = [
+                json.loads(line)["event"]
+                for line in supervisor.supervisor_log_path.read_text(
+                    encoding="utf-8"
+                ).splitlines()
+            ]
+            self.assertIn("comparison_observer_lost", events)
+            self.assertNotIn("comparison_partial", events)
+            # The witness's records survive being demoted: dropping the veto must
+            # not throw away the drift evidence it produced.
+            self.assertTrue((root / "comparison" / "summary.json").is_file())
+
     def test_autoplay_clean_exit_completes_batch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

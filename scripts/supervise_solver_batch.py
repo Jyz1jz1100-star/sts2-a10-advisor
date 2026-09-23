@@ -1801,8 +1801,50 @@ class BatchSupervisor:
             }
             comparison_code = states.get("comparison")
             if comparison_code is not None:
+                comparison_result = (
+                    self._verify_comparison() if comparison_code == 0 else None
+                )
+                if self.config.track == "acceptance":
+                    # The acceptance batch exists to produce the run; this child
+                    # only witnesses what the auto-updating solver did while the
+                    # run was playing.  Its end -- whether it ran out of battles,
+                    # ran out of wall clock, or died -- costs the batch evidence,
+                    # and evidence lost is not a reason to kill the thing being
+                    # attested -- the same split the solver-drift gate uses.  If
+                    # the client itself went away, ``game_lost`` below says so
+                    # under its own name.  Finishing its budget used to stop the
+                    # batch here, which capped every acceptance run at the
+                    # comparison's 50 battles.
+                    classification = (
+                        comparison_result["classification"]
+                        if comparison_result is not None
+                        else None
+                    )
+                    self.attestation_gaps.append(
+                        "comparison_observer_exited:%s" % comparison_code
+                        + (":%s" % classification if classification else "")
+                    )
+                    self.children.pop("comparison", None)
+                    self._log(
+                        "comparison_observer_lost",
+                        exit_code=comparison_code,
+                        classification=classification,
+                        stopped_reason=(
+                            comparison_result["stopped_reason"]
+                            if comparison_result is not None
+                            else None
+                        ),
+                        issues=(
+                            comparison_result["issues"]
+                            if comparison_result is not None
+                            else None
+                        ),
+                        remaining_children=sorted(self.children),
+                    )
+                    self._persist("running")
+                    continue
                 if comparison_code == 0:
-                    comparison_result = self._verify_comparison()
+                    assert comparison_result is not None
                     classification = comparison_result["classification"]
                     if classification == "complete":
                         self.stop_reason = "comparison_complete"
@@ -1830,25 +1872,6 @@ class BatchSupervisor:
                     self._stop_children("comparison_artifacts_invalid")
                     self._finalize_stop()
                     return EXIT_CHILD_FAILED
-                if self.config.track == "acceptance":
-                    # The acceptance batch exists to produce the run; this child
-                    # only witnesses what the auto-updating solver did while the
-                    # run was playing.  Its death costs the batch evidence, and
-                    # evidence lost is not a reason to kill the thing being
-                    # attested -- the same split the solver-drift gate uses.  If
-                    # the client itself went away, ``game_lost`` below says so
-                    # under its own name.
-                    self.attestation_gaps.append(
-                        f"comparison_observer_exited:{comparison_code}"
-                    )
-                    self.children.pop("comparison", None)
-                    self._log(
-                        "comparison_observer_lost",
-                        exit_code=comparison_code,
-                        remaining_children=sorted(self.children),
-                    )
-                    self._persist("running")
-                    continue
                 self.stop_reason = "comparison_failed"
                 self._log("comparison_failed", exit_code=comparison_code)
                 self._stop_children("comparison_failed")
