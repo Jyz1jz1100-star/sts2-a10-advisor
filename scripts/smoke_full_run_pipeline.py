@@ -139,7 +139,7 @@ def main() -> int:
     # crossing -- so a counter that reads crossings from deep floors fails here.
     ckpt_path = ROOT / ("runtime/fanout/b_terminal-1/v2curriculum-20260918T182830Z/act1/"
                         "checkpoints/step_000004000032.zip")
-    crossing_seed_file = ROOT / "data/seeds/act_boundary_crossing_v4.json"
+    crossing_seed_file = ROOT / "data/seeds/act_boundary_crossing_v5.json"
     if ckpt_path.is_file() and crossing_seed_file.is_file():
         crossing_decl = json.loads(crossing_seed_file.read_text(encoding="utf-8"))
         crossing_seeds = [int(seed) for seed in crossing_decl["seeds"]]
