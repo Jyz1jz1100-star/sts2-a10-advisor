@@ -880,8 +880,8 @@ Act-1 单独评估把胜利种子写进了 `winning_seeds`（指标 schema 6）�
 >
 > 测法：把那局确定性地重放到最后一个 map 决策点，读出该状态下**引擎自己那份 32 位掩码**与
 > V2 展开后的 225 位掩码，再把每个被广告的选项分别走一遍。结果两枚完全一致：
-> **引擎掩码里 legal bases = 空**（`RunEngine.cs:698-703` 只给 `MapNodeTypes[i] != NodeNone` 的槽位置位，
-> `RunMapGenerator.cs:1123-1135` 于是对所有 action 返回 false，`RunEngine.cs:975` 的 `StepMap` 直接返回 -1），
+> **引擎掩码里 legal bases = 空**（`RunEngine.cs:383-388` 只给 `MapNodeTypes[i] != NodeNone` 的槽位置位，
+> `RunMapGenerator.cs:921-933` 于是对所有 action 返回 false，`RunEngine.cs:613` 的 `StepMap` 直接返回 -1），
 > 而 V2 平掩码里唯一合法的动作是 **base 32 = 那个合成哨兵动作**——那是
 > `training/v2_flat_env.py:308-329` 在"引擎掩码全空"时**故意**放进去的一个动作
 > （外层 `v2_run_wrapper.py:222-230` 也备着同一手，见下）。

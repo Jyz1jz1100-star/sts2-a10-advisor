@@ -2055,9 +2055,12 @@ def claim_chained_map_deadend():
         "the_cited_engine_code_still_says_it": (
             # The same three pointers the report carries, read from the same build the report's
             # provenance snapshot hashed -- a match here that disagrees with the report is a bug.
-            "MapNodeTypes" in engine_text("RunEngine.cs", 698, 703)
-            and "ChooseMapNode" in engine_text("RunEngine.cs", 975, 975)
-            and "NodeNone" in engine_text("RunMapGenerator.cs", 1123, 1135)),
+            # Re-pinned for the fidelity-v5 build: the retained-trace removal shifted these lines,
+            # and each new window was matched by comparing its text to the old one, not by
+            # applying an offset.
+            "MapNodeTypes" in engine_text("RunEngine.cs", 383, 388)
+            and "ChooseMapNode" in engine_text("RunEngine.cs", 613, 613)
+            and "NodeNone" in engine_text("RunMapGenerator.cs", 921, 933)),
     }
 
 
