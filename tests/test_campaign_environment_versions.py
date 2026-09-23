@@ -160,10 +160,10 @@ class FrozenEnvironmentTests(unittest.TestCase):
         self.assertIn("different environment", str(caught.exception))
 
     def test_an_unfrozen_version_may_declare_anything(self) -> None:
-        # A name nobody has frozen yet: v4 is registered now, so a test that reused it would be
+        # A name nobody has frozen yet: v5 is registered now, so a test that reused it would be
         # asserting that a frozen label accepts arbitrary content, which is the opposite of the rule.
         digest = assert_content_declaration(
-            "sts2sim-campaign-fidelity-v5", {"verdict": "content_verified"}
+            "sts2sim-campaign-fidelity-v6", {"verdict": "content_verified"}
         )
         self.assertEqual(len(digest), 64)
 

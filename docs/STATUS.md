@@ -3043,3 +3043,89 @@ Separately, the gate that fired in the first batch above only exists on comparis
 a moving CombatSolver correctly invalidates a before/after measurement. The acceptance track --
 the one collecting the Floor 1 -> victory attempt -- runs `mod_gate=attest`, records the drift and
 keeps playing, so solver auto-updates no longer stop collection.
+
+
+## The emulator was replaying a recorded run, and `sts2sim-campaign-fidelity-v5` deletes it (2026-09-23)
+
+Found while closing an unrelated question, and it is the most serious thing this repository has
+yet found about its own simulator. `RunEngine.Step` carried a subsystem the code calls a
+*retained trace*: it tested live state against one recorded playthrough's **exact floor, HP and
+gold**, and where they matched it overwrote what had just happened -- combat results, rewards, map
+routing, which event a room served.
+
+It is not a debug path. There is no `#if` and no `DefineConstants` anywhere in
+`src/Sts2Emulator`, and the library the environment loads is built from these same files. 95 of
+its branches compare `State.StringSeed` against a golden run code (`7MS1YN8NWB`, `FKSYQMYRRV`),
+and those are unreachable here because `run_env.py:92` passes `str(actual_seed)` -- a decimal
+string can never equal a run code. **The other 54 have no seed guard and fired for every training
+seed.** The dangerous ones:
+
+| site | what it did to any seed that happened to match |
+|---|---|
+| `RunEngine.cs:1062` | at floor 9, encounter 29, HP <= 6: set HP to 0 and declared a loss |
+| `RunEngine.cs:1071`, `:1100` | at floor 9, two enemy shapes: killed every enemy and declared a win |
+| `RunEngine.cs:1125` | at floor 6, the Punch Construct: **any targeted play of hand slot 4 won the fight**, at a scripted 10 HP / 132 gold |
+| `RunEngine.cs:1136` | same fight: a real death was clamped to 1 HP and the terminal cancelled -- invulnerability on one node |
+| 14 routing + 8 event + 15 reward + 5 card-reward sites | chose the room, the event, or the loot |
+
+`:1125` is the one that decides the whole class, because it is a reward an agent can look up
+rather than earn, and it needs no coincidence: `FloorSixPunchConstruct_PlayingTheFifthCardIsNotAnInstantWin`
+plays one legal card at seed "7" and the run steps from Combat to RelicReward with the scripted
+10 HP. That test was written first and watched to fail; after the removal it passes, and the
+engine's own suite is 241/241.
+
+**What this does to the numbers already in this file, and what it does not.** Stated plainly,
+because the honest answer is narrower than the alarm: re-running 1500 campaign seeds with the
+same deterministic policy before and after, the removal moved **three episodes and no
+outcomes**: 130000028 and 130000846 survive floor 9 for two more floors, 130000229 dies two
+floors earlier, mean final floor 7.5187 -> 7.5200, wins 40 -> 40, clears 0 -> 0. So the
+attrition finding stands on the new environment, and the pilot's flat curve was not an artefact
+of a scripted floor-9 death. What was scripted is now gone, which matters for what has not been
+walked yet: the population that reaches floor 13 and beyond is tiny (2 of 1500 left act 1), and
+`EnterEventRoom` replaces an Underdocks floor-13 event with a fixed fight for **any** seed that
+gets there -- a deeper policy would have visited that. Measured equivalence on a population that
+barely exercises a branch is not identity, which is why v5's `checkpoint_rule` allows a v4
+checkpoint to continue but forbids reading its v4 metrics as v4-free.
+
+`tests/test_engine_no_scripted_overrides.py` keeps the class dead. It is written against *shape*,
+not the two seed strings: a floor number conjoined with an exact HP or gold value, in a branch
+that writes run state, is a snapshot test wearing a rule's clothes. Against the pre-removal tree
+it finds 23 such branches and 6 golden-seed references, so it can fail; against the current tree
+it finds nothing.
+
+## The acceptance batch was ending when its observer finished watching (2026-09-23)
+
+Separate defect, found from the same trace, and it is the reason no Floor 1 -> victory attempt has
+been banked despite the client reaching record depth. `supervise_solver_batch.py` already carried
+the right principle on the acceptance track, in its own comment: the batch exists to produce the
+run, the comparison child only witnesses the auto-updating solver, and lost evidence is not a
+reason to kill what it attests. It applied that when the child **died**. When the child
+*finished* -- exited 0 after walking its 50 battles -- the code fell into an earlier branch that
+stopped every child. So `ssb-20260922T170535Z-0e43b211` tore down a collector that was mid-Act-2
+purely because its observer had completed its schedule, and every acceptance batch has been capped
+at `--max-battles` of combat, not at its own run quota. The batch still reports partial, which is
+correct -- the evidence really is partial; what changed is that the deliverable outlives the
+witness. Covered by a test that fails without the change (`comparison_partial` -> with it,
+`autoplay_completed`).
+
+## The deepest live attempt, and what its contract says now (2026-09-23)
+
+`ssb-20260922T170535Z-0e43b211` is the furthest the real client has walked under fidelity-v4 with
+all four driver fixes in: **Act 1 floor 17, Act 2 floor 33, Act 3, dead at floor 46**, boss at 48.
+11-item contract: 7 PASS, 4 FAIL, and the failures now split cleanly.
+
+- `no_screen_skipped_without_a_rule` **passes** -- the item that stopped the previous record run.
+  Both screens that looked new are handled: `crystal_sphere` posts its own cell click, and
+  `fake_merchant` is a known shop screen that proceeds.
+- `bosses_1_plus_1_plus_2_cleared`, `terminal_is_the_games_victory_flag`,
+  `run_complete_by_its_own_definition` all fail from one fact: it died before the final double
+  boss. That is a **strategy loss**, correctly not counted as an implementation defect, and it is
+  the same wall the simulator reports.
+- `every_action_was_legal_and_acked` is the one genuine red: 3 in-play refusals. Two were the menu
+  posting `back` on a screen with no back button, and the pattern behind them is an assumption
+  dressed as a rule -- "not a screen I recognise, therefore it has a back button". Fixed against
+  the option list, which is the only evidence there. A third, `proceed` on an empty chest that
+  had not offered an exit, was refused twice at Act 1 floor 10 and is fixed the same way. The
+  fourth shape -- a crystal-sphere cell clicked after its screen closed, with a decision id that
+  still matched -- is left **open on purpose**: it is a race, and a blind guard would hide it
+  rather than fix it.

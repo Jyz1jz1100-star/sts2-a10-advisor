@@ -14,12 +14,15 @@ emulator side points at the pools it actually reads.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from collections.abc import Iterable
 
 #: Bump when the campaign's *content* changes, so pre-change artifacts stay separable.
-CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-fidelity-v4"
+#: v5 is v4's content with the engine's replayed-trace overrides removed: nothing was
+#: added, and what the campaign contains is otherwise unchanged.
+CAMPAIGN_ENVIRONMENT_VERSION = "sts2sim-campaign-fidelity-v5"
 
 #: The base name the fidelity line publishes under.  approx-v1 is frozen below, and
 #: results from the two must never be averaged, re-judged, or continued from each
@@ -390,10 +393,13 @@ CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V3: dict[str, object] = {
     ],
 }
 
-CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
+#: Frozen: all six gates, per-act maps and act-scaled rewards, with the engine still
+#: carrying a subsystem that replayed one recorded run.  Its digest is pinned below, so
+#: this text and that digest may not move together with the live declaration.
+CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V4: dict[str, object] = {
     "verdict": "approximate",
     "result_tier": "simulator_three_act_campaign_shape_and_rewards",
-    "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+    "environment_version": "sts2sim-campaign-fidelity-v4",
     "summary": (
         "Each act generates its own map: 15/14/13 rooms with the boss one row below the last "
         "room row (16/15/14), its own weak/normal fill counts, 5 elites and 3 shops, its own "
@@ -539,6 +545,36 @@ CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
 }
 
 
+V5_SUMMARY_LEAD = (
+    "v4's content with one thing taken out of the engine rather than added to it. The "
+    "run step used to carry a retained-trace subsystem that replayed a single recorded "
+    "playthrough: it matched live state against that run's exact floor, HP and gold and "
+    "then overwrote combat results, rewards, map routing and event choice. 54 of those "
+    "branches guarded nothing, because the environment passes str(int_seed) and a branch "
+    "comparing StringSeed to a golden run code cannot fire for a training seed; one of "
+    "them settled the Act-1 floor-6 Punch Construct as a won combat, at a fixed 10 HP and "
+    "132 gold, for any targeted play of hand slot 4, which is a reward an agent can look "
+    "up rather than earn. Removing the lot moved 4 of 1500 campaign episodes' final floor "
+    "and no wins, so every v4 strength number stays usable and is now produced by rules "
+    "that apply to every seed. "
+)
+
+#: Derived from the frozen v4 declaration rather than copied, so a correction that belongs
+#: to both is made once; v4's pinned digest is what stops v4's text drifting underneath.
+CAMPAIGN_CONTENT_COVERAGE: dict[str, object] = {
+    **copy.deepcopy(CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V4),
+    "environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+    "summary": V5_SUMMARY_LEAD + str(
+        CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V4["summary"]
+    ),
+    "may_be_quoted_as": [
+        "a campaign whose outcomes come from its own rules: no branch overwrites a combat "
+        "result, a reward, a route or an event because the state resembles a recorded run",
+        *CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V4["may_be_quoted_as"],
+    ],
+}
+
+
 class EnvironmentVersionError(RuntimeError):
     """A version name is being reused for content it never declared."""
 
@@ -564,6 +600,10 @@ _FIDELITY_V3_DIGEST = "6e84c9e77499fd8253be9b97fd8d893c4a4602b6853779b315883159b
 
 #: Pinned from the declaration below, which is the live one until the next version bumps it.
 _FIDELITY_V4_DIGEST = "d7c9dece05bdde79d626fe05f7890bf10597a91cc95e4b7dafecb8abda072fa3"
+
+#: Pinned from the live declaration below, which is v5: v4's content with the engine's
+#: replayed-trace overrides removed.
+_FIDELITY_V5_DIGEST = "7eaf8e47e390c3678db459bec697c045b46490c6149be5be361a93b594f8d918"
 
 FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
     "sts2sim-campaign-approx-v1": {
@@ -652,6 +692,35 @@ FROZEN_ENVIRONMENT_VERSIONS: dict[str, dict[str, object]] = {
             "the final-act boss dealt a screen this build does not"
         ),
     },
+    "sts2sim-campaign-fidelity-v5": {
+        "frozen_at_utc": "2026-09-23T02:20:00+00:00",
+        "content_sha256": _FIDELITY_V5_DIGEST,
+        "verdict": "approximate",
+        "result_tier": "simulator_three_act_campaign_shape_and_rewards",
+        "gates_closed": [
+            "G6_no_boss_relic_reward",
+            "G1_act_pools",
+            "G3_second_boss_structure",
+            "G2_ancients",
+            "G4_map_shape",
+            "G5_reward_and_upgrade_distribution",
+        ],
+        "meaning": (
+            "Nothing new was added: this is fidelity-v4 with the engine's retained-trace "
+            "subsystem deleted, so the same maps, pools, ancients, rewards and boss floors are "
+            "now produced only by rules that apply to every seed. What it removes is a confound, "
+            "not a capability -- no combat result, reward, route or event is chosen because the "
+            "live state resembles one recorded run."
+        ),
+        "checkpoint_rule": (
+            "a fidelity-v4 checkpoint may be resumed here, and this is the one version bump where "
+            "that is defensible rather than merely convenient: over the same 1500 campaign seeds "
+            "the removal moved 3 of 1500 episodes' final floor and no win or clear flag, so a v4 policy arrives in an "
+            "environment that behaves as it did. Its v4 metrics must still be reported as v4 -- "
+            "measured equivalence on one population is not identity, and the branches removed were "
+            "reachable in the tail of depth this population almost never walks into"
+        ),
+    },
 }
 
 #: The declaration each frozen version was stamped with.  ``assert_content_declaration``
@@ -662,7 +731,8 @@ FROZEN_ENVIRONMENT_DECLARATIONS: dict[str, dict[str, object]] = {
     "sts2sim-campaign-approx-v1": CAMPAIGN_CONTENT_COVERAGE_APPROX_V1,
     "sts2sim-campaign-fidelity-v2": CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V2,
     "sts2sim-campaign-fidelity-v3": CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V3,
-    "sts2sim-campaign-fidelity-v4": CAMPAIGN_CONTENT_COVERAGE,
+    "sts2sim-campaign-fidelity-v4": CAMPAIGN_CONTENT_COVERAGE_FIDELITY_V4,
+    "sts2sim-campaign-fidelity-v5": CAMPAIGN_CONTENT_COVERAGE,
 }
 
 
