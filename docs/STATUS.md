@@ -3779,3 +3779,77 @@ combat decision quality, and if the teacher loses those same fights too then the
 *resolution* is the problem and no training budget was ever going to fix it. That is the next
 measurement; the 40M arm is being allowed to finish its last two checkpoints rather than being
 killed, since it is 87% done and the eighth point is free.
+
+
+## 2026-09-23 (evening, seventh entry): one batch produced three certified victories, all on CombatSolver 0.45.0, and its only refusals are menu-class
+
+`ssb-20260923T114931Z-9b018290` is still running as of 15:47Z (trace 213 MB, last written 15:47Z,
+current run at act 2 floor 26, `bridge_unresponsive`->`game_restored` at 15:30Z with
+`process_alive: true`, 0 `game_lost_timeout`, no crash dump newer than 09-22). It has now crossed seven
+run boundaries and `verify_full_run_contract.py` reports per-run pass counts
+`[6, 6, 10, 11, 6, 10, 6]`.
+
+Three of those runs -- indices 2, 3 and 5 -- pass every substantive item: floor-1 start, acts 1-2-3 in
+order, each act's own Ancient, `bosses_1_plus_1_plus_2_cleared`,
+`terminal_is_the_games_victory_flag` and `run_complete_by_its_own_definition`. **Three certified
+victories in one batch, where the previous best batch produced one.** All three are on CombatSolver
+**0.45.0** (`33ADCEDC…`, off-lock), so the earlier worry that the auto-update had cost the run its
+depth is now not merely unproven but contradicted three times over. The 11/11 at index 3 keeps the
+caveat recorded two entries ago: while the batch runs there is no `session_end` summary (`grep` count 0
+in the trace), so `no_screen_skipped_without_a_rule` cannot be corroborated *or* failed for any of
+these runs, and indices 2 and 5 lose the clean-contract item to a refusal regardless.
+
+The refusals are worth separating by class, because the count is small and the classes mean different
+things. Scanning every `result` record in the trace: **exactly 2 non-ok action results in the whole
+batch, both `Unknown menu option: standard`** -- a menu-surface error, on runs 2 and 5. The
+rewards-screen refusal that filled 6 of 9 segments in the preceding all-0.45.0 batch appears **zero**
+times here. So the honest current picture is: in-play reward-screen refusals are batch-dependent noise
+on 0.45.0 (6/9 then 0/7 on the same solver digest), while the menu-class refusal is the one that
+actually stands between this project and a first fully-green 11/11 that survives completion.
+
+Nothing was relaxed to reach these readings and nothing in the driver, verifier, solver lock, save
+profile or client state was modified.
+
+### Training and bundle
+
+No new checkpoint since the 30M one: still six points, mean_final_floor 7.335 / 7.125 / 7.430 / 7.500 /
+7.405 / 7.575, `boundary_rate` 0.0 (0/200) in all six, `win_rate` 0.0 in all six. Process alive at
+iteration 1314 / 32,292,864 steps (`n_updates` 10504, `value_loss` 1.41, `explained_variance` 0.941,
+fps 939); the 35M point is the last one before the 40M finish and is roughly an hour out. The bundle is
+unchanged since the 30M rebuild and `verify_report_claims.py` on the training venv reads **61/61, exit
+0**.
+
+
+## The real client has now reached its own victory screen more than once; none of it is certified yet (2026-09-24)
+
+Two batches from 2026-09-23 carry runs whose terminal state is the game's own victory flag, which is
+the thing item 5 of the full-run contract has been refusing to say "yes" to for the whole project:
+
+* `ssb-20260923T081447Z-c93058ae`, finished, 9 replayed runs. One run: floor 1 start, acts 1-2-3,
+  the acts' own Ancients (Neow / Tezcatara / Nonupeipe), bosses cleared `1:17`, `2:33`, `3:48`,
+  `3:49` -- the required 1+1+2 -- terminal floor 49, `outcome=True` from
+  `bridge_is_victory_flag`, `run_complete=True`, **236 actions posted and 0 refused**. It reads
+  **10/11**, and the one failure is `no_screen_skipped_without_a_rule` carrying two `rewards` rows
+  (act 2 floor 33, act 3 floor 49) that the driver booked *before* the reward-screen hold landed:
+  nothing left to claim and the exit not yet lit is a settle window, and the same batch's own
+  replay shows the run going on to win. That is fixed evidence, not a fixed trace, so this batch
+  stays 10/11 and the next clearing batch is the one that can read 11/11.
+* `ssb-20260923T114931Z-9b018290`, still running at the time of writing, has **three** runs that
+  reach the victory terminal and one of them passes all eleven items on the replay.
+
+**Neither is a certified clear, and saying so is the point of the change that found it.** A trace
+whose batch has not stopped has written no `session_end`, and the two ledger-derived items read
+that file -- so while it is absent they *cannot fail*, and an 11/11 printed there was a statement
+about a half-written file rather than about a run. `contract_satisfied` now additionally requires
+the batch to have written its summary; the eleven items' own semantics are untouched, only the
+conclusion drawn from incomplete evidence. Both batches above therefore read `False` until one
+finishes.
+
+Two smaller defects surfaced on the way and are fixed. The verifier keyed a run's driver row by
+(`acts_seen`, `terminal_floor`); two distinct runs in the finished batch both ended acts 1-2-3 on
+floor 49 and differed only in whether they beat the final double boss, so the collision deleted
+the key and the winning run reported "no ledger" -- the false alarm was on the one run that had
+actually cleared the game. The key now carries the outcome, and where rows still collide every
+ledger-derived item must hold on **all** of them, so ambiguity can only make this stricter. And
+one contract test that was named "waits when proceed is disabled" asserted `None`, which is the
+booking for "no rule for this screen": the test had been pinning the bug.
