@@ -640,11 +640,26 @@ class AutoplayDecisionTests(unittest.TestCase):
         self.assertEqual(self.player.decide(state_after_skip), {"action": "proceed"})
 
     def test_rewards_without_items_waits_when_proceed_is_disabled(self) -> None:
+        """The name said "waits"; the assertion said None, and None is booked as a
+        screen skipped without a rule -- so this test was pinning the bug.
+
+        Seen on the run that cleared all three acts: the reward screen was recorded
+        unhandled at the act 2 boss and at the final double boss, on frames where
+        nothing was left to claim and the exit simply had not lit yet.
+        """
+        from bridge.autoplay import WaitForTransition
+
         state = {
             "state_type": "rewards",
             "rewards": {"can_proceed": False, "items": []},
         }
-        self.assertIsNone(self.player.decide(state))
+        held = self.player.decide(state)
+        self.assertIsInstance(held, WaitForTransition)
+        self.assertEqual(self.player.coverage.unhandled_screens, {})
+        # A screen that offers its exit is not a hold, and is still left immediately.
+        self.player._last_step = None
+        state["rewards"] = {"can_proceed": True, "items": []}
+        self.assertEqual(self.player.decide(state), {"action": "proceed"})
 
     def test_malformed_shop_does_not_fall_back_to_proceed(self) -> None:
         state = load("shop")

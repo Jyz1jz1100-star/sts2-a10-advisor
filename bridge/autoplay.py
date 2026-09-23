@@ -1033,7 +1033,13 @@ class AutoPlayer:
         # do not guess by posting an action that the upstream endpoint rejects.
         if rewards.get("can_proceed") is True:
             return {"action": "proceed"}
-        return None
+        # Nothing left to claim and no exit offered yet is the last reward still
+        # draining, which is the same shape as a spent campfire or an empty chest,
+        # so it holds under the caller's bounded stall watchdog.  Returning None
+        # here booked it as "a screen skipped without a rule" -- seen on the run
+        # that cleared all three acts, at the act 2 boss and the final double
+        # boss, where the run had in fact gone on to win.
+        return WaitForTransition("the reward screen has nothing left to claim and no exit yet")
 
     def _card_select_choice(self, state: dict[str, Any]) -> dict[str, Any] | None:
         """Out-of-combat card selection (Neow/event/shop/removal/enchant): toggling UI.

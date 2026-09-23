@@ -85,18 +85,33 @@ def _driver_ledgers(records: list[dict[str, Any]]) -> dict[Any, dict[str, Any]]:
         for run in summary.get("runs") or []:
             if not isinstance(run, dict):
                 continue
-            key = (tuple(run.get("acts_seen") or ()), run.get("terminal_floor"))
-            if key in ledgers:
-                del ledgers[key]
-            else:
-                ledgers[key] = run
-    # Two runs sharing one identity is ambiguous, so the key is dropped and both
-    # runs are reported as unrecorded rather than matched to whichever came last.
+            key = _ledger_key(run)
+            ledgers.setdefault(key, []).append(run)
+    # Two runs can share an identity -- seen live in ssb-20260923T081447Z-c93058ae,
+    # where two distinct Act-1/2/3 runs both ended on floor 49, one having lost the
+    # final double boss and one having won it. Dropping the key (the old behaviour)
+    # made the winning run read as unrecorded, which is a false alarm about a run
+    # that had actually cleared everything; picking one row at random would be worse.
+    # Every row sharing the key is therefore kept, and each ledger-derived item has
+    # to hold on ALL of them -- an identity collision can slow a verdict down, but
+    # it can never hand out a pass.
     return ledgers, wrote_summary
 
 
 def _ledger_key(cov: dict[str, Any]) -> tuple:
-    return (tuple(cov.get("acts_seen") or ()), cov.get("terminal_floor"))
+    """The identity a replayed run is matched to its driver row by.
+
+    Outcome is part of it, not decoration: in ssb-20260923T081447Z-c93058ae two
+    different runs both ended Acts 1/2/3 on floor 49 and differed in nothing but
+    which of them beat the final double boss. Without the flag the collision is the
+    common case exactly where the evidence matters most -- a batch that both cleared
+    and failed the same depth.
+    """
+    return (
+        tuple(cov.get("acts_seen") or ()),
+        cov.get("terminal_floor"),
+        bool(cov.get("outcome")),
+    )
 
 
 def check_run(
@@ -105,6 +120,7 @@ def check_run(
     session: dict[str, Any] | None = None,
     driver_ledger: dict[str, Any] | None = None,
     has_driver_ledgers: bool = False,
+    driver_ledger_rows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Name every contract item for one run's own ledger, pass or fail.
 
@@ -125,6 +141,14 @@ def check_run(
             {},
         )
     results = []
+
+    # An identity shared by two runs is resolved conservatively rather than
+    # guessed: every ledger-derived item has to hold on all of the candidate
+    # rows, so a collision can only ever make this stricter.
+    candidates = list(driver_ledger_rows or [])
+    if driver_ledger is None and len(candidates) == 1:
+        driver_ledger = candidates[0]
+    ledger_resolved = bool(candidates) or driver_ledger is not None
 
     def add(name: str, ok: bool, detail: str) -> None:
         results.append({"check": name, "passed": bool(ok), "detail": detail})
@@ -192,7 +216,13 @@ def check_run(
     # deliberately left alone posted nothing, so the replayed ledger is empty here
     # for every trace on disk, and the counter that exists to keep a clean pass
     # from hiding a run that spent its time holding had nothing to show.
-    waits = (driver_ledger or {}).get("waits_for_transition") or cov.get("waits_for_transition")
+    row_sources = ([driver_ledger] if driver_ledger else []) or candidates
+    waits: dict[str, int] = {}
+    for row in row_sources:
+        for reason, count in (row.get("waits_for_transition") or {}).items():
+            waits[reason] = waits.get(reason, 0) + int(count or 0)
+    if not waits:
+        waits = cov.get("waits_for_transition") or {}
     add(
         "every_action_was_legal_and_acked",
         bool(posted) and len(refused) == 0,
@@ -212,17 +242,19 @@ def check_run(
     # this run is absent from -- a run the driver never described is not a run the
     # driver found clean.
     unhandled: dict[str, list] = {k: list(v) for k, v in cov["unhandled_screens"].items()}
-    for screen, frames in ((driver_ledger or {}).get("unhandled_screens") or {}).items():
-        known = {json.dumps(f, sort_keys=True) for f in unhandled.get(screen, [])}
-        unhandled.setdefault(screen, []).extend(
-            f for f in frames if json.dumps(f, sort_keys=True) not in known
-        )
+    for row in row_sources:
+        for screen, frames in (row.get("unhandled_screens") or {}).items():
+            known = {json.dumps(f, sort_keys=True) for f in unhandled.get(screen, [])}
+            unhandled.setdefault(screen, []).extend(
+                f for f in frames if json.dumps(f, sort_keys=True) not in known
+            )
     add(
         "no_screen_skipped_without_a_rule",
         not cov["unhandled_screen_bypasses"] and not unhandled
-        and (driver_ledger is not None or not has_driver_ledgers),
+        and (ledger_resolved or not has_driver_ledgers),
         f"bypasses={cov['unhandled_screen_bypasses']} unhandled={unhandled}"
-        + ("" if driver_ledger is not None or not has_driver_ledgers else " driver_ledger=missing"),
+        + (f" driver_ledger=ambiguous x{len(candidates)}" if len(candidates) > 1 else "")
+        + ("" if ledger_resolved or not has_driver_ledgers else " driver_ledger=missing"),
     )
     add(
         "provenance_bound_to_the_locked_build",
@@ -278,7 +310,7 @@ def audit(path: Path) -> dict[str, Any]:
     verdicts = [
         check_run(
             segment, ledger, session=stream_session,
-            driver_ledger=driver_rows.get(_ledger_key(ledger.coverage())),
+            driver_ledger_rows=driver_rows.get(_ledger_key(ledger.coverage())),
             has_driver_ledgers=wrote_summary,
         )
         for segment, ledger in zip(segments, ledgers_list)

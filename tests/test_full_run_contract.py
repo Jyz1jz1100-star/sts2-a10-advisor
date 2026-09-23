@@ -88,11 +88,14 @@ def _session_end(unhandled_screens=None, waits=None) -> dict:
 
     Shaped like the real artifact (``bridge.autoplay`` writes it as the
     ``session_end`` record's ``summary.runs``), and keyed to the fixture run by
-    the same ``acts_seen`` and ``terminal_floor`` the replay derives.
+    the same ``acts_seen``, ``terminal_floor`` and ``outcome`` the replay derives.
+    Outcome is part of the identity because two real runs in one batch can share
+    the first two and differ only in beating the final double boss or not.
     """
     run = {
         "acts_seen": [1, 2, 3],
         "terminal_floor": 49,
+        "outcome": True,
         "unhandled_screens": unhandled_screens or {},
         "waits_for_transition": waits or {},
     }
