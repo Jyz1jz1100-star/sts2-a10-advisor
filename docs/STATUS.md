@@ -3222,3 +3222,560 @@ Consequence: A stays as launched, and B is demoted rather than promoted -- with 
 correction, `step_cost` is worth about 3% of a win and was never the strong hypothesis it looked
 like. What remains genuinely untested is whether 40M steps produce a direction at all, which is
 the number this run exists to produce.
+
+
+## 2026-09-23 (afternoon): the production arm turns out to be cold after all, and the v5 evidence bundle closes on re-derived citations
+
+### The 40M arm never loads the checkpoint its own plan says it warm-started from
+
+`config/production_campaign_v5.toml`, run `runtime/production_campaign_v5/v2curriculum-20260923T061352Z`,
+PID 163540, was found alive at 2,949,120 of 40,000,000 steps (fps 757, climbing; ~950 fps
+instantaneous, so the first 5M checkpoint is roughly 07:55Z). No `full_run/metrics/` exists yet, so
+there is no checkpoint trend to report -- the direction question this run exists to answer is still
+unanswered, not answered negatively.
+
+What is reportable is that the arm is not warm. `training/v2_curriculum.py:383` loads
+`previous_checkpoint` only when `resume or stage.initialize_from_previous`, and this launch is neither:
+`--resume-run` was not passed, and the `full_run` stage carries `initialize_from_previous = false`
+(read out of the parser itself, not out of the toml). Control therefore reaches the `else:` at
+`:401` and builds a fresh random-initialised `MaskablePPO`. The checkpoint exists and its digest is
+right -- `f514ffa3ffbe…` re-hashed from disk matches `plan.json` -- but nothing reads it.
+
+The earlier cold launch was caught by comparing `plan.json`'s `warm_start` block against the pilot's
+(`ABANDONED_cold_start_20260923T060906Z` has `warm_start: null`, this one has it populated). That
+check cannot work: `:614-620` writes `warm_start` straight from `args.initial_checkpoint` plus a file
+hash, before `_train_stage` decides anything, so the block records what was *asked for*, never what
+was *loaded*. The relaunch fixed the bookkeeping and not the weights. The log agrees with the code
+reading -- at iteration 2 `value_loss` is 62.2 and `explained_variance` is -0.004, which is a critic
+that has seen nothing, not one warm-started from a 4M-step checkpoint that scores 0.94 by iteration
+120 here.
+
+Nothing was restarted and no hyperparameter, reward term or threshold was changed. The one cheap
+discriminator is already on disk: the BC screen measured both initialisations on the same 200 seeds
+of this arm's own `final` partition -- warm 7.80 mean floor / 2-of-200 boss reach, random 2.925 /
+0-of-200. So `step_000005000000.json`'s `mean_final_floor` says which one this arm is, near enough
+by itself. Until that lands, every claim about this run inherits the confound: the pilot it replaces
+was also cold, so the only variable that moved for certain is the budget, not the warm start.
+
+### v5 closure: the bundle was still open, and one file had been sitting unmanifested
+
+The provenance snapshot pinned in `verify_report_claims.py` was `…_20260922_v4.json`, whose library
+digest (`f764a385…`) predates today's native rebuild (`5dbb680f…`, `out/Sts2Emulator.dll` at 09:50)
+and whose engine tree digest (`10c900e0…`) predates the v5 source edits (`433b2696…`). So the
+snapshot was re-captured as `emulator_source_provenance_20260923_v5.json`, the metrics index and the
+manifest were rebuilt in that order with the manifest last, and the verifier was run on the training
+interpreter.
+
+Re-capturing found 10 of the report's 71 engine citations no longer resolving. Each was re-derived by
+hashing the *old window's text* against the new file rather than by shifting numbers, and every one
+survives byte-identical at a unique location: `RunRewardGenerator.cs:1044 -> 662` and
+`1158-1162 -> 776-780` (the file lost 382 lines above them), `RunEngine.cs:3686-3691 -> 2715-2720`,
+`3661 -> 2690`, `2810-2817 -> 1847-1854`, `2911-2918 -> 1948-1955` (about 963-971 lines removed
+above them). Re-pinning the report moved 10 hashed mentions.
+
+Three further pointers in the same prose are not matched by the citation regex -- they carry no
+filename -- so no gate can see them drift. `:2911-2918` and `:2405` were re-located by their content
+(the Stone-of-All-Time case arm, and the `AddPotion` call inside `EventTheLegendsWereTrue` at 1433)
+and re-pinned to `:1948-1955` and `:1442`. The third, ``:2115-2129`` attributed to
+`AdvanceAfterNode`, had been pointing at an unrelated event branch: the method is at 1178 and its
+`Floor >= terminalFloor` test is now 1194-1199, which is the code that sentence describes, so it was
+moved there. That one could not be text-matched against its old window because shorthands were never
+hashed; it is a corrected pointer, not a re-derivation, and it is called out for that reason.
+
+The rebuild moved the evidence-file count 70 -> 72 and two claims went red on it, both about prose
+quoting that number (`harness_self_description`, `objective_clause_audit`). Only one of the two files
+is new from this round: `campaign_fidelity_gates_20260923_v5.json` came in with the v5 re-measurement (`d5846d5`) and was never manifested, so the bundle was already one file stale before anything was
+re-captured. The three places the report states the count were re-derived from the manifest rather
+than edited to a guess. No gate, threshold or contract check was changed, and
+`EMULATOR_SOURCE_PROVENANCE` was advanced to the v5 file the way it was advanced to v2, v3 and v4.
+
+`verify_report_claims.py` on the training interpreter: **61/61 scored claims match the disk**, exit 0.
+Provenance is now 71/71 citations resolved against the rebuilt library, and the `emulator_source_provenance`
+claim reports all six of its sub-checks true, including `the_report_and_the_snapshot_agree_on_every_citation`.
+
+
+### Superseded by the next half hour, in the same section
+
+The paragraph above says `step_000005000000.json`'s `mean_final_floor` would settle cold-versus-warm
+"near enough by itself". It does not, and the checkpoint arrived before this was posted, so the claim
+is retracted rather than left standing. `runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/`
+now holds `checkpoints/step_000005000004.zip` and `metrics/step_000005000004.json`: over its 200
+checkpoint-split episodes, `mean_final_floor` 7.335, `max_final_floor` 17, `boundary_rate` 0.0
+(0-of-200 boss reach), `win_rate` 0.0, `mean_return` -29.03, `truncations` 0, `illegal_actions` 0,
+`dead_end_reasons` empty. The file is named 5,000,004 not 5,000,000 because the callback stamps the
+step it actually fired on.
+
+That number sits between the screen's random initialisation (2.925) and the warm checkpoint (7.80),
+and within reach of the pilot's cold trajectory (about 7.5 at 8M), so it is consistent with either
+initialisation and discriminates between neither. The cold-start finding does not rest on it and did
+not need it: it rests on the branch at `training/v2_curriculum.py:383`, on `initialize_from_previous = false`
+read out of the parser rather than out of the toml, and on `value_loss` 62.2 with `explained_variance`
+-0.004 at iteration 2. One checkpoint is also not a trend, so the question the arm exists to answer --
+whether there is a direction at all -- is still open at one point, with `boundary_rate` 0-of-200 the
+first reading rather than a fall.
+
+The scope of the defect is narrower than the paragraph above implies, and that matters for what is
+safe to believe about older results. The gate at `:383` is satisfied by `stage.initialize_from_previous`,
+and the ladder stages that ran through it set that flag: across `runtime/fanout/*/v2curriculum-*/plan.json`
+21 stages carry `initialize_from_previous = true` and 2 carry `false`, and `config/training_v2.toml`
+sets it true on every rung after the first. Those warm starts went through `MaskablePPO.load` and are
+real. What silently no-ops is the specific combination this launch used -- `--initial-checkpoint`
+pointing *across* runs while the stage's own flag stays false -- so the warm-start ladder attestation
+is not in question, only this arm's.
+
+Rebuilding the index to pick up that checkpoint file moved three pinned aggregates and, because the
+bundle contains the pinned expectations, moved the manifest with them: metrics files 289 -> 290,
+campaign-pilot population 7 -> 8 files (2,500 episodes, 867 rejection events, 0.3468 per episode,
+re-derived with `verify_report_claims._channel_census`, the same function the claim compares against),
+checkpoint digests in the manifest 224 -> 225. The report quoted the first and third of those, so its
+prose was re-derived too, and `verify_report_claims.py` is back to **61/61, exit 0**. This is a moving
+target by construction: the arm writes a metrics file every 5M steps into the corpus the index covers,
+so the next checkpoint (~10M) re-opens `metrics_file_count`, `metrics_index_reviewability` and
+`contract_channels` on their own. Two things worth recording from that pass: the manifest had to be
+rebuilt a second time because expectations were pinned after it, which is exactly the ordering rule and
+was caught by `digests_and_sizes_recompute` rather than talk; and
+`contract_channels_20260919.json`'s `by_stage_split` carries no `full_run` rows at all -- it has been
+incomplete since the pilot was folded in on 09-22 -- left as found because the only claim that reads
+that field reads `act1/promotion`, and the generator emits a different tuple shape than the artifact
+stores, so a wholesale refresh would have been a guess dressed as a fix.
+
+
+## 2026-09-23 (evening): the campaign arm's second point is flat-to-down, and live play cleared both Act-3 boss nodes
+
+### The 40M arm now has two checkpoints, and they do not diverge in the wanted direction
+
+`full_run/metrics/step_000005000004.json` and `step_000010000008.json` (the arm was at 9,854,976 steps
+when the second was written, PID 163540 still alive, log at iteration 401: `n_updates` 3200,
+`value_loss` 1.39, `explained_variance` 0.949, fps 897):
+
+| checkpoint split | mean_final_floor | max_final_floor | boundary_rate | win_rate | mean_return | mean_steps |
+|---|---|---|---|---|---|---|
+| 5,000,004 | 7.335 | 17 | 0.0 (0/200) | 0.0 | -29.034 | 137.0 |
+| 10,000,008 | 7.125 | 17 | 0.0 (0/200) | 0.0 | -28.781 | 131.3 |
+
+Across the doubling of budget: floor moved *down* by 0.21, return up by 0.25 (episodes ended slightly
+sooner and slightly less badly), and Act-1-boss reach stayed at zero with a Wilson upper bound of
+0.0188 in both. `by_act` lists only act 1 in both files -- no episode of either evaluation entered
+act 2 -- and `max_final_floor` is 17 both times, which is the act-1 boss floor: the policy arrives at
+the boss and never gets past it. That is the shape the pilot showed, now with a second point on a
+larger budget, and it is evidence against "more of the same steps will cross the boundary" rather
+than for it. One caveat before anyone reads the pilot's 10/200 as a regression: the pilot's four
+points were measured on the pilot's own checkpoint partition, so 10/200 against this arm's 0/200 are
+different seed sets and the comparison is not per-seed paired.
+
+The cold-start defect recorded earlier today is untouched by anything here: nothing was restarted and
+no hyperparameter, reward term or threshold was changed. The arm writes again at the 15M mark, under
+whatever step number the callback fires on -- the first two landed 4 and 8 steps past their nominal
+boundaries, so the overshoot is growing by about 4 per checkpoint.
+
+### Live play cleared both Act-3 boss nodes for the first time; the victory terminal is still not reached
+
+`ssb-20260923T081447Z-c93058ae` (the successor launched this morning, still running) reads **9 of 11**
+on `verify_full_run_contract.py`, against 8 of 11 for every batch before it:
+`bosses_1_plus_1_plus_2_cleared` turned green with `cleared={1: ['1:17'], 2: ['2:33'], 3: ['3:48',
+'3:49']}`, three acts in order, three build-valid Ancients, `posted=230 refused=0`, continuous stream,
+0 corrupt records. The two reds share one cause and both say the run died rather than won:
+`terminal_is_the_games_victory_flag` (`outcome=False source='bridge_is_victory_flag'
+terminal_floor=49`) and `run_complete_by_its_own_definition`.
+
+What the trace shows at the top of the map, read sequence by sequence: the run cleared the floor-48
+boss, entered floor 49, cleared its first encounter, reached a `card_select` at floor 49 with hp 17
+(seq 5749), then entered a second `boss` at the same floor with hp 13 (seq 5753) and died there at
+hp 0 (seq 5949, `game_over.is_victory=false`), menu at seq 5959. `boss_battles_by_act_floor` names
+them: `3:48: [AEONGLASS_0]`, `3:49: [QUEEN_0, TORCH_HEAD_AMALGAM_0]`.
+
+So the green item is real under the rule it encodes -- that rule counts distinct `(act, floor)` boss
+*nodes*, and two of them were cleared -- and it does not mean the double boss was beaten. Floor 49
+presented two encounters to this run, and the contract's "2" is satisfied by clearing one at 48 and
+one at 49. The honest statement of the record is now: live play reaches and clears both Act-3 boss
+nodes and still dies on floor 49 before the game's own victory terminal, with zero refused actions
+throughout. Nothing was relaxed to obtain the pass; the only edits were to the index, the channels
+census, the manifest and the numbers the report quotes.
+
+Re-closing the bundle for the second checkpoint moved exactly the four figures the live arm owns:
+metrics files 290 -> 291, campaign-pilot population 8 -> 9 files (2,700 episodes, 961 rejection
+events, 0.3559 per episode, re-derived with `verify_report_claims._channel_census`), manifest
+checkpoint digests 225 -> 226, and the two report quotes that name them. `verify_report_claims.py` on
+the training venv is back to **61/61, exit 0**, with the manifest rebuilt last after the expectations
+were pinned -- the ordering rule was followed on the first attempt this time rather than being caught
+by `digests_and_sizes_recompute` after the fact.
+
+
+## 2026-09-23 (evening, second entry): the first contract-grade real-game victory, and the one item it still cannot pass
+
+`ssb-20260923T081447Z-c93058ae` finished at 10:02Z with `stop_reason: autoplay_completed` over 8 runs,
+and its seventh run reads, from the batch summary: `acts_seen [1,2,3]`, `ancients_by_act
+{1: NEOW, 2: TEZCATARA, 3: NONUPEIPE}`, `bosses_cleared {1:1, 2:1, 3:2}`,
+`outcome: true` with `outcome_source: bridge_is_victory_flag`, `run_complete: true`,
+`terminal_floor: 49`, and `runs_with_certified_clear: 1` -- the only non-zero value of that field in
+any of the 61 batches on this machine (the other 12 summaries that carry it all say 0).
+
+This is not the first time the game's victory flag was seen. Re-running the contract verifier over the
+older traces, rather than trusting the counts above, shows `ssb-20260922T060426Z-3e522007` already
+reaching the terminal with `bosses_cleared {1:1,2:1,3:2}` -- but that run entered act 1 at **floor 13**
+(a continued save, not a run from the start), never met act 1's Ancient, and reported
+`run_complete: false`, reading 7 of 11. So the honest milestone is narrower than "we won the game":
+this is the first run that started at floor 1, played all three acts in order, met each act's own
+Ancient, cleared bosses 1+1+2, posted zero refused actions and reached the game's own victory
+terminal, and the first the ledger certifies.
+
+`verify_full_run_contract.py` on the new trace gives **10 of 11**. Ten items are green, including
+`bosses_1_plus_1_plus_2_cleared`, `terminal_is_the_games_victory_flag` and
+`run_complete_by_its_own_definition`. The last of those is the genuinely new one: across the 59
+batch summaries on this machine `run_complete` reads `false` 58 times and `true` once, and that once
+is this run. The single red is `no_screen_skipped_without_a_rule`, and it is not a policy gap. Two
+things block it, and they are different:
+
+1. **Attribution.** The driver's per-run rows are matched to replayed runs by the identity
+   `(acts_seen, terminal_floor)` (`scripts/verify_full_run_contract.py:98-99`), and a key shared by
+   two runs is disqualified rather than guessed (`:75-76`). This batch produced three such collisions
+   -- `((1,2),24)`, `((1,),15)` and, decisively, `((1,2,3),49)`, because one run died on floor 49 and
+   another won on floor 49 -- so only 2 of the 8 driver rows are attributable at all and the winning
+   run's is not among them. The item then reports `driver_ledger=missing` and refuses to pass on an
+   absent second source. That reading was confirmed by calling the verifier's own
+   `_driver_ledgers` / `_ledger_key` on the trace, not by eyeballing the summary.
+2. **Substance behind the attribution.** The winning run's own summary row records
+   `unhandled_screens: rewards at (act 2, floor 33) and (act 3, floor 49)`. So even with a unique key
+   the item would fail on evidence: the driver still has no rule for a rewards screen at those places,
+   including the one *after the final boss*, which this run walked past and still won through.
+
+Note also that the same item read PASS at 09:28 on this same batch -- not because anything improved,
+but because the batch had not yet written its `session_end` summary, so there was no second source
+to require. The flip from 9/11 to 10/11 with one item going red is the arrival of that summary.
+
+Nothing was relaxed to obtain the pass and nothing in the verifier or the driver was edited to close
+the gap: the fixes, when someone owns them, are a per-run identity that is unique within a batch, and
+a rule for the post-final-boss rewards screen. Neither is a threshold or a gate.
+
+Successor launched at 10:17Z: `ssb-20260923T101743Z-c8f0a979`, `status: running`, all three children
+up, logging to `runtime/successor_pass6.log`.
+
+The training arm is unaffected by any of this and still has two checkpoints (7.335 then 7.125 mean
+floor, boss reach 0/200 at both); at 10:22Z it was at 13,565,952 steps, so the ~15M evaluation is
+about twenty minutes out and will re-open the metrics index, the channels census, the manifest and
+four pinned report numbers exactly as the 10M one did. `verify_report_claims.py` re-run on the
+training interpreter this pass: **61/61, exit 0**.
+
+
+## 2026-09-23 (night): three checkpoints and still no direction, and the Combat Solver auto-updated under the victory
+
+### The campaign arm now has three evaluation points and they describe a plateau, not a slope
+
+`runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/`, all 200 episodes on
+the checkpoint split, fidelity-v5:
+
+| steps | mean_final_floor | max | boundary_rate | win_rate | mean_return | mean_steps |
+|---|---|---|---|---|---|---|
+| 5,000,004 | 7.335 | 17 | 0.0 (0/200) | 0.0 | -29.034 | 137.0 |
+| 10,000,008 | 7.125 | 17 | 0.0 (0/200) | 0.0 | -28.781 | 131.3 |
+| 15,000,012 | 7.430 | 17 | 0.0 (0/200) | 0.0 | -29.031 | 136.1 |
+
+The third point came back up to 7.430, almost exactly the first point, and `mean_return` returned to
+its 5M value. So across 15M steps the mean floor has spanned 7.125-7.430, `max_final_floor` has never
+left 17, and Act-1-boss reach has been 0/200 at every single evaluation -- the Wilson upper bound is
+0.0188 in all three files. That answers the question the arm was scaled to ask, as far as three points
+can: there is no direction in the wanted sense yet, and the pilot's flat curve was not simply "too few
+updates", because 15M steps at 611 iterations against the pilot's 8M at ~325 -- the same
+24,576-steps-per-iteration cadence, so 1.9 times the updates -- have not moved the boundary at all.
+Nothing was restarted and no hyperparameter, reward term or threshold was changed; the run continues
+to 40M.
+
+### The solver moved from 0.44.1 to 0.45.0 across the victory, and the new version refuses actions
+
+`mod_attestation` in the two batch manifests, read rather than inferred:
+
+| batch | CombatSolver at start | CombatSolver at end |
+|---|---|---|
+| `ssb-20260923T081447Z-c93058ae` (the 10/11 victory) | 0.44.1, `3E925FE1…`, off-lock | 0.45.0, `33ADCEDC…`, off-lock |
+| `ssb-20260923T101743Z-c8f0a979` (successor, running) | 0.45.0, `33ADCEDC…`, off-lock | not yet written |
+
+So the Workshop updated the solver *during* the batch that produced the first certified
+`run_complete`, and the victory itself was earned on 0.44.1. The current batch is the first to play
+entirely on 0.45.0, and it is the first batch this session with a non-zero refusal count: its best
+run reads **7 of 11** with `posted=174 refused=1` and `first_refusals=['Rewards screen is not
+open']`, and 3 of its 4 runs so far carry that same refusal. Its other three reds are only
+"unfinished" -- `outcome=None`, `terminal_floor=None`, no Act-3 boss yet -- so the substantive change
+is the refusal, which had been exactly zero on every batch since the rest-site refusal work.
+
+This is recorded as drift, not fought: the lock still names the old digest and `all_match_lock=false`
+is reported, not corrected. The operator owns the auto-update. What the drift now makes ambiguous is
+worth naming plainly -- the reward-screen handling the winning run already flagged as unhandled at
+(act 2, floor 33) and (act 3, floor 49) is the same surface that is refusing actions under 0.45.0,
+so any next step about reward screens should be measured on one solver version, not across this
+boundary.
+
+### v5 bundle re-closed for the third checkpoint
+
+The 15M metrics file moved the same four figures again: metrics files 291 -> 292, campaign-pilot
+population 9 -> 10 files (2,900 episodes, 1,059 rejection events, 0.3652 per episode, re-derived with
+`verify_report_claims._channel_census`), manifest checkpoint digests 226 -> 227, plus the two report
+quotes that name them. Order was index -> channels census -> manifest -> re-pin expectations ->
+**manifest last** -> verify, and `verify_report_claims.py` on the training venv reads **61/61, exit
+0**. No gate, threshold or contract check was altered; the 11th contract item is still blocked by the
+`(acts_seen, terminal_floor)` key collision and the two genuinely unhandled reward screens named in
+the previous section.
+
+
+## 2026-09-23 (night, second entry): the first fully-0.45.0 live batch finished shallower, and the arm is still on its plateau
+
+`ssb-20260923T101743Z-c8f0a979` completed at 11:38Z with `stop_reason: autoplay_completed` over 8 runs.
+It is the first batch that played entirely on CombatSolver **0.45.0** (`33ADCEDC…` at start; the
+previous batch began on 0.44.1 and was updated underneath it). Read from its own `session_end`
+summary and set beside the batch that produced the first certified win:
+
+| batch | solver | runs | deepest floor | runs reaching act 3 | runs clearing any act-3 boss | certified clears |
+|---|---|---|---|---|---|---|
+| `…T081447Z-c93058ae` | 0.44.1 -> 0.45.0 mid-batch | 8 | 49 | 3 | 2 | 1 |
+| `…T101743Z-c8f0a979` | 0.45.0 throughout | 8 | 48 | 2 | **0** | 0 |
+
+`verify_full_run_contract.py` on the finished batch reads **7 of 11**: `bosses_1_plus_1_plus_2_cleared`
+(act 3: none cleared, though one run fought at `3:48` and died there), `terminal_is_the_games_victory_flag`
+and `run_complete_by_its_own_definition` on a best run that ended at floor 40, and
+`every_action_was_legal_and_acked` with `posted=190 refused=1`, `first_refusals=['Rewards screen is
+not open']`. The legality item fails on **6 of the 9** evaluated run-segments, so the reward-screen
+refusal is now the normal state of this driver rather than an outlier.
+
+Two limits on that table, stated so nobody reads a confound as a result. It is *observational*: the
+runs are not the same seeds across batches, eight runs is a small sample, and the batch boundary is
+the only clean variable -- so "0.45.0 plays worse" is not established, only "the first wholly-0.45.0
+batch got shallower and refused actions, while the batch that won ran mostly on 0.44.1". What does
+follow without any statistics is that the standing record (the 10-of-11 certified win) belongs to the
+0.44.1-era solver, so any before/after claim about reward-screen handling has to be measured on one
+version on both sides. The lock still names the old digest and `all_match_lock=false` is reported, not
+corrected -- the operator owns the auto-update.
+
+Successor launched at 11:49Z: `ssb-20260923T114931Z-9b018290`, `status: running`, all three children
+up, CombatSolver still 0.45.0 at start, logging to `runtime/successor_pass9.log`.
+
+The training arm is unchanged in kind: still PID 163540, three checkpoint files (7.335 / 7.125 /
+7.430 mean floor, boss reach 0/200 in all three), and at 11:53Z iteration 771 with 18,948,096 steps
+(`n_updates` 6160, `value_loss` 1.42, `explained_variance` 0.943, fps 932), so the fourth evaluation is
+~20 minutes out and will re-open the bundle again. The bundle is currently closed:
+`verify_report_claims.py` on the training venv reads **61/61, exit 0**, and nothing was rebuilt this
+pass.
+
+
+## 2026-09-23 (night, third entry): four checkpoints, the first promotion probe, and a boss boundary that has never been crossed
+
+### The campaign arm's curve now has four points and it is a horizontal line at ~7.4
+
+`runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/`, checkpoint split,
+200 episodes each, fidelity-v5:
+
+| steps | mean_final_floor | max | boundary_rate | win_rate | mean_return | mean_steps |
+|---|---|---|---|---|---|---|
+| 5,000,004 | 7.335 | 17 | 0.0 (0/200) | 0.0 | -29.034 | 137.0 |
+| 10,000,008 | 7.125 | 17 | 0.0 (0/200) | 0.0 | -28.781 | 131.3 |
+| 15,000,012 | 7.430 | 17 | 0.0 (0/200) | 0.0 | -29.031 | 136.1 |
+| 20,000,016 | 7.500 | 17 | 0.0 (0/200) | 0.0 | -28.987 | 135.3 |
+
+Half the budget spent, and the mean floor has oscillated inside 7.125-7.500 with no monotone segment --
+the fourth point is the highest of the four, and by 0.07 of a floor. `max_final_floor` has been 17 at
+every single evaluation, i.e. the policy reaches the Act-1 boss and never leaves it, and `by_act` names
+only act 1 in all four files. `win_rate` is 0.0 four times over and `mean_return` has not left the
+band -28.78 to -29.03.
+
+The 20M mark also fired the stage's first promotion probe, `early-promotion-step_000020000016.json`:
+500 episodes on the promotion split, `mean_final_floor` 7.824, `max_final_floor` 17,
+`boundary_rate` 0.0 with **0 of 500** crossings, `win_rate` 0.0. The larger sample matters more than
+the mean: with zero crossings in 500 episodes the Wilson 95% upper bound on Act-1-boss reach is
+**0.0076**, where each 200-episode checkpoint read could only say 0.0188. So the statement "this
+policy does not cross the Act-1 boss" is now measurably tight rather than merely unobserved, and it
+was earned on a budget 2.5x the pilot's. The pilot's 10/200 at 8M remains a different seed partition,
+so it is still not a paired comparison against these zeros.
+
+The arm was last read at iteration 771 / 18,948,096 steps with `n_updates` 6160, `value_loss` 1.42,
+`explained_variance` 0.943, fps 932; nothing was restarted and no hyperparameter, reward term or
+threshold was changed.
+
+### Bundle re-closed for two files, which cost only one digest
+
+The 20M checkpoint and its probe are two metrics files but they reference the *same* checkpoint zip, so
+the manifest's cited-digest set moved 227 -> 228 while the metrics index moved 292 -> 294 and the
+campaign-pilot population 10 -> 12 files (3,600 episodes, 1,334 rejection events, 0.3706 per episode,
+re-derived with `verify_report_claims._channel_census`). Report prose was re-derived from the manifest
+at both places it states those counts, expectations re-pinned for the three affected claims, and the
+manifest rebuilt last. `verify_report_claims.py` on the training venv: **61/61, exit 0**. No gate,
+threshold or contract check was touched.
+
+### The successor batch is early, and so far has no refusals
+
+`ssb-20260923T114931Z-9b018290` (launched 11:49Z) is still running, so it was left alone. Its trace
+currently evaluates 3 run-segments and the best reads **5 of 11** -- `starts_at_floor_one`,
+`every_action_was_legal_and_acked` (`posted=81 refused=0`), the screen rule, provenance, continuity and
+corruption all green; three-act order, the three Ancients, 1+1+2 bosses, the victory flag and
+`run_complete` all red because the best run died at floor 17, still inside act 1. That is early-batch
+state, not a regression signal. Worth recording because it bears on earlier today's solver-drift note:
+**zero** of its 3 segments carry the "Rewards screen is not open" refusal, where the previous
+all-0.45.0 batch carried it in 6 of 9 -- so the refusal is intermittent on 0.45.0, not a property of
+every run, and any future comparison should count it per run rather than per batch. Standing record
+unchanged: 10 of 11, certified clear 1, from the 0.44.1-era batch.
+
+
+## 2026-09-23 (night, fourth entry): a second certified victory, this one entirely on CombatSolver 0.45.0, which retires yesterday's-shadow reading of the drift
+
+`ssb-20260923T114931Z-9b018290` is still running, but one of its completed runs now reads **10 of 11**
+on `verify_full_run_contract.py` (per-run pass counts across its four evaluated segments: 6, 6, **10**,
+6). From that run's own coverage record: `acts_seen [1,2,3]`, `ancients_by_act
+{1: NEOW, 2: OROBAS, 3: NONUPEIPE}`,
+`bosses_cleared {1:17 -> rewards:hp50, 2:33 -> card_select:hp20, 3:48 -> rewards:hp10, 3:49 ->
+rewards:hp10}`, `outcome=true` with `outcome_source=bridge_is_victory_flag`, `terminal_floor=49`,
+`run_complete=true`, `unhandled_screens={}`, `empty_candidate_refusals=[]`.
+
+That is the second certified completion on this machine, and the batch-level `runs_with_certified_clear`
+counter has **not** moved to 2 yet because the batch is mid-flight and writes its `session_end` summary
+only at completion -- the 10/11 comes from the trace's own per-run coverage, not from a tally.
+
+### Why this matters more than a repeat count: it cuts against the solver-drift reading
+
+`mod_attestation.at_start` for this batch: CombatSolver **0.45.0** (`33ADCEDCBC76…`, `matches_lock=false`,
+drifted from the lock), with STS2_MCP 0.4.0, RegentFX 0.5.1 and STS2-RitsuLib 0.6.2 all matching their
+lock. So this victory was played **entirely on the auto-updated 0.45.0**.
+
+The pass-9 comparison contrasted a wholly-0.45.0 batch that cleared zero Act-3 bosses against the
+0.44.1-era batch that won, and deliberately labelled itself a confounded contrast rather than a result.
+This batch is the positive evidence the other side: 0.45.0 has now produced a floor-1 start, three acts
+in order, three build-valid Ancients, 1+1+2 boss nodes and the game's own victory flag. The standing
+record is no longer "a 0.44.1-era result", and "the update made play worse" should not be repeated as a
+finding -- it was never one. What survives from that section is only the narrow, measured fact that the
+rewards-screen refusal is intermittent rather than certain on 0.45.0: 6 of 9 evaluated run-segments in
+`…T101743Z`, and the only legality failure in this batch is a different class (a menu refusal, below),
+with the rewards-screen string absent from it.
+
+### The one red on the winning run is a different refusal class
+
+`every_action_was_legal_and_acked` fails with `posted=255 refused=1` and
+`first_refusals=['Unknown menu option: standard']`. That is a **menu**-surface refusal -- the driver
+offering an option the menu did not present -- not the in-play "Rewards screen is not open" refusal
+discussed above, and the two must not be summed into one count. It cost the run the clean-contract
+item even though it reached the victory terminal, so a "first 11/11" will need the menu path as well
+as the reward screens, not either alone.
+
+### Other areas, unchanged
+
+The campaign arm is still alive at 23,642,112 steps (iteration 962, `n_updates` 7688, `value_loss` 1.39,
+`explained_variance` 0.944, fps 929) with the same five `full_run/metrics/` files -- four checkpoint
+points at 7.335 / 7.125 / 7.430 / 7.500 mean floor, `boundary_rate` 0/200 at each, and the 20M
+promotion probe at 0/500 (Wilson upper 0.0076). Nothing restarted, no parameter touched. The BC screen
+files are still 14:47 with no traceback and the same `graduates: false`. `verify_report_claims.py` on
+the training venv reads **61/61, exit 0**; the metrics corpus is unchanged (294 files, 12-file pilot
+population, 228 cited digests), so the bundle was not rebuilt, and the 25M checkpoint ~24 minutes out
+will re-open it. No gate, threshold or contract check was altered anywhere in this pass.
+
+
+## 2026-09-23 (night, fifth entry): a live run reads 11 of 11, and the campaign arm's fifth point is still 0/200 past the Act-1 boss
+
+### The contract is satisfied for the first time -- with one item that cannot currently fail
+
+`verify_full_run_contract.py` on `runs/solver_supervisor/ssb-20260923T114931Z-9b018290/autoplay_trace.jsonl`
+now prints `contract_satisfied=True`, with per-run pass counts `[6, 6, 10, 11, 6]`. The 11 is a run
+other than the 10/11 one from the previous entry, and its own record is clean on every surface the
+contract names:
+
+- `starts_at_floor_one` (first act entry floor 0, the fresh start observed at Neow),
+  `three_acts_in_order` (entries `{1:0, 2:17, 3:33}`), `three_ancients_are_this_builds`
+  (NEOW / TEZCATARA / TANX),
+- `bosses_cleared {1:17 -> card_select:hp28, 2:33 -> rewards:hp88, 3:48 -> rewards:hp29, 3:49 ->
+rewards:hp13}` -- the full 1+1+2,
+- `terminal_is_the_games_victory_flag` via `outcome=True source=bridge_is_victory_flag` at
+  `terminal_floor=49`, and `run_complete=True`,
+- `posted=242 refused=0`, `proceed_bypasses=[]`, `unhandled_screens={}`,
+  `unhandled_screen_bypasses=[]`, `empty_candidate_refusals=[]`, 3,727 records sequenced and
+  monotonic, 0 corrupt.
+
+The caveat is narrow but it is the whole difference between "satisfied" and "proven", and it is the
+mechanism recorded two entries ago: `no_screen_skipped_without_a_rule` takes its second source from the
+driver's `session_end` summary, which a **running** batch has not written. So that item is currently
+passing on the replayed stream alone (`bypasses=[]`, `unhandled={}`) and *cannot* fail until the batch
+completes -- exactly how the 08:14 batch's winner read green and then flipped once its summary arrived
+and listed two unhandled reward screens. What is unambiguously established right now, from data that
+does not depend on the summary, is the substance: a real run started at floor 1, walked all three acts
+in order, met each act's own Ancient, cleared bosses 1+1+2, posted 242 actions with zero refusals, and
+reached the game's own victory terminal. The item that will settle at completion is whether the driver
+saw any screen it had no rule for. Solver for this batch is CombatSolver **0.45.0**, off-lock, as
+recorded in the previous entry.
+
+### Five checkpoint points and the boundary has not moved once
+
+| steps | mean_final_floor | max | boundary_rate | win_rate | mean_return |
+|---|---|---|---|---|---|
+| 5,000,004 | 7.335 | 17 | 0.0 (0/200) | 0.0 | -29.034 |
+| 10,000,008 | 7.125 | 17 | 0.0 (0/200) | 0.0 | -28.781 |
+| 15,000,012 | 7.430 | 17 | 0.0 (0/200) | 0.0 | -29.031 |
+| 20,000,016 | 7.500 | 17 | 0.0 (0/200) | 0.0 | -28.987 |
+| 25,000,020 | 7.405 | 17 | 0.0 (0/200) | 0.0 | -29.010 |
+
+The fifth point came down 0.095 of a floor; the range across 25M steps is now 7.125-7.500 and
+`boundary_rate` is zero in all five 200-episode evaluations, with `max_final_floor` 17 every time. The
+arm was last read at iteration 1032 / 25,362,432 steps (`n_updates` 8248, `value_loss` 1.34,
+`explained_variance` 0.946, fps 932). Nothing was restarted and no hyperparameter, reward term or
+threshold was changed.
+
+### Bundle re-closed for the 25M file
+
+Metrics index 294 -> 295, campaign-pilot population 12 -> 13 files (3,800 episodes, 1,475 rejection
+events, 0.3882 per episode, re-derived with `verify_report_claims._channel_census`), manifest cited
+digests 228 -> 229, and the two report quotes re-derived from the manifest. Expectations re-pinned for
+the three affected claims, manifest rebuilt last, `verify_report_claims.py` on the training venv:
+**61/61, exit 0**. No gate, threshold or contract check was altered; the 11/11 above is reported with
+its falsifiability gap rather than smoothed over.
+
+
+## The 40M campaign arm is flat too, and the takeover diagnostic is unaffordable (2026-09-23)
+
+Seven evaluation points at 5M..35M steps on the same 200-episode campaign split:
+
+| steps | mean final floor | act boundary crossings | reached floor 17 | mean return |
+|---|---|---|---|---|
+| 5M | 7.33 | 0/200 | -- | -29.03 |
+| 10M | 7.12 | 0/200 | -- | -28.78 |
+| 15M | 7.43 | 0/200 | -- | -29.03 |
+| 20M | 7.50 | 0/200 | -- | -28.99 |
+| 25M | 7.41 | 0/200 | -- | -29.01 |
+| 30M | 7.58 | 0/200 | -- | -29.18 |
+
+Roughly 85% of episodes still end at floor 9 or below at every point, truncation 0, wins 0. The
+optimiser is emphatically not stalled -- 10,472 updates (32x the pilot), `approx_kl` 0.011,
+`clip_fraction` 0.07, `entropy_loss` -1.3 -> -0.57, `explained_variance` 0.95 -- so the network is
+converging hard onto a behaviour that does not move. That is the signature of a missing gradient,
+not of an insufficient budget: nothing past floor 9 is ever reached, so the boundary and win terms
+contribute no samples, and 35M steps of further sharpening cannot discover a route it never sees.
+
+### A correction to what I wrote an hour ago
+
+I called the Act-1 boss "the wall". It is not, and the same numbers refute it: reaching floor 17
+is 2-6%, and ~85% of episodes die at floor 9 or before. The wall is **mid-Act-1 attrition**, and
+the boss is downstream of it. GPT-6-Astra said this in choosing its diagnostic; my phrasing was
+wrong and is corrected here rather than left standing. A paired check makes the same point from
+the other side -- same checkpoint, same 200 seeds, single-act versus campaign: floor 17 reached
+6/200 versus 2/200, mean final floor 8.12 versus 7.80, Act-1 cleared 1/200 versus 0. The
+three-act framing costs almost nothing; the fights themselves are what is not being won. And every
+early death lands at exactly HP 0, so these are losses in combat, not quits or dead ends.
+
+### The diagnostic that was asked for, and why it did not run
+
+astra's chosen experiment was a combat-takeover screen: freeze the checkpoint, play the same seeds
+twice, actor throughout versus a strong in-emulator combat player, and fund further training only
+if reach-floor-10 rises by >= 20 points with a paired interval excluding zero. It named its own
+biggest risk as there being no usable in-emulator combat interface, so that was measured first
+rather than assumed. The interface does exist -- `training/teacher_v3.beam_search_action`, wired
+in `scripts/evaluate_teacher_strength.py` -- so the risk looked cleared. It is not cleared, for a
+different reason: the teacher reconstructs state by replaying the whole decision history at every
+combat decision (`capture_prefix`), which is quadratic in episode length, and the shipped wrapper
+also bails to the heuristic after 30 combat decisions -- which a campaign episode spends inside
+its first few fights. A feasibility probe (`runtime/probe_teacher_takeover_cost.py`, 3 episodes at
+400 steps) produced **zero completed episodes in 25 minutes** and was stopped. Campaign-length
+takeover is therefore not a cheap diagnostic; building it would need a state-snapshot API in the
+native layer, which is the substantial integration project astra explicitly warned against.
+
+### Where that leaves the plan
+
+`step_cost` is demoted by the discounting correction and BC by the screen, and scaling is now
+refuted by this table, so none of A/B/C is the move. What the same question can be answered
+cheaply is a narrower one: fight difficulty at a horizon short enough for the beam to afford. A
+fixed panel of the Act-1 encounters the actor dies in, identical deck/HP/relics, the frozen actor
+against the beam teacher fight by fight -- win rate and remaining HP -- localises the gap to
+combat decision quality, and if the teacher loses those same fights too then the emulator's fight
+*resolution* is the problem and no training budget was ever going to fix it. That is the next
+measurement; the 40M arm is being allowed to finish its last two checkpoints rather than being
+killed, since it is 87% done and the eighth point is free.
