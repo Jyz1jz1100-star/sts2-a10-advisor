@@ -654,6 +654,23 @@ def _menu_option_names(state: dict[str, Any]) -> set[str]:
     return names
 
 
+class DeferredToCombat:
+    """A screen the driver is leaving to the in-game Combat Solver, by name.
+
+    Returning a bare ``None`` for this made an intentional hand-off
+    indistinguishable from having no idea what the screen is, so the batch ledger
+    booked 18 combat-owned card selections as "a screen skipped without a rule"
+    while also booking them as deferred -- the same frame owned by somebody else
+    and by nobody.  Abstaining is correct here; being unable to tell it from a gap
+    is what the contract item exists to catch.
+    """
+
+    __slots__ = ("screen_type",)
+
+    def __init__(self, screen_type: str) -> None:
+        self.screen_type = screen_type
+
+
 def _is_bare_frame(state: dict[str, Any]) -> bool:
     """True when the bridge named no screen and shipped no screen payload.
 
@@ -1053,7 +1070,7 @@ class AutoPlayer:
         screen_type = str(selection.get("screen_type") or "")
         if screen_type in _COMBAT_OWNED_CARD_SELECT_SCREENS:
             self.coverage.note_deferred_to_combat(screen_type)
-            return None
+            return DeferredToCombat(screen_type)
         cards = [
             c for c in selection.get("cards") or [] if isinstance(c, dict)
         ]
@@ -1075,10 +1092,14 @@ class AutoPlayer:
         ]
         if not unpicked:
             # Every card offered has been clicked and the screen still cannot
-            # confirm: this is a state the driver has no rule for, so it is left
-            # for the caller's bounded unhandled-screen stop instead of
-            # toggling the same card forever.
-            return None
+            # confirm.  That is the grid resolving, not a state with no rule: seen
+            # live at act 2 floor 33, where the run moved on half a second later.
+            # Held like every other settle window -- bounded by the caller's stall
+            # watchdog, so a grid that never lights up still stops the batch, now
+            # under a reason that names it.
+            return WaitForTransition(
+                "the card selection has taken every offered pick and cannot confirm yet"
+            )
         pick = next(
             (c for c in unpicked if str(c.get("id") or "").startswith("STRIKE")),
             unpicked[0],
@@ -1692,6 +1713,29 @@ class AutoPlayer:
                             raise BridgeProtocolError(
                                 f"stalled: {payload.reason} for over 5 minutes "
                                 "— manual action required"
+                            )
+                        time.sleep(self.poll)
+                        continue
+                    if isinstance(payload, DeferredToCombat):
+                        # Owned by the in-game solver, so there is nothing to post
+                        # and no gap to report -- but still bounded.  Being booked
+                        # as unhandled was the only thing that ever stopped a
+                        # deferral that failed to resolve, and taking that label
+                        # away without a budget would trade a false alarm for a
+                        # silent spin.
+                        run_state = state.get("run") or {}
+                        print(
+                            f"[autoplay] deferring {payload.screen_type} to the "
+                            f"Combat Solver at act {run_state.get('act')} "
+                            f"floor {run_state.get('floor')}",
+                            flush=True,
+                        )
+                        self._stall_since = self._stall_since or time.monotonic()
+                        if time.monotonic() - self._stall_since > 300:
+                            raise BridgeProtocolError(
+                                f"stalled: {payload.screen_type} left with the "
+                                "Combat Solver for over 5 minutes — manual action "
+                                "required"
                             )
                         time.sleep(self.poll)
                         continue

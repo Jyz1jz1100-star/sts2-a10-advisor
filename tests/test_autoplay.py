@@ -292,6 +292,79 @@ class AutoplayDecisionTests(unittest.TestCase):
         }
         self.assertIsNone(self.player.decide(named_but_unmodelled))
 
+    def test_a_combat_owned_card_select_defers_rather_than_looking_ruleless(self) -> None:
+        """A screen handed to the Combat Solver is owned, not orphaned.
+
+        The batch ledger booked 18 of these as "no screen skipped without a rule"
+        while simultaneously recording them as deferred_to_combat -- the same frame
+        counted as owned by somebody else and by nobody, because decide() signalled
+        the abstention only by returning None.
+        """
+        from bridge.autoplay import DeferredToCombat
+
+        state = {
+            "state_type": "card_select",
+            "card_select": {
+                "screen_type": "NCombatPileCardSelectScreen",
+                "can_confirm": True,
+                "cards": [{"index": 0, "id": "STRIKE"}],
+            },
+            "run": {"act": 1, "floor": 17},
+        }
+        self.assertIsInstance(self.player.decide(state), DeferredToCombat)
+        self.assertEqual(
+            self.player.coverage.deferred_to_combat,
+            {"NCombatPileCardSelectScreen": 1},
+        )
+        self.assertEqual(self.player.coverage.unhandled_screens, {})
+
+    def test_a_card_selection_still_settling_is_a_bounded_wait(self) -> None:
+        """Clicking the last offered card is a moment, not a missing handler.
+
+        Observed live at act 2 floor 33: the screen is polled with ``can_confirm``
+        false after every offered card has been clicked, and the run moves on half a
+        second later. That is the same shape as a rest site that has not drawn its
+        exit yet, and the batch stopped treating those as gaps weeks ago.
+        """
+        from bridge.autoplay import WaitForTransition
+
+        state = {
+            "state_type": "card_select",
+            "card_select": {
+                "screen_type": "choose",
+                "prompt": "Choose a card.",
+                "can_confirm": False,
+                "cards": [{"index": 0, "id": "STRIKE"}, {"index": 1, "id": "DEFEND"}],
+            },
+            "run": {"act": 2, "floor": 33},
+        }
+        self.assertEqual(self.player.decide(state), {"action": "select_card", "index": 0})
+        self.assertEqual(self.player.decide(state), {"action": "select_card", "index": 1})
+        third = self.player.decide(state)
+        self.assertIsInstance(third, WaitForTransition)
+        self.assertEqual(self.player.coverage.unhandled_screens, {})
+
+    def test_abstaining_still_looks_different_from_having_no_idea(self) -> None:
+        """Negative control for the two above: a bare None must survive as a gap.
+
+        If every non-action became a wait or a deferral, no_screen_skipped_without_a_rule
+        could never fail again, which is the whole reason it exists.
+        """
+        named_but_unmodelled = {
+            "state_type": "unknown",
+            "weird_room": {"options": [{"index": 0}]},
+            "run": {"act": 2, "floor": 24},
+            "player": {"hp": 49, "max_hp": 80},
+        }
+        self.assertIsNone(self.player.decide(named_but_unmodelled))
+
+        ownerless = {
+            "state_type": "card_select",
+            "card_select": {"screen_type": "choose", "can_confirm": False, "cards": []},
+            "run": {"act": 1, "floor": 3},
+        }
+        self.assertIsNone(self.player.decide(ownerless))
+
     def test_menu_options_are_read_whatever_shape_the_bridge_sends(self) -> None:
         """The main menu lists strings; the singleplayer mode list lists objects.
 
@@ -426,10 +499,12 @@ class AutoplayDecisionTests(unittest.TestCase):
 
     def test_combat_pile_card_select_is_named_not_guessed(self) -> None:
         """The one card-select screen the build's auto-player does not drive."""
+        from bridge.autoplay import DeferredToCombat
+
         state = load("card_select")
         state["card_select"]["screen_type"] = "NCombatPileCardSelectScreen"
         state["card_select"]["can_cancel"] = False
-        self.assertIsNone(self.player.decide(state))
+        self.assertIsInstance(self.player.decide(state), DeferredToCombat)
         self.assertEqual(
             self.player.coverage.deferred_to_combat,
             {"NCombatPileCardSelectScreen": 1},
@@ -472,15 +547,27 @@ class AutoplayDecisionTests(unittest.TestCase):
             self.player.decide(state), {"action": "select_card", "index": 0}
         )
 
-    def test_card_select_exhausted_without_confirming_is_left_unhandled(
+    def test_card_select_exhausted_without_confirming_holds_within_a_budget(
         self
     ) -> None:
+        """Every offered card clicked, the grid still will not confirm.
+
+        This used to return None so the caller's unhandled-screen counter could
+        stop the batch on it -- the only bound the case ever had.  It now holds
+        with a reason, which keeps the bound (the caller's 300 s stall watchdog
+        applies to every hold) without calling a resolving grid a missing handler.
+        """
+        from bridge.autoplay import WaitForTransition
+
         state = load("card_select")
         state["card_select"]["can_cancel"] = False
         for _ in range(len(state["card_select"]["cards"])):
             self.player.decide(state)
-        self.assertIsNone(self.player.decide(state))
+        held = self.player.decide(state)
+        self.assertIsInstance(held, WaitForTransition)
+        self.assertIn("card selection", held.reason)
         self.assertEqual(self.player.coverage.deferred_to_combat, {})
+        self.assertEqual(self.player.coverage.unhandled_screens, {})
 
     def test_rewards_claim_card_opens_card_reward_and_pick_proceeds(self) -> None:
         state = {
