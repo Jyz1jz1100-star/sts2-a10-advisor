@@ -3170,3 +3170,55 @@ the change is trusted, because this is exactly the shape of change that turns a 
 wrong reason. The 5th red, `bosses_1_plus_1_plus_2_cleared` and its two dependants, is unchanged in
 meaning: the run died at the first of the two final bosses, which is a strategy loss and correctly
 not an implementation defect.
+
+
+## First production campaign RL arm on v5, and a screen that cost astra's own recommendation (2026-09-23)
+
+`config/production_campaign_v5.toml`, run `runtime/production_campaign_v5/v2curriculum-20260923T061352Z`:
+40M steps, 12 envs, checkpoints every 5M giving eight evaluation points, warm-started from the
+same act1 checkpoint as the pilot with its digest verified (`f514ffa3…`), so the one moved variable
+is the budget. The reason for scaling rather than redesigning is that the pilot's flat curve was
+~325 PPO updates, and "no direction yet" and "no direction, period" are not separable at that
+many updates.
+
+Two launch errors worth recording because both were caught by reading rather than by trusting the
+plan. First launch started **cold**: the pilot's warm start is a `--initial-checkpoint` command
+line flag and not a config field, so copying the config copied `initialize_from_previous = false`
+and silently dropped the thing the header comment claimed was held fixed. `plan.json` showed
+`warm_start: null` against the pilot's populated one; the run was stopped, its directory renamed
+`ABANDONED_cold_start_*`, and relaunched warm with the digest checked. Second, the BC screen below
+leaked a native run slot per episode -- the same trap already recorded once for the attrition
+probe, re-created in a new script, and it surfaced as `Sts2Run_GetInfo failed with status -1`
+after the first arm finished rather than as an obvious error.
+
+### Consulting astra, and what came back
+
+GPT-6-Astra was asked to choose among (A) scale the arm, (B) change `step_cost`, (C) BC-initialise.
+It chose **C** at confidence 0.8, with the instruction to run a zero-training screen first. It also
+corrected two of my claims, both right: the `step_cost` fear compared undiscounted totals (see the
+config header, corrected in `1bc3694`), and the pilot's boss reach 3/200 -> 10/200 is weak evidence
+of movement rather than no movement.
+
+The screen was then run exactly as pre-declared -- BC graduates only at Act-1-boss reach >= 0.10
+against the warm arm with a 95% paired interval on the per-seed floor difference excluding zero --
+on 200 seeds from the production arm's `final` partition, which the trainer never reads. Result
+(`runtime/screen_bc_vs_warm.json`, full rows in `*.rows.json`):
+
+| initialisation | boss reach | mean final floor | deepest |
+|---|---|---|---|
+| BC from the in-game solver (`pretrained_actor.zip`) | 0/200 | 4.42 | 12 |
+| the RL warm start the arm actually uses | 2/200 | 7.80 | 17 |
+| random initialisation | 0/200 | 2.925 | 8 |
+
+**`graduates: false`.** The recommendation was tested with the experiment its own author asked for
+and refuted: solver-BC is above random and well below the RL checkpoint, so the missing combat
+competence does not arrive by imitating the solver into this observation stack. Two caveats that
+matter before anyone re-tries C differently: these seeds are held out from RL training by
+partition and from BC only by that pipeline's own hash rule, which is an assumption and not a
+proof here; and BC was trained on single-act states, so this measures "the shipped BC artefact
+transfers to the campaign", not "no cloned solver policy could".
+
+Consequence: A stays as launched, and B is demoted rather than promoted -- with the discounting
+correction, `step_cost` is worth about 3% of a win and was never the strong hypothesis it looked
+like. What remains genuinely untested is whether 40M steps produce a direction at all, which is
+the number this run exists to produce.
