@@ -162,11 +162,27 @@ class FullRunContractTests(unittest.TestCase):
             return audit_trace(path)
 
     def test_a_complete_run_satisfies_all_eleven_items(self) -> None:
-        report = self.audit(full_victory_run())
+        # "Complete" now has to include the batch having written its summary: two of
+        # the eleven items read the driver's own ledger, and while it is absent they
+        # cannot fail, so an 11/11 from a still-running trace certifies nothing.
+        report = self.audit(full_victory_run() + [_session_end()])
         best = report["best_run"]
         self.assertIsNotNone(best, report)
         self.assertEqual(failed_checks(best), [], [c["detail"] for c in best["checks"]])
         self.assertTrue(report["contract_satisfied"])
+
+    def test_a_trace_still_running_is_not_certifiable(self) -> None:
+        """Negative control for the rule above: no summary, no certification.
+
+        The ledger-derived items are not made harder here -- they are simply not
+        enough. A batch that has not stopped has not written the one artifact that
+        could show a screen it left with no rule, so the verdict has to say so
+        rather than print an 11/11 for a file that is still being appended to.
+        """
+        report = self.audit(full_victory_run())
+        self.assertTrue(report["best_run"]["passed"], "the items themselves still pass")
+        self.assertFalse(report["certifiable"], "but the batch has written no session_end")
+        self.assertFalse(report["contract_satisfied"])
 
     def test_eleven_items_are_all_present(self) -> None:
         best = self.audit(full_victory_run())["best_run"]
@@ -261,7 +277,10 @@ class FullRunContractTests(unittest.TestCase):
             _state(302, "game_over", 1, 1, hp=0,
                    game_over={"is_victory": False, "message": "Run ended."}),
         ]
-        report = self.audit(full_victory_run() + dirty_tail)
+        # The dirty neighbour has its own identity and so no ledger row, which is
+        # correct: the clean run is certified on its own ledger, not on the absence
+        # of a summary that would have covered both.
+        report = self.audit(full_victory_run() + dirty_tail + [_session_end()])
         self.assertTrue(report["contract_satisfied"], report["all_runs"])
 
 
@@ -280,7 +299,9 @@ class FullRunContractTests(unittest.TestCase):
         """The session record sits once per file; every run in it was played there."""
         first = full_victory_run()
         second = _resequence(full_victory_run(), 100)
-        report = self.audit(first + second)
+        # Both runs share one identity, which is exactly what the driver's summary
+        # disambiguates against -- and what it cannot do until it has been written.
+        report = self.audit(first + second + [_session_end()])
         self.assertEqual(report["runs_evaluated"], 2)
         self.assertTrue(report["contract_satisfied"], report["all_runs"])
         best = report["best_run"]

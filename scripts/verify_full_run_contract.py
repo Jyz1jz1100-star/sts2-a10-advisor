@@ -322,7 +322,13 @@ def audit(path: Path) -> dict[str, Any]:
         "trace": str(path),
         "trace_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         "runs_evaluated": len(verdicts),
-        "contract_satisfied": bool(best and best["passed"]),
+        # A trace whose batch is still running has written no ``session_end``, and the
+        # two ledger-derived items can then never fail -- so an 11/11 read there is a
+        # statement about a half-finished file, not a certified run. The items keep
+        # their own semantics and the verdict refuses instead, which is the one place
+        # this belongs: nothing about a finished batch gets harder or easier.
+        "contract_satisfied": bool(best and best["passed"] and wrote_summary),
+        "certifiable": bool(wrote_summary),
         "best_run": best,
         "all_runs": [
             {"passed": v["passed"], "failed": [c["check"] for c in v["checks"] if not c["passed"]]}
