@@ -3129,3 +3129,44 @@ all four driver fixes in: **Act 1 floor 17, Act 2 floor 33, Act 3, dead at floor
   fourth shape -- a crystal-sphere cell clicked after its screen closed, with a decision id that
   still matched -- is left **open on purpose**: it is a race, and a blind guard would hide it
   rather than fix it.
+
+
+## The record batch reached the final boss, and its fourth red is an accounting fault (2026-09-23)
+
+With the acceptance collector no longer cut off by its observer, `ssb-20260923T023340Z-d0b73e89`
+completed all 6 of its runs -- the first batch ever to finish its own quota. Its best run is the
+furthest the real client has been taken under any published environment: **Act 1 boss floor 17,
+Act 2 boss floor 33, all three of this build's own Ancients (Neow / Pael / Tanx), Act 3 floor 48,
+where it died fighting Aenonglass**, the first of the final act's two bosses. Three acts in order,
+provenance bound to the locked build, and the stream continuous -- those four items pass.
+
+`every_action_was_legal_and_acked` improved from 3 refusals to 1 on the same day the menu and
+chest fixes landed, and the new treasure hold appears in the ledger as a *wait* that recovered
+(`the chest offers no relic and no exit yet`: 1), which is the behaviour it was written for. The
+one surviving refusal is `Unknown menu option: IRONCLAD`, still open and still a real gap: the
+character list is posted as a menu option it never offered.
+
+`no_screen_skipped_without_a_rule` then flipped from PASS to FAIL with 18 `card_select` rows and 1
+`rewards` row, which reads as a large new hole. It is not, and the reason matters more than the
+count. Replaying every recorded card_select frame through the decider that produced the batch: of
+127 frames, 22 return "no rule", and they are two different things that the ledger cannot tell
+apart.
+
+- Most are `screen_type: NCombatPileCardSelectScreen` -- in-combat card piles, which the driver
+  deliberately abstains from because the Combat Solver owns them, and which are *already* counted
+  separately as `deferred_to_combat: 18`. The same screen is therefore booked twice under
+  contradictory labels: owned by somebody else, and owned by nobody.
+- The rest are settle windows on screens the driver was actively resolving. The one that looks
+  worst -- `choose` at Act 2 floor 33, the boss -- is polled three times with `can_confirm` false
+  and then the driver plays a card and the run moves on to the shop. A screen clicked on half a
+  second later had an owner.
+
+The distinction the item needs is the one every other screen already makes: *polled and waiting*
+versus *polled and never acted on*. The fix is to route card_select's settle window through the
+same bounded `WaitForTransition` the rest site, chest and event use, and to stop booking a
+declared deferral as a missing rule -- not to relax the item, which still has to fail on a screen
+nobody ever acts on. That last clause is the load-bearing one and needs a negative control before
+the change is trusted, because this is exactly the shape of change that turns a red green for the
+wrong reason. The 5th red, `bosses_1_plus_1_plus_2_cleared` and its two dependants, is unchanged in
+meaning: the run died at the first of the two final bosses, which is a strategy loss and correctly
+not an implementation defect.
