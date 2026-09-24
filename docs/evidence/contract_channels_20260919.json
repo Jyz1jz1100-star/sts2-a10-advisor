@@ -77,7 +77,7 @@
     "every figure in this file is emitted by scripts/census_contract_channels.py over the same population, not transcribed by hand"
   ],
   "generated_at": "2026-09-19T09:05:00Z",
-  "generated_at_utc": "2026-09-22T16:07:12+00:00",
+  "generated_at_utc": "2026-09-24T06:35:24+00:00",
   "not_established": [
     "which phase the rejections land in, and therefore what to fix first -- attributing them needs a per-step recording pass, which has not been run",
     "how much the win-rate and mean-floor numbers would move if the policy had been allowed to execute its first choice: filter mode re-decides, so the counterfactual is not observable from these files",
@@ -105,15 +105,15 @@
       "rejections_per_episode_overall": 0.4552
     },
     "campaign_pilot": {
-      "episodes_current_schema": 2300,
+      "episodes_current_schema": 5400,
       "episodes_ended_by_native_rejection_current_schema": 0,
       "episodes_ended_by_native_rejection_legacy_schema": 0,
       "illegal_actions_total_current_schema": 0,
-      "metrics_files": 7,
-      "metrics_files_current_schema": 7,
+      "metrics_files": 18,
+      "metrics_files_current_schema": 18,
       "metrics_files_legacy_schema": 0,
-      "rejection_events_total_current_schema": 785,
-      "rejections_per_episode_overall": 0.3413
+      "rejection_events_total_current_schema": 2675,
+      "rejections_per_episode_overall": 0.4954
     }
   },
   "reproduce": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/census_contract_channels.py",

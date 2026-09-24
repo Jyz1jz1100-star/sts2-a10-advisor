@@ -19,17 +19,19 @@
     },
     "step_cap": {
       "act1/checkpoint": 2,
-      "act1/promotion": 1
+      "act1/promotion": 1,
+      "full_run/checkpoint": 1,
+      "full_run/promotion": 2
     }
   },
   "established": [
-    "the vocabulary across every committed metrics file is exactly {'empty_action_mask': 50, 'native_rejection': 861, 'step_cap': 3}",
-    "unclassified_dead_ends is 0 in all 49 files that carry any reason, and the population records 1972 truncations among the reason-bearing files alone",
-    "`step_cap` has fired 3 times, so 'acts too slowly' IS separately labelled; `empty_action_mask` has fired 50 times, so 'cannot act' is the other label",
+    "the vocabulary across every committed metrics file is exactly {'empty_action_mask': 50, 'native_rejection': 861, 'step_cap': 6}",
+    "unclassified_dead_ends is 0 in all 52 files that carry any reason, and the population records 1975 truncations among the reason-bearing files alone",
+    "`step_cap` has fired 6 times, so 'acts too slowly' IS separately labelled; `empty_action_mask` has fired 50 times, so 'cannot act' is the other label",
     "the 861 native_rejection endings belong to the legacy schema (pre-filter-mode) files and do not contradict the 0 recorded under the current schema -- the same split the contract-channel census documents"
   ],
-  "generated_at": "2026-09-19T11:05:54+00:00",
-  "metrics_files_with_any_reason": 49,
+  "generated_at": "2026-09-24T07:51:42+00:00",
+  "metrics_files_with_any_reason": 52,
   "not_established": [
     "that step_cap and empty_action_mask can never describe the same episode: the label is a single string per episode and the evaluator prefers the env's own label, so a co-occurrence would be recorded as empty_action_mask only. Nothing here shows whether that ever happens -- it needs a run that records both conditions, not a re-reading of these files"
   ],
@@ -71,11 +73,44 @@
       "stage": "act1",
       "truncations": 1,
       "unclassified_dead_ends": 0
+    },
+    {
+      "episodes": 500,
+      "file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/early-promotion-step_000040000032.json",
+      "reasons": {
+        "step_cap": 1
+      },
+      "split": "promotion",
+      "stage": "full_run",
+      "truncations": 1,
+      "unclassified_dead_ends": 0
+    },
+    {
+      "episodes": 500,
+      "file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/promotion.json",
+      "reasons": {
+        "step_cap": 1
+      },
+      "split": "promotion",
+      "stage": "full_run",
+      "truncations": 1,
+      "unclassified_dead_ends": 0
+    },
+    {
+      "episodes": 200,
+      "file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/step_000040000032.json",
+      "reasons": {
+        "step_cap": 1
+      },
+      "split": "checkpoint",
+      "stage": "full_run",
+      "truncations": 1,
+      "unclassified_dead_ends": 0
     }
   ],
   "vocabulary": {
     "empty_action_mask": 50,
     "native_rejection": 861,
-    "step_cap": 3
+    "step_cap": 6
   }
 }

@@ -78,6 +78,12 @@ def _joint_eval(model, *, env_factory, seeds, stage, split, checkpoint, max_step
         scope=stage.scope,
         checkpoint=checkpoint,
         max_steps_per_episode=max_steps,
+        # The stage decides the world. Without this a campaign stage is scored on
+        # one act per seed while still reporting `scope='simulator_full_run'`, which
+        # is the collector-side defect already fixed in the curriculum reappearing on
+        # the measurement side -- and it would silently decide an initialisation
+        # comparison, since both arms would be graded on the same truncated world.
+        campaign=stage.campaign,
     ).to_dict()
     return {
         "episodes": metrics["episodes"],

@@ -248,7 +248,7 @@ def claim_evidence_matrix_totals():
 #: Each publication gets its own file: the older snapshots are the record of what the
 #: engine looked like when those findings were read, not drafts to be overwritten.
 EMULATOR_SOURCE_PROVENANCE = (
-    ROOT / "docs/evidence/emulator_source_provenance_20260922_v4.json"
+    ROOT / "docs/evidence/emulator_source_provenance_20260923_v5.json"
 )
 
 def claim_win_ledger():
