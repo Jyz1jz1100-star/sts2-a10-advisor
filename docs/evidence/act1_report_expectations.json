@@ -230,9 +230,9 @@
   },
   "dead_end_reason_census": {
     "empty_action_mask": 50,
-    "files_with_reason_field": 49,
+    "files_with_reason_field": 52,
     "native_rejection": 861,
-    "step_cap": 3
+    "step_cap": 6
   },
   "dead_end_vocabulary": {
     "acts_too_slowly_is_labelled": true,
@@ -302,7 +302,7 @@
   },
   "evidence_bundle_integrity": {
     "bundle_root_recomputes": true,
-    "checkpoint_files_rehashed_here": 224,
+    "checkpoint_files_rehashed_here": 233,
     "digests_and_sizes_recompute": true,
     "every_citation_is_accounted_for": true,
     "listing_matches_disk": true,
@@ -411,18 +411,18 @@
   },
   "metrics_file_count": {
     "act1_campaign_study": 282,
-    "campaign_pilot": 7,
-    "total": 289,
+    "campaign_pilot": 18,
+    "total": 300,
     "unclassified": 0
   },
   "metrics_index_reviewability": {
     "every_row_names_a_committed_relative_path": true,
-    "files_rehashed_here": 289,
+    "files_rehashed_here": 300,
     "index_aggregates_are_self_consistent": true,
     "index_backs_the_contract_channel_numbers": true,
     "index_backs_the_dead_end_vocabulary": true,
     "index_covers_this_machines_corpus_exactly": true,
-    "metrics_files_on_disk_here": 289
+    "metrics_files_on_disk_here": 300
   },
   "objective_clause_audit": {
     "act_1_to_3_clause_still_says_not_achieved": true,
