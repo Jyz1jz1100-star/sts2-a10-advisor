@@ -1,4 +1,13 @@
 # 夜间 Act 1 战役评估（2026-09-19）
+> **行号口径（2026-10-06 加注）**：本文的引擎行号按 anchor 规则对着当时的 emulator checkout 重钉过
+> （`tests/test_emulator_provenance.py::CITATION_ANCHORS` 是唯一的锚点表，`scripts/verify_engine_citations.py`
+> 是门禁）。有四处例外不能靠重钉解决：它们引用的演示种子 / 留档 trace 分支——
+> `ApplyRetainedTraceVantomOpening`、`TryChooseRetainedTraceActTwoPath`，以及那些
+> `StringSeed == "7MS1YN8NWB"` 门控——已经随 `sts2sim-campaign-fidelity-v5` 从引擎删除，
+> **现行源码里不存在，所以没有行号可指**。依赖这些分支的结论（链上第二幕只定义了 4 层脚本、演示种子的
+> Act 2 轨迹被环境钉住、被解剖那局的牌堆动力学由脚本抽牌堆塑造）都是 **fidelity-v4 及更早环境**上的陈述。
+> v5 的声明在 `training/campaign_content.py`：删除这套覆盖只是移除了混淆因素，同一批 1500 种子里最终层
+> 发生变化的 Episode 是个位数，胜负位不变。
 
 ## 给决策者的一页（细节都在下文各节，这里只给判定与出处）
 
@@ -8,8 +17,8 @@
 | 模拟器里单幕通关？ | **能，共 34 个具名终局胜局**：Act 1（overgrowth）9 个种子逐个复现（`won` + `floor 17` + 0 非法 + 0 未分类）；普查里 Act 2（underdocks）另有 25 个到达后胜局，**这 25 个现在也逐个重放过了**（09-19 只重放了其中 6 个）：`scripts/enumerate_act1_terminals.py --seeds <名单> --expect-checkpoint-sha256 <名单来源登记的摘要>` → `act2_named_wins_individual_replay_20260920.json`，25/25 全是 `boss_win`、`floor 17`、`generated_act=2`、非法/未分类/截断全 0，且名单与顺序与 `act1_arrivals_by_act_20260919.json` 逐一对齐。**但两幕的完成条件并不相同**：`NodeBoss → Complete` 只挂在遗物领奖那条出口上，第二幕另一条出口看的是 `terminalFloor=33`（生成地图到不了），所以"打赢第二幕 boss 算不算通关"部分取决于领奖顺序（见"boss 完成分叉"节）。**34 个里每一个都是单幕**，而且 **34 是窗口受限的旧数**：把该检查点的分区扫到 10,000 个种子，单它就产出 **68 个 `complete` 终局胜局**（3 个第一幕 + 65 个第二幕）——**这 68 个现在也逐种子重放过了**（`enumerate_act1_terminals.py --seeds … --expect-checkpoint-sha256 …` → `promotion_partition_named_wins_replay_20260920.json`：68/68 `boss_win`、floor 17、非法/未分类/截断全 0），而且**按幕的拆分与另一台仪器逐幕相同**（3 对 3、65 对 65，不只是总数相等），外加 21 个"清了 boss 没被判赢"的第二幕局（换另一臂的检查点重测同批种子是 7/28 = 25%，与策略无关） | 证据矩阵、胜局台账、逐种子普查、`act2_boss_completion_fork_20260919.json`、`act2_boss_misexit_rate_20260919.json` |
 | 能说"稳定能赢"吗？ | **不能**。9 次胜局落在 9 个互不相同的种子上（同一臂 1M 与 4M 各赢两个不同种子），当前水平下 Act 1 胜利像尾部随机事件；逐局 0.022%、逐种子 0.090%，离 35% 门槛差两个数量级 | 台账、"两两不交"一节 |
 | 多跑几夜有用吗？ | **无用**：同一分区 1M→4M 的配对检验 Δ=+0.030 [-0.65,+0.72] p≈0.95；阶梯在 floor10 退化被记成"保命不推进"的奖励利用（**这个归因本晚被下面两行的测量改掉了，至少不是主导机制**） | 空检查一节；`FREEZE_2026-09-02` |
-| "underdocks 终局在 33 层"算错吗？ | **要分两层，上一版把两层混成了一句"两幕一样"**：`RunEngine.cs:2131-2134` 的 `terminalFloor=33` 确实是**非 boss 出口**的推进保护，`NodeBoss → Complete`（`RunEngine.cs:1960-1978`，v2 起这条还要 `&& !State.Campaign`）确实是完成条件——但它**只挂在遗物领奖那一条出口**上。反事实实测：生成的第二幕在 floor 17 打完 boss 后，4 个领奖动作里 2 个拿到 `complete`、2 个被退回 `map` 空掩码。所以 33 不只是"约束演示种子链"，它会让一条**已经打赢的生成式第二幕**不被判赢 | "boss 完成分叉"一节 + `act2_boss_completion_fork_20260919.json` |
-| 那个"保命不推进"的解释还成立吗？ | **不是主导机制**：被解剖的 demo-seed 锁死局里 59,681 次过回合中**有牌可打却过回合 0 次**、99.995% 是"唯一合法动作"，锁死时满能量 + 手牌 5 张 Wound（`Unplayable: true`）。真因是该局 boss 为 Vantom（`EnemyAI.cs:259-263` 每 4 回合灌 3 张不可打 Wound），**但该局起手与抽牌堆被引擎为演示种子写死**（`RunEngine.cs:467-479`）。已在 9 个非脚本胜局复测：33–63 个决策就打死 boss、Wound 锁死 **0/9**、龟缩 **4/92 次**（罕见但非零——我先前写"零"是说过头了）。可下的两条：① 尽早识别"唯一合法动作长期持续"并终止——**但这类截断其实已计入 `defect_truncation_rate` 并受 3% 门槛约束；“缺标签可分辨性”这句本晚也被词表普查推翻——`empty_action_mask` 50、`step_cap` 3、`native_rejection` 861，两种情形**都**有标签（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）。剩下的缺口更窄：同一局若两个条件同时成立，只会留下 `empty_action_mask` 一个值**；② 缺口是"到 boss 层后掉进无进展状态"，不是"打不动 183 血" | "僵持的机制"+"通用性测试"两节 |
+| "underdocks 终局在 33 层"算错吗？ | **要分两层，上一版把两层混成了一句"两幕一样"**：`RunEngine.cs:1194-1197` 的 `terminalFloor=33` 确实是**非 boss 出口**的推进保护，`NodeBoss → Complete`（`RunEngine.cs:1093-1111`，v2 起这条还要 `&& !State.Campaign`）确实是完成条件——但它**只挂在遗物领奖那一条出口**上。反事实实测：生成的第二幕在 floor 17 打完 boss 后，4 个领奖动作里 2 个拿到 `complete`、2 个被退回 `map` 空掩码。所以 33 不只是"约束演示种子链"，它会让一条**已经打赢的生成式第二幕**不被判赢 | "boss 完成分叉"一节 + `act2_boss_completion_fork_20260919.json` |
+| 那个"保命不推进"的解释还成立吗？ | **不是主导机制**：被解剖的 demo-seed 锁死局里 59,681 次过回合中**有牌可打却过回合 0 次**、99.995% 是"唯一合法动作"，锁死时满能量 + 手牌 5 张 Wound（`Unplayable: true`）。真因是该局 boss 为 Vantom（`EnemyAI.cs:259-263` 每 4 回合灌 3 张不可打 Wound），**但该局起手与抽牌堆被引擎为演示种子写死**（`RunEngine.cs` 里那段已随 `sts2sim-campaign-fidelity-v5` 删除的演示种子分支）。已在 9 个非脚本胜局复测：33–63 个决策就打死 boss、Wound 锁死 **0/9**、龟缩 **4/92 次**（罕见但非零——我先前写"零"是说过头了）。可下的两条：① 尽早识别"唯一合法动作长期持续"并终止——**但这类截断其实已计入 `defect_truncation_rate` 并受 3% 门槛约束；“缺标签可分辨性”这句本晚也被词表普查推翻——`empty_action_mask` 50、`step_cap` 3、`native_rejection` 861，两种情形**都**有标签（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）。剩下的缺口更窄：同一局若两个条件同时成立，只会留下 `empty_action_mask` 一个值**；② 缺口是"到 boss 层后掉进无进展状态"，不是"打不动 183 血" | "僵持的机制"+"通用性测试"两节 |
 | 按幕过滤训练种子有用吗？ | **没用，方向还是反的**：Δ mean_floor −0.280，CI [−0.583, +0.020]，上界≈0 已排除有意义的增益 | 本节"A/B 结果"小节；两臂运行目录 `runtime/act1_ab/a1filt`、`runtime/act1_ab/a1mix`（gitignored，故不作为可复核出处） |
 | 采样评估能救 boss 僵持吗？ | **不能**：8 次采样全部第 4–8 层阵亡，连 boss 都到不了；僵持是 59930 个不重复状态的僵局，不是循环 | `chained_frontier_full_20260919.json`、"僵持的机制"一节 |
 | "'0 非法动作'这句话有多强？" | **比字面弱，且是半结构性的（但已定位到阶段：拒绝全部在 shop 641/2,866=22.4% 与 event 112/4,305=2.6%；combat 130,993 个决策、relic_reward 17,698、card_reward 5,459 全为 0；**map 也是量过的 0：11,060 个地图决策**）**：契约有三条通道，策略侧越界确实是 0，但同一批 39,891 局里引擎拒绝了 **18,160 次掩码内动作**（act1 每局 0.53 次）。默认 `rejection_mode="filter"` 会把被拒动作摘掉后**把决策交回策略重选**，所以"0 非法"里混着"被拦下后改选"——本文所有"策略在某状态选了 X"都指**过滤后实际执行**的那一步。旧 schema 另把 861 局记成 `native_rejection` 结束，与现行 schema 的 0 局并不矛盾。而链分支上那处地图死路**看着像**该被计入 map 拒绝、其实一次也不计入：引擎掩码为空时契约根本不问引擎，直接以 `empty_action_mask` 收尾（接手的是 `v2_flat_env.py:240-250`，外层 `v2_run_wrapper.py:241-253` 只是备手；实测该步前后拒绝计数都是 6）。两侧由 `map_deadend_short_circuits_before_the_refusal_census` 从两个工件各自重算钉住 | `contract_channels_20260919.json`、`census_contract_channels.py`、`rejection_phase_attribution_20260919.json`、`census_rejection_phases.py`、`chained_map_deadend_fork_20260920.json` |
@@ -51,13 +60,13 @@
 | "floor 17 截断不算一个普遍类别（162 个到达局里只有 1 例）" | 把该检查点的分区从 3,500 扫到 **10,000** 个种子（`act2_boss_misexit_rate_20260919.json`）：489 个到达局里 **21** 例截断，全部 `empty_action_mask`，全部在生成的第二幕 | "不算普遍类别"按整分区**不成立**：它是第二幕 boss 击杀的 **24.4% [16.6,34.5]**；第一幕仍为 0 例。头部 1/26 与尾部 20/60 的不一致先用重测排除测量因素（3,500 个头部种子 0 处类别/步数差异、尾部 3 例单进程照旧截断），再交给**不相交的 `checkpoint` 分区 3,500 个种子**裁决：22.2%，站在尾部那边。于是可引用的是**两分区合并 27/113 = 23.9%**，头部是离群值（原因未查明） |
 | "串联第二幕那两局 floor 19 截断，和 `130012038` 是同一类空掩码"（写在 frontier 工件的待查问题里） | 用 `evaluate_policy` + 终局状态解码把链上 3 个检查点各重跑一遍（`chained_terminal_gates_20260919.json`）：两局终局状态的**四个地图后继位全为 0**，而 boss 出口那类是在**清掉 NodeBoss 之后**被退回地图 | **不是同一类**：`empty_action_mask` 这个标签下有两种机制——串联第二幕的地图过了 18 行真的没节点，与领奖顺序无关。同一条判据顺带把目标的两句门槛在**跨幕路径上**验到 0/0（非法、未分类死局），最深那局是战死不是死局 |
 | "契约干净：`illegal_actions=0`、`unclassified_dead_ends=0`"（本文原话"不产生非法动作/未分类死局"） | 把三条通道分开重算（`census_contract_channels.py` → `contract_channels_20260919.json`）：同一批 39,891 局里 `rejection_events` = **18,160**（act1 每局 0.53） | 两句计数都没错，但**"0 非法"是半结构性的**：默认 `rejection_mode="filter"` 会把被拒动作摘掉再重问策略，所以策略侧永远为 0，不一致只体现在另一条通道里。受影响的是本文所有"策略选了 X"的措辞——应读作"过滤后实际执行的是 X"；追加分幕归因后范围收窄：拒绝**只**出现在 shop 与 event，战斗与两张 boss 领奖屏为 0，所以战斗/领奖屏的措辞不受影响；再往下已测到根因：641 个 shop 拒绝全是引擎药水容量不一致（掩码扫 3 格、AddPotion 只填 2 格），112 个 event 拒绝来自对不认识的事件无条件 advertise 选项的 default 臂，**没有一个拒绝是买不起** |
-| "`potion_reward` 在这 1,500 局里从未出现，所以它是**未观测**、不是已验证干净" | 数了一遍引擎的相位枚举：`RunPhase.cs` 只有 11 个成员、`training/v2_constants.PHASE_NAMES` 一一对应，里面没有药水奖励屏 | 这不是样本不够，而是**范畴错误**：`phase_name` 不可能取那个值。领奖屏的结论覆盖引擎拥有的全部两种（`relic_reward`、`card_reward`），两者的核对也从"样本里没出现"换成"契约里没有"（声明检查 `potion_reward_is_not_an_engine_phase`）。同一晚另一条相位级误读也是这一类：`RunPhase.Complete` 在战败时同样会写（`RunEngine.cs:1295-1302`） |
+| "`potion_reward` 在这 1,500 局里从未出现，所以它是**未观测**、不是已验证干净" | 数了一遍引擎的相位枚举：`RunPhase.cs` 只有 11 个成员、`training/v2_constants.PHASE_NAMES` 一一对应，里面没有药水奖励屏 | 这不是样本不够，而是**范畴错误**：`phase_name` 不可能取那个值。领奖屏的结论覆盖引擎拥有的全部两种（`relic_reward`、`card_reward`），两者的核对也从"样本里没出现"换成"契约里没有"（声明检查 `potion_reward_is_not_an_engine_phase`）。同一晚另一条相位级误读也是这一类：`RunPhase.Complete` 在战败时同样会写（`RunEngine.cs:684-691`） |
 | "标签分不出'无法行动'与'行动太慢'"（上一条更正里说过头的一句） | 普查 282 份指标文件的 `dead_end_reasons` 词表：`native_rejection` 861 / `empty_action_mask` 50 / **`step_cap` 3**（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`） | 两个标签都存在且都被用到过，所以"分不出"是错的；真正剩下的缺口是**一局只能记一个标签**，且'两者是否会同落一局'从现有文件看不出来 -- 这条本身也是一次教训：**声称某个枚举值不存在之前，先去数一遍词表** |
 | 正文里抄了一个 `bundle_root` 的字面短值，当作"整套产物被绑住"的证据 | 本晚重建清单时发现：`docs/evidence` 里就躺着期望值文件，**每次重钉都会换一次根哈希**，而检查项只核对"清单与目录自洽"，从不核对正文抄的那个值——所以它从上一次重钉起就一直错着，没人报 | 正文只给指针、不抄根哈希；`harness_self_description` 反过来要求正文里**不能**出现 `bundle_root` 的十六进制字面量，并要求正文里的证据文件数等于清单的 `evidence_file_count`。**一般教训：不要把你自己的 harness 每次运行都会重算的常数抄进被验证的文本** |
 | "在模拟器里'更会挑升级卡'这一整类提升测不出来也学不到"（引擎清单第 6 条初稿的推论） | 为归因升级来源而做的营地普查：`StepRest` 有 `RestUpgradeAction = 1`，3,500 局里 1,883 次营地到访**每一次升级都在掩码里合法**，策略取了 29 次（1.54%）且 29/29 真的落进卡组 | 奖励屏那一路确实被 `RollCardUpgrade` 的桩封死，但**营地这条是开放、由策略决定、且几乎没用过的杠杆**。收窄后的说法只把上限安在"奖励发放"上。**教训：从一条被堵住的路推出"整类提升不可学"之前，先把这类路都列一遍**——这次是"要解释余下 599 张升级从哪来"这个问题逼着我列的 |
 | "遗物那条路对本批次的贡献是 0"（引擎清单第 6 条的补测里我这样写的） | `measure_opening_choice.py` 发现这两件遗物确实被拿到了 304 次——**只是发放点在开局那一屏（`ancient`），而我只看了 `relic_reward` 屏** | 正确的范围是"遗物不会在 `relic_reward` 屏上带来升级"；升级型遗物经由开局三选一发放，共 463 张。**教训：一个否定结论的适用范围等于你 instrument 的适用范围**，说"这条路贡献 0"之前要先说清是哪一屏 |
 | "floor10 无晋升判定，实际是 floor6→act1 跳级"（warm-start 阶梯那两行的说法） | `build_ladder_promotion_ledger.py` 把盘上的 500 局评估记录交给仓库自己的 `decide_promotion` 复核：floor10 **有**一次晋升评估并且是**未通过**（boundary_rate 0.238 < 0.70）；真正的卡点在 floor6——五次评估全否，最后两次只差 boundary_rate 0.86 对 0.93 | 阶梯断裂点从"floor6 直接跳到 act1"改成"floor3 晋升成功、floor6 起没有任何一次晋升通过"。**教训：说某一格没有判定之前先列一遍该格的 metrics 目录**；同一趟里我还先用错了字段（拿 `truncation_rate` 比 3% 门槛，于是 8/8 全"失败"，而门槛实际读的是 `defect_truncation_rate`，见 `training/promotion.py:39-48`）——两处都是把"我没找对地方"写成了"它不存在" |
-| "卡牌质量测不了——`state_info()` 只给 `deck_size`/`relic_count` 这种数量"（"两幕的到达局可比吗"一节初稿写的第①条限制） | 顺着奖励领取路径读编码才发现卡表是**带符号**的：`CombatFactory.cs:243` 用 `new CardInstance(Math.Abs(id), id < 0)` 建卡，而 `_core.state_lists()["deck"]` 原样返回这些带符号 id（`RunRewardGenerator.cs:830` 的 `RewardUpgraded` 也在同一批列表里） | 质量已经用两项代理测出来了（升级 0.63 对 0.70、不同卡名 11.15 对 10.61），**真正没测的只是"接卡牌数值表算强度"**。教训：**断言"这台仪器看不到 X"之前先去看 X 是怎么编码的**——我这次把某一个访问器的字段表当成了整个观测面的边界，而绕开它的那条路一直在同一份代码里 |
+| "卡牌质量测不了——`state_info()` 只给 `deck_size`/`relic_count` 这种数量"（"两幕的到达局可比吗"一节初稿写的第①条限制） | 顺着奖励领取路径读编码才发现卡表是**带符号**的：`CombatFactory.cs:243` 用 `new CardInstance(Math.Abs(id), id < 0)` 建卡，而 `_core.state_lists()["deck"]` 原样返回这些带符号 id（`RunRewardGenerator.cs:543` 的 `RewardUpgraded` 也在同一批列表里） | 质量已经用两项代理测出来了（升级 0.63 对 0.70、不同卡名 11.15 对 10.61），**真正没测的只是"接卡牌数值表算强度"**。教训：**断言"这台仪器看不到 X"之前先去看 X 是怎么编码的**——我这次把某一个访问器的字段表当成了整个观测面的边界，而绕开它的那条路一直在同一份代码里 |
 | "floor6 从未晋升，所以 act1 的臂是从没过门槛的 rung 起跑的"（本文第 19 行刚写下的结论，也进了执行表和目标条款对账） | 同一个 ledger 补读训练器当天写的 `promotion_decision.json`：floor6 **晋升过**，观察 boundary_rate 0.86 对**当时**的门槛 `min_boundary_rate = 0.8`；今天的 0.93 + 新增 `min_boundary_wilson_lower = 0.90` 是**跑完之后抬上去的**。另外那"五次评估"里有三次属于目录名自称 `aborted-…` 的被中止运行，且 `curriculum_v2*` 通配把 30 局的冒烟阶梯也扫了进来（分开标注后 campaign 只有 5 次评估、2 次晋升） | 阶梯按**当天的门槛**是 floor3✅→floor6✅→（floor10 起再无晋升、floor13 无目录）→act1 跨两级；"用今天的门槛复算"是另一个问题的答案。**教训：复算历史判定要连同当时的阈值一起复算**——`decide_promotion` 只看配置，配置会漂，而 `promotion_decision.json` 里的 `required` 才是那天真正生效的那一份。同一趟还查出旧记录缺 `boundary_wilson_95_low` 会被读成实测 0.0000（5 次假拒绝），反向缺 `defect_truncation_rate` 则是一次白送的通过，门控已改成"字段没记就拒绝评分"（`promotion_gate_refuses_unrecorded_inputs`） |
 | "穷举 84 个检查点"是一条关于盘上人口的可复核事实（双幕链前沿那节） | `scripts/run_chained_frontier_sweep.py` 把发现规则写进代码后重跑：按同一模式发现的人口已经是 **102 枚**（09-19 那 84 枚之后夜间臂与 A/B 臂又落了新检查点），而 09-19 那句"全部"没有任何声明去重算它 | 结论逐条不变（同样 3 枚进入 Act 2、最深 floor 22、0 次双幕全胜、0 非法），但**"穷举"这个词当时是不可重算的**：驱动是手拼的参数，人口一变这句话就过期，而过期是无声的。现在 `chained_frontier` 独立重数人口并与工件比对，工件也必须记录发现规则本身。**教训：任何以"全部/每个/穷举"为内容的断言，都必须附带一条能自己重数一遍的发现规则**——否则它描述的是写下那句话那一刻的目录快照（同一趟还顺手测出：撞 4,000 步上限的那局放大到 10 倍预算仍停在第 17 层，所以前沿不是预算卡出来的） |
 | "链分支那处地图死路的机制是'合成哨兵被引擎拒绝 6 次、第 7 次才判空'（我写下'还没测的'那段时这样说的） | 在分叉处逐步对比拒绝计数：那一步**之前 6、之后仍 6**，且 `dead_end_label=empty_action_mask`；`v2_run_wrapper.py:238-253` 在引擎掩码为空时**直接以 truncated 收尾而不调用引擎** | 该状态产生 **0 次原生拒绝**；整局那 6 次拒绝来自别的相位（普通种子里只有 shop/event 会拒绝）。这也让相位普查的"map 相位 11,060 决策 0 拒绝"与"map 相位存在无后继死路"**不再互相矛盾**。**教训：解释一个计数器之前先看负责那个计数器的代码走不走这条路**——我把"filter 模式会吸收拒绝"这条一般规律套到了一个根本不过 filter 的分支上，而正确的判据（逐步 delta）当时已经在我手边的工件里 |
@@ -98,31 +107,31 @@
 
 1. **幕的枚举只有两个值。** `src/Sts2Emulator/Core/Run/RunConstants.cs:35-36` 只有
    `ActOvergrowth = 1` 与 `ActUnderdocks = 2`，没有任何第三个 act 常量。
-2. **开局按种子二选一。** `RunMapGenerator.cs:9-19`：`actRng.NextBool()` 决定
+2. **开局按种子二选一。** `RunMapGenerator.cs:10`：`actRng.NextBool()` 决定
    `state.Act` 是 underdocks 还是 overgrowth——一次运行只生成**一幕**。
    （本晚普查 10000 局得到 overgrowth 5014 / underdocks 4986，正好是这次枚举的分布证据。）
    fidelity v2 起这段外面套了 `if (!state.Campaign)`：硬币照抛（抽的是丢弃流），但战役局的幕
    由进度决定，所以"二选一"从 v2 起只描述非战役局。
-3. **唯一的跨幕分支被硬编码种子门控。** `RunEngine.cs:1960-1974` 的
+3. **唯一的跨幕分支被硬编码种子门控。** `RunEngine.cs:1090-1104` 的
    `AdvanceAfterRelicReward` 只在 `StringSeed == "7MS1YN8NWB" && Floor == 17` 时把
    Act 置为 Underdocks 并重生成地图；任何其它种子在 boss 后直接
-   `Phase = Complete`（同文件 1976-1977）。即"链到第二幕"这件事只对**一个演示种子**成立，
+   `Phase = Complete`（同文件 1093-1094）。即"链到第二幕"这件事只对**一个演示种子**成立，
    而且只链 Act 1 → Act 2。
    （这句只对**从遗物领奖出口**离开 boss 节点的局成立；`Complete` 不是 boss 击杀的
    必然结果，另一条出口见下一条与"boss 完成分叉"一节。）
    fidelity v2 起整个分支的条件是 `NodeBoss && !State.Campaign`：战役局的 boss 不再从这条出口
    出去，演示种子链仍是非战役局的行为。
 4. **终局层数是两档，而且第二档按其自身判据谁也到不了。**
-   `RunEngine.cs:2131-2134`：`terminalFloor` 现在写作 `MapBossRow * State.Act + 1`（本晚读到的
+   `RunEngine.cs:1194-1197`：`terminalFloor` 现在写作 `MapBossRow * State.Act + 1`（本晚读到的
    是 overgrowth/underdocks 的三元式，两档数值不变），overgrowth 是 `17`、underdocks 是 `33`；
-   但地图只生成到第 16 行（`RunMapGenerator.cs:234` 把 boss 节点放在那一行）。
+   但地图只生成到第 16 行（`RunMapGenerator.cs:207` 把 boss 节点放在那一行）。
    **所以 underdocks 的局不是"只有演示种子链才能走到 33"，而是任何 underdocks 局都
    走不到 33**——实测表现就是打死第 17 层的 boss 之后 map 耗尽、被环境侧截断
    （本晚 3 例复现：普查 1 例 + 串联 2 例，全部 `hp` 仍有 37/77）。
    两类的差别只是耗尽的位置：**生成式**第二幕在 floor 17 当场没路（普查那 1 例），
    演示种子链上的第二幕地图从 17 层往后还有节点，所以是"再两三层"之后才截断。
    （本节四条读的是 approx-v1 引擎。fidelity v2 的 G3 让**最后一幕**在 boss 之后多出一行去接
-   配对 boss，`RunMapGenerator.cs:185`；前两幕的地图形状没动，所以"boss 行 16 之后没路"在
+   配对 boss，`RunMapGenerator.cs:184`；前两幕的地图形状没动，所以"boss 行 16 之后没路"在
    act 1/act 2 仍然成立，见 docs/SIMULATOR_ACT_FIDELITY_2026-09-21.md §7。）
 
 **含义**：模拟器的可达上限 = "单幕 boss 击杀 + 胜负判定"（floor 17 打赢当幕 boss；
@@ -412,7 +421,7 @@ VERDICT: reproduced        (exit code 0)
 检查会发现——引用的常数是逐钉失效的。现在正文只给指针，`harness_self_description` 要求正文里
 不出现"bundle_root = 十六进制字面量"这种写法，并要求正文里的文件数与清单的 `evidence_file_count` 相等。
 
-**清单绑的是产物之间，不是产物与引擎。** 本文所有引擎侧结论都写成 `RunEngine.cs:1295-1302` 这种
+**清单绑的是产物之间，不是产物与引擎。** 本文所有引擎侧结论都写成 `RunEngine.cs:684-691` 这种
 "文件:行号"的形式，而那棵源码树（`third_party/slay-the-spire-2-emulator-main`）**不是 git 仓库**，
 所以根本没有可指的提交；模拟器自带的新鲜度守卫只比较"编译出的库 mtime 是否不早于最新 .cs"，
 这能抓住忘了重编，却抓不住**时间戳被保留下来的源码改动**——而本项目已经被一次构建漂移咬过
@@ -614,9 +623,9 @@ V1 环境里重跑并按幕拆分——那是另一次工作，不该被本晚�
    而不是上面表里那些 0.4%–2% 的数字；那些数是把两幕混在一起的"单幕通关率"。
 2. ~~我给出的结构性解释是错的，已被推翻。~~
    **这条"推翻"本身才是错的，现在按代码收回。** 我当时拿
-   `RunMapGenerator.cs:234`（两幕都把 boss 节点放在第 16 行）去否定
+   `RunMapGenerator.cs:207`（两幕都把 boss 节点放在第 16 行）去否定
    "underdocks 终局在 33 层"，但那句话说的是 **boss 节点在哪一行**，
-   不是**引擎认为第几层算终局**。后者在 `RunEngine.cs:2131-2134`：
+   不是**引擎认为第几层算终局**。后者在 `RunEngine.cs:1194-1197`：
 
    ```csharp
    int terminalFloor =
@@ -700,7 +709,7 @@ V1 环境里重跑并按幕拆分——那是另一次工作，不该被本晚�
       （0 次），执行到掩码外的也是
       0 次。
    2. **641 个 shop 拒绝全部是同一条容量不一致。**掩码的 `hasPotionSlot` 扫 `PotionSlots`
-      全部 3 格（`RunEngine.cs:735`），`AddPotion` 只填 `min(2, len)` 即前 2 格
+      全部 3 格（`RunEngine.cs:420`），`AddPotion` 只填 `min(2, len)` 即前 2 格
       （`RunRewardGenerator.cs:662`）。每一行都是前两格有药水、第三格空、药水 id 非 0、**且钱够**：
       引擎 advertise 了第三个根本不存在的药水格。我原先写的"买不起"是错的——
       **没有一个 shop 拒绝是价格造成的**。
@@ -754,7 +763,7 @@ V1 环境里重跑并按幕拆分——那是另一次工作，不该被本晚�
       77 个正好停在引擎真实上限 2 瓶——
       从反面对上了 `AddPotion` 只扫 `min(2, len)` 格。
    2. **`RunPhase.Complete` 不是"通关"**：161 / 162
-      个到达都以 Complete 结束（引擎在战败分支里也写这个相位，`RunEngine.cs:1295-1302`），
+      个到达都以 Complete 结束（引擎在战败分支里也写这个相位，`RunEngine.cs:684-691`），
       只有"Complete **且** `State.LastPlayerWon`"才复现普查的 25 胜。
       这正是本文那条老陷阱（"floor 17 分不清死在 boss、打赢 boss、在 boss 僵住"）的**字段级机制**。
 
@@ -836,7 +845,7 @@ Act-1 单独评估把胜利种子写进了 `winning_seeds`（指标 schema 6）�
 既然第三幕不存在，模拟器能表达的**最长**流程就是那条被硬编码门控的 Act 1 → Act 2 链。
 它可以从现有 V2 栈直接跑到：`Sts2Run_Reset` 接受的是 **UTF-8 种子串**
 （`src/sts2_gym/native.py:402`，我们的 `training/v2_native_env.py:62` 用 `str(seed)` 传入），
-所以把种子写成 `"7MS1YN8NWB"` 就能进入 `RunEngine.cs:1963` 的分支。
+所以把种子写成 `"7MS1YN8NWB"` 就能进入 `RunEngine.cs` 里 `AdvanceAfterRelicReward` 为演示种子写死的那条分支（已随 fidelity-v5 删除）。
 工具：`scripts/probe_chained_act_flow.py`（终止/胜负/非法动作判定语义照抄
 `training/evaluation.py`，以免与本晚口径漂移）。
 
@@ -1127,13 +1136,13 @@ truncations == sum(dead_end_reasons) + unclassified_dead_ends + max(0, boundary_
 
 > 上面这两句在写完的同一小时里被**源码**答掉了一半，剩下的那半不是"为什么"而是"能不能"：
 >
-> **链上第二幕的路线是一段只有 4 层的脚本**（`RunEngine.cs:2085-2111`
-> `TryChooseRetainedTraceActTwoPath`）。它对演示种子的第二幕**只定义了 floor 18/19/20/21**
+> **链上第二幕的路线是一段只有 4 层的脚本**（`RunEngine.cs` 的
+> `TryChooseRetainedTraceActTwoPath`，已随 `sts2sim-campaign-fidelity-v5` 从引擎删除、没有行号可指）。它对演示种子的第二幕**只定义了 floor 18/19/20/21**
 > 四个遭遇（33 Tunneler、35 Thieving Hopper、37 Bowlbug、4 Exoskeleton），
 > 每一步还把光标**瞬移**到 `(列 3, 行 Floor-17)`，也就是行 1→4；floor ≥ 22 时它返回 false，
 > 之后完全交给那张**新生成的 17 行第二幕地图**。因为进链时 `Floor` 被置为 17（行 0），
 > 行号与层号差 17，所以那张地图的 boss 行 16 **正好就是 33 层**——
-> `terminalFloor = MapBossRow * Act + 1 = 33`（`RunEngine.cs:2131-2137`，本晚读到的是 `MapBossRow*2+1` 的
+> `terminalFloor = MapBossRow * Act + 1 = 33`（`RunEngine.cs:1194-1200`，本晚读到的是 `MapBossRow*2+1` 的
 > 两档三元式，数值一致）不是随手写的数，
 > 而是链上第二幕 boss 的真实层号。
 >
@@ -1151,9 +1160,9 @@ truncations == sum(dead_end_reasons) + unclassified_dead_ends + max(0, boundary_
 | `b_terminal-1 / 182051Z / step_000001000008` | `0af9d1719f96011a` | act=2 floor=19 `hp=37/77` 环境侧 truncated |
 
 **"33 层"的准确身份（这个数值我前后写错两次）。**
-上一版这里写的是"'上限 33'未经验证"。实际 `RunEngine.cs:2131-2134` 就把 33 写在
+上一版这里写的是"'上限 33'未经验证"。实际 `RunEngine.cs:1194-1197` 就把 33 写在
 `terminalFloor` 的 underdocks 分支里（overgrowth 是 17），所以 33 是**引擎自己的终局判据**，
-不是猜测；真正没被满足的是**地图只到第 16 行**（`RunMapGenerator.cs:234` 的 boss 行）。
+不是猜测；真正没被满足的是**地图只到第 16 行**（`RunMapGenerator.cs:207` 的 boss 行）。
 于是链后局的表现被完全解释：打死第 17 层的 Act 2 boss 之后继续走，
 第 18–19 层就撞上"没有下一个节点"，两局都以 `hp=37/77` 的 map 截断收场，
 只有一局走到 floor 22 后在战斗中阵亡。
@@ -1168,7 +1177,7 @@ truncations == sum(dead_end_reasons) + unclassified_dead_ends + max(0, boundary_
    **逐步相同**（`17 map → 18 event → 18 map → 19 combat → 19 relic_reward →
    19 card_reward → 19 relic_reward → 19 map`），终局 HP 也都恰好是 `37/77`——两个
    不同权重的策略不该撞出同一个终局血量。这说明**该演示种子的 Act 2 一侧同样被
-   留档 trace 分支钉住**（`RunEngine.cs:2089` 等一系列 `StringSeed == "7MS1YN8NWB"`
+   留档 trace 分支钉住**（`RunEngine.cs` 里的一系列已随 fidelity-v5 删除的 `StringSeed == "7MS1YN8NWB"`
    判定），跑出留档范围就由**环境**发出 truncated。
    所以 Act 2 的 19/22 层**不能当作"策略在第二幕的能力"引用**；
    其中只有那个 `hp=0` 的 loss 是真实战死。
@@ -1706,7 +1715,7 @@ digest mismatches: 0
   这个下界，**不是** 恰好两次，所以合法的再跑不会把它变成 DRIFT；这正是当初把它写成下界的原因。
   **目标自己那三个限定词现在是从逐种子行重算的**：9 局全部 `won`、`final_floor` 只有 17 这一个值、
   `illegal_actions` / `unclassified_dead_ends` / `truncations` 全为 0、9 个种子互不相同。而 17 不是抄来的：
-  它等于 `RunConstants.cs:14` 的 `MapBossRow = 16` 加一，那个 `+1` 写在 `RunEngine.cs:2131-2134` 的
+  它等于 `RunConstants.cs:14` 的 `MapBossRow = 16` 加一，那个 `+1` 写在 `RunEngine.cs:1194-1197` 的
   overgrowth 分支里（第二幕那一支是 `* 2 + 1 = 33`，也就是「打赢第二幕 boss 还要走到 33 层」那件事的出处）。
   两条检查都挂在 `win_ledger` 上，所以这一格不再是正文自说自话。
 - 复现失败时脚本以非零退出，且把失败行留在台账里——**不允许**把不再复现的胜局
@@ -1971,8 +1980,8 @@ if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2)
 
 #### 但这条推论的范围必须收窄：这局是脚本化的
 
-`encounter_id=83` 不只是猜的——`RunEngine.cs:467-479` 的
-`ApplyRetainedTraceVantomOpening` 正是用
+`encounter_id=83` 不只是猜的——`RunEngine.cs` 的
+`ApplyRetainedTraceVantomOpening`（该函数已随 `sts2sim-campaign-fidelity-v5` 从引擎删除，没有行号可指）正是用
 `StringSeed=="7MS1YN8NWB" && Floor==17 && NodeBoss && encounterId==83 && PlayerHp==59 && Gold==174`
 作门控（这些条件本次全部实测命中）。**同一段脚本还把这局起手的手牌和抽牌堆写死了**：
 起手 5 张里含 `AscendersBane` 与 `Bloodletting`，抽牌堆是固定 10 张循环。
@@ -2050,8 +2059,8 @@ if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2)
 | 检查 | 结果 |
 |---|---|
 | 6 个生成式 underdocks 胜局重跑 | **6/6 `phase=complete`、`terminated=true`、`won=true`、floor 17、非法 0** |
-| 真正的完成条件 | `RunEngine.cs:1960-1978`：`CurrentNodeType == NodeBoss`（fidelity v2 起还要 `&& !State.Campaign`）→ `Phase=Complete`，与层数无关。**但这一行原写"两幕一样"，本晚稍后被反事实分叉推翻**：它只是 boss 节点的两条出口之一，另一条出口按层数判定，act 1 恰好判得过、act 2 判不过 |
-| `terminalFloor = 33` 是什么 | `RunEngine.cs:2131-2134` 里 `AdvanceAfterNode` 的推进保护。**上一版说它"只在演示种子链里生效"也不准确**：生成的第二幕若从这条出口离开 boss，`33` 就直接生效，把一局已经打赢的 run 退回 map 并截断（"boss 完成分叉"一节：同一状态下 4 个合法动作里 2 个走这条路） |
+| 真正的完成条件 | `RunEngine.cs:1093-1111`：`CurrentNodeType == NodeBoss`（fidelity v2 起还要 `&& !State.Campaign`）→ `Phase=Complete`，与层数无关。**但这一行原写"两幕一样"，本晚稍后被反事实分叉推翻**：它只是 boss 节点的两条出口之一，另一条出口按层数判定，act 1 恰好判得过、act 2 判不过 |
+| `terminalFloor = 33` 是什么 | `RunEngine.cs:1194-1197` 里 `AdvanceAfterNode` 的推进保护。**上一版说它"只在演示种子链里生效"也不准确**：生成的第二幕若从这条出口离开 boss，`33` 就直接生效，把一局已经打赢的 run 退回 map 并截断（"boss 完成分叉"一节：同一状态下 4 个合法动作里 2 个走这条路） |
 
 也就是说我上一版犯的错，正是本晚第二次犯同一类错：**拿一个分支的常量去否定另一个分支的行为**。
 正确的划分不是"Act 1 的算、Act 2 的不算"，而是：
@@ -2202,14 +2211,14 @@ if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2)
 `docs/evidence/act2_boss_completion_fork_20260919.json`）。引擎离开 boss 节点有两条
 出口，只有第一条认得 boss：
 
-- `AdvanceAfterRelicReward`（`RunEngine.cs:1956-1982`）先查
+- `AdvanceAfterRelicReward`（`RunEngine.cs:1086-1112`）先查
   `CurrentNodeType == NodeBoss` → 直接 `Complete`；
 - 其余出口都走 `AdvanceAfterNode`（`:1194-1199`），它只看 `Floor >= terminalFloor`，
   而 `terminalFloor` 对 overgrowth 是 17、对 **underdocks 是 33**。生成的第二幕地图
   到 17 行就结束（该局在 floor 17 的 map 阶段没有任何合法动作，这就是正面证据），
   于是 boss 打赢后被退回 `map` 并死在那里。
 
-走哪条出口取决于**领奖顺序**（`RunEngine.cs:1797-1815`：拿完卡时若还有未领奖励 → 再进一次
+走哪条出口取决于**领奖顺序**（`RunEngine.cs:953-971`：拿完卡时若还有未领奖励 → 再进一次
 `relic_reward` → 第一条出口；若已经领空 → 第二条）。反事实实测：把 `130012038`
 跑到 floor 17 的 `relic_reward` 那一步（第 197 步）停住，**其余一切不变**（同种子、
 同检查点、同 argmax、boss 已死），4 个合法动作的结局是
@@ -2644,7 +2653,7 @@ Act 2 赢家金币反而比输家少 17（80.5 对 97.9），方向上很反直�
 两处对账同时通过：`transform_select` 的 29 与营地普查独立数出的 29 **逐位相同**。
 另一处对账给的是**上限被修正**：事件屏 599 个步骤 > 事件普查的"512 个到访实现升级"，
 因为后者只覆盖我用源码分类出的那 17 个事件，而**那份清单本身不全**
-（`RunEngine.cs:2348-2355 / 3307` 这类直接 `Deck.Add(new CardInstance(..., upgraded))` 的臂
+（`RunEngine.cs:1385-1392 / 3307` 这类直接 `Deck.Add(new CardInstance(..., upgraded))` 的臂
 没有被 `AddEventRewardCard` / `UpgradeFirstCard` 两种模式抓到）。所以 512 与"17 个事件"
 都是下界，这条也写进产物的 `by_channel` 旁边而不是藏起来。
 **这条预测被证实了**：上一段说"下一步该看开局那一屏"——它就是那 304 张。
@@ -2691,8 +2700,8 @@ Act 2 赢家金币反而比输家少 17（80.5 对 97.9），方向上很反直�
   与另一段不交叠窗口合并后是 27/113 = 23.9%；
   独立窗口复现 22.2%，换另一个臂的检查点是 25.0%——**与策略无关**。第一幕三个窗口都是 0。
   同一分区 `floor17_completed_wins = 68`。
-* **代码位置**：`RunEngine.cs:1956-1982`（relic 出口）vs `RunEngine.cs:2115-2129`（floor 出口），
-  出口选择见 `RunEngine.cs:1797-1815`、`RunRewardGenerator.cs:740-801`。
+* **代码位置**：`RunEngine.cs:1086-1112`（relic 出口）vs `RunEngine.cs:1178-1192`（floor 出口），
+  出口选择见 `RunEngine.cs:953-971`、`RunRewardGenerator.cs:453-514`。
 * **影响**：所有第二幕胜率被**低估**约 24%；这不是策略问题，任何修法都会使本文终局数字失效，
   所以由作者判定，我们不替他决定。
 
@@ -2703,7 +2712,7 @@ Act 2 赢家金币反而比输家少 17（80.5 对 97.9），方向上很反直�
   161 个以 Complete 结束**，而真正的通关只有
   **25** 个（且全部是生成的第二幕）。只有"`Complete` 且 `State.LastPlayerWon`"
   才能复现普查的 25。
-* **代码位置**：`RunEngine.cs:1291`（`LastPlayerWon`）与 `RunEngine.cs:1295-1302`（战败也置 Complete）。
+* **代码位置**：`RunEngine.cs:680`（`LastPlayerWon`）与 `RunEngine.cs:684-691`（战败也置 Complete）。
 * **影响**：这就是本文那条老陷阱的字段级原因——`max_final_floor = 17` 对"死在 boss""打赢 boss""在 boss 僵住"
   三种结局给出同一个数。任何只看层数或只看相位的判定都会把战败读成通关。
 
@@ -2715,7 +2724,7 @@ Act 2 赢家金币反而比输家少 17（80.5 对 97.9），方向上很反直�
   分布在 326 家商店；**没有一次是买不起**（全部 gold ≥ 价格、
   药水 id 非 0）。从另一侧也成立：162 个 boss 到达局里第三格有药水的是
   **0 个**。
-* **代码位置**：`RunEngine.cs:735` vs `RunRewardGenerator.cs:662`。
+* **代码位置**：`RunEngine.cs:420` vs `RunRewardGenerator.cs:662`。
 * **影响**：`rejection_mode="filter"` 把这件事从 `illegal_actions` 里完全抹掉了。
   **不是这一个检查点的巧合，也不只出现在商店里。**通用性复跑
   （`docs/evidence/refusal_class_generality_20260919.json`，声明 `refusal_class_generality`）：
@@ -2729,7 +2738,7 @@ Act 2 赢家金币反而比输家少 17（80.5 对 97.9），方向上很反直�
   10 次拒绝，
   10 次都带
   "前两格满、第三格空"的同一签名（行里没有 hp 字段，所以 `PlayerHp > 8` 那一半没验）。
-  全仓扫下来这个判据**恰好出现在 2 个掩码位点**，两个都与 `AddPotion` 矛盾：RunEngine.cs:735, RunEngine.cs:2690；
+  全仓扫下来这个判据**恰好出现在 2 个掩码位点**，两个都与 `AddPotion` 矛盾：RunEngine.cs:420, RunEngine.cs:2690；
   另外两处 `PotionSlots.Any(potion => potion != 0)` 问的是"身上有没有药水"，与各自 step 一致
   （事件 31/35 已逐行验过 58/58）。**所以修法是一条判据模式，不是某一行的补丁。**
   代价能不能量化？**不能**——见"幽灵药水的代价"一节，暴露变量本身要求两格已满，
@@ -2776,7 +2785,7 @@ Act 2 赢家金币反而比输家少 17（80.5 对 97.9），方向上很反直�
 
 两处都在奖励生成里，一处让升级拿不到，一处把不该有的升级发给了普通种子。
 
-`RunRewardGenerator.cs:830` 给每张待发放的卡写
+`RunRewardGenerator.cs:543` 给每张待发放的卡写
 `RewardUpgraded[i] = silverCrucibleUpgrade || RollCardUpgrade(...)`，而
 `RollCardUpgrade`（`RunRewardGenerator.cs:776-780`）是：
 
@@ -2789,7 +2798,7 @@ private static bool RollCardUpgrade(RunState state, int cardId, GameRng rng)
 ```
 
 ——**消耗一次 RNG 抽签然后无条件返回 false**。也就是说升级奖励这条路是"形状齐、事实关着"：
-标志数组在、抽签位占了、领取路径也照标志发牌（`RunEngine.cs:1788`
+标志数组在、抽签位占了、领取路径也照标志发牌（`RunEngine.cs:944`
 `State.Deck.Add(new CardInstance(cardId, State.RewardUpgraded[action]))`），但普通战斗奖励
 永远发不出升级版卡。实测（`reward_upgrade_availability_20260919.json`，同一检查点、3,500 局、
 argmax）：**12,677 个卡奖决策里只有 2 个带升级可取**（0.016%），跑完时**77.5% 的局里

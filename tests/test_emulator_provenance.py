@@ -34,47 +34,47 @@ REPORT = ROOT / "docs" / "ACT1_CAMPAIGN_2026-09-19.md"
 #: Bare pointers (``:2388``, ``同文件 1966-1967``) carry no filename in prose; they continue a
 #: ``RunEngine.cs`` citation in their own paragraph, so they are keyed by the token as written.
 CITATION_ANCHORS: dict[str, str] = {
-    "RunEngine.cs:467-479": "private void ApplyRetainedTraceVantomOpening",
-    "RunEngine.cs:698-703": "State.MapNodeTypes[i] != RunConstants.NodeNone",
-    "RunEngine.cs:735": "bool hasPotionSlot = State.PotionSlots.Any",
-    "RunEngine.cs:975": "RunMapGenerator.ChooseMapNode",
-    "RunEngine.cs:1291": "State.LastPlayerWon = result.Terminal",
-    "RunEngine.cs:1295-1302": "if (result.PlayerWon)",
-    "RunEngine.cs:1788": "State.RewardUpgraded[action]",
-    "RunEngine.cs:1797-1815": "if (State.ReturnToRewardScreenAfterCardReward)",
-    "RunEngine.cs:2085-2111": "private bool TryChooseRetainedTraceActTwoPath",
-    "RunEngine.cs:2089": 'if (State.StringSeed != "7MS1YN8NWB" || State.Act',
-    "RunEngine.cs:3661": "State.PlayerHp > 8",
-    "RunEngine.cs:3686-3691": "default:",
+    "RunEngine.cs:383-388": "State.MapNodeTypes[i] != RunConstants.NodeNone",
+    "RunEngine.cs:420": "bool hasPotionSlot = State.PotionSlots.Any",
+    "RunEngine.cs:613": "RunMapGenerator.ChooseMapNode",
+    "RunEngine.cs:680": "State.LastPlayerWon = result.Terminal",
+    "RunEngine.cs:684-691": "if (result.PlayerWon)",
+    "RunEngine.cs:944": "State.RewardUpgraded[action]",
+    "RunEngine.cs:953-971": "if (State.ReturnToRewardScreenAfterCardReward)",
+    "RunEngine.cs:2690": "State.PlayerHp > 8",
+    "RunEngine.cs:2715-2720": "default:",
     # -- fidelity v2/v3/v4 rewrote the code under these, so the range is the successor --
-    "RunEngine.cs:1956-1982": "private int AdvanceAfterRelicReward",
-    "RunEngine.cs:1960-1974": "CurrentNodeType == RunConstants.NodeBoss && !State.Campaign",
-    "RunEngine.cs:1960-1978": "State.Phase = RunPhase.Complete",
-    "RunEngine.cs:1963": 'if (State.StringSeed == "7MS1YN8NWB" && State.Floor == 17)',
-    "RunEngine.cs:2115-2129": "private int AdvanceAfterNode",
+    "RunEngine.cs:1086-1112": "private int AdvanceAfterRelicReward",
+    "RunEngine.cs:1090-1104": "CurrentNodeType == RunConstants.NodeBoss && !State.Campaign",
+    "RunEngine.cs:1093-1111": "State.Phase = RunPhase.Complete",
+    "RunEngine.cs:1178-1192": "private int AdvanceAfterNode",
     # v4 replaced `MapBossRow * Act + 1` with the act's own boss row counted from its start floor,
     # which is what puts act 3 on the 48 the client measured instead of 49.
-    "RunEngine.cs:2131-2134": "int terminalFloor = State.ActStartFloor + State.ActBossRow;",
-    "RunEngine.cs:2131-2137": "int terminalFloor = State.ActStartFloor + State.ActBossRow;",
-    "RunEngine.cs:2348-2355": "case RunConstants.EventBrainLeech:",
-    "RunEngine.cs:2810-2817": "case RunConstants.EventRanwidTheElder:",
-    "RunEngine.cs:2911-2918": "case RunConstants.EventStoneOfAllTime:",
-    "RunMapGenerator.cs:9-19": "bool underdocks = actRng.NextBool();",
-    "RunMapGenerator.cs:185": "state.SecondBossCoord = (RunConstants.MapStartCol, state.ActBossRow + 1);",
+    "RunEngine.cs:1194-1197": "int terminalFloor = State.ActStartFloor + State.ActBossRow;",
+    "RunEngine.cs:1194-1200": "int terminalFloor = State.ActStartFloor + State.ActBossRow;",
+    "RunEngine.cs:1385-1392": "case RunConstants.EventBrainLeech:",
+    "RunEngine.cs:1847-1854": "case RunConstants.EventRanwidTheElder:",
+    "RunEngine.cs:1948-1955": "case RunConstants.EventStoneOfAllTime:",
+    "RunMapGenerator.cs:10": "bool underdocks = actRng.NextBool();",
+    "RunMapGenerator.cs:184": "state.SecondBossCoord = (RunConstants.MapStartCol, state.ActBossRow + 1);",
     # G4 made the boss row the act's own, so the cited text changed with it.
-    "RunMapGenerator.cs:234": "GetOrCreate(state, RunConstants.MapStartCol, state.ActBossRow).NodeType =",
-    "RunMapGenerator.cs:1123-1135": "state.MapNodeTypes[action] == RunConstants.NodeNone",
-    "RunRewardGenerator.cs:740-801": "public static bool HasPendingRewards",
-    "RunRewardGenerator.cs:830": "silverCrucibleUpgrade || RollCardUpgrade(state, cardId",
-    "RunRewardGenerator.cs:1044": "Math.Min(2, state.PotionSlots",
-    "RunRewardGenerator.cs:1158-1162": "private static bool RollCardUpgrade",
+    "RunMapGenerator.cs:207": "GetOrCreate(state, RunConstants.MapStartCol, state.ActBossRow).NodeType =",
+    "RunMapGenerator.cs:921-933": "state.MapNodeTypes[action] == RunConstants.NodeNone",
+    "RunRewardGenerator.cs:453-514": "public static bool HasPendingRewards",
+    "RunRewardGenerator.cs:543": "silverCrucibleUpgrade || RollCardUpgrade(state, cardId",
+    "RunRewardGenerator.cs:662": "Math.Min(2, state.PotionSlots",
+    "RunRewardGenerator.cs:776-780": "private static bool RollCardUpgrade",
+    # -- four pointers dropped on 2026-10-06 rather than re-pinned: the demo-seed / retained-trace
+    #    branches they named (ApplyRetainedTraceVantomOpening, TryChooseRetainedTraceActTwoPath and
+    #    the StringSeed=="7MS1YN8NWB" gates) were deleted from the engine by fidelity-v5, so no line
+    #    holds that code any more. The prose now says so instead of carrying a stale number.
     # -- bare pointers: invisible to the provenance regex, so only this table can catch them --
-    ":1797-1815": "if (State.ReturnToRewardScreenAfterCardReward)",
-    ":2115-2129": "private int AdvanceAfterNode",
-    ":2131-2137": "int terminalFloor = State.ActStartFloor + State.ActBossRow;",
-    ":2405": "RunRewardGenerator.AddPotion",
-    ":2911-2918": "case RunConstants.EventStoneOfAllTime:",
-    "同文件 1976-1977": "State.Phase = RunPhase.Complete",
+    ":953-971": "if (State.ReturnToRewardScreenAfterCardReward)",
+    ":1178-1192": "private int AdvanceAfterNode",
+    ":1194-1199": "int terminalFloor = State.ActStartFloor + State.ActBossRow;",
+    ":1442": "RunRewardGenerator.AddPotion",
+    ":1948-1955": "case RunConstants.EventStoneOfAllTime:",
+    "同文件 1093-1094": "State.Phase = RunPhase.Complete",
 }
 
 #: Every pointer in :data:`CITATION_ANCHORS` that is written without its filename.
@@ -145,7 +145,7 @@ class CitationAnchorTests(unittest.TestCase):
                 self.assertIn(
                     anchor, text,
                     f"{token} reads {text[:90]!r}; the report says it is {anchor!r}. Re-pin it with "
-                    "runtime/repin_citations.py's anchor rule rather than moving the number alone.")
+                    "scripts/repin_report_citations.py's anchor rule rather than moving the number alone.")
 
     def test_the_report_still_carries_every_anchored_pointer(self) -> None:
         report = REPORT.read_text(encoding="utf-8")
