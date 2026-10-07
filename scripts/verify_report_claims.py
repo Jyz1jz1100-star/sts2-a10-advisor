@@ -1758,9 +1758,37 @@ def evaluate_live_victory(artifact: dict) -> dict:
     }
 
 
+LIVE_VICTORY = ROOT / "docs/evidence/live_victory_20261007.json"
+LIVE_VICTORY_LATEST = ROOT / "docs/evidence/live_victory_20261007b.json"
+
+
 def claim_live_victory_trace():
-    """Re-derive the goal's shape from the committed live-run rows."""
-    return evaluate_live_victory(json.loads(LIVE_VICTORY.read_text(encoding="utf-8")))
+    """Re-derive the goal's shape from both live victory traces, and compare their refusals.
+
+    The second batch is the one that settles the driver question, so its rows drive the shape
+    checks; the first batch stays readable so the before-half of that comparison cannot be
+    rewritten into "there was never a problem".
+    """
+    latest = json.loads(LIVE_VICTORY_LATEST.read_text(encoding="utf-8"))
+    first = json.loads(LIVE_VICTORY.read_text(encoding="utf-8"))
+    verdicts = evaluate_live_victory(latest)
+
+    def refused(artifact: dict) -> int:
+        statuses = (artifact.get("actions_batch_wide") or {}).get("result_statuses") or {}
+        return sum(int(v) for k, v in statuses.items() if k != "ok")
+
+    def posts(artifact: dict) -> int:
+        return int((artifact.get("actions_batch_wide") or {}).get("posted_actions_total") or 0)
+
+    verdicts["the_first_trace_still_carries_the_goals_shape"] = all(
+        evaluate_live_victory(first).values())
+    verdicts["no_post_was_refused_in_the_current_batch"] = (
+        refused(latest) == 0 and posts(latest) > 0)
+    # The pre-fix number stays pinned to its own file: the finding is the change, and a change
+    # with no recorded "before" is just a claim.
+    verdicts["the_pre_fix_refusal_count_is_still_on_disk"] = (
+        refused(first) == 3 and posts(first) == 815 and refused(latest) == 0)
+    return verdicts
 
 
 OUT_OF_COMBAT_SCREEN = ROOT / "docs/evidence/out_of_combat_screen_20261007.json"

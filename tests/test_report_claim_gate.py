@@ -676,5 +676,63 @@ class OutOfCombatScreenTests(unittest.TestCase):
             "both_arms_played_with_one_frozen_executor"])
 
 
+class LiveVictoryBatchComparisonTests(unittest.TestCase):
+    """The fix's evidence is a *change*, so both halves of it have to stay checkable.
+
+    The claim reads two victory traces: the batch that had three refused posts and the batch that
+    had none. A comparison that only ever looks at the newest file could be quietly rewritten --
+    these tests pin that the older number is still the number on disk, and that a fresh refusal in
+    the newer batch turns the claim red rather than being averaged away.
+    """
+
+    def _write(self, tmp: Path, name: str, statuses: dict, total: int) -> Path:
+        artifact = {**LIVE_VICTORY, "batch_id": name,
+                    "actions_batch_wide": {"result_statuses": statuses,
+                                           "posted_actions_total": total,
+                                           "action_during_combat_state_count": 0},
+                    "actions_in_the_victory_run": {
+                        "result_statuses": statuses, "posted_actions_total": total,
+                        "action_during_combat_state_count": 0}}
+        path = tmp / name
+        path.write_text(json.dumps(artifact), encoding="utf-8")
+        return path
+
+    def _run(self, first: Path, latest: Path) -> dict:
+        original_first, original_latest = V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST
+        V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST = first, latest
+        try:
+            return V.claim_live_victory_trace()
+        finally:
+            V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST = original_first, original_latest
+
+    def test_the_recorded_change_holds(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            first = self._write(directory, "a.json", {"ok": 812, "error": 3}, 815)
+            latest = self._write(directory, "b.json", {"ok": 1092}, 1092)
+            verdicts = self._run(first, latest)
+        self.assertTrue(verdicts["no_post_was_refused_in_the_current_batch"])
+        self.assertTrue(verdicts["the_pre_fix_refusal_count_is_still_on_disk"])
+        self.assertTrue(verdicts["the_first_trace_still_carries_the_goals_shape"])
+
+    def test_a_refusal_in_the_new_batch_is_red(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            first = self._write(directory, "a.json", {"ok": 812, "error": 3}, 815)
+            latest = self._write(directory, "b.json", {"ok": 1090, "error": 2}, 1092)
+            verdicts = self._run(first, latest)
+        self.assertFalse(verdicts["no_post_was_refused_in_the_current_batch"])
+        self.assertFalse(verdicts["the_pre_fix_refusal_count_is_still_on_disk"])
+
+    def test_smoothing_the_older_number_over_is_caught(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            first = self._write(directory, "a.json", {"ok": 815}, 815)
+            latest = self._write(directory, "b.json", {"ok": 1092}, 1092)
+            verdicts = self._run(first, latest)
+        self.assertFalse(verdicts["the_pre_fix_refusal_count_is_still_on_disk"])
+
+
 if __name__ == "__main__":
     unittest.main()
+

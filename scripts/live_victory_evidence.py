@@ -25,10 +25,11 @@ from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
-#: The act each Ancient belongs to, taken from the build's own act tables
+#: The act each Ancient belongs to, taken from `training/campaign_content.py` (act 2: Orobas,
+#: Pael, Tezcatara; act 3: Nonupeipe, Tanx, Vakuu)
 #: (``training/campaign_content.py``), not inferred from where the run happened to be.
 ANCIENT_ACT = {"NEOW": 1, "OROBAS": 2, "PAEL": 2, "TEZCATARA": 2,
-               "NONUPETRA": 3, "TANX": 3, "VAKUU": 3}
+               "NONUPEIPE": 3, "TANX": 3, "VAKUU": 3}
 
 
 def _iter_rows(trace: pathlib.Path):

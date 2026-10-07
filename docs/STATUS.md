@@ -4833,3 +4833,34 @@ A new observational batch is running on the freed save (it can be measured for r
 certified -- it did not start at floor 1; the runs after it will). The trigger is a shop floor
 presenting a choose-many enchant, so it can recur on the next floor, and the driver will now stop
 loudly at 12 accepted-but-ineffective posts rather than spend the batch.
+
+## A second live victory, this one fresh from the menu, and the refusal fix measured at scale (2026-10-07)
+
+`ssb-20261007T112212Z-4985049b` ran 6 rounds after the operator freed the save: **one victory, five
+deaths, 1,092 posts, zero refused, zero posted during a combat state** -- promoted to
+`docs/evidence/live_victory_20261007b.json` under the same claim.
+
+The winning run started from the menu at `11:59:48Z` and ended at act 3 floor 49 with the client's own
+victory flag, so unlike the first trace it satisfies the floor-1-start item on its own: Neow /
+**Orobas** / Nonupeipe, and bosses Vantom (17) -> Crusher + Rocket (33, as a pair) ->
+**Torch-Head Amalgam + Queen (48, together in one encounter)** -> Test Subject (49). Orobas matters
+independently: the emulator's own notes exclude it from act 2 as "hidden behind `OrobasEpoch`", and
+here it is the act-2 Ancient on the real client -- the third different Ancient combination this
+afternoon, which is what the coverage matrix was asking for.
+
+Before/after on the thing #48 was about: **3 refusals in 815 posts (3 of 8 runs dirty, one of them
+the first victory)** versus **0 in 1,651 posts across the three batches since** (196 + 363 + 1,092),
+every run clean. The first batch's number is pinned inside the same claim --
+`the_pre_fix_refusal_count_is_still_on_disk` -- so the "after" cannot be made true by forgetting the
+"before".
+
+One bug found by the check doing its job: while writing the comparison keys I typed
+`refused(latest) == 0 > posts(latest)`, a Python chained comparison that is always false for a real
+batch -- the new test went red immediately and the typo died there rather than in a pinned expectation.
+
+Still not claimed, and it matters: this batch ran on the observational track, so `acceptance_claim`
+stays false for it (`observational_mode`, `record_integrity_invalid`, `runner_acceptance_false`), and a
+*certified* victory additionally needs fixed-seed embark (#47) and the mod's multi-select path (#42).
+The enchant modal that parked the client earlier is cleared, not fixed, and can recur on the next
+choose-many shop floor -- now it stops loudly at 12 accepted-but-ineffective posts instead of eating
+a batch.
