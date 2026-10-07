@@ -5095,6 +5095,14 @@ amendment with its boundaries written before any result exists -- including that
 still does not authorize multi-day training, because G5's second half demands candidate-versus-baseline
 pairing **on the real client under the full 11-item contract**, and a simulator number does not satisfy that.
 
+Measured throughput of the first sixty iterations: **fps ~88 rising to ~96 at 12 parallel envs**, i.e.
+roughly four to five hours for the 1.5M ceiling. That is far below the ~370-885 fps the same stack
+reaches on single-act arms, and the reason is structural rather than a regression: with combat frozen,
+*every absorbed combat step is still a real environment step*, so a campaign episode costs the fight
+plus the between-fight screens, and the trained learner advances through far fewer episodes per second.
+The consequence for reading this arm's numbers: compare arms at **equal episodes**, never at equal
+timesteps -- the config's own comment says so, and the measurement agrees with it now.
+
 One gap closed on the way in, and it is the warm-start bug wearing a different hat: `plan.json` did not
 record `combat_executor` at all, so a finished run directory could not prove it was the G1 stack rather
 than the pre-G1 arm. `plan()` now emits the executor plus the checkpoint's name, existence flag and
