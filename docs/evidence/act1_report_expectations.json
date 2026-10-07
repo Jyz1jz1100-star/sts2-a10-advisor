@@ -433,7 +433,16 @@
     "the_run_walked_three_acts": true,
     "the_solver_build_is_identified_by_hash": true,
     "the_victory_is_reported_with_its_denominator": true,
-    "the_victory_run_was_actually_driven": true
+    "the_victory_run_was_actually_driven": true,
+    "the_full_run_contract_is_recorded_on_this_trace": true,
+    "the_contract_carries_the_pinned_item_count": true,
+    "the_contract_verdict_matches_its_own_items": true,
+    "the_failed_item_list_matches_the_per_item_verdicts": true,
+    "a_pass_is_claimed_only_on_a_finished_batch": true,
+    "every_failed_item_carries_its_own_detail": true,
+    "the_first_batch_is_recorded_as_failing_the_contract": true,
+    "the_contract_flipped_on_the_item_the_driver_fix_targeted": true,
+    "the_green_contract_verdict_is_one_run_not_the_batch": true
   },
   "map_deadend_short_circuits_before_the_refusal_census": {
     "no_map_refusals_on_the_ordinary_promotion_population": true,

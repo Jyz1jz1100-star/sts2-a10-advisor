@@ -733,6 +733,166 @@ class LiveVictoryBatchComparisonTests(unittest.TestCase):
         self.assertFalse(verdicts["the_pre_fix_refusal_count_is_still_on_disk"])
 
 
+class LiveVictoryContractRecordTests(unittest.TestCase):
+    """The recorded 11-item verdict has to be breakable, and it has to come from the gate.
+
+    A trace can satisfy the shape checks while the batch still fails the full-run contract, so
+    the artifact now carries the gate's own per-item output.  Two things are pinned here: that the
+    extractor's block is literally what ``verify_full_run_contract.audit`` returns for the same
+    trace (a hand-typed block would agree with nothing), and that each consistency check goes red
+    on the generous edit it exists to catch -- shortening the item list, flipping the verdict, or
+    dropping the losing runs all read better than the truth.
+    """
+
+    def _block(self, **overrides) -> dict:
+        items = {
+            "starts_at_floor_one": True, "three_acts_in_order": True,
+            "three_ancients_are_this_builds": True, "bosses_1_plus_1_plus_2_cleared": True,
+            "terminal_is_the_games_victory_flag": True, "run_complete_by_its_own_definition": True,
+            "every_action_was_legal_and_acked": True, "no_screen_skipped_without_a_rule": True,
+            "provenance_bound_to_the_locked_build": True, "stream_is_continuous": True,
+            "no_corrupt_records": True,
+        }
+        block = {
+            "gate": "scripts/verify_full_run_contract.py",
+            "how_to_recheck": "python scripts/verify_full_run_contract.py <trace>",
+            "runs_evaluated": 7,
+            "batch_wrote_session_end": True,
+            "contract_satisfied": True,
+            "item_count": len(items),
+            "items_passed": sum(items.values()),
+            "items": items,
+            "failed_items": [],
+            "failed_item_details": {},
+            "runs_not_passing": [["terminal_is_the_games_victory_flag"]] * 6,
+        }
+        return {**block, **overrides}
+
+    def _artifact(self, block) -> dict:
+        return {**LIVE_VICTORY, "full_run_contract": block}
+
+    def test_a_real_gate_run_produces_the_recorded_block(self) -> None:
+        """Wiring, not shape: the block is what the gate said about the same records."""
+        spec = importlib.util.spec_from_file_location(
+            "live_victory_evidence", ROOT / "scripts" / "live_victory_evidence.py")
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        from tests.test_full_run_contract import _session_end, full_victory_run
+        with tempfile.TemporaryDirectory() as tmp:
+            trace = Path(tmp) / "autoplay_trace.jsonl"
+            records = full_victory_run() + [_session_end()]
+            trace.write_text("\n".join(json.dumps(r) for r in records) + "\n", encoding="utf-8")
+            block = module._contract(trace)
+        self.assertTrue(block["contract_satisfied"], block)
+        self.assertEqual(block["items_passed"], block["item_count"])
+        self.assertTrue(block["batch_wrote_session_end"])
+        self.assertEqual(block["failed_items"], [])
+        self.assertTrue(all(V.evaluate_full_run_contract(
+            self._artifact(block)).values()), block)
+
+    def test_the_recorded_blocks_on_disk_are_consistent(self) -> None:
+        for path in (V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST):
+            artifact = json.loads(path.read_text(encoding="utf-8"))
+            self.assertTrue(
+                all(V.evaluate_full_run_contract(artifact).values()), str(path))
+
+    def test_the_newest_trace_is_the_one_the_gate_passed(self) -> None:
+        latest = json.loads(V.LIVE_VICTORY_LATEST.read_text(encoding="utf-8"))
+        first = json.loads(V.LIVE_VICTORY.read_text(encoding="utf-8"))
+        self.assertTrue(latest["full_run_contract"]["contract_satisfied"])
+        self.assertFalse(first["full_run_contract"]["contract_satisfied"])
+        self.assertEqual(first["full_run_contract"]["failed_items"],
+                         ["every_action_was_legal_and_acked"])
+
+    def test_a_missing_block_is_red_not_absent(self) -> None:
+        verdicts = V.evaluate_full_run_contract(dict(LIVE_VICTORY))
+        self.assertFalse(any(verdicts.values()), str(verdicts))
+
+    def test_a_shortened_item_list_is_red(self) -> None:
+        block = self._block()
+        items = dict(block["items"])
+        items.pop("no_corrupt_records")
+        verdicts = V.evaluate_full_run_contract(self._artifact(
+            {**block, "items": items, "item_count": len(items)}))
+        self.assertFalse(verdicts["the_contract_carries_the_pinned_item_count"])
+
+    def test_a_verdict_flipped_by_hand_is_red(self) -> None:
+        block = self._block()
+        items = dict(block["items"])
+        items["every_action_was_legal_and_acked"] = False
+        verdicts = V.evaluate_full_run_contract(self._artifact(
+            {**block, "items": items, "items_passed": sum(items.values())}))
+        self.assertFalse(verdicts["the_contract_verdict_matches_its_own_items"])
+        self.assertFalse(verdicts["the_failed_item_list_matches_the_per_item_verdicts"])
+
+    def test_a_pass_on_a_batch_that_never_ended_is_red(self) -> None:
+        verdicts = V.evaluate_full_run_contract(
+            self._artifact(self._block(batch_wrote_session_end=False)))
+        self.assertFalse(verdicts["a_pass_is_claimed_only_on_a_finished_batch"])
+        self.assertFalse(verdicts["the_contract_verdict_matches_its_own_items"])
+
+    def test_a_failed_item_without_its_detail_is_red(self) -> None:
+        block = self._block()
+        items = dict(block["items"])
+        items["no_corrupt_records"] = False
+        verdicts = V.evaluate_full_run_contract(self._artifact({
+            **block, "items": items, "items_passed": sum(items.values()),
+            "contract_satisfied": False, "failed_items": ["no_corrupt_records"],
+            "failed_item_details": {}}))
+        self.assertFalse(verdicts["every_failed_item_carries_its_own_detail"])
+
+    def test_a_green_run_quoted_as_the_batch_is_red(self) -> None:
+        artifact = self._artifact(self._block(runs_not_passing=[]))
+        original_first, original_latest = V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST
+        with tempfile.TemporaryDirectory() as tmp:
+            latest = Path(tmp) / "b.json"
+            latest.write_text(json.dumps(artifact), encoding="utf-8")
+            V.LIVE_VICTORY_LATEST = latest
+            try:
+                verdicts = V.claim_live_victory_trace()
+            finally:
+                V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST = original_first, original_latest
+        self.assertFalse(verdicts["the_green_contract_verdict_is_one_run_not_the_batch"])
+
+    def test_the_comparison_refuses_a_rewritten_before_half(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            first = directory / "a.json"
+            latest = directory / "b.json"
+            failing_item = {**self._block()["items"],
+                            "every_action_was_legal_and_acked": False}
+            first.write_text(json.dumps(self._artifact(self._block(
+                contract_satisfied=False,
+                failed_items=["every_action_was_legal_and_acked"],
+                items=failing_item,
+                items_passed=sum(failing_item.values()),
+                failed_item_details={"every_action_was_legal_and_acked": "refused=1"},
+            ))), encoding="utf-8")
+            latest.write_text(json.dumps(self._artifact(self._block())), encoding="utf-8")
+            original_first, original_latest = V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST
+            V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST = first, latest
+            try:
+                verdicts = V.claim_live_victory_trace()
+                self.assertTrue(
+                    verdicts["the_contract_flipped_on_the_item_the_driver_fix_targeted"])
+                self.assertTrue(
+                    verdicts["the_first_batch_is_recorded_as_failing_the_contract"])
+                # Smoothing the older batch over -- same generator, no recorded failure -- is caught.
+                healed = self._artifact(self._block())
+                healed["actions_batch_wide"] = {
+                    "result_statuses": {"ok": 815}, "posted_actions_total": 815,
+                    "action_during_combat_state_count": 0}
+                first.write_text(json.dumps(healed), encoding="utf-8")
+                V.LIVE_VICTORY = first
+                after = V.claim_live_victory_trace()
+            finally:
+                V.LIVE_VICTORY, V.LIVE_VICTORY_LATEST = original_first, original_latest
+        self.assertFalse(after["the_contract_flipped_on_the_item_the_driver_fix_targeted"])
+        self.assertFalse(after["the_first_batch_is_recorded_as_failing_the_contract"])
+        self.assertFalse(after["the_pre_fix_refusal_count_is_still_on_disk"])
+
+
 if __name__ == "__main__":
     unittest.main()
 

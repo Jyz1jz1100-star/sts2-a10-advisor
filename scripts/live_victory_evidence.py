@@ -24,6 +24,11 @@ import sys
 from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+for _path in (str(ROOT), str(ROOT / "scripts")):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
+
+from verify_full_run_contract import audit as audit_full_run_contract  # noqa: E402
 
 #: The act each Ancient belongs to, taken from `training/campaign_content.py` (act 2: Orobas,
 #: Pael, Tezcatara; act 3: Nonupeipe, Tanx, Vakuu)
@@ -212,6 +217,37 @@ def _actions(rows) -> dict:
     }
 
 
+def _contract(trace: pathlib.Path) -> dict:
+    """Run the project's own 11-item full-run gate over this trace and record what it said.
+
+    Called rather than restated: the item list, its thresholds and the rule that a batch which
+    never wrote ``session_end`` cannot be certified at all all live in
+    ``scripts/verify_full_run_contract.py``, and a second copy of that judgement here would be a
+    claim about my transcription, not about the gate.
+    """
+    verdict = audit_full_run_contract(trace)
+    best = verdict.get("best_run") or {}
+    checks = best.get("checks") or []
+    return {
+        "gate": "scripts/verify_full_run_contract.py",
+        "how_to_recheck": (
+            f'python scripts/verify_full_run_contract.py "{trace.as_posix()}"'
+        ),
+        "runs_evaluated": verdict["runs_evaluated"],
+        "batch_wrote_session_end": verdict["certifiable"],
+        "contract_satisfied": verdict["contract_satisfied"],
+        "item_count": len(checks),
+        "items_passed": sum(1 for c in checks if c["passed"]),
+        "items": {c["check"]: bool(c["passed"]) for c in checks},
+        "failed_items": [c["check"] for c in checks if not c["passed"]],
+        "failed_item_details": {
+            c["check"]: c["detail"] for c in checks if not c["passed"]
+        },
+        # Every other run in the same batch, so the green run cannot be read as the batch's rate.
+        "runs_not_passing": [r["failed"] for r in verdict["all_runs"] if not r["passed"]],
+    }
+
+
 def build(trace: pathlib.Path) -> dict:
     rows = list(_iter_rows(trace))
     session = next((r["raw"] for r in rows if r.get("event_type") == "session"), {})
@@ -239,6 +275,7 @@ def build(trace: pathlib.Path) -> dict:
         "git_head": session.get("git_head"),
         "first_run_identity": identity,
         "acceptance": _acceptance(trace.parent),
+        "full_run_contract": _contract(trace),
         "completed_runs": len(runs),
         "victories": len(wins),
         "defeats": len([r for r in runs if r["victory_flag"] is False]),
@@ -247,8 +284,11 @@ def build(trace: pathlib.Path) -> dict:
         "not_established": [
             "a win rate: this is one batch's runs, and one trace is a reachability result, not a "
             "rate",
-            "the acceptance contract's own verdict until the batch reaches session_end -- the "
-            "11-item gate is evaluated on a finished batch, and a live batch is not proof",
+            "that this is an acceptance-record clear rather than an observational one: the "
+            "11-item full-run contract is scored in `full_run_contract` and needs a finished "
+            "batch, while the batch's own blockers (`observational_mode`, "
+            "`record_integrity_invalid`, `runner_acceptance_false`) are about seed provenance "
+            "and runner mode, not about the shape of the run",
             "that the ending's hp 0 is a story beat rather than a death: the client's own "
             "game_over flag says victory, the boss list was empty before it, and the reward "
             "screen was already claimed",
@@ -268,6 +308,11 @@ def main() -> int:
     summary = {k: payload[k] for k in
                ("batch_id", "completed_runs", "victories", "defeats",
                 "live_choice_policy_version", "execution_owner")}
+    contract = payload["full_run_contract"]
+    summary["full_run_contract"] = {
+        k: contract[k] for k in
+        ("contract_satisfied", "items_passed", "item_count", "batch_wrote_session_end",
+         "failed_items")}
     if payload["victory_run"]:
         run = payload["victory_run"]
         summary["victory"] = {"deepest_act": run["deepest_act"],

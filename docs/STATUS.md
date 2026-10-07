@@ -4864,3 +4864,50 @@ stays false for it (`observational_mode`, `record_integrity_invalid`, `runner_ac
 The enchant modal that parked the client earlier is cleared, not fixed, and can recur on the next
 choose-many shop floor -- now it stops loudly at 12 accepted-but-ineffective posts instead of eating
 a batch.
+
+## 2026-10-07 (evening, seventh entry): the 11-item full-run contract reads green on a real trace for the first time -- and the reason it was invisible is that nobody had run it since the batch finished
+
+Running the gate over the traces already on disk, batch by batch:
+
+```
+ssb-20261007T112212Z-4985049b  contract_satisfied=True   11/11, session_end written
+ssb-20261007T081357Z-73310af4  contract_satisfied=False  10/11, every_action_was_legal_and_acked (posted=247 refused=1)
+ssb-20260923T*  (six batches)  contract_satisfied=False
+```
+
+The newest trace passes all eleven items: floor-1 start, acts 1-2-3 in order, each act's own Ancient
+(NEOW / OROBAS / NONUPEIPE, `is_ancient` from the bridge), bosses cleared 1+1+2 (17 VANTOM; 33
+CRUSHER+ROCKET in one frame; 48 TORCH_HEAD_AMALGAM+QUEEN; 49 TEST_SUBJECT), the client's own
+`game_over.is_victory` as the terminal, `run_complete`, **posted=236 refused=0** with no empty-candidate
+screen, no screen left without a rule, provenance bound to the locked build, a continuous sequenced
+stream, no corrupt records. That is the first time this gate has been green on a batch that had
+finished -- the two historical 11/11 reads (09-23) were on live batches and were retracted for exactly
+that reason, and every trace since then reads False.
+
+**This is not a certification of the batch, and the two things must not be merged.** The batch's own
+acceptance record still reads `acceptance_claim=false` with `observational_mode`,
+`record_integrity_invalid`, `runner_acceptance_false`. `record_integrity_invalid` is the
+seed-partition check (`supervise_solver_batch.py:1117`: in observational mode the bridge hands over an
+alphanumeric seed outside the registered partition), so all three blockers are about *where the run
+came from*, not about the run. Fixed-seed embark is #47; the mod's multi-select path is #42. What
+changed today is which of the two was actually missing: nothing about the eleven items was edited,
+relaxed, or re-scored with different thresholds -- the same script, the same file, an honest re-run.
+
+**Why it had not been said before:** the gate prints to a terminal and its verdict was in no artifact,
+so the only record of it was my transcription -- and the sentence written into the report an hour
+earlier ("两批都没通过验收契约") was already wrong about the newer batch. So the extractor now calls
+it: `scripts/live_victory_evidence.py::_contract` imports `verify_full_run_contract.audit` and stamps
+the per-item result, the gate's own detail strings, and every losing run into
+`full_run_contract`. Both live-victory artifacts were regenerated, and the regeneration is otherwise
+byte-identical (verified by diffing every field except the new block and the reworded
+`not_established` entry), which also means the pre-fix trace now carries its own recorded 10/11.
+`tests/test_report_claim_gate.py::LiveVictoryContractRecordTests` proves the wiring by running the
+gate over a synthetic trace and feeding the block back through the claim's own checks.
+
+**Three checks that would have read green on nothing, caught by their own negative fixtures:** with the
+block absent, `all({})` is True, so "the verdict matches its items" and "a pass is only claimed on a
+finished batch" both passed an artifact that recorded nothing; `present` is now ANDed into every key in
+`evaluate_full_run_contract`, and the missing-block test asserts *no* key is True. That is rule 6 from
+the other side -- a check whose subject is missing is uninformative, not satisfied. The pinned item
+count lives in `FULL_RUN_CONTRACT_ITEM_COUNT` and is asserted without the number in any check *name*,
+because a name carrying a count becomes a lie the day the standard grows.

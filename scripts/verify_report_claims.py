@@ -1761,6 +1761,52 @@ def evaluate_live_victory(artifact: dict) -> dict:
 LIVE_VICTORY = ROOT / "docs/evidence/live_victory_20261007.json"
 LIVE_VICTORY_LATEST = ROOT / "docs/evidence/live_victory_20261007b.json"
 
+#: The length of the full-run standard, read from the artifact rather than from the prose.
+#: The number itself is owned by ``tests/test_full_run_contract.py``
+#: (``test_eleven_items_are_all_present``); it is repeated here only so that a regenerated
+#: artifact whose gate had silently shortened reads red instead of greener.  Deliberately not
+#: in a check *name*, which would become a lie the day the standard grows.
+FULL_RUN_CONTRACT_ITEM_COUNT = 11
+
+
+def evaluate_full_run_contract(artifact: dict) -> dict:
+    """Score the recorded 11-item verdict without re-implementing the gate.
+
+    The block was written by ``scripts/live_victory_evidence.py`` calling
+    ``scripts/verify_full_run_contract.py::audit`` over the same trace, so what is checked here
+    is that the record is complete and self-consistent: a missing block, a dropped item, a
+    ``failed_items`` list that disagrees with the per-item booleans, or a pass claimed on a batch
+    that never wrote its ``session_end`` all fail.  Nothing here re-judges the trace.
+    """
+    contract = artifact.get("full_run_contract") or {}
+    items = contract.get("items") or {}
+    failed = contract.get("failed_items")
+    # An absent block makes the consistency checks below *uninformative*, not satisfied: with
+    # nothing to compare, `all({})` is True and a pass nobody claimed is trivially "only on a
+    # finished batch".  So presence is ANDed into every one of them, and the first key is the
+    # only place that says out loud which of these failures is "no record at all".
+    present = bool(items)
+    return {
+        "the_full_run_contract_is_recorded_on_this_trace": present and isinstance(
+            contract.get("contract_satisfied"), bool),
+        "the_contract_carries_the_pinned_item_count": present and (
+            len(items) == FULL_RUN_CONTRACT_ITEM_COUNT
+            and int(contract.get("item_count") or -1) == FULL_RUN_CONTRACT_ITEM_COUNT),
+        "the_contract_verdict_matches_its_own_items": present and (
+            bool(contract.get("contract_satisfied"))
+            == (all(items.values()) and bool(contract.get("batch_wrote_session_end")))),
+        "the_failed_item_list_matches_the_per_item_verdicts": present and (
+            isinstance(failed, list)
+            and sorted(failed) == sorted(name for name, ok in items.items() if not ok)),
+        "a_pass_is_claimed_only_on_a_finished_batch": present and (
+            not bool(contract.get("contract_satisfied"))
+            or bool(contract.get("batch_wrote_session_end"))),
+        # The gate's own detail strings are the only place the refusal count is visible next to
+        # the item it belongs to, so they have to survive a regeneration.
+        "every_failed_item_carries_its_own_detail": present and (
+            sorted(contract.get("failed_item_details") or {}) == sorted(failed or [])),
+    }
+
 
 def claim_live_victory_trace():
     """Re-derive the goal's shape from both live victory traces, and compare their refusals.
@@ -1788,6 +1834,29 @@ def claim_live_victory_trace():
     # with no recorded "before" is just a claim.
     verdicts["the_pre_fix_refusal_count_is_still_on_disk"] = (
         refused(first) == 3 and posts(first) == 815 and refused(latest) == 0)
+    verdicts.update(evaluate_full_run_contract(latest))
+    first_contract = evaluate_full_run_contract(first)
+
+    def contract_of(artifact: dict) -> dict:
+        return artifact.get("full_run_contract") or {}
+
+    # The before-half of the contract comparison has to be readable in the same place as the
+    # after-half, and it has to be the *gate's* verdict rather than this file's opinion.  Read
+    # with `.get`, so an artifact that never carried the block fails instead of raising -- absent
+    # evidence is a red, not a crash the next reader gets to interpret.
+    verdicts["the_first_batch_is_recorded_as_failing_the_contract"] = (
+        contract_of(first).get("contract_satisfied") is False
+        and all(first_contract.values()))
+    verdicts["the_contract_flipped_on_the_item_the_driver_fix_targeted"] = (
+        contract_of(first).get("failed_items") == ["every_action_was_legal_and_acked"]
+        and contract_of(latest).get("failed_items") == []
+        and contract_of(latest).get("contract_satisfied") is True)
+    # One green run in a batch of seven.  The gate scored every run, and the losers stay listed,
+    # so the certified trace cannot be quoted as the batch's result.
+    verdicts["the_green_contract_verdict_is_one_run_not_the_batch"] = (
+        int(contract_of(latest).get("runs_evaluated") or 0) > 1
+        and len(contract_of(latest).get("runs_not_passing") or [])
+        == int(contract_of(latest).get("runs_evaluated") or 0) - 1)
     return verdicts
 
 
@@ -2191,7 +2260,9 @@ def claim_retraction_ledger_integrity():
     quoted = {int(n) for n in re.findall(r"(\d+) 行自我推翻账目", report)}
     summary = {int(n) for n in re.findall(r"这\s*(\d+)\s*条里没有任何一条", report)}
     return {
-        "the_ledger_row_count_is_the_pinned_number": len(rows) == 26,
+        # Pinned, not derived, and deliberately so: the ledger is allowed to grow by an author
+        # adding a row, and this number is what makes that edit visible rather than silent.
+        "the_ledger_row_count_is_the_pinned_number": len(rows) == 27,
         "every_row_has_three_populated_cells": all(
             len(row) == 3 and all(cell for cell in row) for row in rows),
         "no_row_is_a_bare_restatement": all(

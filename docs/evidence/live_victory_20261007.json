@@ -125,6 +125,92 @@
     "save_scope": "modded",
     "seed": "4B7160T1E0DC"
   },
+  "full_run_contract": {
+    "batch_wrote_session_end": true,
+    "contract_satisfied": false,
+    "failed_item_details": {
+      "every_action_was_legal_and_acked": "posted=247 refused=1 waits={'map travel acknowledged, waiting for the client to leave the node': 44, 'the chest offers no relic and no exit yet': 1, 'the client reported no screen on this frame': 4, 'the event room offers no candidate and no exit yet': 13, 'the rest site is spent and shows no exit yet': 16, 'the reward screen has nothing left to claim and no exit yet': 3} empty_candidates={} first_refusals=['No card selection screen is open']"
+    },
+    "failed_items": [
+      "every_action_was_legal_and_acked"
+    ],
+    "gate": "scripts/verify_full_run_contract.py",
+    "how_to_recheck": "python scripts/verify_full_run_contract.py \"runs/solver_supervisor/ssb-20261007T081357Z-73310af4/autoplay_trace.jsonl\"",
+    "item_count": 11,
+    "items": {
+      "bosses_1_plus_1_plus_2_cleared": true,
+      "every_action_was_legal_and_acked": false,
+      "no_corrupt_records": true,
+      "no_screen_skipped_without_a_rule": true,
+      "provenance_bound_to_the_locked_build": true,
+      "run_complete_by_its_own_definition": true,
+      "starts_at_floor_one": true,
+      "stream_is_continuous": true,
+      "terminal_is_the_games_victory_flag": true,
+      "three_acts_in_order": true,
+      "three_ancients_are_this_builds": true
+    },
+    "items_passed": 10,
+    "runs_evaluated": 8,
+    "runs_not_passing": [
+      [
+        "every_action_was_legal_and_acked"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition",
+        "every_action_was_legal_and_acked"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition",
+        "every_action_was_legal_and_acked"
+      ],
+      [
+        "three_acts_in_order",
+        "three_ancients_are_this_builds",
+        "bosses_1_plus_1_plus_2_cleared",
+        "terminal_is_the_games_victory_flag",
+        "run_complete_by_its_own_definition",
+        "every_action_was_legal_and_acked",
+        "no_screen_skipped_without_a_rule"
+      ]
+    ]
+  },
   "game": {
     "app_id": "2868840",
     "branch": "public-beta",
@@ -137,7 +223,7 @@
   "live_choice_policy_version": "conservative-visible-v2",
   "not_established": [
     "a win rate: this is one batch's runs, and one trace is a reachability result, not a rate",
-    "the acceptance contract's own verdict until the batch reaches session_end -- the 11-item gate is evaluated on a finished batch, and a live batch is not proof",
+    "that this is an acceptance-record clear rather than an observational one: the 11-item full-run contract is scored in `full_run_contract` and needs a finished batch, while the batch's own blockers (`observational_mode`, `record_integrity_invalid`, `runner_acceptance_false`) are about seed provenance and runner mode, not about the shape of the run",
     "that the ending's hp 0 is a story beat rather than a death: the client's own game_over flag says victory, the boss list was empty before it, and the reward screen was already claimed"
   ],
   "runs": [
