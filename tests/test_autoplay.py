@@ -1959,6 +1959,55 @@ class InCombatOverlayOwnershipTests(unittest.TestCase):
         decision = subject.decide(self._overlay(load("map")["run"]["floor"]))
         self.assertNotEqual("choose", getattr(decision, "screen_type", None))
 
+    def test_the_out_of_combat_track_defers_a_chooser_it_never_decides_on(self) -> None:
+        """The production path, not the unit path: a fight never reaches ``decide``.
+
+        Both refusals on ``ssb-20261007T141100Z-56e838c0`` (act 2 floor 33, act 3 floor 35) happened
+        with this guard already in the tree. On the out-of-combat track the loop intercepts combat
+        screens before any decision is made, so the memo the chooser consults -- written inside
+        ``decide`` -- stayed empty, and the overlay that followed the fight looked like ours. A test
+        that calls ``decide`` on the fight first cannot see that hole, which is why this one drives
+        the loop; it held that victory trace to 10/11 on live hardware.
+        """
+        boss = {
+            "state_type": "boss",
+            "run": {"act": 1, "floor": 33, "ascension": 10},
+            "player": {"hp": 40, "max_hp": 80},
+            "battle": {"enemies": [{"id": "CRUSHER_0"}, {"id": "ROCKET_0"}]},
+        }
+
+        class _FightingClient:
+            recorder = None
+
+            def __init__(self, frames):
+                self._frames = list(frames)
+                self._cursor = 0
+                self.posts = []
+
+            def get_state(self):
+                frame = self._frames[min(self._cursor, len(self._frames) - 1)]
+                self._cursor += 1
+                return dict(frame), f"d{self._cursor}"
+
+            def get_compendium(self, record: bool = True):
+                return {"current_run": None}
+
+            def send_action(self, payload, expected_decision_id=None):
+                self.posts.append(payload)
+                return {"status": "ok"}, None
+
+        terminal = {"state_type": "game_over",
+                    "run": {"act": 1, "floor": 33, "ascension": 10},
+                    "player": {"hp": 0, "max_hp": 80},
+                    "game_over": {"is_victory": False}}
+        client = _FightingClient([boss, self._overlay(33), boss, terminal])
+        subject = AutoPlayer(client, max_runs=1, max_actions=6, poll=0,
+                             out_of_combat_only=True)
+        summary = subject.run()
+        self.assertFalse([p for p in client.posts if p.get("action") == "select_card"],
+                         f"the fight owns that chooser: {client.posts}")
+        self.assertIn("after combat at this floor", json.dumps(summary["runs"], ensure_ascii=False))
+
 
 class LatchGranularityTests(unittest.TestCase):
     """The first version of the accepted-exit latch was too coarse, and it cost a run.

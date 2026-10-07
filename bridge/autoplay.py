@@ -947,10 +947,7 @@ class AutoPlayer:
         run = state.get("run") or {}
         screen_key = _screen_key(state)
         if state_type in _COMBAT_SCREEN_TYPES:
-            # Remember where the fight is: the bridge strips the `battle` block while an
-            # in-combat overlay is up, so a chooser that follows a combat frame at the same
-            # floor is the solver's, and the only evidence for that is the frame before it.
-            self._combat_screen_floor = (run.get("act"), run.get("floor"))
+            self._note_frame_ownership(state, state_type)
             return None  # the Combat Solver owns every combat screen
         if self._accepted_exit == screen_key:
             # We already posted the action that ends this screen and the client acknowledged
@@ -959,10 +956,6 @@ class AutoPlayer:
             # duplicate "Returning to main menu" whose late effect bounced the mode screen.
             return WaitForTransition(
                 f"the exit already accepted at {state_type} has not cleared the screen")
-        if state_type not in _TRANSIENT_OVERLAY_SCREENS:
-            # The fight is over: rewards, map or event at the same floor are ours again, and a
-            # chooser after them must not inherit the combat context.
-            self._combat_screen_floor = None
         if state_type != "map":
             self._map_travel_committed = None
         event = state.get("event") or {}
@@ -1130,6 +1123,45 @@ class AutoPlayer:
         # that cleared all three acts, at the act 2 boss and the final double
         # boss, where the run had in fact gone on to win.
         return WaitForTransition("the reward screen has nothing left to claim and no exit yet")
+
+    def _note_frame_ownership(self, state: dict[str, Any], state_type: str) -> None:
+        """Which floor the client is fighting on, as observed from every frame.
+
+        The bridge strips the ``battle`` block while an in-combat chooser is up, so the only
+        evidence that a ``card_select`` belongs to the solver is the frame before it. Recording that
+        inside ``decide`` was the hole: on the out-of-combat track a combat screen never reaches
+        ``decide`` at all (the loop hands it to the client and polls), so the memo stayed empty and
+        the very next overlay was treated as ours -- two refused ``select_card`` posts on
+        ``ssb-20261007T141100Z``, at act 2 floor 33 and act 3 floor 35, which is what held that
+        victory trace back to 10/11. Observed frames are the right place for it, because every
+        track sees them.
+        """
+        if state_type in _COMBAT_SCREEN_TYPES:
+            run = state.get("run") or {}
+            self._combat_screen_floor = (run.get("act"), run.get("floor"))
+        elif state_type not in _TRANSIENT_OVERLAY_SCREENS:
+            # The fight is over: rewards, map or event at the same floor are ours again, and a
+            # chooser after them must not inherit the combat context.
+            self._combat_screen_floor = None
+
+    def _note_frame_ownership(self, state: dict[str, Any], state_type: str) -> None:
+        """Record which floor a fight is on, from every observed frame.
+
+        The bridge strips the ``battle`` block while an in-combat chooser is up, so the only evidence
+        that a ``card_select`` belongs to the solver is the combat frame that came before it. Keeping
+        that note inside ``decide`` was the hole: on the out-of-combat track a combat screen never
+        reaches ``decide`` at all, so both refused ``select_card`` posts on
+        ``ssb-20261007T141100Z-56e838c0`` (act 2 floor 33, act 3 floor 35) went out with the memo
+        empty -- and a test that calls ``decide`` on the fight first could not see it. Every frame
+        passes here, on whichever track owns it.
+        """
+        if state_type in _COMBAT_SCREEN_TYPES:
+            run = state.get("run") or {}
+            self._combat_screen_floor = (run.get("act"), run.get("floor"))
+        elif state_type not in _TRANSIENT_OVERLAY_SCREENS:
+            # The fight is over: rewards, map or event at the same floor are ours again, and a
+            # chooser after them must not inherit the combat context.
+            self._combat_screen_floor = None
 
     def _card_select_choice(self, state: dict[str, Any]) -> dict[str, Any] | None:
         """Out-of-combat card selection (Neow/event/shop/removal/enchant): toggling UI.
@@ -1751,6 +1783,7 @@ class AutoPlayer:
             # A fresh readable state resets the bridge-unavailable window.
             bridge_unavailable_since = None
             state_type = str(state.get("state_type") or "unknown")
+            self._note_frame_ownership(state, state_type)
             self.coverage.observe(state)
             self.coverage.note_unknown_screen(state_type)
             try:
