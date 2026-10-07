@@ -209,6 +209,61 @@ class CensusShardSetTests(unittest.TestCase):
         self.assertIn("not one full", str(caught.exception))
 
 
+class CensusCampaignResetTests(unittest.TestCase):
+    """A campaign metrics file has to be rolled as a campaign, or the census counts other episodes.
+
+    The tell was nearly missed: re-rolling the campaign arm's three step_cap files reported two
+    `win` endings while every one of those files records wins: 0 -- because `campaign` is a reset
+    option that switches the simulator from the single act a seed is dealt to the three-act walk,
+    and the instrument never passed it. Per-file closure still reported zero mismatches, so only
+    the environment disagreement showed the census had been measuring something else.
+    """
+
+    class _Env:
+        def __init__(self):
+            self.reset_options = "unset"
+
+        def reset(self, seed=None, options=None):
+            self.reset_options = options
+            return np.zeros(1, dtype=np.float32), {}
+
+        def close(self):
+            pass
+
+    def _reset_options(self, campaign: bool) -> object:
+        env = self._Env()
+        CENSUS._roll_one_episode(0, env, 7, None, campaign=campaign)
+        return env.reset_options
+
+    def test_a_campaign_entry_resets_with_the_three_act_option(self) -> None:
+        self.assertEqual({"campaign": True}, self._reset_options(True))
+
+    def test_a_single_act_entry_does_not(self) -> None:
+        self.assertIsNone(self._reset_options(False))
+
+    def test_roll_episodes_forwards_the_flag_and_stamps_each_row(self) -> None:
+        env = self._Env()
+        rows = CENSUS.roll_episodes(lambda seed: env, None, [7, 8], "origin.json", 0,
+                                    campaign=True)
+        self.assertEqual(2, len(rows))
+        self.assertEqual({"campaign": True}, env.reset_options)
+        self.assertTrue(all(row["campaign_reset"] is True for row in rows))
+        self.assertTrue(all(row["origin"] == "origin.json" for row in rows))
+
+    def test_the_campaign_completion_flag_is_recorded_apart_from_the_win_flag(self) -> None:
+        # `run_cleared` is only set after the final act clears both bosses; a terminal
+        # player_won says nothing of the kind, so a census that keeps only the latter cannot
+        # tell an act clear from a campaign finish.
+        cleared = CENSUS._finalise({"outcome": "step_cap", "seed": 1, "rejections": 0},
+                                   {"player_won": True, "run_cleared": True}, steps=3,
+                                   outcome="win")
+        act_only = CENSUS._finalise({"outcome": "step_cap", "seed": 2, "rejections": 0},
+                                    {"player_won": True, "run_cleared": False}, steps=3,
+                                    outcome="win")
+        self.assertTrue(cleared["run_cleared"])
+        self.assertFalse(act_only["run_cleared"])
+
+
 class RewardRuleMergeTests(unittest.TestCase):
     def test_recorded_for_reads_each_groups_own_pre_registered_numbers(self) -> None:
         misexit = {

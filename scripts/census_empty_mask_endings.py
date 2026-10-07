@@ -151,6 +151,8 @@ def build_plan(args, windows) -> list[dict]:
                 # config) must not walk into another stage's files: the lookup would raise
                 # StopIteration and the run would die halfway, reporting nothing.
                 continue
+            recorded_scope = str(payload.get("scope") or "")
+            campaign = recorded_scope == "simulator_full_run" or stage == "full_run"
             digest = str(payload.get("seed_sha256") or "")
             window = windows.get(digest)
             checkpoint = Path(str(payload.get("checkpoint") or ""))
@@ -168,6 +170,8 @@ def build_plan(args, windows) -> list[dict]:
                 "recorded_ends": dict(sorted(
                     {k: int(v) for k, v in reasons.items() if int(v) > 0}.items())),
                 "seed_digest": digest,
+                "recorded_scope": recorded_scope,
+                "rolled_with_campaign_reset": campaign,
                 "split": str(payload.get("split") or ""),
                 "stage": stage,
             }
@@ -206,7 +210,7 @@ def writable_plan(entries) -> list[dict]:
              for k, v in entry.items() if k != "window_seeds"} for entry in entries]
 
 
-def roll_episodes(factory, model, seeds, origin, max_steps) -> list[dict]:
+def roll_episodes(factory, model, seeds, origin, max_steps, campaign: bool = False) -> list[dict]:
     rows: list[dict] = []
     for seed in seeds:
         # One env per episode, released in a finally. Without the close this instrument stops
@@ -216,7 +220,7 @@ def roll_episodes(factory, model, seeds, origin, max_steps) -> list[dict]:
         # That is a property of the process, not of the engine.
         env = factory(seed)
         try:
-            row = _roll_one_episode(max_steps, env, seed, model)
+            row = _roll_one_episode(max_steps, env, seed, model, campaign=campaign)
         except Exception as error:  # noqa: BLE001 - an unnamed crash would leave no artifact at all
             row = {"detail": f"uncaught: {error}", "outcome": "instrument_error", "seed": seed,
                    "alive": False, "act": None, "floor": -1, "hp": None, "max_hp": None,
@@ -228,14 +232,21 @@ def roll_episodes(factory, model, seeds, origin, max_steps) -> list[dict]:
             except Exception as error:  # noqa: BLE001 - a leak is worth naming, not crashing for
                 row["close_failed"] = str(error)
         row["origin"] = origin
+        row["campaign_reset"] = bool(campaign)
         rows.append(row)
     return rows
 
 
-def _roll_one_episode(max_steps, env, seed, model) -> dict:
+def _roll_one_episode(max_steps, env, seed, model, campaign: bool = False) -> dict:
     state = {"detail": None, "outcome": "step_cap", "seed": seed}
     try:
-        observation, info = env.reset(seed=seed)
+        # `campaign` is not a cosmetic reset option: it switches the simulator from the single
+        # act a seed is dealt to the three-act walk. A metrics file recorded with
+        # scope=simulator_full_run therefore describes different episodes than the same seed
+        # rolled without it -- and the first pass of this census over the campaign arm's files
+        # proved it, reporting two `win` endings where every recorded file says wins: 0.
+        observation, info = env.reset(
+            seed=seed, options={"campaign": True} if campaign else None)
     except RuntimeError as error:
         return {**state, "alive": False, "engine_legal_bases": None, "floor": -1,
                 "detail": str(error), "outcome": "native_reset_raised", "rejections": 0,
@@ -303,6 +314,10 @@ def _finalise(state, info, *, steps, outcome, engine_legal_bases="keep", **extra
         "hp": info.get("player_hp"),
         "max_hp": info.get("player_max_hp"),
         "outcome": outcome,
+        # A campaign run only sets `run_cleared` after the final act clears both of its bosses,
+        # so it is the one field that separates "this episode terminated with the win flag" from
+        # "this episode finished the campaign". Recorded on every row, single-act ones included.
+        "run_cleared": bool(info.get("run_cleared")),
         "phase": info.get("phase_name"),
         "engine_legal_bases": (engine_legal_bases if engine_legal_bases != "keep"
                                else state.get("engine_legal_bases")),
@@ -781,7 +796,8 @@ def main() -> int:
             cached = (entry["checkpoint_path"], model)
         model = cached[1]
         found = roll_episodes(factory, model, entry["window_seeds"][:entry["episodes"]],
-                              entry["metrics_file"], horizon)
+                              entry["metrics_file"], horizon,
+                              campaign=bool(entry.get("rolled_with_campaign_reset")))
         rows.extend(found)
         print(f"[shard {args.work_index}] {entry['metrics_file']}: "
               f"{sum(1 for r in found if r['outcome'] == 'empty_action_mask')} of "
