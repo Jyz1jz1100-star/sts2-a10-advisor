@@ -4911,3 +4911,34 @@ finished batch" both passed an artifact that recorded nothing; `present` is now 
 the other side -- a check whose subject is missing is uninformative, not satisfied. The pinned item
 count lives in `FULL_RUN_CONTRACT_ITEM_COUNT` and is asserted without the number in any check *name*,
 because a name carrying a count becomes a lie the day the standard grows.
+
+## 2026-10-07 (evening, eighth entry): #47's blocker is not a DLL swap -- the installed bridge already carries seeded embark; what it lacks is a free menu
+
+Read-only re-check of the file the game actually loads
+(`G:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\STS2_MCP.dll`,
+sha256 `730d60b154626f64…`, the 09-21 actionability candidate): the seeded-embark branch is
+compiled into it -- `seed_requested`, `seed_canonical`, `seed_injection`, `seed_verified`,
+`BeginRun`, `CanonicalizeSeed`, and the whole refusal-message set
+(`Seeded embark requires a non-empty alphanumeric seed`, `... an active start-run lobby`,
+`... could not resolve the standard act list`, `Embarking on run (seed: `) -- in the same binary
+that carries `is_victory` and `can_choose`. The 09-19 conflict record was measuring
+`CD3EA7409F…`, a file that has since been replaced, so this had to be re-measured rather than
+cited. `installed_bridge_supported` **stays false** and `tests/test_seed_allocation.py` is
+untouched: a string table is metadata, not a runtime round-trip, and only a read-back of
+`compendium.current_run.seed` after a requested decimal seed can flip it.
+
+**What changed today is the shape of the remaining step.** It is no longer "install something",
+it is "reach the menu", and the driver is what prevents that: `--max-runs` counts *embarks*, so a
+batch that begins by continuing a leftover run ends by starting one it never drives. Measured on
+the last batch -- the trace tail is `menu` → `unknown` → `compendium` → `run_identity` →
+`session_end` at 12:13:34-36Z, and `current_run` still reports `is_in_progress=true`,
+`seed="V59C1ZSYZUZV"`, `run_id=modded:profile1:1791375213`, `run_time=2`, parked on the act-1
+floor-1 Neow event ~40 minutes later. That run is ours, not the operator's -- which is knowable
+only because the batch wrote a `run_identity` record for it before stopping.
+
+Two consequences, recorded rather than papered over: every batch's first run is a continuation of
+an undriven embark (so one generated seed is consumed outside our ledger each time), and a
+seeded-embark probe cannot be issued without either driving that parked run to a terminal or
+clearing the save -- the second being `abandon_run`/save deletion, which stays operator-owned. The
+ask is therefore one line, and `docs/FIXED_SEED_FEASIBILITY.md` carries it with the pass criterion
+so the decision does not need another session to be actionable.

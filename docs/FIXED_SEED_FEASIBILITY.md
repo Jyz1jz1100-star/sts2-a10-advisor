@@ -96,3 +96,42 @@ python scripts/run_solver_comparison.py --max-battles 1    # 实跑一局
 标记为 BLOCKED 的理由就是"没有种子注入端点"；而 Phase B 的判定结论，是
 `docs/FREEZE_2026-09-02.md` 解冻 Combat PPO 路线的**第一个**条件。
 也就是说，这一条静态矛盾同时卡着"固定种子真机对比"和"PPO 训练能否继续"两件事。
+
+## 2026-10-07 复检：换过 DLL 之后，这条矛盾仍然成立，而且卡点换了位置
+
+09-19 那次测的是当时安装的 `CD3EA7409F…`。之后 09-21 装的是 actionability 候选，
+所以那条记录指的是**已经不存在的文件**。今天对**现在**安装的那份重做了同一个只读检查
+（`mods/STS2_MCP.dll`，游戏在跑，全程 GET/读文件、零 POST）：
+
+```
+sha256 = 730d60b154626f644eec2fb5d0e7715871fa22d15bb2a8966c024db90bfb3d72
+seed_requested / seed_canonical / seed_injection / seed_verified / BeginRun / CanonicalizeSeed  全部存在
+Seeded embark requires a non-empty alphanumeric seed                存在
+Seeded embark requires an active start-run lobby                    存在
+Seeded embark could not resolve the standard act list               存在
+Embarking on run (seed:                                             存在
+is_victory / can_choose                                             同时存在（这份是叠加构建，不是另一条血统）
+StartNewSingleplayerRun                                             不存在（它是游戏侧方法名，不出现在桥接字符串表里，属预期）
+```
+
+所以结论跟 09-19 一样，只是现在说的是**当前**那份二进制：**种子注入的代码路径被编进了
+已安装的那份桥接，fixed 模式不需要换 DLL**。口径也不变：二进制里有，不等于运行期那个端点
+真的接受 `seed` 并回填 authoritative `current_run.seed`，因此
+`data/combat_solver/fixed_battle_seeds.json` 里的 `installed_bridge_supported` **保持 false**，
+`tests/test_seed_allocation.py` 一字未动。
+
+**今天新出现的卡点不是能力，而是"菜单"。** 判定这一条需要**从菜单发一次全新开局**，而
+11:22Z 那批在 12:13:35Z 停下的瞬间刚起了新的一局：trace 末尾依次是
+`menu` → `unknown` → `compendium` → `run_identity` → `session_end`，现在
+`compendium.current_run` 报 `is_in_progress=true`、`seed="V59C1ZSYZUZV"`、
+`run_id=modded:profile1:1791375213`、`run_time=2`，客户端停在 act 1 floor 1 的涅奥事件上。
+这是自动播放自己的产物（`--max-runs` 按"开局次数"计，所以预算耗尽时最后一次开局没被驱动），
+不是操作员手开的局。要从菜单做种子开局探测，就得先让这一局有去处——**要么让它被驱动到终局，
+要么清掉存档**；后者需要 `abandon_run`/删档，属于操作员专属，不由我在无人值守下做。
+所以这一步现在是**一句决定**而不是一个技术问题：
+
+- 允许我跑一个 `--max-runs 1` 的观察批，把这局驱动到终局（顺带再验证一次契约），菜单就空出来了；
+- 或者操作员自己在客户端把这一局打完/放弃，之后我再做十进制 seed 的一次开局回读。
+
+探测的判定标准不变（三者齐了才把 false 改 true）：`seed_requested` 与 `seed_canonical` 都等于
+请求值、`seed_injection` 为真，随后 `compendium.current_run.seed` 与 canonical 一致。
