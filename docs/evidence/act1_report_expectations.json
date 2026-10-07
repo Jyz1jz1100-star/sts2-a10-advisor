@@ -7,6 +7,18 @@
     "Counts that grew during 2026-09-19 did so because this session's own",
     "evaluations added artifacts; the report is updated to the same figures."
   ],
+  "_expected_false_checks": {
+    "phase_action_share": [
+      "trained_actions_are_all_out_of_combat"
+    ],
+    "win_ledger": [
+      "the_ledger_wins_replay_on_the_current_engine"
+    ]
+  },
+  "_expected_false_reasons": {
+    "phase_action_share.trained_actions_are_all_out_of_combat": "80.2% of the steps a campaign arm trains on are combat decisions, which the shipped product delegates to a third-party solver. Gate G1 of docs/TRAINING_GATES_2026-10-07.md: clear it by training only the out-of-combat actions, never by editing this key.",
+    "win_ledger.the_ledger_wins_replay_on_the_current_engine": "the nine named Act-1 wins do not replay on fidelity-v5: 0/9 measured 2026-10-07 by scripts/act1_win_ledger.py over the same arms, seeds and checkpoint digests. The red is the finding. Clear it by re-deriving strength, never by deleting the check."
+  },
   "act1_scope_population": {
     "episodes": 46011,
     "files": 262
@@ -235,17 +247,17 @@
     "step_cap": 6
   },
   "dead_end_vocabulary": {
-    "vocabulary_matches_the_artifact": true,
-    "vocabulary_labels_are_exactly_the_three_named": true,
-    "step_cap_cells_match_the_artifact": true,
-    "step_cap_appears_only_where_a_horizon_is_configured": true,
-    "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": true,
-    "the_one_label_outside_the_vocabulary_is_named": true,
     "acts_too_slowly_is_labelled": true,
+    "artifact_and_disk_agree_on_step_cap_files": true,
     "cannot_act_is_labelled": true,
-    "nothing_is_unclassified": true,
     "legacy_and_current_native_rejection_still_split": true,
-    "artifact_and_disk_agree_on_step_cap_files": true
+    "nothing_is_unclassified": true,
+    "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": true,
+    "step_cap_appears_only_where_a_horizon_is_configured": true,
+    "step_cap_cells_match_the_artifact": true,
+    "the_one_label_outside_the_vocabulary_is_named": true,
+    "vocabulary_labels_are_exactly_the_three_named": true,
+    "vocabulary_matches_the_artifact": true
   },
   "empty_mask_endings": {
     "every_ending_the_campaign_ever_recorded_was_located": true,
@@ -302,16 +314,16 @@
     "tier_arrivals_sum_to_arrivals": true
   },
   "evidence_bundle_integrity": {
-    "listing_matches_disk": true,
+    "bundle_root_recomputes": true,
+    "checkpoint_files_rehashed_here": 233,
     "digests_and_sizes_recompute": true,
-    "no_evidence_digest_field_is_malformed": true,
+    "every_citation_is_accounted_for": true,
     "evidence_digest_fields_malformed": [],
     "evidence_digest_fields_recorded_as_bare_prefixes": 9,
-    "bundle_root_recomputes": true,
+    "listing_matches_disk": true,
     "manifest_excludes_itself": true,
-    "checkpoint_files_rehashed_here": 233,
-    "every_citation_is_accounted_for": true,
-    "no_citation_is_loose": true
+    "no_citation_is_loose": true,
+    "no_evidence_digest_field_is_malformed": true
   },
   "evidence_matrix_totals": {
     "act1_episodes": 40096,
@@ -429,21 +441,21 @@
     "metrics_files_on_disk_here": 300
   },
   "objective_clause_audit": {
-    "audit_section_present": true,
-    "all_nine_clauses_listed": true,
     "act_1_to_3_clause_still_says_not_achieved": true,
-    "warm_start_ladder_still_says_partly": true,
-    "every_clause_carries_a_verdict_from_the_closed_list": true,
-    "the_act1_clause_names_both_engine_versions": true,
-    "every_cited_file_exists": true,
+    "all_nine_clauses_listed": true,
+    "audit_section_present": true,
+    "conclusion_still_refuses_completion": true,
+    "dead_end_row_cites_the_population_the_identity_tested": true,
+    "dead_end_row_numbers_match_the_vocabulary_census": true,
     "every_cited_claim_is_registered": true,
+    "every_cited_file_exists": true,
+    "every_clause_carries_a_verdict_from_the_closed_list": true,
     "fan_out_row_numbers_match_the_attestation": true,
     "hash_chain_row_numbers_match_the_manifest": true,
-    "zero_illegal_row_numbers_match_the_channel_census": true,
-    "dead_end_row_numbers_match_the_vocabulary_census": true,
-    "dead_end_row_cites_the_population_the_identity_tested": true,
     "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": true,
-    "conclusion_still_refuses_completion": true
+    "the_act1_clause_names_both_engine_versions": true,
+    "warm_start_ladder_still_says_partly": true,
+    "zero_illegal_row_numbers_match_the_channel_census": true
   },
   "opening_choice_position_pref": {
     "but_it_is_usually_taken_when_offered": true,
@@ -452,6 +464,14 @@
     "the_offering_is_observable_not_hidden": true,
     "the_take_rate_depends_on_the_position": true,
     "the_upgrade_relic_is_rarely_offered_at_all": true
+  },
+  "phase_action_share": {
+    "checkpoint_digest_matches_the_file": true,
+    "combat_share_matches_the_rows": true,
+    "gates_doc_quotes_the_combat_share": true,
+    "per_episode_rows_recompute_the_recorded_shares": true,
+    "recorded_total_steps_matches_the_rows": true,
+    "trained_actions_are_all_out_of_combat": false
   },
   "potion_slot_cost": {
     "all_four_cells_are_populated": true,
@@ -619,22 +639,14 @@
     "observation_size": 1739
   },
   "win_ledger": {
-    "wins_reproduced": 9,
-    "wins_failed_to_reproduce": 0,
-    "rows": 5,
     "every_reproduced_win_is_a_clean_terminal_win": true,
+    "live_win_replay_inputs_missing": [],
+    "rows": 5,
+    "the_ledger_wins_replay_on_the_current_engine": false,
+    "the_recorded_rows_match_the_rows_this_file_carries": true,
     "the_terminal_floor_agrees_with_the_engines_boss_row_constant": true,
     "two_runs_recorded_and_their_rows_hash_alike": true,
-    "the_recorded_rows_match_the_rows_this_file_carries": true,
-    "live_win_replay_inputs_missing": [],
-    "the_ledger_wins_replay_on_the_current_engine": false
-  },
-  "_expected_false_checks": {
-    "win_ledger": [
-      "the_ledger_wins_replay_on_the_current_engine"
-    ]
-  },
-  "_expected_false_reasons": {
-    "win_ledger.the_ledger_wins_replay_on_the_current_engine": "the nine named Act-1 wins do not replay on fidelity-v5: 0/9 measured 2026-10-07 by scripts/act1_win_ledger.py over the same arms, seeds and checkpoint digests. The red is the finding. Clear it by re-deriving strength, never by deleting the check."
+    "wins_failed_to_reproduce": 0,
+    "wins_reproduced": 9
   }
 }

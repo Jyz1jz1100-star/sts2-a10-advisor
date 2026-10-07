@@ -1,0 +1,929 @@
+{
+  "checkpoint": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/checkpoints/step_000040000032.zip",
+  "checkpoint_sha256": "f1385cf7ef552eb693ef00e215b1c52fdccf3924105e23d2a3179e50f7ad0474",
+  "combat_step_share": 0.8024,
+  "engine_environment_version": "sts2sim-campaign-fidelity-v5",
+  "episodes": 60,
+  "episodes_that_touched_phase": {
+    "ancient": 60,
+    "card_reward": 59,
+    "combat": 60,
+    "event": 31,
+    "map": 60,
+    "relic_reward": 59,
+    "rest": 15,
+    "shop": 24,
+    "transform_select": 13,
+    "treasure": 13
+  },
+  "generated_by": "scripts/phase_action_audit.py",
+  "how_to_recheck": "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/phase_action_audit.py --episodes 60 --seed-start 2008010000 --out docs/evidence/phase_action_share_20261007.json",
+  "not_established": [
+    "that a policy trained only on the out-of-combat 19.8% of steps reaches any win rate: this is an accounting of where the gradient currently goes, not a capability claim",
+    "that the share is stage-independent -- the campaign horizon (4,800) and the single-act stage (1,600) spend steps differently, so a share quoted for one is not a share for the other"
+  ],
+  "out_of_combat_step_share": 0.1976,
+  "per_episode": [
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 133,
+        "map": 4,
+        "relic_reward": 9
+      },
+      "run_cleared": false,
+      "seed": 2008010000,
+      "steps": 150,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 150,
+        "event": 9,
+        "map": 10,
+        "relic_reward": 11,
+        "rest": 2,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010001,
+      "steps": 188,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 161,
+        "event": 7,
+        "map": 8,
+        "relic_reward": 16
+      },
+      "run_cleared": false,
+      "seed": 2008010002,
+      "steps": 198,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 2,
+        "combat": 91,
+        "map": 3,
+        "relic_reward": 5
+      },
+      "run_cleared": false,
+      "seed": 2008010003,
+      "steps": 102,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 107,
+        "event": 3,
+        "map": 5,
+        "relic_reward": 11
+      },
+      "run_cleared": false,
+      "seed": 2008010004,
+      "steps": 130,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 89,
+        "map": 4,
+        "relic_reward": 9
+      },
+      "run_cleared": false,
+      "seed": 2008010005,
+      "steps": 106,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 120,
+        "event": 1,
+        "map": 6,
+        "relic_reward": 9,
+        "shop": 3
+      },
+      "run_cleared": false,
+      "seed": 2008010006,
+      "steps": 144,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 99,
+        "map": 4,
+        "relic_reward": 9
+      },
+      "run_cleared": false,
+      "seed": 2008010007,
+      "steps": 116,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 106,
+        "map": 4,
+        "relic_reward": 8
+      },
+      "run_cleared": false,
+      "seed": 2008010008,
+      "steps": 122,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 111,
+        "event": 2,
+        "map": 5,
+        "relic_reward": 11
+      },
+      "run_cleared": false,
+      "seed": 2008010009,
+      "steps": 133,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 128,
+        "map": 8,
+        "relic_reward": 13,
+        "rest": 2,
+        "shop": 4
+      },
+      "run_cleared": false,
+      "seed": 2008010010,
+      "steps": 161,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 126,
+        "event": 3,
+        "map": 11,
+        "relic_reward": 12,
+        "rest": 4,
+        "shop": 3,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010011,
+      "steps": 166,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 2,
+        "combat": 66,
+        "map": 4,
+        "relic_reward": 7,
+        "shop": 5
+      },
+      "run_cleared": false,
+      "seed": 2008010012,
+      "steps": 85,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 107,
+        "map": 7,
+        "relic_reward": 13,
+        "rest": 2,
+        "shop": 3,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010013,
+      "steps": 139,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 117,
+        "event": 4,
+        "map": 7,
+        "relic_reward": 9,
+        "shop": 3
+      },
+      "run_cleared": false,
+      "seed": 2008010014,
+      "steps": 144,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 104,
+        "map": 5,
+        "relic_reward": 9,
+        "shop": 3
+      },
+      "run_cleared": false,
+      "seed": 2008010015,
+      "steps": 125,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 96,
+        "event": 5,
+        "map": 7,
+        "relic_reward": 12,
+        "shop": 4
+      },
+      "run_cleared": false,
+      "seed": 2008010016,
+      "steps": 128,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 80,
+        "event": 2,
+        "map": 5,
+        "relic_reward": 8,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010017,
+      "steps": 101,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 107,
+        "event": 3,
+        "map": 5,
+        "relic_reward": 9
+      },
+      "run_cleared": false,
+      "seed": 2008010018,
+      "steps": 128,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 178,
+        "event": 9,
+        "map": 13,
+        "relic_reward": 15,
+        "rest": 4,
+        "shop": 5,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010019,
+      "steps": 231,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 121,
+        "map": 5,
+        "relic_reward": 10,
+        "shop": 7,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010020,
+      "steps": 149,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 143,
+        "map": 5,
+        "relic_reward": 14
+      },
+      "run_cleared": false,
+      "seed": 2008010021,
+      "steps": 167,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 127,
+        "map": 6,
+        "relic_reward": 13,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010022,
+      "steps": 153,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 6,
+        "combat": 163,
+        "event": 2,
+        "map": 10,
+        "relic_reward": 19,
+        "rest": 2,
+        "transform_select": 1,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010023,
+      "steps": 205,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 118,
+        "event": 5,
+        "map": 8,
+        "relic_reward": 12,
+        "rest": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010024,
+      "steps": 150,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "combat": 40,
+        "map": 1,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010025,
+      "steps": 44,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 81,
+        "event": 5,
+        "map": 6,
+        "relic_reward": 9,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010026,
+      "steps": 107,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 62,
+        "map": 4,
+        "relic_reward": 9
+      },
+      "run_cleared": false,
+      "seed": 2008010027,
+      "steps": 79,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 79,
+        "event": 4,
+        "map": 8,
+        "relic_reward": 8,
+        "shop": 2,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010028,
+      "steps": 106,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 97,
+        "map": 5,
+        "relic_reward": 10,
+        "shop": 4
+      },
+      "run_cleared": false,
+      "seed": 2008010029,
+      "steps": 120,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 78,
+        "map": 5,
+        "relic_reward": 10,
+        "shop": 4
+      },
+      "run_cleared": false,
+      "seed": 2008010030,
+      "steps": 101,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 125,
+        "event": 6,
+        "map": 8,
+        "relic_reward": 13,
+        "rest": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010031,
+      "steps": 159,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 94,
+        "event": 3,
+        "map": 6,
+        "relic_reward": 10
+      },
+      "run_cleared": false,
+      "seed": 2008010032,
+      "steps": 118,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 88,
+        "map": 5,
+        "relic_reward": 10,
+        "shop": 4
+      },
+      "run_cleared": false,
+      "seed": 2008010033,
+      "steps": 111,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 116,
+        "map": 7,
+        "relic_reward": 13,
+        "shop": 4,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010034,
+      "steps": 147,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 83,
+        "map": 5,
+        "relic_reward": 12
+      },
+      "run_cleared": false,
+      "seed": 2008010035,
+      "steps": 105,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 2,
+        "combat": 71,
+        "event": 2,
+        "map": 4,
+        "relic_reward": 7
+      },
+      "run_cleared": false,
+      "seed": 2008010036,
+      "steps": 87,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 89,
+        "event": 8,
+        "map": 10,
+        "relic_reward": 14,
+        "shop": 4,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010037,
+      "steps": 131,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 99,
+        "event": 4,
+        "map": 10,
+        "relic_reward": 10,
+        "rest": 2,
+        "shop": 4,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010038,
+      "steps": 134,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 122,
+        "event": 2,
+        "map": 5,
+        "relic_reward": 9,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010039,
+      "steps": 144,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 107,
+        "event": 2,
+        "map": 10,
+        "relic_reward": 14,
+        "rest": 2,
+        "shop": 6,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010040,
+      "steps": 147,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 97,
+        "event": 2,
+        "map": 5,
+        "relic_reward": 10,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010041,
+      "steps": 120,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 163,
+        "event": 2,
+        "map": 8,
+        "relic_reward": 14,
+        "shop": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010042,
+      "steps": 194,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 112,
+        "event": 4,
+        "map": 10,
+        "relic_reward": 11,
+        "rest": 2,
+        "shop": 1,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010043,
+      "steps": 146,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 2,
+        "combat": 82,
+        "map": 3,
+        "relic_reward": 8
+      },
+      "run_cleared": false,
+      "seed": 2008010044,
+      "steps": 96,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 120,
+        "event": 6,
+        "map": 10,
+        "relic_reward": 15,
+        "rest": 2,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010045,
+      "steps": 159,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 78,
+        "map": 4,
+        "relic_reward": 11
+      },
+      "run_cleared": false,
+      "seed": 2008010046,
+      "steps": 97,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 148,
+        "event": 2,
+        "map": 5,
+        "relic_reward": 10
+      },
+      "run_cleared": false,
+      "seed": 2008010047,
+      "steps": 169,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 128,
+        "event": 4,
+        "map": 10,
+        "relic_reward": 14,
+        "rest": 2,
+        "shop": 5,
+        "transform_select": 2,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010048,
+      "steps": 171,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 76,
+        "event": 4,
+        "map": 7,
+        "relic_reward": 9,
+        "shop": 9,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010049,
+      "steps": 111,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 1,
+        "combat": 66,
+        "map": 2,
+        "relic_reward": 3
+      },
+      "run_cleared": false,
+      "seed": 2008010050,
+      "steps": 73,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 86,
+        "event": 5,
+        "map": 7,
+        "relic_reward": 10
+      },
+      "run_cleared": false,
+      "seed": 2008010051,
+      "steps": 113,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 98,
+        "map": 4,
+        "relic_reward": 10
+      },
+      "run_cleared": false,
+      "seed": 2008010052,
+      "steps": 117,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 5,
+        "combat": 107,
+        "map": 8,
+        "relic_reward": 16,
+        "rest": 2,
+        "shop": 3
+      },
+      "run_cleared": false,
+      "seed": 2008010053,
+      "steps": 142,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 100,
+        "map": 4,
+        "relic_reward": 10
+      },
+      "run_cleared": false,
+      "seed": 2008010054,
+      "steps": 118,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 4,
+        "combat": 87,
+        "map": 4,
+        "relic_reward": 9
+      },
+      "run_cleared": false,
+      "seed": 2008010055,
+      "steps": 105,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 103,
+        "map": 4,
+        "relic_reward": 11
+      },
+      "run_cleared": false,
+      "seed": 2008010056,
+      "steps": 122,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 6,
+        "combat": 172,
+        "event": 4,
+        "map": 12,
+        "relic_reward": 16,
+        "rest": 4,
+        "transform_select": 1,
+        "treasure": 1
+      },
+      "run_cleared": false,
+      "seed": 2008010057,
+      "steps": 217,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 3,
+        "combat": 69,
+        "map": 5,
+        "relic_reward": 10,
+        "shop": 4
+      },
+      "run_cleared": false,
+      "seed": 2008010058,
+      "steps": 92,
+      "won": false
+    },
+    {
+      "phases": {
+        "ancient": 1,
+        "card_reward": 2,
+        "combat": 93,
+        "map": 3,
+        "relic_reward": 7,
+        "transform_select": 2
+      },
+      "run_cleared": false,
+      "seed": 2008010059,
+      "steps": 108,
+      "won": false
+    }
+  ],
+  "scope_note": "every step of a campaign rollout, tagged with the phase the engine offered it in, under the frozen production v5 checkpoint; the question is whose decisions the PPO loss is built from, because on the real client combat belongs to a third-party solver",
+  "stage": "full_run",
+  "step_share_by_phase": {
+    "ancient": 0.0076,
+    "card_reward": 0.0261,
+    "combat": 0.8024,
+    "event": 0.0156,
+    "map": 0.047,
+    "relic_reward": 0.0801,
+    "rest": 0.0045,
+    "shop": 0.012,
+    "transform_select": 0.003,
+    "treasure": 0.0016
+  },
+  "steps_by_phase": {
+    "ancient": 60,
+    "card_reward": 207,
+    "combat": 6364,
+    "event": 124,
+    "map": 373,
+    "relic_reward": 635,
+    "rest": 36,
+    "shop": 95,
+    "transform_select": 24,
+    "treasure": 13
+  },
+  "total_steps": 7931
+}

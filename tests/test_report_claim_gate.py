@@ -335,5 +335,60 @@ class LiveWinReplayAvailabilityTests(unittest.TestCase):
         self.assertEqual(0, result["recorded_wins"])
 
 
+class PhaseActionShareTests(unittest.TestCase):
+    """The responsibility audit has to be falsifiable, and its red is the finding.
+
+    80.2% of the steps a campaign arm trains on are combat decisions the real client hands to a
+    third-party solver, so the trainer is optimising a layer the product does not ship. The gate
+    carries that as a declared false check (`trained_actions_are_all_out_of_combat`), which means
+    the arithmetic around it must be able to fail: shares that no longer recompute, a total that
+    does not match its rows, or a checkpoint that is not the file the audit read.
+    """
+
+    ARTIFACT = {
+        "total_steps": 100,
+        "steps_by_phase": {"combat": 80, "map": 20},
+        "step_share_by_phase": {"combat": 0.8, "map": 0.2},
+        "combat_step_share": 0.8,
+        "out_of_combat_step_share": 0.2,
+        "per_episode": [{"seed": 1, "phases": {"combat": 80, "map": 20}}],
+    }
+
+    def test_the_recorded_split_is_not_yet_aligned(self) -> None:
+        verdicts = V.evaluate_phase_share(dict(self.ARTIFACT), True, [])
+        self.assertFalse(verdicts["trained_actions_are_all_out_of_combat"])
+        self.assertTrue(verdicts["per_episode_rows_recompute_the_recorded_shares"])
+
+    def test_an_aligned_arm_would_clear_it(self) -> None:
+        artifact = {
+            "total_steps": 20,
+            "steps_by_phase": {"map": 20},
+            "step_share_by_phase": {"map": 1.0},
+            "combat_step_share": 0.0,
+            "per_episode": [{"seed": 1, "phases": {"map": 20}}],
+        }
+        verdicts = V.evaluate_phase_share(artifact, True, [])
+        self.assertTrue(verdicts["trained_actions_are_all_out_of_combat"])
+        self.assertTrue(verdicts["combat_share_matches_the_rows"])
+
+    def test_a_tampered_row_breaks_the_recomputed_shares(self) -> None:
+        artifact = {**self.ARTIFACT,
+                    "per_episode": [{"seed": 1, "phases": {"combat": 40, "map": 60}}]}
+        verdicts = V.evaluate_phase_share(artifact, True, [])
+        self.assertFalse(verdicts["per_episode_rows_recompute_the_recorded_shares"])
+        self.assertFalse(verdicts["combat_share_matches_the_rows"])
+
+    def test_a_missing_checkpoint_is_named_instead_of_reading_clean(self) -> None:
+        verdicts = V.evaluate_phase_share(dict(self.ARTIFACT), False, ["x/step.zip"])
+        self.assertFalse(verdicts["checkpoint_digest_matches_the_file"])
+
+    def test_an_empty_audit_cannot_report_green(self) -> None:
+        artifact = {**self.ARTIFACT, "total_steps": 0, "steps_by_phase": {},
+                    "step_share_by_phase": {}, "combat_step_share": 0.0, "per_episode": []}
+        verdicts = V.evaluate_phase_share(artifact, True, [])
+        self.assertFalse(verdicts["recorded_total_steps_matches_the_rows"])
+        self.assertFalse(verdicts["trained_actions_are_all_out_of_combat"])
+
+
 if __name__ == "__main__":
     unittest.main()

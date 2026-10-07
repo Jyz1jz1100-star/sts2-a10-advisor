@@ -1567,6 +1567,59 @@ def classify_digest_fields(tree) -> dict:
     return {"full": full, "abbreviated": abbreviated, "malformed": malformed}
 
 
+PHASE_ACTION_SHARE = ROOT / "docs/evidence/phase_action_share_20261007.json"
+
+
+def evaluate_phase_share(artifact: dict, digest_ok: bool, checkpoint_missing: list) -> dict:
+    """Score the audit of which phase the trained steps come from.
+
+    The product delegates fighting to a third-party solver, so most of what a campaign arm
+    currently optimises is not shipped. That is measured step by step against a frozen
+    checkpoint, and this turns the measurement into a gate: the recorded shares have to
+    recompute from the per-episode rows, the checkpoint has to still be the file the audit
+    read, and the alignment question gets its own answer -- one that is allowed to be red,
+    declared as such, and cleared only by changing what the trainer optimises.
+    """
+    steps: dict = {}
+    for row in artifact.get("per_episode") or []:
+        for phase, count in (row.get("phases") or {}).items():
+            steps[phase] = steps.get(phase, 0) + int(count)
+    total = sum(steps.values())
+    recomputed = {phase: round(count / total, 4) for phase, count in steps.items()} if total else {}
+    combat = sum(int((row.get("phases") or {}).get("combat") or 0)
+                 for row in artifact.get("per_episode") or [])
+    recorded_total = int(artifact.get("total_steps") or 0)
+    return {
+        "per_episode_rows_recompute_the_recorded_shares": recomputed == artifact["step_share_by_phase"],
+        "recorded_total_steps_matches_the_rows": total == recorded_total > 0,
+        # Named for what it compares: the headline share against the rows, not against the
+        # aggregate field the rows were summarised into. An earlier version checked the latter,
+        # which made it unbreakable by exactly the tampering it claims to catch.
+        "combat_share_matches_the_rows": (
+            artifact.get("combat_step_share") == round(combat / total, 4) if total else False),
+        "checkpoint_digest_matches_the_file": digest_ok and not checkpoint_missing,
+        # G1 in one line: false while the trainer is optimising a layer the product hands to
+        # the mod. Declared false in the expectations file; cleared by the fixed-combat-executor
+        # arm, never by editing this line.
+        "trained_actions_are_all_out_of_combat": bool(total) and combat == 0,
+    }
+
+
+def claim_phase_action_share():
+    """Re-derive the phase audit's numbers from its own per-episode rows."""
+    data = json.loads(PHASE_ACTION_SHARE.read_text(encoding="utf-8"))
+    path = ROOT / data["checkpoint"]
+    missing = [] if path.is_file() else [str(path)]
+    digest_ok = bool(path.is_file()) and (
+        hashlib.sha256(path.read_bytes()).hexdigest() == data.get("checkpoint_sha256"))
+    doc = (ROOT / "docs/TRAINING_GATES_2026-10-07.md").read_text(encoding="utf-8")
+    verdicts = evaluate_phase_share(data, digest_ok, missing)
+    verdicts["gates_doc_quotes_the_combat_share"] = (
+        f"{data['combat_step_share'] * 100:.1f}%" in doc
+        and f"{data['out_of_combat_step_share'] * 100:.1f}%" in doc)
+    return verdicts
+
+
 def claim_evidence_bundle_integrity():
     """Re-verify the evidence bundle's own hash binding, independently of the manifest.
 
@@ -3306,8 +3359,9 @@ CLAIMS = {
                                  "the refusal classes on three checkpoints and two stages"),
     "evidence_bundle_integrity": (claim_evidence_bundle_integrity,
                                "the whole docs/evidence bundle, re-hashed from disk"),
-    "dead_end_vocabulary": (claim_dead_end_vocabulary,
-                             "every dead-end label the metrics have ever produced"),
+    "dead_end_vocabulary": (claim_dead_end_vocabulary,                             "every dead-end label the metrics have ever produced"),
+    "phase_action_share": (claim_phase_action_share,
+                            "which phase the trained steps come from, recomputed from its rows"),
     "report_exec_table_citations": (claim_report_exec_table_citations,
                                    "each decision-table row cites something that exists"),
     "objective_clause_audit": (claim_objective_clause_audit,
