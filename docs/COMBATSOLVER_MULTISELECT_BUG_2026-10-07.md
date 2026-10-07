@@ -166,3 +166,45 @@ full_auto 的驱动似乎挂在「回合部署」上，而部署要等模态关�
 
 日志与状态快照可提供：上面两个 `%APPDATA%` 路径、`combat_no_progress` 的三次停批记录
 （批次 `ssb-20261007T071936Z-86be5479` 与 `ssb-20261007T075006Z-7584530b`，均在 Act 3 floor 49 同一状态；更早 06:05-06:19Z 那次是人工停批，那时守卫还不存在）。
+
+
+## 2026-10-07 追加：第三个签名——普通 `ChooseCard` 页面也会触发同一个异常，且与赌博筹码无关
+
+同一份 0.50.1，在**两个不同的客户端进程**里各出现一次。逐字日志：
+
+```
+[06:11:11.067Z] NATIVE_CHOICE_REQUEST owner=deployment_end_turn:1 sequence=29 surface=ChooseCard
+                 visible=True source= options=2 select=0..1 manual_confirmation=False card_selection_rng=0
+[06:11:11.454Z] DEPLOY_CHOICE_PAUSED turn=1
+                 exception=CombatSolver.NativeChoiceSurfaceMismatchException: 原生三选一页面在计划提交前发生变化。
+                 at CombatSolver.NativeChoiceSurface.Selec…（下文截断，完整栈见日志）
+```
+
+第二次在 **Act 2 floor 33 的 boss 战**（13:08:14.023Z，`turn=9`，同一异常类与同一句文案）。
+该局**不持有 `GAMBLING_CHIP`**，遗物是
+`BURNING_BLOOD, FISHING_ROD, SWORD_OF_STONE, HORN_CLEAT, TUNGSTEN_ROD, ORICHALCUM, NUNCHAKU,
+PAELS_TOOTH, SELF_FORMING_CLAY, RED_MASK`，药水 `SNECKO_OIL, BLESSING_OF_THE_FORGE`——
+所以这条路不是上面那条开局多选，而是**战斗进行中的普通二选一页面**。
+
+两点可能对作者有用：
+
+1. **异常文案与它自己刚记录的请求不一致。** 请求写的是 `options=2 select=0..1`（二选一），
+   抛出的文字却是"原生**三选一**页面……"。如果文案里的数量词是硬编码，那么它对任何
+   `ChooseCard` 页面都会给出误导性的描述，排查时容易找错分支。
+2. **提交前的"页面变化"发生在同一回合内 0.4–3 秒的窗口。** 06:11 那次是 387 ms；13:08 那次
+   停顿之后，求解器在 13:08:17.252–17.300Z 仍算出了 `turn=10` 的 `SEARCH_*` 与 `RESULT`
+   （`expanded=3825`，`choice_replay_attempts=846`，`choice_replay_budget_exhaustions=0`），
+   而那是这场战斗日志的**最后一条**。我方自动玩家恰好在 13:08:16.966Z 因 `solver_choice_paused`
+   停批（探针按设计工作），所以到 13:35Z 客户端仍是 `boss / act 2 / floor 33 / round 10 /
+   turn=player / is_play_phase=true`（HP 67、block 10、手牌 5），**已有约 27 分钟没有任何求解器活动**。
+   我不把这条记成"自愈"：停批与最后一条求解器日志几乎同时，谁先谁后不能从日志单独断定，
+   但战斗确实没有继续下去。
+
+日志目录（同一 profile，按进程号分目录）：
+`%APPDATA%\SlayTheSpire2\logs\CombatSolver\76640-3fcbfabe5af54c1cb874169b2cc342dd\`（06:11 那次）、
+`79136-4517276bce1f4ff0a06e8640fab18d50\combat-02d1af6ba3aa4edfb9912f2df1b9323c.jsonl`（13:08 那次）。
+
+本方边界不变：**自动玩家从不执行战斗动作**，一条 `combat_confirm_selection` 就能过掉页面，
+但那等于把唯一动作执行者的位置抢过来，正是验收契约拒绝的事。因此这条也只能由 mod 侧修复；
+修复后我们可以在同一批里立刻复测——`solver_choice_paused` 探针已经能在数秒内判定并停批，
+不靠人盯日志。

@@ -4969,3 +4969,37 @@ batch embarks zero times; a menu start consumes nothing. Light suite 773 tests O
 claims 64/64 -- and the semantics note matters for the documented batch command: `--max-runs 6` now
 means six runs gathered, not six runs started, so a batch that continues a leftover run embarks five
 times and stops at the menu.
+
+## 2026-10-07 (evening, tenth entry): the pause guard fired in production for the first time, and what that did NOT prove
+
+`ssb-20261007T130333Z-40998609` was the first batch launched after the run-budget fix, chosen small
+(`--max-runs 2`) because it opened on the parked act-1 run: adopt it, embark once, stop at the menu.
+It never got there. At 13:08:14Z the solver logged `DEPLOY_CHOICE_PAUSED turn=9` with
+`NativeChoiceSurfaceMismatchException` inside the act-2 floor-33 boss fight, the keeper's
+`DEPLOY_CHOICE_PAUSED` detector (built in #41, never before triggered on real hardware) classified the
+stop, and the supervisor exited 14 at **13:08:16.966Z -- 2.9 seconds after the pause**, with
+`autoplay` and `fullauto_keeper` both gone and `comparison` at 0.
+
+What that is evidence for: the pipeline now ends a batch loudly and attributably instead of eating it.
+What it is **not** evidence for: the budget fix. Nothing sealed, so `runs_adopted` never incremented and
+`runs_started` stayed 0 -- the trace ends on `state` events, not on `session_end`. The claim "a batch
+now stops at a free menu" is therefore still unverified on live hardware; it is unit-tested only, and
+saying more would be exactly the transcription-error this evening has already made twice.
+
+The client is now sitting in a live boss fight nobody is driving: `boss / act 2 / floor 33 /
+round 10 / turn=player / is_play_phase=true`, HP 67, block 10, hand 5, no solver activity for
+~27 minutes. The solver did compute a `RESULT` for turn 10 at 13:08:17.252-17.300Z, essentially
+concurrent with our stop, so I do **not** record it as self-recovering -- either way the fight did not
+continue. Clearing it is operator-owned: it needs a human click on the paused deploy or a client
+restart, and `abandon_run`/save deletion stays out of bounds. This is the "a wedged save blocks the
+whole pipeline" case from the operating constraints, reached again, and #47's seeded read-back is
+blocked by it -- now for a client-side reason rather than our own overshoot.
+
+Recorded as a **third** signature in `docs/COMBATSOLVER_MULTISELECT_BUG_2026-10-07.md`, kept separate
+from the `GAMBLING_CHIP` opening-multi-select report: a plain in-combat `ChooseCard` surface
+(`options=2 select=0..1`) threw the exception whose text says "三选一" (three-choice), twice today in
+two different client processes (06:11:11Z `turn=1`, 13:08:14Z `turn=9`), in the 13:08 case with no
+`GAMBLING_CHIP` among ten relics. The message/arity mismatch and the sub-second commit window are
+written out verbatim with log directory names, because those are the two things only our logs carry.
+
+No combat action was posted, no save was cleared, no lock was re-pinned, no gate was relaxed.
