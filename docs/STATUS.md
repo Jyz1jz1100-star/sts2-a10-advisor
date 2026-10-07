@@ -4223,3 +4223,42 @@ been pointed at *why* the boss is unwinnable -- the `boss_reward_rule` +21 promo
 recorded mechanism that used to convert a lost clear, and the v5 engine no longer offers the scripted
 assistance that made the 9 wins land.
 
+### A gate that protected a flattering word, and the live run wedging at the Act-2 boss (2026-10-07)
+
+Restating the Act-1 row of the audit table turned a third claim red, and this one was worth stopping
+on: `the_other_six_are_marked_achieved_with_limits` required six verdicts to contain 「达成」 and one to
+contain the literal string "第一幕达成". So writing the downgrade honestly made the gate fail. A check
+that rejects a downgrade is guarding prose, not findings, and it is the same failure mode as the
+vocabulary literals two sections above -- an observation frozen into an assertion. `evaluate_audit_verdicts()`
+now pins a closed shape instead: every row must open with a bold verdict stating an achievement status,
+the two rows that were already failing must keep saying so, and the Act-1 row must name **both** engine
+versions, so it cannot fall back to a bare 「达成」 without someone deleting the measurement. Six
+differential cases in `tests/test_report_claim_gate.py::AuditVerdictShapeTests` show each of those can
+fail, including the one this session actually hit (the version-qualified restatement). Expectations
+re-pinned for the renamed keys, manifest rebuilt last, and the tallies re-measured: **61/61 scored
+claims, 32/32 engine citation anchors, 669 contract tests OK (2 skipped), gate file 19 tests.**
+
+The acceptance batch then produced the most valuable live trace so far and a new defect class with it.
+Run `NS4JL3YBC3B4` started at floor 1, crossed into Act 2, and reached **floor 33, the Act-2 boss**
+(KNOWLEDGE_DEMON, 378 HP remaining, player 67 HP) -- deeper than any previously recorded live run.
+There it stopped: the client log's last line is `Player 1 chose cards [DISINTEGRATION]`, `godot.log`
+held at 450,884 bytes across repeated 12 s samples, and the bridge state was byte-identical for over
+15 minutes while autoplay kept polling. The CombatSolver had claimed the turn and never played it.
+
+Two things follow, and neither is a strategy result:
+
+* the wedge is a flow defect by the project's own definition (a run that cannot advance, not a run that
+  lost), so it belongs to implementation, not to strength;
+* autoplay bounds the screens it owns (300 s stall branches at `bridge/autoplay.py:1717-1779`) but has
+  **no progress bound on solver-owned combat** -- it waits indefinitely with no reason recorded, which
+  is precisely the "silently retry forever" behaviour the standing rules forbid. That is now task #41,
+  and the bound has to be derived from observed fight durations rather than picked, so a legitimately
+  long boss fight is not mistaken for a wedge.
+
+The batch was stopped with the documented stop file (`stop_reason: operator_stop_file`, `result_code 130`,
+session written at 06:21:13Z) rather than left hanging; evidence was captured first to
+`runtime/wedged_godot_20261007.log` and `runtime/wedged_state_20261007.json`. The client was killed and
+relaunched through `steam://rungameid/2868840`, and a new batch is running with the same limits. It will
+`continue` the wedged save, so that trace cannot certify whatever it does next -- but it is also the
+cheapest test of whether the wedge reproduces at the same node.
+

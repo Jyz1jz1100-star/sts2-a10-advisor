@@ -18,7 +18,7 @@
 | 能说"稳定能赢"吗？ | **不能**。9 次胜局落在 9 个互不相同的种子上（同一臂 1M 与 4M 各赢两个不同种子），当前水平下 Act 1 胜利像尾部随机事件；逐局 0.022%、逐种子 0.090%，离 35% 门槛差两个数量级 | 台账、"两两不交"一节 |
 | 多跑几夜有用吗？ | **无用**：同一分区 1M→4M 的配对检验 Δ=+0.030 [-0.65,+0.72] p≈0.95；阶梯在 floor10 退化被记成"保命不推进"的奖励利用（**这个归因本晚被下面两行的测量改掉了，至少不是主导机制**） | 空检查一节；`FREEZE_2026-09-02` |
 | "underdocks 终局在 33 层"算错吗？ | **要分两层，上一版把两层混成了一句"两幕一样"**：`RunEngine.cs:1194-1197` 的 `terminalFloor=33` 确实是**非 boss 出口**的推进保护，`NodeBoss → Complete`（`RunEngine.cs:1093-1111`，v2 起这条还要 `&& !State.Campaign`）确实是完成条件——但它**只挂在遗物领奖那一条出口**上。反事实实测：生成的第二幕在 floor 17 打完 boss 后，4 个领奖动作里 2 个拿到 `complete`、2 个被退回 `map` 空掩码。所以 33 不只是"约束演示种子链"，它会让一条**已经打赢的生成式第二幕**不被判赢 | "boss 完成分叉"一节 + `act2_boss_completion_fork_20260919.json` |
-| 那个"保命不推进"的解释还成立吗？ | **不是主导机制**：被解剖的 demo-seed 锁死局里 59,681 次过回合中**有牌可打却过回合 0 次**、99.995% 是"唯一合法动作"，锁死时满能量 + 手牌 5 张 Wound（`Unplayable: true`）。真因是该局 boss 为 Vantom（`EnemyAI.cs:259-263` 每 4 回合灌 3 张不可打 Wound），**但该局起手与抽牌堆被引擎为演示种子写死**（`RunEngine.cs` 里那段已随 `sts2sim-campaign-fidelity-v5` 删除的演示种子分支）。已在 9 个非脚本胜局复测：33–63 个决策就打死 boss、Wound 锁死 **0/9**、龟缩 **4/92 次**（罕见但非零——我先前写"零"是说过头了）。可下的两条：① 尽早识别"唯一合法动作长期持续"并终止——**但这类截断其实已计入 `defect_truncation_rate` 并受 3% 门槛约束；“缺标签可分辨性”这句本晚也被词表普查推翻——`empty_action_mask` 50、`step_cap` 6、`native_rejection` 861，两种情形**都**有标签（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）。剩下的缺口更窄：同一局若两个条件同时成立，只会留下 `empty_action_mask` 一个值**；② 缺口是"到 boss 层后掉进无进展状态"，不是"打不动 183 血" | "僵持的机制"+"通用性测试"两节 |
+| 那个"保命不推进"的解释还成立吗？ | **不是主导机制**：被解剖的 demo-seed 锁死局里 59,681 次过回合中**有牌可打却过回合 0 次**、99.995% 是"唯一合法动作"，锁死时满能量 + 手牌 5 张 Wound（`Unplayable: true`）。真因是该局 boss 为 Vantom（`EnemyAI.cs:259-263` 每 4 回合灌 3 张不可打 Wound），**但该局起手与抽牌堆被引擎为演示种子写死**（`RunEngine.cs` 里那段已随 `sts2sim-campaign-fidelity-v5` 删除的演示种子分支）。已在 9 个非脚本胜局复测：33–63 个决策就打死 boss、Wound 锁死 **0/9**、龟缩 **4/92 次**（罕见但非零——我先前写"零"是说过头了）。**这九局是 v4 引擎上的结果，现在不是现行强度：10-07 用同一台仪器、同样的五臂九种子、按各行自己的臂配置在 v5 上重放，`wins_reproduced: 0`，其中五局仍打到 floor 17 但全部被 boss 打死（HP 归 0、环境正常终止、0 非法动作）。"非脚本"当年只证明"这枚种子不是 `7MS1YN8NWB`"，没证明"这枚种子的 boss 局没被覆写"——被删掉的覆写并不按种子把关。**可下的两条：① 尽早识别"唯一合法动作长期持续"并终止——**但这类截断其实已计入 `defect_truncation_rate` 并受 3% 门槛约束；“缺标签可分辨性”这句本晚也被词表普查推翻——`empty_action_mask` 50、`step_cap` 6、`native_rejection` 861，两种情形**都**有标签（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）。剩下的缺口更窄：同一局若两个条件同时成立，只会留下 `empty_action_mask` 一个值**；② 缺口是"到 boss 层后掉进无进展状态"，不是"打不动 183 血" | "僵持的机制"+"通用性测试"两节 |
 | 按幕过滤训练种子有用吗？ | **没用，方向还是反的**：Δ mean_floor −0.280，CI [−0.583, +0.020]，上界≈0 已排除有意义的增益 | 本节"A/B 结果"小节；两臂运行目录 `runtime/act1_ab/a1filt`、`runtime/act1_ab/a1mix`（gitignored，故不作为可复核出处） |
 | 采样评估能救 boss 僵持吗？ | **不能**：8 次采样全部第 4–8 层阵亡，连 boss 都到不了；僵持是 59930 个不重复状态的僵局，不是循环 | `chained_frontier_full_20260919.json`、"僵持的机制"一节 |
 | "'0 非法动作'这句话有多强？" | **比字面弱，且是半结构性的（但已定位到阶段：拒绝全部在 shop 641/2,866=22.4% 与 event 112/4,305=2.6%；combat 130,993 个决策、relic_reward 17,698、card_reward 5,459 全为 0；**map 也是量过的 0：11,060 个地图决策**）**：契约有三条通道，策略侧越界确实是 0，但同一批 39,891 局里引擎拒绝了 **18,160 次掩码内动作**（act1 每局 0.53 次）。默认 `rejection_mode="filter"` 会把被拒动作摘掉后**把决策交回策略重选**，所以"0 非法"里混着"被拦下后改选"——本文所有"策略在某状态选了 X"都指**过滤后实际执行**的那一步。旧 schema 另把 861 局记成 `native_rejection` 结束，与现行 schema 的 0 局并不矛盾。而链分支上那处地图死路**看着像**该被计入 map 拒绝、其实一次也不计入：引擎掩码为空时契约根本不问引擎，直接以 `empty_action_mask` 收尾（接手的是 `v2_flat_env.py:240-250`，外层 `v2_run_wrapper.py:241-253` 只是备手；实测该步前后拒绝计数都是 6）。两侧由 `map_deadend_short_circuits_before_the_refusal_census` 从两个工件各自重算钉住 | `contract_channels_20260919.json`、`census_contract_channels.py`、`rejection_phase_attribution_20260919.json`、`census_rejection_phases.py`、`chained_map_deadend_fork_20260920.json` |
@@ -1773,7 +1773,7 @@ digest mismatches: 0
 实际有 5 条发现加一个"谁判定"，于是那条"发现数对不对"的检查为 false，而验证器照样报全部一致）。
 现在 `main()` 把任何 false 检查单独算作 drift（状态 `FALSE_CHECK`、退出码 1），除非运行方在期望
 文件里用 `_expected_false_checks` 明确声明"这条就是被证伪的结论"。行为由
-`tests/test_report_claim_gate.py`（13 项，毫秒级、不加载模拟器）钉住：其中一项扫已提交的期望文件、
+`tests/test_report_claim_gate.py`（19 项，毫秒级、不加载模拟器）钉住：其中一项扫已提交的期望文件、
 要求不存在未声明的 false，另一项要求每个已注册声明都在期望文件里有条目（漏钉会报 UNPINNED），
 本晚新加的第三项要求"抛异常的声明"退出码仍为 1 且被按名字列出（防的就是上面那个 39/40 误读）。
 
@@ -2846,8 +2846,12 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 
 下面每一行左边是目标里的原话片段，中间是现在的判定，右边是**现在就重算得动**的证据文件与声明名。
 生成这张表的脚本会先检查：点名的文件必须存在、点名的声明必须注册在 CLAIMS 里——所以它不是一张
-引用了不存在产物的表。声明 `objective_clause_audit` 再把这张表本身钉住（9 行，且第 1 行必须仍然
-写着「未达成」、第 6 行必须仍然写着「部分达成」——防止将来被悄悄改绿）。**这一版起，这些行的规模数也重算了**：
+引用了不存在产物的表。声明 `objective_clause_audit` 再把这张表本身钉住（9 行，每行都必须以加粗判定词
+开头并写明达成状态，且第 1 行必须仍然写着「未达成」、第 6 行必须仍然写着「部分达成」——防止将来被悄悄改绿。
+这一版还另外钉住一件事：**判定列不再是"说好话的行数"**。原先它要求六行含「达成」、其中一行含字面
+"第一幕达成"，于是当第一幕在 v5 引擎上一局都不复现、把这行如实改成"曾在 v4 达成"时，检查反而变红了——
+一条会把"降级"判成错误的门，保护的是措辞而不是发现。现在它要求：每行都得声明达成状态、两行本来就没达到的
+必须继续写着没达到，而**这行必须同时点出 v4 与 v5 两个版本名**，所以它不能在没人决定删掉测量之前退回成光秃秃的「达成」）。**这一版起，这些行的规模数也重算了**：
 判定列此前只查"点名的文件在不在、声明注册没注册"，所以一个被后续普查推翻的计数可以长期留在表里而全绿；
 现在四行的数字必须与产物重新相等（第三行的 39,891 与 18,160、第四行的词表 50/861/6、
 第七行的 21 臂 / 118 份指标 / 190 与 110 对重叠、第八行记的证据文件数与 233 个摘要），
@@ -2858,7 +2862,7 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 | 目标条款 | 判定 | 依据与规模 | 证据文件 | 声明 |
 |---|---|---|---|---|
 | 模拟器范围内取得一次可复核的 **Act 1-3 全流程胜利** | **未达成，且不可表示** | 模拟器只有两幕；唯一跨幕分支（演示种子 7MS1YN8NWB）穷举检查点后只有 3 个走进第二幕、0 个走完两幕，最深到第二幕第 22 层（09-19 人口 84 枚；**09-20 用同一驱动重跑时人口已涨到 102 枚，结论逐条不变**，见"重跑前沿"小节；并且那两枚活着截断的局已测出是**引擎在 floor 19 没有给出任何地图后继**，属于结构天花板（`chained_map_deadend_fork_20260920.json`、声明 `chained_map_deadend`））。按已达到的速率外推，期望一次双幕通关需要约 2000 个检查点，而盘上现在 102 枚。**最接近的那一步现在被量出来了**：清完第二幕 boss 却未判胜的局里，在遗物领奖屏上有一步可直接判胜、策略一次也没选；这一条在被臂训过的分区与从未用过的 final 保留分区上都复现（保留分区 67→83 判胜、转化 16、弄坏 0）。它不改变"三幕不可表示"，只说明剩下的差距是决策而不是引擎 | `chained_frontier_full_20260919.json`、`chained_frontier_full_20260920.json`、`boss_reward_rule_holdout_final_20260920.json`、`act2_boss_clear_recoverability_20260920.json` | `chained_frontier`、`emulator_act_ceiling`、`chained_terminal_gates`、`boss_reward_rule_holdout`、`boss_clear_recoverability` |
-| **16 层到终局** | **第一幕达成；第二幕按引擎判据不是 17 层** | 9 个具名第一幕胜利逐种子复现（won + floor 17）；第二幕 boss 在第 17 层，但另一条出口要求 floor 33，所以 terminalFloor 与 boss 层不是一回事。普查：Act 1 到达 83 局胜 0；Act 2 到达 79 局胜 25 | `act1_evidence_20260919.json`、`act1_win_ledger_20260919.json`、`act1_terminal_census_3500_20260919.json`、`act2_boss_misexit_rate_20260919.json` | `evidence_matrix_totals`、`win_ledger`、`terminal_census`、`boss_misexit_rate`、`terminal_floor_qualification` |
+| **16 层到终局** | **第一幕曾在 v4 引擎达成；10-07 在 v5 引擎上逐种子重放 0/9 复现** | 9 个具名第一幕胜利在 v4 引擎逐种子复现过（won + floor 17，`act1_win_ledger_20260919.json`，检查点摘要与矩阵记录逐行相等）。**2026-10-07 用同一台仪器、同样的五个臂与九枚种子、按各行自己的臂配置重放，`wins_reproduced: 0`**（检查点摘要仍然相等，所以不是换权重）：九局里五局仍打到 floor 17，但都以 `run_outcome: loss`、`final_player_hp: 0`、环境判定的正常终止收尾，且 0 非法动作——即"打到 boss、被 boss 打死"，不是卡死或缺内容。这一条与词表那条同理：v5 删掉的 retained-trace 覆写**不是只对演示种子生效**，所以当年"非脚本胜局"只证明了"这枚种子不是 `7MS1YN8NWB`"，没有证明"这枚种子的 boss 局没被覆写过"。第二幕 boss 在第 17 层，但另一条出口要求 floor 33，所以 terminalFloor 与 boss 层不是一回事。普查：Act 1 到达 83 局胜 0；Act 2 到达 79 局胜 25——**这两个到达数与 25 次第二幕通关同样是在 v4 引擎上测的，还没有在 v5 上逐种子重放；未重放前不得当作现行强度** | `act1_evidence_20260919.json`、`act1_win_ledger_20260919.json`、`act1_terminal_census_3500_20260919.json`、`act2_boss_misexit_rate_20260919.json` | `evidence_matrix_totals`、`win_ledger`、`terminal_census`、`boss_misexit_rate`、`terminal_floor_qualification` |
 | **0 非法动作** | **达成，但一半是结构性的** | 策略侧越界在 39,891 局里为 0；同一批局里 rejection_events 18,160。默认 filter 模式使 illegal_actions 不可能非零。753 次拒绝的根因已逐行重放到引擎判据（药水容量 641、事件 112），跨 4 个检查点 2 个阶段复现，且 0 次牵涉本仓库的掩码展开 | `contract_channels_20260919.json`、`rejection_phase_attribution_20260919.json`、`refusal_root_cause_20260919.json`、`refusal_class_generality_20260919.json` | `contract_channels`、`rejection_phase_attribution`、`refusal_root_cause`、`refusal_class_generality` |
 | **无未分类死局** | **达成，并且现在是被恒等式撑着而不是被计数器撑着** | unclassified_dead_ends 在 8,853 个截断上恒为 0，但这句本身不够：没字段描述的截断同样让它是 0。于是另立恒等式 `truncations == reasons + unclassified + max(0, boundary_hits - wins)`，在可验的那 216 份现行 schema 文件、4,383 次截断上逐份闭合（余下 54 份旧文件根本没写过 boundary_hits，不能测、也没被算进闭合里）；死因词表普查为三项（empty_action_mask 50、step_cap 6、native_rejection 861，`step_cap` 现分属 act1 与 full_run 两个阶段，见"v5 词表更正"小节），其中现行的 53 次已逐种子定位（有名截断现在共 56 次，campaign 臂的 3 次尚未逐种子定位），跨幕路径上也是 0 | `dead_end_vocabulary_20260919.json`、`chained_terminal_gates_20260919.json`、`truncation_ledger_20260920.json`、`empty_mask_endings_20260920.json` | `dead_end_vocabulary`、`dead_end_reason_census`、`chained_terminal_gates`、`truncation_ledger`、`empty_mask_endings` |
 | 用 **V2 契约栈** | **达成** | OBS_SIZE 1739 / FLAT_SIZE 225 / TARGET_SLOTS 7，全部按代码重算而非引用 | —（由声明直接对代码重算） | `v2_contract_sizes` |

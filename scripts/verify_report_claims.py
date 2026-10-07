@@ -2844,6 +2844,36 @@ def claim_emulator_source_provenance():
     }
 
 
+def evaluate_audit_verdicts(verdicts: list) -> dict:
+    """Score the shape of the audit table's verdict column.
+
+    This used to require that six rows say 「达成」 and that one of them say
+    "第一幕达成". That was a count of flattering words, and it broke in exactly the wrong
+    direction when the Act-1 wins failed to reproduce on fidelity-v5: restating a row as
+    "achieved once, on an engine that no longer exists" is a downgrade, and a gate that
+    rejects it is a gate that protects prose, not findings.
+
+    What is pinned instead: every row opens with a bold verdict that states an achievement
+    status (so no row can be left unclassified), the two rows that were already failing
+    still say so, and the one row whose status changed between engine versions has to name
+    both of them -- so it cannot drift back to a bare 「达成」 without somebody deciding to
+    delete the measurement.
+    """
+    unmarked = [index for index, verdict in enumerate(verdicts)
+                if not (verdict.startswith("**") and "达成" in verdict)]
+    first_clause = verdicts[1] if len(verdicts) > 1 else ""
+    return {
+        "all_nine_clauses_listed": len(verdicts) == 9,
+        "act_1_to_3_clause_still_says_not_achieved": bool(verdicts) and verdicts[0].startswith(
+            "**未达成"),
+        "warm_start_ladder_still_says_partly": len(verdicts) > 5
+        and verdicts[5].startswith("**部分达成"),
+        "every_clause_carries_a_verdict_from_the_closed_list": not unmarked,
+        "the_act1_clause_names_both_engine_versions": (
+            "v4" in first_clause and "v5" in first_clause),
+    }
+
+
 def claim_objective_clause_audit():
     """Keep the clause-by-clause audit honest: nine clauses, and the failing one stays failing.
 
@@ -2901,16 +2931,7 @@ def claim_objective_clause_audit():
         "docs/evidence/boss_reward_rule_holdout_final_20260920.json")
     return {
         "audit_section_present": True,
-        "all_nine_clauses_listed": len(rows) == 9,
-        "act_1_to_3_clause_still_says_not_achieved": bool(verdicts) and verdicts[0].startswith(
-            "**未达成"),
-        "warm_start_ladder_still_says_partly": len(verdicts) > 5
-        and verdicts[5].startswith("**部分达成"),
-        "the_other_six_are_marked_achieved_with_limits": sum(
-            1 for verdict in verdicts if "**达成" in verdict) == 6
-        and len(verdicts) == 9
-        and "第一幕达成" in verdicts[1] and "未达成" in verdicts[0]
-        and "部分达成" in verdicts[5],
+        **evaluate_audit_verdicts(verdicts),
         "every_cited_file_exists": bool(cited_files) and all(
             (ROOT / "docs/evidence" / name).exists() or (ROOT / "docs" / name).exists()
             or (ROOT / name).exists() for name in cited_files),

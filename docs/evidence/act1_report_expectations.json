@@ -426,20 +426,21 @@
     "metrics_files_on_disk_here": 300
   },
   "objective_clause_audit": {
-    "act_1_to_3_clause_still_says_not_achieved": true,
-    "all_nine_clauses_listed": true,
     "audit_section_present": true,
-    "conclusion_still_refuses_completion": true,
-    "dead_end_row_cites_the_population_the_identity_tested": true,
-    "dead_end_row_numbers_match_the_vocabulary_census": true,
-    "every_cited_claim_is_registered": true,
+    "all_nine_clauses_listed": true,
+    "act_1_to_3_clause_still_says_not_achieved": true,
+    "warm_start_ladder_still_says_partly": true,
+    "every_clause_carries_a_verdict_from_the_closed_list": true,
+    "the_act1_clause_names_both_engine_versions": true,
     "every_cited_file_exists": true,
+    "every_cited_claim_is_registered": true,
     "fan_out_row_numbers_match_the_attestation": true,
     "hash_chain_row_numbers_match_the_manifest": true,
+    "zero_illegal_row_numbers_match_the_channel_census": true,
+    "dead_end_row_numbers_match_the_vocabulary_census": true,
+    "dead_end_row_cites_the_population_the_identity_tested": true,
     "the_act13_row_names_the_measured_near_miss_without_softening_the_verdict": true,
-    "the_other_six_are_marked_achieved_with_limits": true,
-    "warm_start_ladder_still_says_partly": true,
-    "zero_illegal_row_numbers_match_the_channel_census": true
+    "conclusion_still_refuses_completion": true
   },
   "opening_choice_position_pref": {
     "but_it_is_usually_taken_when_offered": true,

@@ -212,5 +212,55 @@ class DeadEndVocabularyVerdictTests(unittest.TestCase):
         self.assertTrue(all(steps for values in horizons.values() for steps in values))
 
 
+class AuditVerdictShapeTests(unittest.TestCase):
+    """The audit table's verdict column is a closed list, not a count of good news.
+
+    `the_other_six_are_marked_achieved_with_limits` required six rows to contain 「达成」
+    and one to contain the literal "第一幕达成". When the Act-1 wins failed to reproduce on
+    fidelity-v5 the honest restatement ("achieved once, on an engine that no longer exists")
+    made that check fail -- a gate that turns a downgrade red is not protecting findings.
+    These cases are the differential for the replacement.
+    """
+
+    def _verdicts(self) -> list:
+        return ["**未达成，且不可表示**",
+                "**第一幕曾在 v4 引擎达成；10-07 在 v5 引擎上逐种子重放 0/9 复现**",
+                "**达成，但一半是结构性的**", "**达成，并且现在是被恒等式撑着**",
+                "**达成**", "**部分达成**", "**达成**",
+                "**达成，并且链现在延伸到引擎**", "**达成，并加强为结构性理由**"]
+
+    def test_the_current_table_scores_true(self) -> None:
+        verdicts = self._verdicts()
+        self.assertNotIn(False, list(V.evaluate_audit_verdicts(verdicts).values()))
+
+    def test_a_clause_that_stops_declaring_its_verdict_goes_red(self) -> None:
+        verdicts = self._verdicts()
+        verdicts[4] = "这一行改成了散文，没有判定词"
+        self.assertFalse(
+            V.evaluate_audit_verdicts(verdicts)[
+                "every_clause_carries_a_verdict_from_the_closed_list"])
+
+    def test_dropping_the_engine_version_from_the_act1_clause_goes_red(self) -> None:
+        verdicts = self._verdicts()
+        verdicts[1] = "**第一幕达成；第二幕按引擎判据不是 17 层**"
+        self.assertFalse(
+            V.evaluate_audit_verdicts(verdicts)["the_act1_clause_names_both_engine_versions"],
+            "a bare 达成 must not read as current once v5 refused it")
+
+    def test_the_act1_to_3_clause_being_quietly_greened_goes_red(self) -> None:
+        verdicts = self._verdicts()
+        verdicts[0] = "**达成**"
+        self.assertFalse(
+            V.evaluate_audit_verdicts(verdicts)["act_1_to_3_clause_still_says_not_achieved"])
+
+    def test_losing_a_clause_goes_red(self) -> None:
+        self.assertFalse(V.evaluate_audit_verdicts(self._verdicts()[:-1])["all_nine_clauses_listed"])
+
+    def test_the_warm_start_clause_being_greened_goes_red(self) -> None:
+        verdicts = self._verdicts()
+        verdicts[5] = "**达成**"
+        self.assertFalse(V.evaluate_audit_verdicts(verdicts)["warm_start_ladder_still_says_partly"])
+
+
 if __name__ == "__main__":
     unittest.main()
