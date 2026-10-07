@@ -130,6 +130,16 @@ class RunIdentityError(BridgeProtocolError):
 # scripts/supervise_solver_batch.py mirrors this constant.
 EXIT_CLASSIFIED_STOP = 3
 
+#: How long a client-owned fight may leave the state byte-identical before the batch
+#: stops and says so. Derived from the live traces, not chosen: 13,539 identical-state
+#: runs inside combat screens recorded by supervised batches have a median of 0.5 s (one
+#: poll interval) and a 99th percentile of 14 s, and every observation beyond two minutes
+#: in that set was a stall that ended only when the process was stopped by hand. 180 s is
+#: about thirteen times the observed p99, so a slow fight is not mistaken for a wedge while
+#: a wedge is never waited on silently -- which is what the batch did at Act 2 floor 33 on
+#: 2026-10-07, polling a paused solver for over fifteen minutes with no reason recorded.
+COMBAT_PROGRESS_TIMEOUT_SECONDS = 180.0
+
 
 class AutoplayClassifiedStop(RuntimeError):
     """A bounded, classified reason to end the autoplay batch.
@@ -692,6 +702,7 @@ def _is_bare_frame(state: dict[str, Any]) -> bool:
     )
 
 
+
 class AutoPlayer:
     def __init__(
         self,
@@ -702,6 +713,7 @@ class AutoPlayer:
         poll: float = 1.0,
         route_source: Any = None,
         out_of_combat_only: bool = False,
+        combat_progress_timeout: float = COMBAT_PROGRESS_TIMEOUT_SECONDS,
         seed_file: Path | str | None = None,
         seed_ledger: Path | str | None = None,
         batch_dir: Path | str | None = None,
@@ -740,6 +752,15 @@ class AutoPlayer:
         # sole combat owner.  Keep this guard independent of route_source so
         # a misconfigured caller cannot make autoplay POST during combat.
         self._out_of_combat_only = bool(out_of_combat_only)
+        # Progress bound for a fight the *client* owns. Tracked on the whole state
+        # payload rather than on the round counter, because a player turn that is
+        # churning block, statuses and hand size has not stalled, while a byte-identical
+        # state has stopped whatever the round number says.
+        self._combat_progress_timeout = float(combat_progress_timeout)
+        self._combat_state_digest: str | None = None
+        self._combat_state_since: float = 0.0
+        self._combat_state_screen: str | None = None
+        self._combat_state_moved = 0
         self._combat_round: int | None = None
         self._combat_anchor_mono: float = 0.0
         self._combat_actions: tuple[Any, ...] = ()
@@ -1225,6 +1246,44 @@ class AutoPlayer:
         }
 
     # ------------------------------------------------- combat route executor
+    def _note_combat_progress(self, state: dict, screen_type: str) -> None:
+        """Bound the wait on a fight the client owns, and say which half stopped moving.
+
+        The signature is the whole state payload, not the round counter: a player turn in
+        which block, statuses or hand size churn has not stalled, while a byte-identical
+        state has stopped even if a round number ticks. The detail separates enemy from
+        player movement because both halves moved in the Act-2 stall and only the
+        card-deployment step stopped -- naming that is the difference between "the client
+        is slow" and "the solver paused its own choice".
+        """
+        digest = hashlib.sha256(
+            json.dumps(state, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+        now = time.monotonic()
+        if digest != self._combat_state_digest:
+            if self._combat_state_digest is not None:
+                self._combat_state_moved += 1
+            self._combat_state_digest = digest
+            self._combat_state_since = now
+            self._combat_state_screen = screen_type
+            return
+        waited = now - self._combat_state_since
+        if waited <= self._combat_progress_timeout:
+            return
+        battle = state.get("battle") or {}
+        run_state = state.get("run") or {}
+        player = state.get("player") or {}
+        self._classified_stop(
+            "combat_no_progress",
+            (f"{screen_type} at act {run_state.get('act')} floor {run_state.get('floor')} "
+             f"left the state unchanged for {waited:.0f}s (bound "
+             f"{self._combat_progress_timeout:.0f}s; the observed p99 of identical-state "
+             "combat runs is 14s over 13,539 samples) — "
+             f"round {battle.get('round')} turn {battle.get('turn')}, "
+             f"player hp {player.get('hp')}, enemies "
+             f"{[(e.get('entity_id'), e.get('hp')) for e in battle.get('enemies', [])]}, "
+             f"{self._combat_state_moved} state changes since this screen began"),
+        )
+
     def _combat_tick(self, state: dict[str, Any]) -> str:
         """Advance one step of solver-route-driven combat (scan-execute).
 
@@ -1693,6 +1752,10 @@ class AutoPlayer:
                         # combat: execute the solver's logged route over the
                         # bridge (the mod stays in advice mode; no UI toggles)
                         if self._out_of_combat_only or self._route_source is None:
+                            # The client owns this fight, so there is nothing to post --
+                            # but a wait without a bound is how a paused solver became an
+                            # infinite poll on 2026-10-07.
+                            self._note_combat_progress(state, state_type)
                             time.sleep(self.poll)
                             continue
                         self._combat_tick(state)
@@ -2059,6 +2122,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="never execute combat actions; Combat Solver/full-auto owns combat",
     )
+    parser.add_argument(
+        "--combat-progress-timeout",
+        type=float,
+        default=COMBAT_PROGRESS_TIMEOUT_SECONDS,
+        help=(
+            "seconds a client-owned fight may leave the state byte-identical before the "
+            f"batch stops with combat_no_progress (default {COMBAT_PROGRESS_TIMEOUT_SECONDS}, "
+            "derived from the observed 99th percentile of live identical-state combat runs)"
+        ),
+    )
     args = parser.parse_args(argv)
 
     allocation: SeedAllocation | None = None
@@ -2218,6 +2291,7 @@ def main(argv: list[str] | None = None) -> int:
         poll=args.poll,
         route_source=route_source,
         out_of_combat_only=args.out_of_combat_only,
+        combat_progress_timeout=args.combat_progress_timeout,
         # A preview is observational by definition: do not create or advance
         # the durable fixed-seed ledger until POST authority is granted.
         seed_file=(allocation.path if allocation is not None and args.allow_actions and not args.dry_run else None),

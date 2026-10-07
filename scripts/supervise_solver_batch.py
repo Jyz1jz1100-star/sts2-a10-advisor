@@ -84,6 +84,12 @@ EXIT_RUN_TIMEOUT = 8
 EXIT_PARTIAL = 9
 EXIT_PREFLIGHT_FAILED = 10
 EXIT_CLIENT_WEDGED = 11
+#: The in-game CombatSolver declared that it stopped deploying its own card choice, and the
+#: fight has been unchanged ever since. Distinct from ``EXIT_CLIENT_WEDGED`` (a log-flood
+#: wedge inside the client) and from ``EXIT_GAME_LOST`` (the process gone): the client, the
+#: bridge and the process are all healthy, and the stall is in a mod this repository must
+#: not patch, disable or re-pin.
+EXIT_SOLVER_CHOICE_PAUSED = 14
 #: The client process is alive but its bridge never answered again.  Distinct from
 #: ``EXIT_GAME_LOST`` because the two have different causes and different fixes.
 EXIT_BRIDGE_UNRESPONSIVE = 12
@@ -727,6 +733,73 @@ def live_client_log(log_dir: Path) -> Path | None:
     return max(entries, key=lambda p: p.name) if entries else None
 
 
+def parse_solver_pause_lines(lines, *, not_before: float | None = None) -> list[dict]:
+    """Pick the third-party solver's own "I stopped deploying" events out of its log lines.
+
+    The CombatSolver is operator-owned, auto-updating, and must not be patched, disabled or
+    re-pinned by this repository. What is ours is the moment it stops acting: on 2026-10-07 it
+    logged `DEPLOY_CHOICE_PAUSED` with a native three-way-choice mismatch twice, the bridge
+    state then sat byte-identical for over fifteen minutes, and the batch kept polling with no
+    reason recorded -- the silent infinite retry the project's rules forbid. Detection only:
+    this names the stall, it does not touch the mod.
+
+    ``not_before`` is epoch seconds. The filter runs on the event's own ``Time`` field rather
+    than on file mtime, because the solver keeps appending to one log for the life of the
+    client process -- an old pause in a file being touched right now must not stop a batch
+    that never saw it.
+    """
+    found: list[dict] = []
+    for line in lines:
+        line = line.strip()
+        if not line or "DEPLOY_CHOICE_PAUSED" not in line:
+            continue
+        try:
+            record = json.loads(line)
+        except ValueError:
+            found.append({"raw": line[:300], "time": None})
+            continue
+        stamp = record.get("Time")
+        if not_before is not None and isinstance(stamp, (int, float)) and stamp / 1000.0 < not_before:
+            continue
+        message = str(record.get("Message") or "")
+        found.append({
+            "time": stamp,
+            "level": record.get("Level"),
+            "message": message[:400],
+        })
+    return found
+
+
+def solver_pause_evidence(log_dir: Path, *, not_before: float,
+                          max_files: int = 6) -> list[dict]:
+    """Scan the newest solver combat logs for a pause event raised since ``not_before``."""
+    root = Path(log_dir) / "CombatSolver"
+    if not root.is_dir():
+        return []
+    candidates: list[Path] = []
+    try:
+        for session in root.iterdir():
+            if not session.is_dir():
+                continue
+            for log in session.glob("combat-*.jsonl"):
+                try:
+                    if log.stat().st_mtime >= not_before:
+                        candidates.append(log)
+                except OSError:
+                    continue
+    except OSError:
+        return []
+    out: list[dict] = []
+    for log in sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)[:max_files]:
+        try:
+            text = log.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for hit in parse_solver_pause_lines(text.splitlines(), not_before=not_before):
+            out.append({"file": log.name, **hit})
+    return out
+
+
 def repeated_log_errors(path: Path, *, tail_bytes: int = 262_144) -> list[str]:
     """The ``ERROR:`` lines in the log's last chunk, most frequent first.
 
@@ -1256,6 +1329,8 @@ class BatchSupervisor:
         self._client_log_fast_samples = 0
         #: Set when the client was found wedged; names what was done about it.
         self.client_watchdog: dict[str, Any] | None = None
+        #: The CombatSolver's own "I stopped deploying a choice" events, if this batch saw any.
+        self.solver_pause: list[dict[str, Any]] | None = None
         #: Things that degrade this batch's self-attestation without vetoing it.
         self.attestation_gaps: list[str] = []
         self.seed_allocation = (
@@ -1427,6 +1502,7 @@ class BatchSupervisor:
             #: it veto the run the batch exists to produce.
             "attestation_gaps": list(self.attestation_gaps),
             "client_watchdog": self.client_watchdog,
+            "solver_pause": self.solver_pause,
             # Read-only Combat Solver/game log inventory around the batch
             # window.  Hash-observation semantics only: the fields say which
             # hashes were observed at start / end.  A hash missing from
@@ -1777,6 +1853,10 @@ class BatchSupervisor:
 
     def _monitor(self) -> int:
         started = self.clock()
+        # Epoch-seconds floor for solver-log events: the mod appends to one combat log for
+        # the life of the client process, so a pause recorded by an earlier batch in the same
+        # file must not be attributed to this one.
+        wall_started = time.time()
         game_missing_since: float | None = None
         self._persist("running")
         while True:
@@ -1958,6 +2038,17 @@ class BatchSupervisor:
                 self._stop_children("client_wedged")
                 self._finalize_stop()
                 return EXIT_CLIENT_WEDGED
+
+            pauses = solver_pause_evidence(Path(self.config.game_log_dir),
+                                           not_before=wall_started)
+            if pauses:
+                self.solver_pause = pauses[:3]
+                self.stop_reason = "solver_choice_paused"
+                self._log("solver_choice_paused", events=len(pauses),
+                          first=pauses[0].get("message"))
+                self._stop_children("solver_choice_paused")
+                self._finalize_stop()
+                return EXIT_SOLVER_CHOICE_PAUSED
 
             elapsed = self.clock() - started
             if self.config.run_timeout_seconds is not None and elapsed >= self.config.run_timeout_seconds:

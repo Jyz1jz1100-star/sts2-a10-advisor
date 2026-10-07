@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import tempfile
+import time
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
@@ -1539,6 +1540,75 @@ class ClientWedgeTests(unittest.TestCase):
             result = supervisor.run()
             self.assertNotEqual(result, EXIT_CLIENT_WEDGED)
             self.assertIsNone(supervisor.client_watchdog)
+
+
+
+class SolverChoicePauseDetectionTests(unittest.TestCase):
+    """Naming a paused third-party solver, without touching it.
+
+    On 2026-10-07 the CombatSolver logged ``DEPLOY_CHOICE_PAUSED`` twice at the Act-2 boss and
+    the batch polled the unchanging fight for fifteen minutes with no reason recorded. The mod
+    is operator-owned and auto-updating, so the only correct response is detection plus a
+    bounded stop. These cases are the differential for that: the signature is found, a pause
+    from an earlier batch in the same still-growing log file is *not* blamed on this one, and a
+    half-written line is reported rather than dropped.
+    """
+
+    # Live clock: the scanner pre-filters on file mtime as well as on the event
+    # timestamp, so a fixed date would make every synthetic file look too old.
+    NOW = time.time()
+
+    def _line(self, stamp_ms, message="DEPLOY_CHOICE_PAUSED turn=5 exception=NativeChoiceSurface"):
+        return json.dumps({"Time": int(stamp_ms), "Level": "error", "Message": message})
+
+    def test_a_pause_after_the_batch_started_is_found(self):
+        hits = supervise_solver_batch.parse_solver_pause_lines(
+            [self._line(self.NOW * 1000 + 5000)], not_before=self.NOW)
+        self.assertEqual(1, len(hits))
+        self.assertEqual("error", hits[0]["level"])
+        self.assertIn("DEPLOY_CHOICE_PAUSED", hits[0]["message"])
+
+    def test_a_pause_recorded_before_this_batch_is_not_attributed_to_it(self):
+        # The mod keeps writing to one combat log for the life of the client process, so mtime
+        # alone would blame a fresh batch for the previous session's stall.
+        hits = supervise_solver_batch.parse_solver_pause_lines(
+            [self._line((self.NOW - 600) * 1000)], not_before=self.NOW)
+        self.assertEqual([], hits)
+
+    def test_a_truncated_line_still_reports_instead_of_vanishing(self):
+        hits = supervise_solver_batch.parse_solver_pause_lines(
+            ['{"Time": 1, "Level": "error", "Message": "DEPLOY_CHOICE_PAUSED tur'],
+            not_before=self.NOW)
+        self.assertEqual(1, len(hits))
+        self.assertIn("DEPLOY_CHOICE_PAUSED", hits[0]["raw"])
+
+    def test_unrelated_lines_are_ignored(self):
+        self.assertEqual([], supervise_solver_batch.parse_solver_pause_lines(
+            [self._line(self.NOW * 1000, message="ROUTE_HEALTH fine"), "not json at all"],
+            not_before=self.NOW))
+
+    def test_the_scan_reads_a_real_directory_and_skips_old_sessions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "CombatSolver" / "76640-abc"
+            root.mkdir(parents=True)
+            log = root / "combat-1.jsonl"
+            log.write_text(self._line(self.NOW * 1000 + 1000) + chr(10), encoding="utf-8")
+            hits = supervise_solver_batch.solver_pause_evidence(Path(tmp), not_before=self.NOW)
+            self.assertEqual(1, len(hits))
+            self.assertEqual("combat-1.jsonl", hits[0]["file"])
+
+            older = root / "combat-0.jsonl"
+            older.write_text(self._line((self.NOW - 900) * 1000) + chr(10), encoding="utf-8")
+            import os
+            stamp = self.NOW - 500
+            os.utime(older, (stamp, stamp))
+            self.assertEqual(1, len(supervise_solver_batch.solver_pause_evidence(
+                Path(tmp), not_before=self.NOW)))
+
+    def test_a_missing_log_directory_is_not_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual([], supervise_solver_batch.solver_pause_evidence(
+                Path(tmp), not_before=self.NOW))
 
 
 if __name__ == "__main__":

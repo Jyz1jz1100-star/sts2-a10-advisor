@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from typing import Any
@@ -1428,6 +1429,71 @@ class AutoplayClassifiedStopTests(unittest.TestCase):
             ).run()
         self.assertEqual(ctx.exception.reason, "repeated_state_failures")
         self.assertEqual(controller.get_calls, 4)
+
+
+
+class CombatProgressBoundTests(unittest.TestCase):
+    """A client-owned fight is waited on for a bounded time, then reported.
+
+    On 2026-10-07 the acceptance run sat at the Act-2 boss for over fifteen minutes with a
+    byte-identical state while autoplay kept polling: combat belongs to the in-game solver, so
+    no stall branch applied and nothing was ever recorded. The bound is derived from the live
+    traces (p99 identical-state dwell 14 s over 13,539 combat samples), not picked.
+
+    These cases exist so the bound cannot become a way to kill long fights: the detector is
+    keyed on "nothing at all changed", including enemy and player movement.
+    """
+
+    @staticmethod
+    def _player():
+        return AutoPlayer(controller=None, out_of_combat_only=True,
+                          combat_progress_timeout=180.0)
+
+    @staticmethod
+    def _state(round_number, enemy_hp, player_hp):
+        return {"state_type": "boss",
+                "run": {"act": 2, "floor": 33},
+                "battle": {"round": round_number, "turn": "player",
+                           "enemies": [{"entity_id": "KNOWLEDGE_DEMON_0", "hp": enemy_hp}]},
+                "player": {"hp": player_hp}}
+
+    def test_a_changing_state_resets_the_clock_and_never_stops_the_batch(self):
+        player = self._player()
+        player._note_combat_progress(self._state(4, 400, 70), "boss")
+        player._combat_state_since -= 170.0          # nearly at the bound
+        player._note_combat_progress(self._state(5, 380, 70), "boss")
+        # A changed state restarts the clock at *now*, so the 170 s already waited does not
+        # carry over. Asserting against the live clock is the only form of this check that can
+        # fail -- comparing the field with itself would pass whatever the code does.
+        self.assertLess(abs(player._combat_state_since - time.monotonic()), 1.0)
+        self.assertEqual(1, player._combat_state_moved)
+
+    def test_a_long_but_moving_fight_does_not_trip_the_bound(self):
+        # The whole point: 40 rounds of real fighting must not read as a wedge.
+        player = self._player()
+        for number in range(1, 41):
+            player._note_combat_progress(self._state(number, 400 - number, 80 - number), "boss")
+            player._combat_state_since -= 100.0
+        self.assertEqual(39, player._combat_state_moved)
+
+    def test_an_unchanged_state_past_the_bound_stops_with_a_named_reason(self):
+        player = self._player()
+        state = self._state(6, 378, 67)
+        player._note_combat_progress(state, "boss")
+        player._combat_state_since -= 200.0
+        with self.assertRaises(AutoplayClassifiedStop) as caught:
+            player._note_combat_progress(state, "boss")
+        self.assertEqual("combat_no_progress", caught.exception.reason)
+        for fragment in ("floor 33", "round 6", "180s", "KNOWLEDGE_DEMON_0"):
+            self.assertIn(fragment, caught.exception.detail)
+
+    def test_the_same_state_inside_the_bound_is_just_a_wait(self):
+        player = self._player()
+        state = self._state(6, 378, 67)
+        player._note_combat_progress(state, "boss")
+        player._combat_state_since -= 100.0
+        player._note_combat_progress(state, "boss")   # no raise
+        self.assertEqual(0, player._combat_state_moved)
 
 
 if __name__ == "__main__":
