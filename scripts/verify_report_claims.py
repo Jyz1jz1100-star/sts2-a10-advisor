@@ -248,7 +248,7 @@ def claim_evidence_matrix_totals():
 #: Each publication gets its own file: the older snapshots are the record of what the
 #: engine looked like when those findings were read, not drafts to be overwritten.
 EMULATOR_SOURCE_PROVENANCE = (
-    ROOT / "docs/evidence/emulator_source_provenance_20260923_v5.json"
+    ROOT / "docs/evidence/emulator_source_provenance_20261007_v6.json"
 )
 
 def claim_win_ledger():
@@ -1515,29 +1515,119 @@ def claim_evidence_bundle_integrity():
     }
 
 
+def _configured_stage_horizons() -> dict[str, list[int]]:
+    """Every stage name the checked-in configs give a per-episode step horizon.
+
+    `step_cap` is not observed, it is assigned: the evaluator labels an episode the
+    moment it reaches its stage's `max_episode_steps` (training/evaluation.py:150-152).
+    So which stages may legitimately carry that label is a fact about ``config/`` and can
+    be recomputed, while the metrics files themselves never record the horizon they were
+    evaluated under. Keeping the stage question here instead of in a literal is what lets
+    the census grow (the campaign arm reached its 4800-step horizon) without the claim
+    turning into a snapshot of last month's corpus.
+    """
+    import tomllib
+
+    horizons: dict[str, list[int]] = {}
+
+    def record(name: object, table: object) -> None:
+        if not isinstance(name, str) or not isinstance(table, dict):
+            return
+        value = table.get("max_episode_steps")
+        if isinstance(value, int) and value > 0:
+            horizons.setdefault(name, []).append(value)
+
+    for path in sorted((ROOT / "config").glob("*.toml")):
+        try:
+            with path.open("rb") as handle:
+                data = tomllib.load(handle)
+        except (OSError, ValueError):
+            continue
+        stages = data.get("stages") or data.get("stage") or {}
+        if isinstance(stages, dict):
+            for name, table in stages.items():
+                record(name, table)
+        elif isinstance(stages, list):
+            for table in stages:
+                record(table.get("name") if isinstance(table, dict) else None, table)
+    return horizons
+
+
+def evaluate_vocabulary_verdicts(vocabulary: dict, cap_cells: dict,
+                                 cap_stages: set, unclassified: int,
+                                 extra_labels: dict, unaccounted: list,
+                                 artifact: dict, horizons: dict,
+                                 legacy_native: int, current_native: int) -> dict:
+    """Score the dead-end census against its derived source.
+
+    Kept separate from the walk that gathers the numbers so a test can hand it a
+    vocabulary with a fourth label, a stage the configs never declared, or a per-stage
+    count that disagrees with the artifact, and confirm each one goes red. Without that,
+    the two rewritten claims below would be unfalsifiable restatements rather than gates.
+    """
+    known_labels = {"empty_action_mask", "native_rejection", "step_cap"}
+    vocabulary = dict(vocabulary)
+    artifact_cells = {str(key): int(value)
+                      for key, value in ((artifact.get("by_reason_and_stage") or {})
+                                         .get("step_cap") or {}).items()}
+    return {
+        "vocabulary_matches_the_artifact": vocabulary == artifact["vocabulary"],
+        # The closed-world half of the old literal: a fourth reason anywhere in the
+        # corpus still goes red, without pretending the counts are frozen.
+        "vocabulary_labels_are_exactly_the_three_named": set(vocabulary) == known_labels,
+        "step_cap_cells_match_the_artifact": dict(cap_cells) == artifact_cells,
+        # The positive form of the sentence this replaced ("act1 stage only"): a stage may
+        # carry step_cap if and only if some checked-in config gives it a step horizon,
+        # because that horizon is the only thing that can produce the label.
+        "step_cap_appears_only_where_a_horizon_is_configured": (
+            cap_stages and cap_stages <= set(horizons)),
+        "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": not unaccounted,
+        "the_one_label_outside_the_vocabulary_is_named": (
+            int(extra_labels.get("curriculum_truncated") or 0) == 6
+            and set(extra_labels) - set(vocabulary) == {"curriculum_truncated"}),
+        "acts_too_slowly_is_labelled": int(vocabulary.get("step_cap") or 0) > 0,
+        "cannot_act_is_labelled": int(vocabulary.get("empty_action_mask") or 0) > 0,
+        "nothing_is_unclassified": unclassified == 0,
+        "legacy_and_current_native_rejection_still_split": (
+            legacy_native == 861 and current_native == 0),
+        "artifact_and_disk_agree_on_step_cap_files": (
+            len(artifact["step_cap_files"]) == int(vocabulary.get("step_cap") or 0)
+            and all("step_cap" in row["reasons"] for row in artifact["step_cap_files"])),
+    }
+
+
 def claim_dead_end_vocabulary():
     """Recount the dead-end labels the metrics have ever produced.
 
     This claim exists because the report asserted a gap that the vocabulary refutes: it said the
     labelling cannot tell "cannot act" from "acts too slowly", when `step_cap` is an assigned
-    label (training/evaluation.py:129-132) and three episodes carry it. Pinning the whole
-    vocabulary is the honest substitute for pinning the sentence -- if a fourth reason ever
-    appears, or `step_cap` stops appearing, this goes red and the prose has to be re-read.
+    label (training/evaluation.py:129-132) and episodes do carry it. Pinning which labels exist --
+    not how many of each -- is the honest substitute for pinning the sentence: if a fourth reason
+    ever appears, this goes red and the prose has to be re-read. The counts belong to the artifact
+    the census script regenerates, and `vocabulary_matches_the_artifact` is what catches that
+    artifact going stale.
     """
     from collections import Counter
 
     data = json.loads((ROOT / "docs/evidence/dead_end_vocabulary_20260919.json")
                       .read_text(encoding="utf-8"))
     vocabulary: Counter = Counter()
-    unclassified = 0
+    cap_cells: Counter = Counter()
     cap_stages: set[str] = set()
+    unclassified = 0
     legacy_native = current_native = 0
-    for _path, payload in _metrics_payloads():
+    for path, payload in _metrics_payloads():
         reasons = payload.get("dead_end_reasons") or {}
         vocabulary.update({k: int(v) for k, v in reasons.items()})
         unclassified += int(payload.get("unclassified_dead_ends", 0) or 0)
         if "step_cap" in reasons:
-            cap_stages.add(str(payload.get("stage")))
+            # The same stage resolution the census artifact uses: a V1-era metrics file
+            # that never wrote a `stage` still means the directory it was filed under.
+            stage = str(payload.get("stage")
+                        or (path.parts[-3] if len(path.parts) > 3 else "?"))
+            split = str(payload.get("split", "?"))
+            cap_cells[f"{stage}/{split}"] += int(reasons["step_cap"])
+            cap_stages.add(stage)
         native = int(reasons.get("native_rejection", 0) or 0)
         if "rejection_events" in payload:
             current_native += native
@@ -1582,24 +1672,12 @@ def claim_dead_end_vocabulary():
                 extra_labels[label] += count
                 if label not in vocabulary and label != "curriculum_truncated":
                     unaccounted.append(f"{path.name}:{label}")
-    return {
-        "vocabulary_matches_the_artifact": dict(vocabulary) == data["vocabulary"],
-        "vocabulary_is_exactly_three_labels": dict(vocabulary) == {
-            "empty_action_mask": 50, "native_rejection": 861, "step_cap": 3},
-        "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": not unaccounted,
-        "the_one_label_outside_the_vocabulary_is_named": (
-            extra_labels["curriculum_truncated"] == 6
-            and set(extra_labels) - set(vocabulary) == {"curriculum_truncated"}),
-        "acts_too_slowly_is_labelled": vocabulary["step_cap"] > 0,
-        "cannot_act_is_labelled": vocabulary["empty_action_mask"] > 0,
-        "nothing_is_unclassified": unclassified == 0,
-        "step_cap_is_act1_stage_only": cap_stages == {"act1"},
-        "legacy_and_current_native_rejection_still_split": (
-            legacy_native == 861 and current_native == 0),
-        "artifact_and_disk_agree_on_step_cap_files": (
-            len(data["step_cap_files"]) == vocabulary["step_cap"]
-            and all("step_cap" in row["reasons"] for row in data["step_cap_files"])),
-    }
+    return evaluate_vocabulary_verdicts(
+        vocabulary=vocabulary, cap_cells=cap_cells, cap_stages=cap_stages,
+        unclassified=unclassified, extra_labels=dict(extra_labels),
+        unaccounted=unaccounted, artifact=data,
+        horizons=_configured_stage_horizons(),
+        legacy_native=legacy_native, current_native=current_native)
 
 
 def claim_report_exec_table_citations():
@@ -2852,8 +2930,7 @@ def claim_objective_clause_audit():
             {channels["episodes_current_schema"],
              channels["rejection_events_total_current_schema"]} <= clause_numbers.get(2, set())),
         "dead_end_row_numbers_match_the_vocabulary_census": (
-            vocab_counts <= clause_numbers.get(3, set())
-            and vocab_counts == {50, 861, 3}),
+            vocab_counts <= clause_numbers.get(3, set())),
         # The dead-end row used to lean on a counter that reads 0 whether the books balance or no
         # bookkeeping exists, so the row now has to carry the tested population, and those figures
         # have to be the ledger's own.

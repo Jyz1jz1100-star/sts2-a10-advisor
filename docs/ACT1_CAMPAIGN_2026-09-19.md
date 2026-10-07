@@ -18,11 +18,11 @@
 | 能说"稳定能赢"吗？ | **不能**。9 次胜局落在 9 个互不相同的种子上（同一臂 1M 与 4M 各赢两个不同种子），当前水平下 Act 1 胜利像尾部随机事件；逐局 0.022%、逐种子 0.090%，离 35% 门槛差两个数量级 | 台账、"两两不交"一节 |
 | 多跑几夜有用吗？ | **无用**：同一分区 1M→4M 的配对检验 Δ=+0.030 [-0.65,+0.72] p≈0.95；阶梯在 floor10 退化被记成"保命不推进"的奖励利用（**这个归因本晚被下面两行的测量改掉了，至少不是主导机制**） | 空检查一节；`FREEZE_2026-09-02` |
 | "underdocks 终局在 33 层"算错吗？ | **要分两层，上一版把两层混成了一句"两幕一样"**：`RunEngine.cs:1194-1197` 的 `terminalFloor=33` 确实是**非 boss 出口**的推进保护，`NodeBoss → Complete`（`RunEngine.cs:1093-1111`，v2 起这条还要 `&& !State.Campaign`）确实是完成条件——但它**只挂在遗物领奖那一条出口**上。反事实实测：生成的第二幕在 floor 17 打完 boss 后，4 个领奖动作里 2 个拿到 `complete`、2 个被退回 `map` 空掩码。所以 33 不只是"约束演示种子链"，它会让一条**已经打赢的生成式第二幕**不被判赢 | "boss 完成分叉"一节 + `act2_boss_completion_fork_20260919.json` |
-| 那个"保命不推进"的解释还成立吗？ | **不是主导机制**：被解剖的 demo-seed 锁死局里 59,681 次过回合中**有牌可打却过回合 0 次**、99.995% 是"唯一合法动作"，锁死时满能量 + 手牌 5 张 Wound（`Unplayable: true`）。真因是该局 boss 为 Vantom（`EnemyAI.cs:259-263` 每 4 回合灌 3 张不可打 Wound），**但该局起手与抽牌堆被引擎为演示种子写死**（`RunEngine.cs` 里那段已随 `sts2sim-campaign-fidelity-v5` 删除的演示种子分支）。已在 9 个非脚本胜局复测：33–63 个决策就打死 boss、Wound 锁死 **0/9**、龟缩 **4/92 次**（罕见但非零——我先前写"零"是说过头了）。可下的两条：① 尽早识别"唯一合法动作长期持续"并终止——**但这类截断其实已计入 `defect_truncation_rate` 并受 3% 门槛约束；“缺标签可分辨性”这句本晚也被词表普查推翻——`empty_action_mask` 50、`step_cap` 3、`native_rejection` 861，两种情形**都**有标签（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）。剩下的缺口更窄：同一局若两个条件同时成立，只会留下 `empty_action_mask` 一个值**；② 缺口是"到 boss 层后掉进无进展状态"，不是"打不动 183 血" | "僵持的机制"+"通用性测试"两节 |
+| 那个"保命不推进"的解释还成立吗？ | **不是主导机制**：被解剖的 demo-seed 锁死局里 59,681 次过回合中**有牌可打却过回合 0 次**、99.995% 是"唯一合法动作"，锁死时满能量 + 手牌 5 张 Wound（`Unplayable: true`）。真因是该局 boss 为 Vantom（`EnemyAI.cs:259-263` 每 4 回合灌 3 张不可打 Wound），**但该局起手与抽牌堆被引擎为演示种子写死**（`RunEngine.cs` 里那段已随 `sts2sim-campaign-fidelity-v5` 删除的演示种子分支）。已在 9 个非脚本胜局复测：33–63 个决策就打死 boss、Wound 锁死 **0/9**、龟缩 **4/92 次**（罕见但非零——我先前写"零"是说过头了）。可下的两条：① 尽早识别"唯一合法动作长期持续"并终止——**但这类截断其实已计入 `defect_truncation_rate` 并受 3% 门槛约束；“缺标签可分辨性”这句本晚也被词表普查推翻——`empty_action_mask` 50、`step_cap` 6、`native_rejection` 861，两种情形**都**有标签（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）。剩下的缺口更窄：同一局若两个条件同时成立，只会留下 `empty_action_mask` 一个值**；② 缺口是"到 boss 层后掉进无进展状态"，不是"打不动 183 血" | "僵持的机制"+"通用性测试"两节 |
 | 按幕过滤训练种子有用吗？ | **没用，方向还是反的**：Δ mean_floor −0.280，CI [−0.583, +0.020]，上界≈0 已排除有意义的增益 | 本节"A/B 结果"小节；两臂运行目录 `runtime/act1_ab/a1filt`、`runtime/act1_ab/a1mix`（gitignored，故不作为可复核出处） |
 | 采样评估能救 boss 僵持吗？ | **不能**：8 次采样全部第 4–8 层阵亡，连 boss 都到不了；僵持是 59930 个不重复状态的僵局，不是循环 | `chained_frontier_full_20260919.json`、"僵持的机制"一节 |
 | "'0 非法动作'这句话有多强？" | **比字面弱，且是半结构性的（但已定位到阶段：拒绝全部在 shop 641/2,866=22.4% 与 event 112/4,305=2.6%；combat 130,993 个决策、relic_reward 17,698、card_reward 5,459 全为 0；**map 也是量过的 0：11,060 个地图决策**）**：契约有三条通道，策略侧越界确实是 0，但同一批 39,891 局里引擎拒绝了 **18,160 次掩码内动作**（act1 每局 0.53 次）。默认 `rejection_mode="filter"` 会把被拒动作摘掉后**把决策交回策略重选**，所以"0 非法"里混着"被拦下后改选"——本文所有"策略在某状态选了 X"都指**过滤后实际执行**的那一步。旧 schema 另把 861 局记成 `native_rejection` 结束，与现行 schema 的 0 局并不矛盾。而链分支上那处地图死路**看着像**该被计入 map 拒绝、其实一次也不计入：引擎掩码为空时契约根本不问引擎，直接以 `empty_action_mask` 收尾（接手的是 `v2_flat_env.py:240-250`，外层 `v2_run_wrapper.py:241-253` 只是备手；实测该步前后拒绝计数都是 6）。两侧由 `map_deadend_short_circuits_before_the_refusal_census` 从两个工件各自重算钉住 | `contract_channels_20260919.json`、`census_contract_channels.py`、`rejection_phase_attribution_20260919.json`、`census_rejection_phases.py`、`chained_map_deadend_fork_20260920.json` |
-| 报告里的哈希可信吗 | **可核对，而且整套产物现在被一个根哈希绑住**：72 个证据文件各有 sha256 + 字节数，排序拼接取 sha256 得 `bundle_root`（清单不给自己算哈希）；产物里在 checkpoint 语义键下出现的 **233 个摘要在本机全部对得上真实文件、逐个重算 0 处不符**。另有 379 条历史文件摘要 369 条一致、0 条不符（10 条指向未重写的历史副本绝对路径），9 个胜局台账每行同时记"重算摘要"与"矩阵记录摘要"且逐行相等。**清单本身不是可信来源**：声明 `evidence_bundle_integrity` 独立重算它的每一项，`tests/test_evidence_manifest.py` 证明改一个字节就会让 `bundle_root` 变 | `MANIFEST_2026-09-19.json`、`scripts/build_evidence_manifest.py`、"哈希链证据"一节、台账 |
+| 报告里的哈希可信吗 | **可核对，而且整套产物现在被一个根哈希绑住**：73 个证据文件各有 sha256 + 字节数，排序拼接取 sha256 得 `bundle_root`（清单不给自己算哈希）；产物里在 checkpoint 语义键下出现的 **233 个摘要在本机全部对得上真实文件、逐个重算 0 处不符**。另有 379 条历史文件摘要 369 条一致、0 条不符（10 条指向未重写的历史副本绝对路径），9 个胜局台账每行同时记"重算摘要"与"矩阵记录摘要"且逐行相等。**清单本身不是可信来源**：声明 `evidence_bundle_integrity` 独立重算它的每一项，`tests/test_evidence_manifest.py` 证明改一个字节就会让 `bundle_root` 变 | `MANIFEST_2026-09-19.json`、`scripts/build_evidence_manifest.py`、"哈希链证据"一节、台账 |
 | 目标要求的"逐阶段 warm-start 阶梯"做到了吗？ | **前两级接上了，后两级没跑**：warm-start 是真的且被代码强制（无父即 raise）；配的 5 级里 floor3 **晋升过**（两次 500 局评估都判通过），floor6 也**晋升过**——训练器当天写下的 `promotion_decision.json` 记着 boundary 0.86 对**当时的门槛 0.80**；**用今天的配置复算同一批记录则不通过**（要求已抬到 0.93，还新增 Wilson 下界 0.90），所以"复现当年阶梯"与"按现配置跑阶梯"是两个实验（本节先前写"floor6 五次评估无一通过"是拿今天的门槛去答昨天的问题，见账目第 20 行；那五次里还有三次属于目录名自称 `aborted-…` 的被中止运行）。floor10 有一次 500 局评估且未通过（boundary_rate 0.238 < 0.70，本节先前写"无晋升判定"是错的，见账目第 19 行）；**floor13 盘上无任何目录**。所以 act1 那批臂跨了 floor10/floor13 两级；09-18 那批共 **19 个臂运行两种自证（`plan.json` 的 `warm_start`、逐阶段 `origin.json`）都没有**——17 个 act1 阶段臂 + 2 个 floor3→floor6 阶梯臂（`fanout_attestation_20260919.json` 逐臂数出来的；本节先前写 13，是只数了 `runtime/fanout` 一部分的旧口径），只有启动脚本背书。**09-19 的两个 A/B 臂则两条都有且互相印证、父级摘要可从文件重算**——缺口按窗口收窄，但那条边只是同阶段跨臂，跳级本身没变好 | 文末"目标要求 3 实测"一节、`ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` |
 | 瓶颈到底在哪一层？ | **普查给到了逐种子、逐幕的精度**：3,500 个非脚本种子里 4.63% 走到 boss；**到达率两幕几乎相同（83 对 79），差别全在 boss 战**——Act 2 boss 斩杀率 **31.6% [22.5,42.6]**，Act 1 boss **83 次到达 0 胜 [0,4.4%]**。所以对第一幕而言墙就是 boss 战本身，不是"走不到"。
    （**这两个数是头部 3,500 种子的**；分区扫到 10,000 后：Act 1 到达 248 局、胜 3 局 = **1.2% [0.4,3.5]**，
@@ -54,14 +54,14 @@
 | "51 个截断局实质是打不完的 boss 战" | 逐种子普查 3,500 局：到达 boss 后只有 **1** 例截断 | 不是普遍类别；那 1 例另有原因 |
 | Act 1 的墙"就是 Vantom 那一战" | 到达局 boss 分三档 183/262/324，Vantom 只占 25/83 | 墙是整个第一幕 boss 层，且集中在**掉血速率** |
 | "赢需要两个条件：满血到达 + 活得久" | 用 83 个输局自己的数据查：**14/83 也是 ≥80 血进场** | 一个条件：**每决策净损失要低**（输 2.0–2.18，赢 1.24） |
-| "终局分类体系有洞，未分类死局计数器漏掉了过关后卡死" | 把该单局跑进真正负责分类的 `evaluate_policy`：`dead_end_reasons={'empty_action_mask':1}`、`defect_truncation_rate=1.0`、受 3% 门槛约束 | 分类与门槛都在管；剩下的只是**一局只能记一个标签**（`step_cap` 3 次、`empty_action_mask` 50 次，见 `dead_end_vocabulary_20260919.json`），两者同落一局时只会留下前者 |
+| "终局分类体系有洞，未分类死局计数器漏掉了过关后卡死" | 把该单局跑进真正负责分类的 `evaluate_policy`：`dead_end_reasons={'empty_action_mask':1}`、`defect_truncation_rate=1.0`、受 3% 门槛约束 | 分类与门槛都在管；剩下的只是**一局只能记一个标签**（`step_cap` 6 次、`empty_action_mask` 50 次，见 `dead_end_vocabulary_20260919.json`；该产物 09-24 重生成过，见"v5 词表更正"小节），两者同落一局时只会留下前者 |
 | "floor 17 那场不是本幕 boss，所以它是中途没了节点" | 同检查点三局对比（`act2_boss_node_comparison_20260919.json`）：该局与两个胜局种子 `current_node_type=6`、`encounter_id=84`、floor 17 完全相同，并且同样把 boss 打死 | 它就是本幕 boss。**这一条是撤回撤反了方向**：上一版用一次未完成的对比，推翻了一个本来成立的标签 |
 | "两幕的完成条件相同（击杀 boss → `NodeBoss` → `Complete`）" | 把 boss 节点的**两条**出口都读了 + 在 floor 17 遗物界面做反事实分叉（`act2_boss_completion_fork_20260919.json`）：4 个合法动作里 2 个 `complete`、2 个退回 `map` 后空掩码 | `NodeBoss → Complete` 只挂在**遗物领奖那条出口**上；另一条出口只看 `Floor >= terminalFloor`（overgrowth 17 / underdocks 33）。所以**生成的第二幕**打完 boss 算不算赢，取决于领奖顺序；act 1 两条出口都会结束对局，结构上不受影响 |
 | "floor 17 截断不算一个普遍类别（162 个到达局里只有 1 例）" | 把该检查点的分区从 3,500 扫到 **10,000** 个种子（`act2_boss_misexit_rate_20260919.json`）：489 个到达局里 **21** 例截断，全部 `empty_action_mask`，全部在生成的第二幕 | "不算普遍类别"按整分区**不成立**：它是第二幕 boss 击杀的 **24.4% [16.6,34.5]**；第一幕仍为 0 例。头部 1/26 与尾部 20/60 的不一致先用重测排除测量因素（3,500 个头部种子 0 处类别/步数差异、尾部 3 例单进程照旧截断），再交给**不相交的 `checkpoint` 分区 3,500 个种子**裁决：22.2%，站在尾部那边。于是可引用的是**两分区合并 27/113 = 23.9%**，头部是离群值（原因未查明） |
 | "串联第二幕那两局 floor 19 截断，和 `130012038` 是同一类空掩码"（写在 frontier 工件的待查问题里） | 用 `evaluate_policy` + 终局状态解码把链上 3 个检查点各重跑一遍（`chained_terminal_gates_20260919.json`）：两局终局状态的**四个地图后继位全为 0**，而 boss 出口那类是在**清掉 NodeBoss 之后**被退回地图 | **不是同一类**：`empty_action_mask` 这个标签下有两种机制——串联第二幕的地图过了 18 行真的没节点，与领奖顺序无关。同一条判据顺带把目标的两句门槛在**跨幕路径上**验到 0/0（非法、未分类死局），最深那局是战死不是死局 |
 | "契约干净：`illegal_actions=0`、`unclassified_dead_ends=0`"（本文原话"不产生非法动作/未分类死局"） | 把三条通道分开重算（`census_contract_channels.py` → `contract_channels_20260919.json`）：同一批 39,891 局里 `rejection_events` = **18,160**（act1 每局 0.53） | 两句计数都没错，但**"0 非法"是半结构性的**：默认 `rejection_mode="filter"` 会把被拒动作摘掉再重问策略，所以策略侧永远为 0，不一致只体现在另一条通道里。受影响的是本文所有"策略选了 X"的措辞——应读作"过滤后实际执行的是 X"；追加分幕归因后范围收窄：拒绝**只**出现在 shop 与 event，战斗与两张 boss 领奖屏为 0，所以战斗/领奖屏的措辞不受影响；再往下已测到根因：641 个 shop 拒绝全是引擎药水容量不一致（掩码扫 3 格、AddPotion 只填 2 格），112 个 event 拒绝来自对不认识的事件无条件 advertise 选项的 default 臂，**没有一个拒绝是买不起** |
 | "`potion_reward` 在这 1,500 局里从未出现，所以它是**未观测**、不是已验证干净" | 数了一遍引擎的相位枚举：`RunPhase.cs` 只有 11 个成员、`training/v2_constants.PHASE_NAMES` 一一对应，里面没有药水奖励屏 | 这不是样本不够，而是**范畴错误**：`phase_name` 不可能取那个值。领奖屏的结论覆盖引擎拥有的全部两种（`relic_reward`、`card_reward`），两者的核对也从"样本里没出现"换成"契约里没有"（声明检查 `potion_reward_is_not_an_engine_phase`）。同一晚另一条相位级误读也是这一类：`RunPhase.Complete` 在战败时同样会写（`RunEngine.cs:684-691`） |
-| "标签分不出'无法行动'与'行动太慢'"（上一条更正里说过头的一句） | 普查 282 份指标文件的 `dead_end_reasons` 词表：`native_rejection` 861 / `empty_action_mask` 50 / **`step_cap` 3**（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`） | 两个标签都存在且都被用到过，所以"分不出"是错的；真正剩下的缺口是**一局只能记一个标签**，且'两者是否会同落一局'从现有文件看不出来 -- 这条本身也是一次教训：**声称某个枚举值不存在之前，先去数一遍词表** |
+| "标签分不出'无法行动'与'行动太慢'"（上一条更正里说过头的一句） | 普查 282 份指标文件的 `dead_end_reasons` 词表：`native_rejection` 861 / `empty_action_mask` 50 / **`step_cap` 6**（`dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`；09-19 首次普查记的是 3，v5 campaign 臂又添 3 例） | 两个标签都存在且都被用到过，所以"分不出"是错的；真正剩下的缺口是**一局只能记一个标签**，且'两者是否会同落一局'从现有文件看不出来 -- 这条本身也是一次教训：**声称某个枚举值不存在之前，先去数一遍词表** |
 | 正文里抄了一个 `bundle_root` 的字面短值，当作"整套产物被绑住"的证据 | 本晚重建清单时发现：`docs/evidence` 里就躺着期望值文件，**每次重钉都会换一次根哈希**，而检查项只核对"清单与目录自洽"，从不核对正文抄的那个值——所以它从上一次重钉起就一直错着，没人报 | 正文只给指针、不抄根哈希；`harness_self_description` 反过来要求正文里**不能**出现 `bundle_root` 的十六进制字面量，并要求正文里的证据文件数等于清单的 `evidence_file_count`。**一般教训：不要把你自己的 harness 每次运行都会重算的常数抄进被验证的文本** |
 | "在模拟器里'更会挑升级卡'这一整类提升测不出来也学不到"（引擎清单第 6 条初稿的推论） | 为归因升级来源而做的营地普查：`StepRest` 有 `RestUpgradeAction = 1`，3,500 局里 1,883 次营地到访**每一次升级都在掩码里合法**，策略取了 29 次（1.54%）且 29/29 真的落进卡组 | 奖励屏那一路确实被 `RollCardUpgrade` 的桩封死，但**营地这条是开放、由策略决定、且几乎没用过的杠杆**。收窄后的说法只把上限安在"奖励发放"上。**教训：从一条被堵住的路推出"整类提升不可学"之前，先把这类路都列一遍**——这次是"要解释余下 599 张升级从哪来"这个问题逼着我列的 |
 | "遗物那条路对本批次的贡献是 0"（引擎清单第 6 条的补测里我这样写的） | `measure_opening_choice.py` 发现这两件遗物确实被拿到了 304 次——**只是发放点在开局那一屏（`ancient`），而我只看了 `relic_reward` 屏** | 正确的范围是"遗物不会在 `relic_reward` 屏上带来升级"；升级型遗物经由开局三选一发放，共 463 张。**教训：一个否定结论的适用范围等于你 instrument 的适用范围**，说"这条路贡献 0"之前要先说清是哪一屏 |
@@ -411,7 +411,7 @@ VERDICT: reproduced        (exit code 0)
 
 **这一节以前只做到"每个产物各自钉住它用的检查点摘要"，缺的是把整套产物绑在一起的东西。**
 现在有了：`scripts/build_evidence_manifest.py` 生成 `docs/evidence/MANIFEST_2026-09-19.json`，
-为 `docs/evidence` 下其余 **72 个** JSON 产物各记 sha256 与字节数，再对排序后的
+为 `docs/evidence` 下其余 **73 个** JSON 产物各记 sha256 与字节数，再对排序后的
 "文件名 + 两个空格 + 摘要"逐行拼接取 sha256，得到 `bundle_root`（值只写在清单里，本文不抄）。
 清单不给自己算哈希（否则自指会让自己成为验证链里可被替换的一环）。
 
@@ -427,6 +427,10 @@ VERDICT: reproduced        (exit code 0)
 这能抓住忘了重编，却抓不住**时间戳被保留下来的源码改动**——而本项目已经被一次构建漂移咬过
 （Workshop 自动更新杀掉 grammar v1，见提交 `57f1055`）。现在补上的是内容而不是日期：
 `scripts/build_emulator_provenance.py` → `emulator_source_provenance_20260922_v4.json` 记下
+（该产物按发表版本留档，旧快照是"当时读到什么"的记录而不是待覆盖的草稿；声明
+`emulator_source_provenance` 现在读的是最新一份 `emulator_source_provenance_20261007_v6.json`，
+它是 10-07 重钉引用后重建的，引擎树摘要 `433b2696…` 与原生库摘要 `5dbb680f…` 都与 v5 相同，
+变的只有引用集合（71 条 → 66 条：上一版重钉把指向已删除代码的引用改成了散文））
 ①整棵 `src/Sts2Emulator` 源码树（38 个 .cs，排除 bin/obj）的合成摘要、
 ②那 11 份被引用源码各自的 sha256、③评测实际加载的原生库 `out/Sts2Emulator.dll` 的 sha256、
 ④**正文里每一处 `文件:行号` 引用所指那段文本的哈希**（并留 90 字符片段供人眼核对）。
@@ -1442,7 +1446,7 @@ scanned 605 json artifacts under runs, runtime
 种子的陈述。
 `train_seeds_file` 只作用于训练种子、不碰评估分区——这一句仍然成立。
 
-**同一个问题也问了一遍死因词表普查。** 词表（`empty_action_mask` 50 / `step_cap` 3 /
+**同一个问题也问了一遍死因词表普查。** 词表（`empty_action_mask` 50 / `step_cap` 6 /
 `native_rejection` 861）走的也是 `**/metrics/*.json`。把 glob 放开到 `runs/` 与 `runtime/` 下的全部
 JSON，外面确实还有带 `dead_end_reasons` 的文件——本晚那些普查与重放工件会把它们复现出来的标签原样
 写回去，所以"外面有标签"本身不算发现；算发现的是**没有任何一个标签在词表之外又没人解释过**。
@@ -1769,7 +1773,7 @@ digest mismatches: 0
 实际有 5 条发现加一个"谁判定"，于是那条"发现数对不对"的检查为 false，而验证器照样报全部一致）。
 现在 `main()` 把任何 false 检查单独算作 drift（状态 `FALSE_CHECK`、退出码 1），除非运行方在期望
 文件里用 `_expected_false_checks` 明确声明"这条就是被证伪的结论"。行为由
-`tests/test_report_claim_gate.py`（6 项，毫秒级、不加载模拟器）钉住：其中一项扫已提交的期望文件、
+`tests/test_report_claim_gate.py`（13 项，毫秒级、不加载模拟器）钉住：其中一项扫已提交的期望文件、
 要求不存在未声明的 false，另一项要求每个已注册声明都在期望文件里有条目（漏钉会报 UNPINNED），
 本晚新加的第三项要求"抛异常的声明"退出码仍为 1 且被按名字列出（防的就是上面那个 39/40 误读）。
 
@@ -2041,9 +2045,11 @@ if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2)
 而现有指标文件**不记录逐种子的终局原因**——不过"无法逐个重放"这句在本文里已经**部分过时**：
 `scripts/census_empty_mask_endings.py` 就是那台能逐个重放的仪器（跟着每份文件自己的窗口与检查点跑），
 它已经把 `empty_action_mask` 这一类**全部 50 局逐种子定位**（49 局在 act 2 / floor 17）。
-同一台仪器搬到 `step_cap` 上**也已经做完了**（普查扩到"任何有名截断"：记录 3 次、定位 3 次、
+同一台仪器搬到 `step_cap` 上**也已经做完了**（09-20 那次普查扩到"任何有名截断"：记录 3 次、定位 3 次、
 逐文件 0 处不符），三局的逐种子位置都是**战斗相位卡在 1,600 步上限**、层数 6/6/8——
-也就是说它们不是 floor 17 的 boss 僵持，而是中途战斗的无进展状态。仍然没做的是旧 schema 的
+也就是说它们不是 floor 17 的 boss 僵持，而是中途战斗的无进展状态。**这批定位现在的覆盖率是 3/6**：
+v5 campaign 臂（地平线 4,800）又记了 3 次 `step_cap`，还没有被同一台仪器逐种子定位过（见"v5 词表更正"小节）。
+仍然没做的是旧 schema 的
 `native_rejection`（861 次），那批文件属于上一代契约；
 而搬过去之前还有一条要先处理：指标文件也**不记录自己当时用的步数上限**，所以重跑得到的 `step_cap`
 计数与原文件是否同一测量，取决于上限是否一致（普查工件因此逐份记下 `horizon_used_here`，
@@ -2101,11 +2107,12 @@ if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2)
   （单种实跑验证：截断 1 例 → `defect_truncation_rate = 1.0`、
   `dead_end_reasons = {'empty_action_mask': 1}`、`unclassified_dead_ends = 0`）。
   真正缺的不是"有没有进门槛"，也不是"分不分得出"，而是**一局只能带一个标签**。
-  普查全部 282 份指标文件（`scripts/census_dead_end_vocabulary.py` →
+  普查当时 282 份、09-24 重生成时为 300 份指标文件（`scripts/census_dead_end_vocabulary.py` →
   `docs/evidence/dead_end_vocabulary_20260919.json`，声明 `dead_end_vocabulary`）得到的词表恰好三项：
-  `native_rejection` 861（全在旧 schema 文件里）、`empty_action_mask` 50、`step_cap` **3**。
+  `native_rejection` 861（全在旧 schema 文件里）、`empty_action_mask` 50、`step_cap` **6**。
   也就是说"行动太慢"这个标签**存在并且被用到过**（`training/evaluation.py:129-132` 把评估器自己的
-  地平线判成 `step_cap`），三例全在 act1 阶段。本节原先写"标签分不出无法行动与行动太慢"，
+  地平线判成 `step_cap`），09-19 那次记的是 3 例、全在 act1 阶段，v5 campaign 臂（40M 步、地平线 4800）
+  又添了 3 例 full_run——见"v5 词表更正"小节。本节原先写"标签分不出无法行动与行动太慢"，
   那是**一次过头的更正**：分得出；剩下的缺口更窄——同一局若两个条件同时成立，只会留下
   `empty_action_mask`，而"会不会同时成立"从这些文件里看不出来（要一次同时记录两个条件的运行）。
   仍值得改（省算力，也让那 51 这个数字可解释），但它是可读性改进，不是门槛失效。
@@ -2334,7 +2341,7 @@ act 2 到达 66、判赢 21、被吃掉 **7 = 25.0% [12.7,43.4]**；act 1 到达
 上面那 21 例是**一枚检查点、逐种子重放**数出来的；战役的 51 局跨 114 份指标文件、
 多臂多检查点，此前只能用**文件级** `max_final_floor=17` 界定，盘上的 `dead_end_reasons`
 合计（按 `verify_report_claims.py` 的 `dead_end_reason_census` 一条重算：49 个记录了
-该字段的文件，`empty_action_mask` 50 / `step_cap` 3 / `native_rejection` 861）
+该字段的文件，`empty_action_mask` 50 / `step_cap` 6 / `native_rejection` 861）
 **对不到逐局**——文件级计数没有每局的 floor 与节点类型，所以"这 51 局里有几个是这类假阴性"
 当时写作**不可判定**。
 **那一句现在过时了，按实跑改写。** `scripts/census_empty_mask_endings.py` 就是补上"按种子记录终局签名"
@@ -2842,7 +2849,7 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 引用了不存在产物的表。声明 `objective_clause_audit` 再把这张表本身钉住（9 行，且第 1 行必须仍然
 写着「未达成」、第 6 行必须仍然写着「部分达成」——防止将来被悄悄改绿）。**这一版起，这些行的规模数也重算了**：
 判定列此前只查"点名的文件在不在、声明注册没注册"，所以一个被后续普查推翻的计数可以长期留在表里而全绿；
-现在四行的数字必须与产物重新相等（第三行的 39,891 与 18,160、第四行的词表 50/861/3、
+现在四行的数字必须与产物重新相等（第三行的 39,891 与 18,160、第四行的词表 50/861/6、
 第七行的 21 臂 / 118 份指标 / 190 与 110 对重叠、第八行记的证据文件数与 233 个摘要），
 并且"同一行里每个说臂数的地方都得说同一个数"。这条不是摆设：我用五处注入（把 21 改成 13 两处、
 118 改 96、37 改 35、39,891 改 31,000、861 改 618）验过它们各自会让对应检查变红——其中"只改第一个
@@ -2853,11 +2860,49 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 | 模拟器范围内取得一次可复核的 **Act 1-3 全流程胜利** | **未达成，且不可表示** | 模拟器只有两幕；唯一跨幕分支（演示种子 7MS1YN8NWB）穷举检查点后只有 3 个走进第二幕、0 个走完两幕，最深到第二幕第 22 层（09-19 人口 84 枚；**09-20 用同一驱动重跑时人口已涨到 102 枚，结论逐条不变**，见"重跑前沿"小节；并且那两枚活着截断的局已测出是**引擎在 floor 19 没有给出任何地图后继**，属于结构天花板（`chained_map_deadend_fork_20260920.json`、声明 `chained_map_deadend`））。按已达到的速率外推，期望一次双幕通关需要约 2000 个检查点，而盘上现在 102 枚。**最接近的那一步现在被量出来了**：清完第二幕 boss 却未判胜的局里，在遗物领奖屏上有一步可直接判胜、策略一次也没选；这一条在被臂训过的分区与从未用过的 final 保留分区上都复现（保留分区 67→83 判胜、转化 16、弄坏 0）。它不改变"三幕不可表示"，只说明剩下的差距是决策而不是引擎 | `chained_frontier_full_20260919.json`、`chained_frontier_full_20260920.json`、`boss_reward_rule_holdout_final_20260920.json`、`act2_boss_clear_recoverability_20260920.json` | `chained_frontier`、`emulator_act_ceiling`、`chained_terminal_gates`、`boss_reward_rule_holdout`、`boss_clear_recoverability` |
 | **16 层到终局** | **第一幕达成；第二幕按引擎判据不是 17 层** | 9 个具名第一幕胜利逐种子复现（won + floor 17）；第二幕 boss 在第 17 层，但另一条出口要求 floor 33，所以 terminalFloor 与 boss 层不是一回事。普查：Act 1 到达 83 局胜 0；Act 2 到达 79 局胜 25 | `act1_evidence_20260919.json`、`act1_win_ledger_20260919.json`、`act1_terminal_census_3500_20260919.json`、`act2_boss_misexit_rate_20260919.json` | `evidence_matrix_totals`、`win_ledger`、`terminal_census`、`boss_misexit_rate`、`terminal_floor_qualification` |
 | **0 非法动作** | **达成，但一半是结构性的** | 策略侧越界在 39,891 局里为 0；同一批局里 rejection_events 18,160。默认 filter 模式使 illegal_actions 不可能非零。753 次拒绝的根因已逐行重放到引擎判据（药水容量 641、事件 112），跨 4 个检查点 2 个阶段复现，且 0 次牵涉本仓库的掩码展开 | `contract_channels_20260919.json`、`rejection_phase_attribution_20260919.json`、`refusal_root_cause_20260919.json`、`refusal_class_generality_20260919.json` | `contract_channels`、`rejection_phase_attribution`、`refusal_root_cause`、`refusal_class_generality` |
-| **无未分类死局** | **达成，并且现在是被恒等式撑着而不是被计数器撑着** | unclassified_dead_ends 在 8,853 个截断上恒为 0，但这句本身不够：没字段描述的截断同样让它是 0。于是另立恒等式 `truncations == reasons + unclassified + max(0, boundary_hits - wins)`，在可验的那 216 份现行 schema 文件、4,383 次截断上逐份闭合（余下 54 份旧文件根本没写过 boundary_hits，不能测、也没被算进闭合里）；死因词表普查为三项（empty_action_mask 50、step_cap 3、native_rejection 861），其中现行的 53 次已逐种子定位，跨幕路径上也是 0 | `dead_end_vocabulary_20260919.json`、`chained_terminal_gates_20260919.json`、`truncation_ledger_20260920.json`、`empty_mask_endings_20260920.json` | `dead_end_vocabulary`、`dead_end_reason_census`、`chained_terminal_gates`、`truncation_ledger`、`empty_mask_endings` |
+| **无未分类死局** | **达成，并且现在是被恒等式撑着而不是被计数器撑着** | unclassified_dead_ends 在 8,853 个截断上恒为 0，但这句本身不够：没字段描述的截断同样让它是 0。于是另立恒等式 `truncations == reasons + unclassified + max(0, boundary_hits - wins)`，在可验的那 216 份现行 schema 文件、4,383 次截断上逐份闭合（余下 54 份旧文件根本没写过 boundary_hits，不能测、也没被算进闭合里）；死因词表普查为三项（empty_action_mask 50、step_cap 6、native_rejection 861，`step_cap` 现分属 act1 与 full_run 两个阶段，见"v5 词表更正"小节），其中现行的 53 次已逐种子定位（有名截断现在共 56 次，campaign 臂的 3 次尚未逐种子定位），跨幕路径上也是 0 | `dead_end_vocabulary_20260919.json`、`chained_terminal_gates_20260919.json`、`truncation_ledger_20260920.json`、`empty_mask_endings_20260920.json` | `dead_end_vocabulary`、`dead_end_reason_census`、`chained_terminal_gates`、`truncation_ledger`、`empty_mask_endings` |
 | 用 **V2 契约栈** | **达成** | OBS_SIZE 1739 / FLAT_SIZE 225 / TARGET_SLOTS 7，全部按代码重算而非引用 | —（由声明直接对代码重算） | `v2_contract_sizes` |
 | **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise）。配置里的 5 级，按**当天生效的门槛**判定：floor3 晋升、floor6 晋升（boundary 0.86 对当时要求的 0.80）、floor10 起再无晋升、floor13 盘上无目录——所以 act1 的臂跨了 floor10/floor13 两级，而链条前两级是接上的。**门槛后来被抬过**：拿今天的配置复算同一批记录，floor6 不再通过（要求 0.93，且新增 Wilson 下界 0.90），因此"复现当年那条阶梯"和"按现在的配置跑一条阶梯"是两个实验。口径细节：campaign 的 500 局晋升评估共 5 次、晋升 2 次，另有 3 条属于目录名自称 `aborted-…` 的被中止运行、以及 30 局的冒烟阶梯，三类按 `run_kind` 分列不混算。逐条判定见 `ladder_promotion_ledger_20260919.json`（训练器当天写的 `promotion_decision.json` 与仓库自己的 `decide_promotion` 并列，不是手写阈值；缺字段的门槛条款现在拒绝评分而不是拿默认值比大小）。09-18 那批 19 个臂运行缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests`、`ladder_promotion_ledger`、`promotion_gate_refuses_unrecorded_inputs` |
 | 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | 落盘不靠回忆计数，且**已提交成索引**（`fanout_attestation_20260919.json`）：21 个带 plan.json 的臂运行（19 个 act1 阶段 + 2 个 floor3→floor6 阶梯臂），活动窗口从 2026-09-18T17:35Z 到 2026-09-19T01:24Z（约 7.8 小时，跨夜），190 对可能重叠里有 110 对窗口气重叠⇒并发；它们产出的 118 份指标文件**全部**出现在已提交的指标索引里。两条限定：并发是从文件 mtime 窗口推的（plan.json 不记时间戳），且 21 个 plan 里只有 2 个带 `warm_start` 块——其余早于该字段，其父级仍只有启动脚本文本可查。吞吐另测：单臂约 370-885 fps 视阶段而定、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
-| 产出**含哈希链证据**的评估报告 | **达成，并且链现在延伸到引擎** | 72 个证据文件由 bundle_root 绑定；233 个被引用的检查点摘要在本机全部对上真实文件并重算相符（这个数字从 14 涨到 219、再到 233，是因为指标索引把每个指标文件引用的检查点摘要也带进了清单，2026-09-22 的三幕 campaign pilot 又添了 5 个，2026-09-23 的八个生产检查点各再添 1 个（20M 那次连同它的 promotion 探针只带来 1 个新摘要，因为两者指向同一个 checkpoint 文件））；声明逐条与盘核对。300 份指标原件在 gitignore 里，故已提交一份逐文件哈希+字段的索引，使门面数字在任何机器上都能重算（`metrics_index_reviewability` 不读任何被 ignore 的文件）。**再往下一环也补上了**：本文所有引擎结论都以 `文件.cs:行号` 形式引用，而那棵源码树不是 git 仓库、没有提交可指，模拟器自带的守卫只比 mtime——所以 `emulator_source_provenance_20260922_v4.json` 记下 38 份引擎源码的树摘要、11 份被引文件的逐文件 sha256、评测加载的原生库 sha256，以及**每一处被引行号那段文本的哈希**；它把"引擎换了"变成 DRIFT 而不是悄悄指向别的代码，而"重新生成快照时行号自己滑了"这一类比它抓不到，靠 `scripts/verify_engine_citations.py` 拿锚点表核对（见"哈希链证据"一节末）。清单与索引都不是可信来源——它们自己也被独立重算 | `MANIFEST_2026-09-19.json`、`emulator_source_provenance_20260922_v4.json` | `evidence_bundle_integrity`、`engine_findings_checklist`、`emulator_source_provenance` |
+| 产出**含哈希链证据**的评估报告 | **达成，并且链现在延伸到引擎** | 73 个证据文件由 bundle_root 绑定；233 个被引用的检查点摘要在本机全部对上真实文件并重算相符（这个数字从 14 涨到 219、再到 233，是因为指标索引把每个指标文件引用的检查点摘要也带进了清单，2026-09-22 的三幕 campaign pilot 又添了 5 个，2026-09-23 的八个生产检查点各再添 1 个（20M 那次连同它的 promotion 探针只带来 1 个新摘要，因为两者指向同一个 checkpoint 文件））；声明逐条与盘核对。300 份指标原件在 gitignore 里，故已提交一份逐文件哈希+字段的索引，使门面数字在任何机器上都能重算（`metrics_index_reviewability` 不读任何被 ignore 的文件）。**再往下一环也补上了**：本文所有引擎结论都以 `文件.cs:行号` 形式引用，而那棵源码树不是 git 仓库、没有提交可指，模拟器自带的守卫只比 mtime——所以 `emulator_source_provenance_20261007_v6.json` 记下 38 份引擎源码的树摘要、11 份被引文件的逐文件 sha256、评测加载的原生库 sha256，以及**每一处被引行号那段文本的哈希**；它把"引擎换了"变成 DRIFT 而不是悄悄指向别的代码，而"重新生成快照时行号自己滑了"这一类比它抓不到，靠 `scripts/verify_engine_citations.py` 拿锚点表核对（见"哈希链证据"一节末）。清单与索引都不是可信来源——它们自己也被独立重算 | `MANIFEST_2026-09-19.json`、`emulator_source_provenance_20261007_v6.json` | `evidence_bundle_integrity`、`engine_findings_checklist`、`emulator_source_provenance` |
 | **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 5 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂、战斗卡奖永不 roll 升级），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 26 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json`、`reward_upgrade_availability_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
 
 **审计结论（不美化）**：九项里七项达成或达成但带明确限定；第一项（Act 1-3 全流程胜利）**没达成，也不是「再努力一点」的问题**——模拟器没有第三幕，跨幕只有一条演示种子门控的分支，检查点穷举（09-19 的 84 枚、09-20 重跑时的 102 枚）后 0 次走完两幕。因此本目标不能标记为完成；剩下的路不在这台模拟器里，而在真机三幕那条当前被模组清单门卡住的路上。
+
+## v5 词表更正：step_cap 不再是三个，而"全在 act1"这句本来就不该存在（2026-10-07）
+
+40M 步的 campaign 臂（`config/production_campaign_v5.toml`）跑完之后，死因词表普查在 09-24 重生成，
+`dead_end_vocabulary_20260919.json` 现在记的是 `empty_action_mask` 50 / `step_cap` **6** /
+`native_rejection` 861，走的指标文件从 282 份涨到 300 份，带原因字段的仍是 52 份。六次 `step_cap` 分布在四个
+「阶段/分区」格子里：`act1/checkpoint` 2、`act1/promotion` 1、`full_run/checkpoint` 1、`full_run/promotion` 2。
+
+**这两件事是同一条更正的两面。** 数值面：09-19 那晚数到 3，是因为盘上只有 act1 阶段的评估；campaign 臂
+之后有 3 局在 full_run 阶段撞到了评估器自己的 4,800 步地平线。结构面：`verify_report_claims.py` 当时把
+那晚的快照钉成了两条断言——`vocabulary_is_exactly_three_labels`（等于字面 `{50, 861, 3}`）与
+`step_cap_is_act1_stage_only`（等于 `{"act1"}`），后者还顺手把"campaign 局会不会撞到地平线"这个问题
+从可查变成了不可问。**该变红的是普查产物与散文不一致，不是产物长出了新事实。**
+
+所以现在：
+
+- 词表的**闭集**仍然钉死（`vocabulary_labels_are_exactly_the_three_named`：第四个标签一出现就变红），
+  但**计数交给产物**，由 `vocabulary_matches_the_artifact` 与 `step_cap_cells_match_the_artifact` 逐格子重算；
+- "哪些阶段可以有 `step_cap`"改由代码侧推导：`step_cap` 不是观察到的，是评估器在
+  `training/evaluation.py:150-152` 主动判的，因此它的合法阶段就是 `config/*.toml` 里给了
+  `max_episode_steps` 的那些（`_configured_stage_horizons()` 现在读出 act1/full_run/combat/floor3/6/10/13）。
+  指标文件本身**不记录**自己当时用的上限，所以这条只能问配置，不能问文件；
+- 审计表第四行的数字检查去掉了同一族里第三份字面量（`vocab_counts == {50, 861, 3}`），只留"这一行必须
+  逐一写下产物现在记的数"；
+- 这五条各自能不能变红，由 `tests/test_report_claim_gate.py::DeadEndVocabularyVerdictTests` 七例钉住：
+  健康全绿、多出第四个标签、出现没有配置地平线的阶段、格子数与产物不符、`step_cap` 数为 0（这条特意
+  要红——空普查不是"通过"而是探针坏了）、以及"词表长大但标签集合不变"必须仍然全绿。
+  前四例任一不过就是这次改写只是在把红灯改绿灯。
+
+**还没做的一半**：`step_cap` 的逐种子定位仪器（`scripts/census_empty_mask_endings.py`，09-20 那次记录 3 次、
+定位 3 次）现在只覆盖 6 次里的 3 次；full_run 那 3 局是哪三个种子、卡在哪个相位、当时剩余多少 HP，
+盘上有指标但没有被那台仪器重放过。所以本节里"现行的 53 次已逐种子定位"这句，现在准确的写法是
+**有名截断 56 次、逐种子定位 53 次**。这一条不是措辞问题：它意味着"campaign 局撞到地平线时仍在战斗里"
+这个解释还没有像 act1 那三局那样被逐局证实。
+
+重查：`../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe scripts/verify_report_claims.py`
+（`dead_end_vocabulary`、`objective_clause_audit` 两节）与
+`.tools/python/...python.exe -m unittest tests.test_report_claim_gate`。

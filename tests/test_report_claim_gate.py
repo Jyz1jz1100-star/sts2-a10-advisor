@@ -105,5 +105,112 @@ class ReportClaimGateTests(unittest.TestCase):
         self.assertEqual([], unpinned, "an unpinned claim reports UNPINNED and counts as drift")
 
 
+class DeadEndVocabularyVerdictTests(unittest.TestCase):
+    """The restated step_cap claims have to be able to fail.
+
+    `vocabulary_is_exactly_three_labels` and `step_cap_is_act1_stage_only` were frozen
+    literals and went red the moment the campaign arm produced new facts -- a census that
+    is really a snapshot. They were replaced by a label-set check plus counts and stages
+    derived from the artifact and from ``config/``. This class is the differential that
+    says the replacement is not just a softer sentence: each way the corpus can drift now
+    is handed to the scorer deliberately, and each one still goes red.
+    """
+
+    ARTIFACT = {
+        "vocabulary": {"empty_action_mask": 50, "native_rejection": 861, "step_cap": 6},
+        "by_reason_and_stage": {
+            "step_cap": {"act1/checkpoint": 2, "act1/promotion": 1,
+                         "full_run/checkpoint": 1, "full_run/promotion": 2},
+        },
+        "step_cap_files": [{"reasons": {"step_cap": 1}} for _ in range(6)],
+    }
+    HORIZONS = {"act1": [1600], "full_run": [4800], "combat": [80]}
+    BASE_VOCABULARY = {"empty_action_mask": 50, "native_rejection": 861, "step_cap": 6}
+    BASE_CELLS = {"act1/checkpoint": 2, "act1/promotion": 1,
+                  "full_run/checkpoint": 1, "full_run/promotion": 2}
+
+    def _verdicts(self, **overrides) -> dict:
+        kwargs = {"vocabulary": dict(self.BASE_VOCABULARY),
+                  "cap_cells": dict(self.BASE_CELLS),
+                  "cap_stages": {"act1", "full_run"},
+                  "unclassified": 0,
+                  "extra_labels": {"curriculum_truncated": 6},
+                  "unaccounted": [],
+                  "artifact": self.ARTIFACT,
+                  "horizons": self.HORIZONS,
+                  "legacy_native": 861,
+                  "current_native": 0}
+        kwargs.update(overrides)
+        return V.evaluate_vocabulary_verdicts(**kwargs)
+
+    def test_the_healthy_census_scores_every_check_true(self) -> None:
+        verdicts = self._verdicts()
+        self.assertNotIn(False, list(verdicts.values()), json.dumps(verdicts, indent=1))
+
+    def test_a_fourth_label_goes_red_without_touching_the_counts(self) -> None:
+        verdicts = self._verdicts(
+            vocabulary={**self.BASE_VOCABULARY, "wedged_at_chest": 1},
+            artifact={**self.ARTIFACT,
+                      "vocabulary": {**self.ARTIFACT["vocabulary"], "wedged_at_chest": 1}})
+        self.assertFalse(verdicts["vocabulary_labels_are_exactly_the_three_named"])
+        self.assertTrue(verdicts["step_cap_cells_match_the_artifact"])
+
+    def test_a_step_cap_in_a_stage_with_no_configured_horizon_goes_red(self) -> None:
+        # A stage the configs never gave a max_episode_steps cannot produce step_cap at
+        # all, so seeing one there is a labelling defect, not a bigger corpus.
+        verdicts = self._verdicts(
+            cap_cells={**self.BASE_CELLS, "glory/checkpoint": 1},
+            cap_stages={"act1", "full_run", "glory"},
+            artifact={**self.ARTIFACT, "vocabulary": {**self.ARTIFACT["vocabulary"]},
+                      "by_reason_and_stage": {
+                          **self.ARTIFACT["by_reason_and_stage"],
+                          "step_cap": {**self.BASE_CELLS, "glory/checkpoint": 1}},
+                      "step_cap_files": self.ARTIFACT["step_cap_files"] + [
+                          {"reasons": {"step_cap": 1}}]},
+            vocabulary={**self.BASE_VOCABULARY, "step_cap": 7})
+        self.assertFalse(
+            verdicts["step_cap_appears_only_where_a_horizon_is_configured"])
+        # ...and the artifact tie keeps up, so the two checks cannot disagree in silence.
+        self.assertTrue(verdicts["step_cap_cells_match_the_artifact"])
+
+    def test_a_cell_count_the_artifact_does_not_claim_goes_red(self) -> None:
+        verdicts = self._verdicts(cap_cells={**self.BASE_CELLS, "act1/promotion": 4},
+                                  vocabulary={**self.BASE_VOCABULARY, "step_cap": 9})
+        self.assertFalse(verdicts["step_cap_cells_match_the_artifact"])
+
+    def test_an_empty_step_cap_population_is_red_not_vacuously_green(self) -> None:
+        # The old "act1 stage only" check would have passed on a census that recorded no
+        # step_cap at all, exactly the broken-probe reading the project already bans.
+        verdicts = self._verdicts(
+            vocabulary={"empty_action_mask": 50, "native_rejection": 861},
+            cap_cells={}, cap_stages=set(),
+            artifact={**self.ARTIFACT, "vocabulary": {"empty_action_mask": 50,
+                                                      "native_rejection": 861},
+                      "by_reason_and_stage": {"step_cap": {}}, "step_cap_files": []})
+        self.assertFalse(
+            verdicts["step_cap_appears_only_where_a_horizon_is_configured"])
+        self.assertFalse(verdicts["acts_too_slowly_is_labelled"])
+
+    def test_growing_the_corpus_moves_counts_without_breaking_the_label_claim(self) -> None:
+        # This is the change that made the two frozen literals fail: one more campaign
+        # episode hitting its horizon. The label set is untouched, the counts follow the
+        # artifact, and nothing here needs editing.
+        grown_cells = {**self.BASE_CELLS, "full_run/promotion": 3}
+        grown = {**self.ARTIFACT,
+                 "vocabulary": {**self.ARTIFACT["vocabulary"], "step_cap": 7},
+                 "by_reason_and_stage": {"step_cap": grown_cells},
+                 "step_cap_files": self.ARTIFACT["step_cap_files"] + [
+                     {"reasons": {"step_cap": 1}}]}
+        verdicts = self._verdicts(vocabulary={**self.BASE_VOCABULARY, "step_cap": 7},
+                                  cap_cells=grown_cells, artifact=grown)
+        self.assertNotIn(False, list(verdicts.values()), json.dumps(verdicts, indent=1))
+
+    def test_the_configured_horizons_are_read_from_config_not_a_literal(self) -> None:
+        horizons = V._configured_stage_horizons()
+        self.assertIn("full_run", horizons)
+        self.assertIn("act1", horizons)
+        self.assertTrue(all(steps for values in horizons.values() for steps in values))
+
+
 if __name__ == "__main__":
     unittest.main()

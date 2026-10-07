@@ -4116,3 +4116,110 @@ and the claims harness now reads that file), the dead-end vocabulary, metrics in
 channel censuses were rebuilt, and the evidence manifest was rebuilt **last** because it hashes
 the expectations file -- `recompute mismatches: 0`, `233/233 checkpoint digests resolve`,
 `59/61 scored claims match the disk`.
+
+## Reboot recovery, the vocabulary restated, and the act-1 win ledger failing to reproduce on v5 (2026-10-07)
+
+The host reboot killed the live batch, the client and the combat-panel arm. Recovery: the client was
+self-launched with `cmd //c start "" "steam://rungameid/2868840"` (bridge `/` returned 200 within
+about 40 s), and the acceptance batch was relaunched with the killed batch's own limits --
+`--mode observational --track acceptance --max-runs 8 --max-actions 6000 --poll 0.5 --allow-actions`
+as `ssb-20261007T052654Z-7b00ddda`. The boot left a saved run on the menu, so autoplay continued
+`61G7CG1FBWWM` under its identity guard; that trace is at act 1 floor 17 by the time the client is
+up, so it cannot satisfy `starts_at_floor_one` no matter how it ends. Four fresh runs followed it,
+and the fifth (`NS4JL3YBC3B4`) is the deepest live position recorded: **act 2, floor 33, in the Act-2
+boss fight**, having started at floor 1.
+
+### The vocabulary restated (#38)
+
+The last section quoted `59/61`. Re-measured at HEAD before touching anything, the harness reads
+**57/61**, and the four reds were not the two the prose named:
+
+| claim | what was actually false |
+|---|---|
+| `dead_end_vocabulary` | `vocabulary_is_exactly_three_labels == {50, 861, 3}` and `step_cap_is_act1_stage_only == {"act1"}` |
+| `objective_clause_audit` | `vocab_counts == {50, 861, 3}` -- the same literal, a third copy, inside the audit-row check |
+| `harness_self_description` | the report quotes the gate file at 6 tests; it had grown |
+| `emulator_source_provenance` | the report and the v5 snapshot disagree on 12 citations each way |
+
+All four are now closed, and the closure is a change of source rather than a re-pinned number:
+
+- the label set stays pinned (`vocabulary_labels_are_exactly_the_three_named`) because the useful
+  tripwire was always "a fourth reason appears", never "the counts are 50/861/3"; the counts are read
+  from the artifact, per `stage/split` cell (`step_cap_cells_match_the_artifact`);
+- which stages may carry `step_cap` is derived from the code that assigns it. `step_cap` is not
+  observed -- `training/evaluation.py:150-152` labels an episode the moment it reaches its stage's
+  `max_episode_steps` -- so `_configured_stage_horizons()` reads `config/*.toml` and the claim is
+  `step_cap_appears_only_where_a_horizon_is_configured`. Metrics files do not record their own
+  horizon, so the horizon question can only be asked of the config;
+- the scorer is now a pure function (`evaluate_vocabulary_verdicts`) with a differential in
+  `tests/test_report_claim_gate.py::DeadEndVocabularyVerdictTests`: a fourth label, a stage with no
+  configured horizon, a cell count the artifact does not claim, and an *empty* step_cap population
+  all go red, while "the corpus grew but the labels did not" stays green. The empty-population case
+  is there because the check it replaces (`cap_stages == {"act1"}`) passed happily on a census that
+  had recorded nothing.
+- the prose followed: the campaign report now says `step_cap` 6, names both stages, corrects the
+  walked population (282 files then, 300 now), and states the honest residual -- **56 named
+  truncations, 53 located per seed**; the campaign arm's three step-caps have never been replayed
+  individually. That gap is `## v5 词表更正` in `docs/ACT1_CAMPAIGN_2026-09-19.md`.
+- the provenance red was the mirror image of the last one: HEAD re-pinned the *report* and the anchor
+  table onto the post-v5 engine but left the snapshot holding the pre-re-pin citation set.
+  `scripts/verify_engine_citations.py` says 32/32 anchors sit on their code and
+  `scripts/repin_report_citations.py` proposes 0 moves, so the stale half is the artifact. It was
+  rebuilt as `docs/evidence/emulator_source_provenance_20261007_v6.json` (tree digest `433b2696…` and
+  library digest `5dbb680f…` identical to v5; citations 71 to 66, the difference being the pointers
+  the re-pin turned into prose), the claims pointer moved to it, and the manifest was rebuilt **last**
+  (73 evidence files). `scripts/verify_report_claims.py`: **61/61, exit 0.** Contract set
+  663 tests OK (2 skipped), training set OK.
+
+### What the combat panel was for, and what replaced it (#37)
+
+The teacher arm never produced a row: 40 minutes at `--beam-width 64`, and `Get-Process` showed the
+interpreter at roughly 20 % CPU, so it is blocked on something rather than crunching. `capture_prefix`
+rebuilds the fight from scratch for every decision (quadratic in episode length) and the earlier
+two rows imply ~4.5 min per episode, so a 3-encounter x 2-repeat panel is not affordable as an
+instrument. That is the recorded reason the arm was stopped, not a result.
+
+The branch it was funded to decide turned out to rest on a false premise: it treated the beam search
+as "the strongest combat player in this repository", and pre-declared that if the teacher loses, the
+engine's fight *resolution* is unfaithful. The upper bound is not the teacher -- it is the trained
+checkpoints, and the cheapest way to ask the engine whether Act 1 can be won at all was to re-run the
+thing that already claims it: `scripts/act1_win_ledger.py`, the same five arms, the same nine seeds,
+each row evaluated under its own arm config, checkpoint digests verified equal to the matrix
+(`a1ada27a…`, `f514ffa3…`).
+
+**0 of 9 reproduced. `wins_reproduced: 0, wins_failed_to_reproduce: 9` on fidelity-v5.**
+
+Five of the nine end at floor 17 with `run_outcome: loss`, `run_terminated: true`,
+`final_player_hp: 0`, `illegal_actions: 0` (seed 130015189, 202 steps: `phase complete`, HP 0/77).
+Read against the alternatives:
+
+- *not* a plumbing defect from the deletion. The trace wins every fight before the boss -- floors 2
+  and 3 each produce `combat -> relic_reward -> card_reward`, which the engine only emits after a
+  win -- and then dies in the boss with HP driven to 0 and a clean environment-sourced termination.
+  Damage is being dealt; the fight resolves; the policy loses it.
+- *not* a checkpoint or config substitution: digests and per-arm configs are pinned in the artifact
+  the script wrote.
+- the simplest explanation is the one the v5 note already carried: the deleted retained-trace blocks
+  overwrote outcomes **for any seed** at their coordinates, not only for the demo seed. The v4-era
+  "9 non-scripted wins" only ever meant "this seed is not `7MS1YN8NWB`", which is a much weaker claim
+  than "this seed's boss fight was not overwritten".
+
+Consequences, stated as findings rather than as green:
+
+1. the published strength census -- 9 Act-1 wins, 25 Act-2 clears, the promotion population of 68 --
+   describes the engine *before* v5. On the engine that ships now, no trained act-1 checkpoint wins
+   Act 1 on any seed that previously certified it.
+2. the campaign arm's flatness and this result are the same fact seen twice: the gap is concentrated
+   at the act-1 boss, so a policy that cannot take that fight cannot cross an act boundary, and 40M
+   steps of a reward signal that never reaches the boss buys no direction. This supersedes the
+   reading that the wall is only mid-Act-1 attrition for these checkpoints -- they get *to* floor 17
+   routinely and lose there.
+3. the fidelity-v2/v3/v4 win-rate numbers were already flagged as describing a softer game. This is
+   the same effect, now measured at the level of individual certified wins.
+
+Not yet done, and named as the next two measurements rather than smoothed over: the 25 Act-2 clears
+have not been re-derived on v5 (same script shape, different artifact), and no instrument has yet
+been pointed at *why* the boss is unwinnable -- the `boss_reward_rule` +21 promotion step is the one
+recorded mechanism that used to convert a lost clear, and the v5 engine no longer offers the scripted
+assistance that made the 9 wins land.
+

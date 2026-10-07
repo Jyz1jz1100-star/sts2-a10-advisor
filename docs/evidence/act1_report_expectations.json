@@ -235,16 +235,17 @@
     "step_cap": 6
   },
   "dead_end_vocabulary": {
-    "acts_too_slowly_is_labelled": true,
-    "artifact_and_disk_agree_on_step_cap_files": true,
-    "cannot_act_is_labelled": true,
-    "legacy_and_current_native_rejection_still_split": true,
-    "nothing_is_unclassified": true,
+    "vocabulary_matches_the_artifact": true,
+    "vocabulary_labels_are_exactly_the_three_named": true,
+    "step_cap_cells_match_the_artifact": true,
+    "step_cap_appears_only_where_a_horizon_is_configured": true,
     "nothing_outside_the_metrics_glob_adds_a_label_unaccounted_for": true,
-    "step_cap_is_act1_stage_only": true,
     "the_one_label_outside_the_vocabulary_is_named": true,
-    "vocabulary_is_exactly_three_labels": true,
-    "vocabulary_matches_the_artifact": true
+    "acts_too_slowly_is_labelled": true,
+    "cannot_act_is_labelled": true,
+    "nothing_is_unclassified": true,
+    "legacy_and_current_native_rejection_still_split": true,
+    "artifact_and_disk_agree_on_step_cap_files": true
   },
   "empty_mask_endings": {
     "every_ending_the_campaign_ever_recorded_was_located": true,

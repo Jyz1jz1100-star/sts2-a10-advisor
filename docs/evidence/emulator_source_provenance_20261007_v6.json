@@ -1,0 +1,640 @@
+{
+  "aggregates": {
+    "citation_mentions": 66,
+    "citations_resolved": 66,
+    "cited_files": 11,
+    "cited_files_unresolved": [],
+    "engine_source_files_hashed": 38
+  },
+  "citations": [
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1197,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "25457369f13ce325b87e88a7a9a33af02d69dfaf5acb0d2732c7400db4016466"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1093,
+      "last_line": 1111,
+      "resolved": true,
+      "snippet": "State.Phase = RunPhase.Complete; terminal = true; return 0; } return AdvanceAfterNode(out ",
+      "text_sha256": "a31961cb4793e84accadaa225d6e40d0909bb930a632bd9e73d521c70a204f8b"
+    },
+    {
+      "file": "EnemyAI.cs",
+      "first_line": 259,
+      "last_line": 263,
+      "resolved": true,
+      "snippet": "} if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2) { AddStatus(state, ST.Wound, 3",
+      "text_sha256": "b0bb19ad20cd9af0ccade079ee27a2517922dcebaf9057ffdecb59cc14aab3ea"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 684,
+      "last_line": 691,
+      "resolved": true,
+      "snippet": "if (result.PlayerWon) { RunRewardGenerator.GenerateCombatRewards(State); if (!RunRewardGen",
+      "text_sha256": "03dc88b50793e773ad3c1a4fdbf1f99f6a968f7acbd9e85ceb8e74d9df141d1e"
+    },
+    {
+      "file": "CombatFactory.cs",
+      "first_line": 243,
+      "last_line": 243,
+      "resolved": true,
+      "snippet": "var deck = deckIds.ToArray().Select(id => new CardInstance(Math.Abs(id), id < 0)).ToArray(",
+      "text_sha256": "2312ddb5c095254f9c6e65f098c5fdbb454f8c94d78b5f4d9b33b1dd2c155bd5"
+    },
+    {
+      "file": "RunRewardGenerator.cs",
+      "first_line": 543,
+      "last_line": 543,
+      "resolved": true,
+      "snippet": "silverCrucibleUpgrade || RollCardUpgrade(state, cardId, state.PlayerRng.Rewards);",
+      "text_sha256": "db4ce57c5c596e3c9216a73b3bdd735997dcf1a9f0cd1fe3f1fcaf3b809968b1"
+    },
+    {
+      "file": "RunConstants.cs",
+      "first_line": 35,
+      "last_line": 36,
+      "resolved": true,
+      "snippet": "public const int ActOvergrowth = 1; public const int ActUnderdocks = 2;",
+      "text_sha256": "e91b96e3842a50b9809ad5cf3cf5c6d5239186e372a0e9dd266e5af455c69786"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 10,
+      "last_line": 10,
+      "resolved": true,
+      "snippet": "bool underdocks = actRng.NextBool();",
+      "text_sha256": "865de3d90b8170fe17246ada6d030bdf39b3006a11d639651522aab01244342d"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1090,
+      "last_line": 1104,
+      "resolved": true,
+      "snippet": "if (State.CurrentNodeType == RunConstants.NodeBoss && !State.Campaign) { State.Phase = Run",
+      "text_sha256": "18a7d0eefd3d2b1f9dafe8481df3f5c57e41860971be9401110589e5b3ec0f3a"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1197,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "25457369f13ce325b87e88a7a9a33af02d69dfaf5acb0d2732c7400db4016466"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 207,
+      "last_line": 207,
+      "resolved": true,
+      "snippet": "GetOrCreate(state, RunConstants.MapStartCol, state.ActBossRow).NodeType =",
+      "text_sha256": "88da14f1d5fab80dc4f41b2920a66e90cdb77d6265ec1a2835cf0744266eb194"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 184,
+      "last_line": 184,
+      "resolved": true,
+      "snippet": "state.SecondBossCoord = (RunConstants.MapStartCol, state.ActBossRow + 1);",
+      "text_sha256": "b7d92755ae7d93a4d46c30fbecfa6a1b7c2016c656bbb31d704dd6a9cf84029c"
+    },
+    {
+      "file": "RunConstants.cs",
+      "first_line": 14,
+      "last_line": 14,
+      "resolved": true,
+      "snippet": "public const int MapBossRow = 16;",
+      "text_sha256": "72fcbf909ba92713b861afde07fa99bf2469e87e8c78f9ddaf8422f23fc10392"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 18,
+      "last_line": 18,
+      "resolved": true,
+      "snippet": "State.Floor = 1;",
+      "text_sha256": "c1481e904f7d39028f97caef17b8575e8d2fdc6815df995734fa155de9657bdb"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 10,
+      "last_line": 10,
+      "resolved": true,
+      "snippet": "bool underdocks = actRng.NextBool();",
+      "text_sha256": "865de3d90b8170fe17246ada6d030bdf39b3006a11d639651522aab01244342d"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 18,
+      "last_line": 18,
+      "resolved": true,
+      "snippet": "State.Floor = 1;",
+      "text_sha256": "c1481e904f7d39028f97caef17b8575e8d2fdc6815df995734fa155de9657bdb"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 684,
+      "last_line": 691,
+      "resolved": true,
+      "snippet": "if (result.PlayerWon) { RunRewardGenerator.GenerateCombatRewards(State); if (!RunRewardGen",
+      "text_sha256": "03dc88b50793e773ad3c1a4fdbf1f99f6a968f7acbd9e85ceb8e74d9df141d1e"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 207,
+      "last_line": 207,
+      "resolved": true,
+      "snippet": "GetOrCreate(state, RunConstants.MapStartCol, state.ActBossRow).NodeType =",
+      "text_sha256": "88da14f1d5fab80dc4f41b2920a66e90cdb77d6265ec1a2835cf0744266eb194"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1197,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "25457369f13ce325b87e88a7a9a33af02d69dfaf5acb0d2732c7400db4016466"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 420,
+      "last_line": 420,
+      "resolved": true,
+      "snippet": "bool hasPotionSlot = State.PotionSlots.Any(potion => potion == 0);",
+      "text_sha256": "692e57da3520c59079ab23a6fc803f1977e2428d72acdd8fa92d0969ba9da654"
+    },
+    {
+      "file": "RunRewardGenerator.cs",
+      "first_line": 662,
+      "last_line": 662,
+      "resolved": true,
+      "snippet": "int maxPotionSlots = Math.Min(2, state.PotionSlots.Length);",
+      "text_sha256": "1fd37b382e6fe4e8469ec00c6116aa69f3c209611e0d640db86bc43e54d062a8"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 2715,
+      "last_line": 2720,
+      "resolved": true,
+      "snippet": "default: for (int i = 0; i <= RunConstants.EventSkipAction; i++) { SetMask(mask, i); }",
+      "text_sha256": "7663384633f41f29c2441d87f196cc5faf230e7084ff6335253cd4926c368710"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1847,
+      "last_line": 1854,
+      "resolved": true,
+      "snippet": "case RunConstants.EventRanwidTheElder: if (action == 0) { int slot = Array.FindIndex(State",
+      "text_sha256": "30a8a8bd284fe5f1b7ecee5989656d896961cd43ea4cc9e5e4f82f60a85ae688"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1948,
+      "last_line": 1955,
+      "resolved": true,
+      "snippet": "case RunConstants.EventStoneOfAllTime: if (action == 0) { int slot = Array.FindIndex(State",
+      "text_sha256": "be445be3834300df12d2d70fbee040fe8f19e3a93aa887f4670c1f29315e43e5"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 684,
+      "last_line": 691,
+      "resolved": true,
+      "snippet": "if (result.PlayerWon) { RunRewardGenerator.GenerateCombatRewards(State); if (!RunRewardGen",
+      "text_sha256": "03dc88b50793e773ad3c1a4fdbf1f99f6a968f7acbd9e85ceb8e74d9df141d1e"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 383,
+      "last_line": 388,
+      "resolved": true,
+      "snippet": "for (int i = 0; i < State.MapNodeTypes.Length; i++) { if (State.MapNodeTypes[i] != RunCons",
+      "text_sha256": "c8b0e04d0a0455d97ec46210e704aef3ce12bc5cc3f6c02cc1ba7d4ded1ef070"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 921,
+      "last_line": 933,
+      "resolved": true,
+      "snippet": "|| state.MapNodeTypes[action] == RunConstants.NodeNone ) { return false; } var coord = sta",
+      "text_sha256": "16dab445f769b31002b3fd6347efe256e82687dec784e72d1ef9522c5392db6a"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 613,
+      "last_line": 613,
+      "resolved": true,
+      "snippet": "!RunMapGenerator.ChooseMapNode(",
+      "text_sha256": "9332ef7327c39afb2c403fdf43974a73587e4962a0a7f524cc0d58d9d0f6ac16"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1200,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "2c16bddf520acf6411e1a6b11856490f3121f6ed775f17341e6e5e081bbaabad"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1197,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "25457369f13ce325b87e88a7a9a33af02d69dfaf5acb0d2732c7400db4016466"
+    },
+    {
+      "file": "RunMapGenerator.cs",
+      "first_line": 207,
+      "last_line": 207,
+      "resolved": true,
+      "snippet": "GetOrCreate(state, RunConstants.MapStartCol, state.ActBossRow).NodeType =",
+      "text_sha256": "88da14f1d5fab80dc4f41b2920a66e90cdb77d6265ec1a2835cf0744266eb194"
+    },
+    {
+      "file": "CombatFactory.cs",
+      "first_line": 27,
+      "last_line": 27,
+      "resolved": true,
+      "snippet": "private enum ActOneEncounter",
+      "text_sha256": "0f57037c7363235bc6be4d8382bd327d2ff75236f5ee76296ae23c3bb7c05f45"
+    },
+    {
+      "file": "RunConstants.cs",
+      "first_line": 35,
+      "last_line": 36,
+      "resolved": true,
+      "snippet": "public const int ActOvergrowth = 1; public const int ActUnderdocks = 2;",
+      "text_sha256": "e91b96e3842a50b9809ad5cf3cf5c6d5239186e372a0e9dd266e5af455c69786"
+    },
+    {
+      "file": "RunConstants.cs",
+      "first_line": 14,
+      "last_line": 14,
+      "resolved": true,
+      "snippet": "public const int MapBossRow = 16;",
+      "text_sha256": "72fcbf909ba92713b861afde07fa99bf2469e87e8c78f9ddaf8422f23fc10392"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1197,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "25457369f13ce325b87e88a7a9a33af02d69dfaf5acb0d2732c7400db4016466"
+    },
+    {
+      "file": "Cards.g.cs",
+      "first_line": 136,
+      "last_line": 136,
+      "resolved": true,
+      "snippet": "new CardDef(Id: 10011, Name: \"Wound\", Cost: -1, BaseDamage: 0, BaseBlock: 0, UpgradeDamage",
+      "text_sha256": "0a9de87f6666f1bf60bc1a2e331ab1252a6c4a8d7ee42848dab4a8b6e8e9e9ee"
+    },
+    {
+      "file": "Enemies.g.cs",
+      "first_line": 110,
+      "last_line": 110,
+      "resolved": true,
+      "snippet": "new EnemyDef(Id: 102, Name: \"Vantom\", MinHp: 183, MaxHp: 183, Moves: Array.Empty<int>()),",
+      "text_sha256": "6756a859ec837fd1d78848430b2cb9a14a91d2ab8c1345727f0a252802ec31fb"
+    },
+    {
+      "file": "EnemyAI.cs",
+      "first_line": 259,
+      "last_line": 263,
+      "resolved": true,
+      "snippet": "} if (enemy.DefId == KE.Vantom && enemy.MoveIndex % 4 == 2) { AddStatus(state, ST.Wound, 3",
+      "text_sha256": "b0bb19ad20cd9af0ccade079ee27a2517922dcebaf9057ffdecb59cc14aab3ea"
+    },
+    {
+      "file": "EnemyAI.cs",
+      "first_line": 888,
+      "last_line": 895,
+      "resolved": true,
+      "snippet": "case KE.Vantom: return (enemy.MoveIndex % 4) switch { 0 => new Intent(IntentType.Attack, 8",
+      "text_sha256": "5bb9a78111fadd5e2c94bcfc9874eea34a68ff7ebfbc8b57772e92000230975c"
+    },
+    {
+      "file": "Enemy.cs",
+      "first_line": 3,
+      "last_line": 10,
+      "resolved": true,
+      "snippet": "public enum IntentType { Attack, Defend, Buff, Debuff, Unknown, }",
+      "text_sha256": "7cadc99e5d19d24fad2ec73e331a5c75b46ab14f4181e63a1520fb0259a22e1d"
+    },
+    {
+      "file": "CombatObservation.cs",
+      "first_line": 24,
+      "last_line": 25,
+      "resolved": true,
+      "snippet": "obs[5] = s.DrawPile.Count; obs[6] = s.DiscardPile.Count;",
+      "text_sha256": "a36735bf7de4d96b1a004b889b2549ae3f78b515b23ff36a23a9895b0f1fd7d8"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1093,
+      "last_line": 1111,
+      "resolved": true,
+      "snippet": "State.Phase = RunPhase.Complete; terminal = true; return 0; } return AdvanceAfterNode(out ",
+      "text_sha256": "a31961cb4793e84accadaa225d6e40d0909bb930a632bd9e73d521c70a204f8b"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1194,
+      "last_line": 1197,
+      "resolved": true,
+      "snippet": "int terminalFloor = State.ActStartFloor + State.ActBossRow; if (State.Floor >= terminalFlo",
+      "text_sha256": "25457369f13ce325b87e88a7a9a33af02d69dfaf5acb0d2732c7400db4016466"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1086,
+      "last_line": 1112,
+      "resolved": true,
+      "snippet": "private int AdvanceAfterRelicReward(out bool terminal) { // A non-campaign boss node still",
+      "text_sha256": "8b8aba322fbf364be07a346ae1c0981b2a131b14c1e0901e477e296c46393aa6"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 953,
+      "last_line": 971,
+      "resolved": true,
+      "snippet": "if (State.ReturnToRewardScreenAfterCardReward) { State.ReturnToRewardScreenAfterCardReward",
+      "text_sha256": "94eade6dbc2c01b8531a49dfe5278ec0329d039c5ae52fb6d8bb9691a8b4d8f3"
+    },
+    {
+      "file": "EnemyAI.cs",
+      "first_line": 888,
+      "last_line": 895,
+      "resolved": true,
+      "snippet": "case KE.Vantom: return (enemy.MoveIndex % 4) switch { 0 => new Intent(IntentType.Attack, 8",
+      "text_sha256": "5bb9a78111fadd5e2c94bcfc9874eea34a68ff7ebfbc8b57772e92000230975c"
+    },
+    {
+      "file": "CombatFactory.cs",
+      "first_line": 243,
+      "last_line": 243,
+      "resolved": true,
+      "snippet": "var deck = deckIds.ToArray().Select(id => new CardInstance(Math.Abs(id), id < 0)).ToArray(",
+      "text_sha256": "2312ddb5c095254f9c6e65f098c5fdbb454f8c94d78b5f4d9b33b1dd2c155bd5"
+    },
+    {
+      "file": "RunNonCombatEffects.cs",
+      "first_line": 99,
+      "last_line": 104,
+      "resolved": true,
+      "snippet": "case RunConstants.RelicPomander: UpgradeFirstCard(state); break; case RunConstants.RelicNe",
+      "text_sha256": "36b4b1e1a140898f63988c42b29c0dac380f65ab54387dc4b49b20bc2f0e728b"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1385,
+      "last_line": 1392,
+      "resolved": true,
+      "snippet": "case RunConstants.EventBrainLeech: if (action == 0) { State.Deck.Add( new CardInstance( St",
+      "text_sha256": "91ed184565d98b914781f9a37222c1a714d336becf4f0e390af397d7b3189d99"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1086,
+      "last_line": 1112,
+      "resolved": true,
+      "snippet": "private int AdvanceAfterRelicReward(out bool terminal) { // A non-campaign boss node still",
+      "text_sha256": "8b8aba322fbf364be07a346ae1c0981b2a131b14c1e0901e477e296c46393aa6"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1178,
+      "last_line": 1192,
+      "resolved": true,
+      "snippet": "private int AdvanceAfterNode(out bool terminal) { terminal = false; // Every node-resoluti",
+      "text_sha256": "a373da33dddb38038d77078e87faf5502fc8d8d7c4adf6fbf1b2ab02d7a0b925"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 953,
+      "last_line": 971,
+      "resolved": true,
+      "snippet": "if (State.ReturnToRewardScreenAfterCardReward) { State.ReturnToRewardScreenAfterCardReward",
+      "text_sha256": "94eade6dbc2c01b8531a49dfe5278ec0329d039c5ae52fb6d8bb9691a8b4d8f3"
+    },
+    {
+      "file": "RunRewardGenerator.cs",
+      "first_line": 453,
+      "last_line": 514,
+      "resolved": true,
+      "snippet": "public static bool HasPendingRewards(RunState state) { return state.RewardGold != 0 || sta",
+      "text_sha256": "bbfb8333493df3b5fb5f28649a5826c96752ef5d272b20ccbfce59827ec28ffb"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 680,
+      "last_line": 680,
+      "resolved": true,
+      "snippet": "State.LastPlayerWon = result.Terminal && result.PlayerWon;",
+      "text_sha256": "db29cc368c5583f969b49afae2ecb81d575d4a00bd8fac4a3e03aeb7ccc6f557"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 684,
+      "last_line": 691,
+      "resolved": true,
+      "snippet": "if (result.PlayerWon) { RunRewardGenerator.GenerateCombatRewards(State); if (!RunRewardGen",
+      "text_sha256": "03dc88b50793e773ad3c1a4fdbf1f99f6a968f7acbd9e85ceb8e74d9df141d1e"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 420,
+      "last_line": 420,
+      "resolved": true,
+      "snippet": "bool hasPotionSlot = State.PotionSlots.Any(potion => potion == 0);",
+      "text_sha256": "692e57da3520c59079ab23a6fc803f1977e2428d72acdd8fa92d0969ba9da654"
+    },
+    {
+      "file": "RunRewardGenerator.cs",
+      "first_line": 662,
+      "last_line": 662,
+      "resolved": true,
+      "snippet": "int maxPotionSlots = Math.Min(2, state.PotionSlots.Length);",
+      "text_sha256": "1fd37b382e6fe4e8469ec00c6116aa69f3c209611e0d640db86bc43e54d062a8"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 2690,
+      "last_line": 2690,
+      "resolved": true,
+      "snippet": "if (State.PlayerHp > 8 && State.PotionSlots.Any(potion => potion == 0))",
+      "text_sha256": "045b27668c4bc55a3ad393318b797ed9903bba14ac44434008d1ea3cb6dd5f9b"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 420,
+      "last_line": 420,
+      "resolved": true,
+      "snippet": "bool hasPotionSlot = State.PotionSlots.Any(potion => potion == 0);",
+      "text_sha256": "692e57da3520c59079ab23a6fc803f1977e2428d72acdd8fa92d0969ba9da654"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 2690,
+      "last_line": 2690,
+      "resolved": true,
+      "snippet": "if (State.PlayerHp > 8 && State.PotionSlots.Any(potion => potion == 0))",
+      "text_sha256": "045b27668c4bc55a3ad393318b797ed9903bba14ac44434008d1ea3cb6dd5f9b"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 2715,
+      "last_line": 2720,
+      "resolved": true,
+      "snippet": "default: for (int i = 0; i <= RunConstants.EventSkipAction; i++) { SetMask(mask, i); }",
+      "text_sha256": "7663384633f41f29c2441d87f196cc5faf230e7084ff6335253cd4926c368710"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 1847,
+      "last_line": 1854,
+      "resolved": true,
+      "snippet": "case RunConstants.EventRanwidTheElder: if (action == 0) { int slot = Array.FindIndex(State",
+      "text_sha256": "30a8a8bd284fe5f1b7ecee5989656d896961cd43ea4cc9e5e4f82f60a85ae688"
+    },
+    {
+      "file": "RunRewardGenerator.cs",
+      "first_line": 543,
+      "last_line": 543,
+      "resolved": true,
+      "snippet": "silverCrucibleUpgrade || RollCardUpgrade(state, cardId, state.PlayerRng.Rewards);",
+      "text_sha256": "db4ce57c5c596e3c9216a73b3bdd735997dcf1a9f0cd1fe3f1fcaf3b809968b1"
+    },
+    {
+      "file": "RunRewardGenerator.cs",
+      "first_line": 776,
+      "last_line": 780,
+      "resolved": true,
+      "snippet": "private static bool RollCardUpgrade(RunState state, int cardId, GameRng rng) { // CardFact",
+      "text_sha256": "acde041119cb089f0e4f4c22c44f1624a2b4acef9c2d4431738368ec687876d9"
+    },
+    {
+      "file": "RunEngine.cs",
+      "first_line": 944,
+      "last_line": 944,
+      "resolved": true,
+      "snippet": "State.Deck.Add(new CardInstance(cardId, State.RewardUpgraded[action]));",
+      "text_sha256": "45a81212e55b4a10f4912c84b428a0a2120ef507b85b50137b80121c17c33163"
+    },
+    {
+      "file": "RunConstants.cs",
+      "first_line": 19,
+      "last_line": 19,
+      "resolved": true,
+      "snippet": "public const int RewardSkipAction = 3;",
+      "text_sha256": "bde8afbb9476f8010df0103a518b3abca6f880a974ca750dc26cc5451f0b1bdc"
+    }
+  ],
+  "cited_files": [
+    {
+      "bytes": 98682,
+      "file": "Cards.g.cs",
+      "lines": 574,
+      "path": "src/Sts2Emulator/Generated/Cards.g.cs",
+      "sha256": "f33d70015aecf3992d2e0f0e130fdf3da3502482e20139e82cfdf316b44cdb12"
+    },
+    {
+      "bytes": 44347,
+      "file": "CombatFactory.cs",
+      "lines": 1356,
+      "path": "src/Sts2Emulator/Core/CombatFactory.cs",
+      "sha256": "83d1e5cb22907e656f30d5630a73db29d9b842fe9b7fe7fd68e97fd9b89cad08"
+    },
+    {
+      "bytes": 3164,
+      "file": "CombatObservation.cs",
+      "lines": 96,
+      "path": "src/Sts2Emulator/Core/CombatObservation.cs",
+      "sha256": "53ce510887cb00bd311cbdbb7684c7b4889e62bd9a4fc9159fbf6fd4a95e2fc0"
+    },
+    {
+      "bytes": 12091,
+      "file": "Enemies.g.cs",
+      "lines": 140,
+      "path": "src/Sts2Emulator/Generated/Enemies.g.cs",
+      "sha256": "4e9da03c34ca63963513c823799385b168105af14b98f70368ea5aa9054d18d9"
+    },
+    {
+      "bytes": 750,
+      "file": "Enemy.cs",
+      "lines": 35,
+      "path": "src/Sts2Emulator/Core/Enemy.cs",
+      "sha256": "a0b84e94783e12dca7ac01c84cfdedc3b3e6afef740765ff3d5fb859f2cbd305"
+    },
+    {
+      "bytes": 80132,
+      "file": "EnemyAI.cs",
+      "lines": 2207,
+      "path": "src/Sts2Emulator/Core/EnemyAI.cs",
+      "sha256": "e186be31b20f367b7842fb3470323b497bc759ca0e8976623bffc40e6cf09be7"
+    },
+    {
+      "bytes": 20518,
+      "file": "RunConstants.cs",
+      "lines": 452,
+      "path": "src/Sts2Emulator/Core/Run/RunConstants.cs",
+      "sha256": "ba570782970f70ecdda6be2f04dd5d8a3cac5d49347ba6037b286cc3f7a923b9"
+    },
+    {
+      "bytes": 90970,
+      "file": "RunEngine.cs",
+      "lines": 2760,
+      "path": "src/Sts2Emulator/Core/Run/RunEngine.cs",
+      "sha256": "f60b7cb34cef7b04d83840c13e1eabd443349171a3e014ea22fd606dc7987b9b"
+    },
+    {
+      "bytes": 41578,
+      "file": "RunMapGenerator.cs",
+      "lines": 1225,
+      "path": "src/Sts2Emulator/Core/Run/RunMapGenerator.cs",
+      "sha256": "366d56fa769adef3b7e5eb9b842f5572b0999056bce5f17d144c9d1f98ef99ad"
+    },
+    {
+      "bytes": 20872,
+      "file": "RunNonCombatEffects.cs",
+      "lines": 571,
+      "path": "src/Sts2Emulator/Core/Run/RunNonCombatEffects.cs",
+      "sha256": "f03c8e9ec506d0731769395d5157dd9a2f08cf5b5e92b6ea19bfb4ca07cdc99e"
+    },
+    {
+      "bytes": 26746,
+      "file": "RunRewardGenerator.cs",
+      "lines": 992,
+      "path": "src/Sts2Emulator/Core/Run/RunRewardGenerator.cs",
+      "sha256": "26f4518e1603874795c475f95eff4251f1135c75a2a6eb142dbb0e99b835670d"
+    }
+  ],
+  "emulator_layout": "src/Sts2Emulator (excludes bin/ and obj/)",
+  "generated_at": "2026-10-07T06:00:25+00:00",
+  "native_api": {
+    "library": {
+      "bytes": 2756608,
+      "path": "out/Sts2Emulator.dll",
+      "present": true,
+      "sha256": "5dbb680f533ecb3308c21a4a663c7a97fcc379f2ee24dfd4468bca3f327bbd4b"
+    },
+    "mtime_guard_newest_source": "src/Sts2Emulator/Core/Run/RunMapGenerator.cs @ 2026-09-23T01:45:06+00:00",
+    "required_versions": {
+      "Sts2Run_NativeApiVersion": 8,
+      "Sts2_NativeApiVersion": 10
+    }
+  },
+  "not_established": [
+    "that this tree is the one that produced the committed numbers -- it is the tree that resolves the report's citations today, and a drift in the engine now shows as DRIFT rather than as a silently re-pointed line number",
+    "anything about the shipped game or the in-game mod build; this hashes the separate third_party emulator checkout",
+    "the citations this repository makes to its own Python files (``*.py:line``): those live in a git-tracked tree, so their history is ``git log -L``, not this artifact"
+  ],
+  "scope": "the third_party slay-the-spire-2-emulator-main checkout this repository's scripts import, plus every *.cs:line citation the campaign report carries",
+  "source_tree_digest": "433b2696957d334b3e4450618cdffc58e161e774c9830adfacb8201fc844facf"
+}
