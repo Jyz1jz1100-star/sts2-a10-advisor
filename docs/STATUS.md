@@ -4816,3 +4816,20 @@ Live path is parked: the client is still sitting on that modal, so #47 (fixed-se
 tested either -- a fixed batch would continue the same save. Clearing it means either the author's
 fix or an in-game click/abandon by the operator, and `abandon_run` stays operator-gated: reported,
 not performed.
+
+## The manual click is the experiment result: the UI can commit, the bridge's requests cannot (2026-10-07)
+
+Our automation stopped observing that modal at `10:34:17Z` and no child of ours ran afterwards; at
+`11:22Z` the same save (`9WTUJJL0EMZF`) reads `state_type = shop`, still act 3 floor 39. The operator
+cleared it by clicking. So the same screen instance that answered `ok` to 363 bridge requests and
+never moved **did** commit to a human click, which relocates the defect from "the game's multi-pick
+UI" to "the bridge's `select_card`/`confirm_selection` path (or its confirmation node never being
+reached)" -- and it is why the STS2MCP note now states that as a conclusion with a caveat rather than
+as a shape: we did not observe the click itself, only its consequence, so the author has to reproduce
+the minimal cycle. The `card_select` view carrying no per-card `selected` flag is the reason we could
+not tell this apart from the inside: every response said success.
+
+A new observational batch is running on the freed save (it can be measured for refusals but not
+certified -- it did not start at floor 1; the runs after it will). The trigger is a shop floor
+presenting a choose-many enchant, so it can recur on the next floor, and the driver will now stop
+loudly at 12 accepted-but-ineffective posts rather than spend the batch.
