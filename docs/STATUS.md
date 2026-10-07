@@ -4590,3 +4590,52 @@ Next in the frozen order: G3's "one reproducible three-act trace under the same 
 constraint" (the campaign step-cap work already located the ceiling), then G4's screen, then G5's
 1.5M-step probe with three random inits. G2 stays blocked on the mod's multi-select path and on
 #44, neither of which gates the other three.
+
+## The product goal is met once, on the real client, and the batch that produced it is not certified (2026-10-07)
+
+Batch `ssb-20261007T081357Z-73310af4` (started 08:13:57Z, `autoplay_completed` 09:17:55Z) contains
+one run that walks the whole thing: a fresh Ironclad A10 run opened from the menu at 08:14:05Z,
+`run_identity` seed `4B7160T1E0DC`, reaching act 3 floor 49 at 08:33:41Z with
+`game_over.is_victory = true`. That is the delivery goal's shape, and every piece of it is read off
+the recorded rows into `docs/evidence/live_victory_20261007.json` (claim `live_victory_trace`),
+none of it paraphrased:
+
+* **three acts, one continuous window** -- act 1 floors 1..17, act 2 17..33, act 3 33..49, in one
+  run, no mid-run save-resume, no human rescue;
+* **each act's own Ancient** -- `NEOW` at floor 1 (the run-start offer), `PAEL` in act 2, `VAKUU`
+  in act 3, each flagged `is_ancient` by the bridge itself and each matched against the act
+  `training/campaign_content.py` says it belongs to;
+* **the bosses, 1 + 1 + 2** -- `LAGAVULIN_MATRIARCH` (floor 17); `CRUSHER` + `ROCKET` together in
+  one encounter (floor 33, both in the same frame -- an earlier draft of the extractor read the
+  last frame and reported this as a single boss, which is why the field now keeps the widest party
+  ever seen, not the final one); then `AEONGLASS` (48) and `TEST_SUBJECT` (49) as two fights;
+* **the responsibility split held** -- `execution_owner = combat_solver_full_auto`, so not one
+  combat action came from us, while the between-fight picks came from
+  `live_choice_policy_version = conservative-visible-v2`, the versioned rule that task #11 exists
+  to make attributable.
+
+**What it is not: a certified run.** The batch's own verdict is `acceptance_claim = false` with
+three named blockers (`observational_mode` -- this batch ran on the observation track, not the
+acceptance one; `record_integrity_invalid`; `runner_acceptance_false`), and 1 of 7 completed runs
+winning is a reachability result, not a rate: the same batch contains six deaths, two of them at
+the act-1 boss. G2 (three consecutive passes on one known trigger, on the acceptance track) is
+still open, and nothing here closes it.
+
+Two disclosures that belong next to the win, not in a footnote:
+
+* **HP reads 0 at the victory screen.** The last boss fight ended at HP 29 with the enemy list
+  already empty, the reward page was claimed, the `THE_ARCHITECT` ending event was clicked through,
+  and only then does the client report `hp = 0` alongside `is_victory = true`. The flag is the
+  client's own and it discriminates -- the six deaths in the same batch all report `false` with the
+  same `hp = 0`. The artifact stores `hp_at_game_over` and the claim fails if that field is dropped,
+  so the inconvenient half cannot be quietly optimised out of the record later.
+* **the installed CombatSolver does not match the lock**: version string `0.50.1` but file sha
+  `832060172AA5EAE8...` against the lock's `AEF117176C99...`, and identical at batch start and end
+  -- so this batch never changed engines underneath the run, and the version string alone would
+  have hidden the difference. Locks and Steam state are operator-owned: recorded, not re-pinned.
+  The keeper child also exited `0xC0000409` on stop, which is its own item (#22), not part of the
+  run's record.
+
+Sequelling consequence: **the live path is no longer blocked by an unreachable final act**, so the
+remaining live risk is reproducibility on the acceptance track (G2) and the multi-select modal
+(#42/#44), not "can a run get there at all".

@@ -41,6 +41,7 @@ $smallOnly = @(
     "tests.test_live_choice_policy",
     "tests.test_mod_attestation",
     "tests.test_mod_gate",
+    "tests.test_out_of_combat_screen",
     "tests.test_policy_live",
     "tests.test_promotion_gate_absent_inputs",
     "tests.test_report_claim_gate",

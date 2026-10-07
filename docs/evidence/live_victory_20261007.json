@@ -1,0 +1,999 @@
+{
+  "acceptance": {
+    "acceptance_blockers": [
+      "observational_mode",
+      "record_integrity_invalid",
+      "runner_acceptance_false"
+    ],
+    "acceptance_claim": false,
+    "available": true,
+    "batch_status": "partial",
+    "battle_rows": 50,
+    "child_exit_codes": {
+      "autoplay": 0,
+      "fullauto_keeper": 3221225786
+    },
+    "comparison_issues": [
+      "status_not_complete",
+      "stopped_reason_not_max_battles"
+    ],
+    "completed_at_utc": "2026-10-07T09:17:55.958681Z",
+    "result_code": 9,
+    "solver_at_end": {
+      "actual_sha256": "832060172AA5EAE8D79546F120A10E4571C324B7C0D6AB2C6ABC2BCAD24323CD",
+      "expected_sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
+      "matches_lock": false,
+      "mod_id": "CombatSolver",
+      "mod_manifest_version": "0.50.1",
+      "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll"
+    },
+    "solver_at_start": {
+      "actual_sha256": "832060172AA5EAE8D79546F120A10E4571C324B7C0D6AB2C6ABC2BCAD24323CD",
+      "expected_sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
+      "matches_lock": false,
+      "mod_id": "CombatSolver",
+      "mod_manifest_version": "0.50.1",
+      "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll"
+    },
+    "solver_drifted_from_lock": [
+      "STS2-RitsuLib",
+      "CombatSolver"
+    ],
+    "stop_reason": "autoplay_completed"
+  },
+  "batch_id": "ssb-20261007T081357Z-73310af4",
+  "cohort": "assisted",
+  "completed_runs": 7,
+  "defeats": 6,
+  "execution_owner": "combat_solver_full_auto",
+  "first_run_identity": {
+    "ascension": 10,
+    "character": "IRONCLAD",
+    "character_id": "IRONCLAD",
+    "character_title": "铁甲战士",
+    "game_mode": "standard",
+    "run_id": "modded:profile1:1791360839",
+    "save_scope": "modded",
+    "seed": "4B7160T1E0DC"
+  },
+  "game": {
+    "app_id": "2868840",
+    "branch": "public-beta",
+    "commit": "41cef1ea",
+    "main_assembly_hash": 222455745,
+    "steam_build_id": "24724944",
+    "version": "v0.111.0"
+  },
+  "git_head": "7c73544096e3be4fb95689b488364c9cc3c6e95f",
+  "live_choice_policy_version": "conservative-visible-v2",
+  "not_established": [
+    "a win rate: this is one batch's runs, and one trace is a reachability result, not a rate",
+    "the acceptance contract's own verdict until the batch reaches session_end -- the 11-item gate is evaluated on a finished batch, and a live batch is not proof",
+    "that the ending's hp 0 is a story beat rather than a death: the client's own game_over flag says victory, the boss list was empty before it, and the reward screen was already claimed"
+  ],
+  "runs": [
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T08:14:02.188+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "last_ts": "2026-10-07T08:20:02.496+00:00",
+          "max_floor": 17,
+          "min_floor": 1
+        },
+        "2": {
+          "first_ts": "2026-10-07T08:20:03.040+00:00",
+          "floors_seen": [
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ],
+          "last_ts": "2026-10-07T08:25:39.708+00:00",
+          "max_floor": 33,
+          "min_floor": 17
+        },
+        "3": {
+          "first_ts": "2026-10-07T08:25:40.246+00:00",
+          "floors_seen": [
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49
+          ],
+          "last_ts": "2026-10-07T08:33:41.130+00:00",
+          "max_floor": 49,
+          "min_floor": 33
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T08:14:02.188+00:00",
+          "floor": 1
+        },
+        {
+          "act": 2,
+          "event_id": "PAEL",
+          "expected_act": 2,
+          "first_ts": "2026-10-07T08:20:04.205+00:00",
+          "floor": 18
+        },
+        {
+          "act": 3,
+          "event_id": "VAKUU",
+          "expected_act": 3,
+          "first_ts": "2026-10-07T08:25:41.413+00:00",
+          "floor": 34
+        }
+      ],
+      "boss_nodes": [
+        {
+          "act": 1,
+          "entities": [
+            "LAGAVULIN_MATRIARCH_0"
+          ],
+          "entities_ever_seen": [
+            "LAGAVULIN_MATRIARCH_0"
+          ],
+          "first_ts": "2026-10-07T08:19:13.788+00:00",
+          "floor": 17,
+          "max_hp_seen": {
+            "LAGAVULIN_MATRIARCH_0": 233
+          },
+          "room": "boss"
+        },
+        {
+          "act": 2,
+          "entities": [
+            "CRUSHER_0",
+            "ROCKET_0"
+          ],
+          "entities_ever_seen": [
+            "CRUSHER_0",
+            "ROCKET_0"
+          ],
+          "first_ts": "2026-10-07T08:24:21.628+00:00",
+          "floor": 33,
+          "max_hp_seen": {
+            "CRUSHER_0": 219,
+            "ROCKET_0": 209
+          },
+          "room": "boss"
+        },
+        {
+          "act": 3,
+          "entities": [
+            "AEONGLASS_0"
+          ],
+          "entities_ever_seen": [
+            "AEONGLASS_0"
+          ],
+          "first_ts": "2026-10-07T08:30:35.301+00:00",
+          "floor": 48,
+          "max_hp_seen": {
+            "AEONGLASS_0": 535
+          },
+          "room": "boss"
+        },
+        {
+          "act": 3,
+          "entities": [
+            "TEST_SUBJECT_0"
+          ],
+          "entities_ever_seen": [
+            "TEST_SUBJECT_0"
+          ],
+          "first_ts": "2026-10-07T08:32:12.780+00:00",
+          "floor": 49,
+          "max_hp_seen": {
+            "TEST_SUBJECT_0": 313
+          },
+          "room": "boss"
+        }
+      ],
+      "deepest_act": 3,
+      "deepest_floor": 49,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T08:14:00.891+00:00",
+      "frames": 3096,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T08:33:41.130+00:00",
+      "victory_flag": true
+    },
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T08:33:47.398+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "last_ts": "2026-10-07T08:39:26.906+00:00",
+          "max_floor": 17,
+          "min_floor": 1
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T08:33:47.398+00:00",
+          "floor": 1
+        }
+      ],
+      "boss_nodes": [
+        {
+          "act": 1,
+          "entities": [
+            "KIN_FOLLOWER_0",
+            "KIN_FOLLOWER_1",
+            "KIN_PRIEST_0"
+          ],
+          "entities_ever_seen": [
+            "KIN_FOLLOWER_0",
+            "KIN_FOLLOWER_1",
+            "KIN_PRIEST_0"
+          ],
+          "first_ts": "2026-10-07T08:38:17.285+00:00",
+          "floor": 17,
+          "max_hp_seen": {
+            "KIN_FOLLOWER_0": 63,
+            "KIN_FOLLOWER_1": 62,
+            "KIN_PRIEST_0": 199
+          },
+          "room": "boss"
+        }
+      ],
+      "deepest_act": 1,
+      "deepest_floor": 17,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T08:33:46.153+00:00",
+      "frames": 928,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T08:39:26.906+00:00",
+      "victory_flag": false
+    },
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T08:39:33.064+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "last_ts": "2026-10-07T08:42:52.836+00:00",
+          "max_floor": 14,
+          "min_floor": 1
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T08:39:33.064+00:00",
+          "floor": 1
+        }
+      ],
+      "boss_nodes": [],
+      "deepest_act": 1,
+      "deepest_floor": 14,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T08:39:31.760+00:00",
+      "frames": 600,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T08:42:52.836+00:00",
+      "victory_flag": false
+    },
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T08:42:58.895+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "last_ts": "2026-10-07T08:52:30.351+00:00",
+          "max_floor": 17,
+          "min_floor": 1
+        },
+        "2": {
+          "first_ts": "2026-10-07T08:52:30.878+00:00",
+          "floors_seen": [
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "last_ts": "2026-10-07T08:57:27.632+00:00",
+          "max_floor": 24,
+          "min_floor": 17
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T08:42:58.895+00:00",
+          "floor": 1
+        },
+        {
+          "act": 2,
+          "event_id": "OROBAS",
+          "expected_act": 2,
+          "first_ts": "2026-10-07T08:52:32.062+00:00",
+          "floor": 18
+        }
+      ],
+      "boss_nodes": [
+        {
+          "act": 1,
+          "entities": [
+            "KIN_FOLLOWER_0",
+            "KIN_FOLLOWER_1",
+            "KIN_PRIEST_0"
+          ],
+          "entities_ever_seen": [
+            "KIN_FOLLOWER_0",
+            "KIN_FOLLOWER_1",
+            "KIN_PRIEST_0"
+          ],
+          "first_ts": "2026-10-07T08:50:50.953+00:00",
+          "floor": 17,
+          "max_hp_seen": {
+            "KIN_FOLLOWER_0": 62,
+            "KIN_FOLLOWER_1": 63,
+            "KIN_PRIEST_0": 199
+          },
+          "room": "boss"
+        }
+      ],
+      "deepest_act": 2,
+      "deepest_floor": 24,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T08:42:57.532+00:00",
+      "frames": 2123,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T08:57:27.632+00:00",
+      "victory_flag": false
+    },
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T08:57:34.775+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "last_ts": "2026-10-07T09:05:00.580+00:00",
+          "max_floor": 17,
+          "min_floor": 1
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T08:57:34.775+00:00",
+          "floor": 1
+        }
+      ],
+      "boss_nodes": [
+        {
+          "act": 1,
+          "entities": [
+            "SOUL_FYSH_0"
+          ],
+          "entities_ever_seen": [
+            "SOUL_FYSH_0"
+          ],
+          "first_ts": "2026-10-07T09:03:44.270+00:00",
+          "floor": 17,
+          "max_hp_seen": {
+            "SOUL_FYSH_0": 221
+          },
+          "room": "boss"
+        }
+      ],
+      "deepest_act": 1,
+      "deepest_floor": 17,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T08:57:33.321+00:00",
+      "frames": 1109,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T09:05:00.580+00:00",
+      "victory_flag": false
+    },
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T09:05:06.927+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "last_ts": "2026-10-07T09:06:28.874+00:00",
+          "max_floor": 6,
+          "min_floor": 1
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T09:05:06.927+00:00",
+          "floor": 1
+        }
+      ],
+      "boss_nodes": [],
+      "deepest_act": 1,
+      "deepest_floor": 6,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T09:05:05.668+00:00",
+      "frames": 305,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T09:06:28.874+00:00",
+      "victory_flag": false
+    },
+    {
+      "acts": {
+        "1": {
+          "first_ts": "2026-10-07T09:06:35.201+00:00",
+          "floors_seen": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "last_ts": "2026-10-07T09:11:32.666+00:00",
+          "max_floor": 17,
+          "min_floor": 1
+        },
+        "2": {
+          "first_ts": "2026-10-07T09:11:32.734+00:00",
+          "floors_seen": [
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ],
+          "last_ts": "2026-10-07T09:17:49.391+00:00",
+          "max_floor": 33,
+          "min_floor": 17
+        }
+      },
+      "ancients": [
+        {
+          "act": 1,
+          "event_id": "NEOW",
+          "expected_act": 1,
+          "first_ts": "2026-10-07T09:06:35.201+00:00",
+          "floor": 1
+        },
+        {
+          "act": 2,
+          "event_id": "OROBAS",
+          "expected_act": 2,
+          "first_ts": "2026-10-07T09:11:34.465+00:00",
+          "floor": 18
+        }
+      ],
+      "boss_nodes": [
+        {
+          "act": 1,
+          "entities": [
+            "KIN_FOLLOWER_0",
+            "KIN_FOLLOWER_1",
+            "KIN_PRIEST_0"
+          ],
+          "entities_ever_seen": [
+            "KIN_FOLLOWER_0",
+            "KIN_FOLLOWER_1",
+            "KIN_PRIEST_0"
+          ],
+          "first_ts": "2026-10-07T09:10:19.255+00:00",
+          "floor": 17,
+          "max_hp_seen": {
+            "KIN_FOLLOWER_0": 63,
+            "KIN_FOLLOWER_1": 62,
+            "KIN_PRIEST_0": 199
+          },
+          "room": "boss"
+        },
+        {
+          "act": 2,
+          "entities": [
+            "CRUSHER_0",
+            "ROCKET_0"
+          ],
+          "entities_ever_seen": [
+            "CRUSHER_0",
+            "ROCKET_0"
+          ],
+          "first_ts": "2026-10-07T09:16:53.473+00:00",
+          "floor": 33,
+          "max_hp_seen": {
+            "CRUSHER_0": 219,
+            "ROCKET_0": 209
+          },
+          "room": "boss"
+        }
+      ],
+      "deepest_act": 2,
+      "deepest_floor": 33,
+      "ended_with": "game_over",
+      "first_ts": "2026-10-07T09:06:33.966+00:00",
+      "frames": 1846,
+      "hp_at_game_over": 0,
+      "last_ts": "2026-10-07T09:17:49.391+00:00",
+      "victory_flag": false
+    }
+  ],
+  "seed_mode": "observational",
+  "trace_rows": 10431,
+  "trace_sha256": "fbcba70c2230ac3561d11f6ae0712cbc3d6fe4e5b862fb765600f0babd6b26fd",
+  "version_lock": {
+    "bridge": {
+      "base_url": "http://127.0.0.1:15526",
+      "compendium_path": "/api/v1/compendium",
+      "health_path": "/",
+      "name": "STS2MCP",
+      "singleplayer_path": "/api/v1/singleplayer",
+      "version": "0.4.0"
+    },
+    "evaluation_environment": {
+      "allowed_mod_ids": [
+        "STS2_MCP",
+        "STS2-RitsuLib",
+        "CombatSolver",
+        "RegentFX"
+      ],
+      "contaminated_run_policy": "exclude_from_training_and_evaluation",
+      "live_mod_roots": [
+        "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods",
+        "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840"
+      ],
+      "mod_dll_inventory": [
+        {
+          "mod_id": "STS2_MCP",
+          "note": "actionability candidate bridge (artifacts/sts2mcp-actionability): publishes rest_site.can_choose and player.potions[].usage on top of the victory flag",
+          "path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\mods\\STS2_MCP.dll",
+          "required": true,
+          "sha256": "730D60B154626F644EEC2FB5D0E7715871FA22D15BB2A8966C024DB90BFB3D72",
+          "source": "re-pinned 2026-09-21T15:40Z under operator authorization (batch stopped, game closed, port idle); hash read from the installed file by scripts/stage_sts2mcp.py --apply, backup at runs/sts2mcp_staging/backups/sts2mcp-20260921T153502Z-288868f1"
+        },
+        {
+          "affects_gameplay": false,
+          "mod_id": "RegentFX",
+          "note": "cosmetic card VFX mod, affects_gameplay=false in its manifest; tolerated in the comparison environment, still excluded from the A10 acceptance track",
+          "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747497501\\RegentFX.dll",
+          "required": true,
+          "sha256": "0F0262B3C4304C824C81D908CA7F3CEDABD00AF4C6B522A02513FF380C36EF06",
+          "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072"
+        },
+        {
+          "mod_id": "STS2-RitsuLib",
+          "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3747602295\\STS2-RitsuLib.dll",
+          "required": true,
+          "sha256": "E3959F1746FCB7AA404CB9CD861443DC540E8488B50F7D156EACBE79925156B6",
+          "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072",
+          "version": "0.6.2",
+          "workshop_item_id": "3747602295"
+        },
+        {
+          "drift_observed": [
+            {
+              "action": "recorded only -- the solver lock is operator-owned and is deliberately not re-pinned here",
+              "cause": "Steam Workshop auto-updated the solver when the client was started on 2026-09-21",
+              "observed_at_utc": "2026-09-20T16:57:36.585529Z",
+              "observed_sha256": "B66D7C055CF92F478CD2CDB3A230D0F5137734E0FEFD738B41830AE0777F0C50"
+            }
+          ],
+          "mod_id": "CombatSolver",
+          "path": "G:\\SteamLibrary\\steamapps\\workshop\\content\\2868840\\3790899961\\CombatSolver.dll",
+          "required": true,
+          "sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
+          "source": "re-pinned 2026-09-20T22:58Z under operator authorization; hash read from the installed Workshop file, version from the mod manifest / boot log of PID 244072",
+          "version": "0.43.1",
+          "workshop_item_id": "3790899961"
+        }
+      ]
+    },
+    "game": {
+      "app_id": "2868840",
+      "branch": "public-beta",
+      "commit": "41cef1ea",
+      "main_assembly_hash": 222455745,
+      "release_info_path": "G:\\SteamLibrary\\steamapps\\common\\Slay the Spire 2\\release_info.json",
+      "steam_build_id": "24724944",
+      "steam_manifest_path": "G:\\SteamLibrary\\steamapps\\appmanifest_2868840.acf",
+      "version": "v0.111.0"
+    },
+    "note": "Mod inventory for the Combat Solver comparison track ONLY. The A10 acceptance track keeps config/live_version.lock.json with allowed_mod_ids [STS2_MCP]; results obtained under this inventory never count toward that protocol.",
+    "schema_version": 1,
+    "solver": {
+      "author": "Torch",
+      "budget_tiers": "Low / Medium / High / VeryHigh / Custom (short+deep budgets: beam/nodes/time; memory = NoGcRegionBudgetGigabytes, default 16)",
+      "game_log_dir": "%APPDATA%\\SlayTheSpire2\\logs",
+      "game_user_data_dir": "%APPDATA%\\SlayTheSpire2",
+      "installed_mod_version": "0.43.1",
+      "installed_mod_version_source": "workshop manifest CombatSolver.json read 2026-09-20T22:58Z (item 3790899961)",
+      "interface_finding_2026_09_02": "Upstream source review found NO machine-facing interface (no HTTP listener, pipe, socket or file watcher). Consumption paths are: game diagnostic logs ([CombatSolver/Test] blocks in {game user data}/logs/*.log), manually exported problem packages (Desktop CombatSolver-BugReports/*.zip, includes combat-solver/combat-state.json + current-route.txt + forensics), and the settings file user://combat_solver_settings.json (Godot user:// maps to %APPDATA%\\Godot\\app_userdata\\<game>\\ on Windows). Candidate routes are in-memory only and reach disk solely inside problem packages.",
+      "license_note": "Source-visible upstream repo (github.com/Torch1230/CombatSolver) currently ships NO license; this integration only consumes the installed mod's own outputs and copies none of its code.",
+      "log_grammar": "v1 (calibrated 2026-09-02 against godot.log of CombatSolver 0.25.3): SEARCH_REQUEST generation=N turn=T opens a block; ACTION turn=K kind=PlayCard|UsePotion|EndTurn card_id=/potion_id= target_index=; RESULT ... reused= searched_turns= battle_hp_lost_so_far= projected_battle_hp_lost= total_elapsed_ms= expanded= total_worker_allocated_bytes= final_hp= combat_ended_turn=; TURN_OUTCOME turn=K hp_lost=; SEARCH_FAILURE generation=N exception=; SEARCH_STALE generation=N.",
+      "min_game_version": "0.111.0",
+      "name": "CombatSolver",
+      "observed_settings_2026_09_02": {
+        "deepMaxExpandedNodes": 50000,
+        "deepTimeLimitSeconds": 300,
+        "enableDetailedDiagnosticLogs": false,
+        "noGcRegionBudgetGigabytes": 16,
+        "performancePreset": "VeryHigh",
+        "searchMaxDegreeOfParallelism": 8,
+        "shortMaxExpandedNodes": 10000,
+        "shortTimeLimitSeconds": 20
+      },
+      "requires": {
+        "ritsulib": {
+          "installed_version": "0.5.18",
+          "min_version": "0.5.13",
+          "name": "RitsuLib",
+          "workshop_item_id": "3747602295"
+        }
+      },
+      "settings_path": "%APPDATA%\\SlayTheSpire2\\combat_solver_settings.json",
+      "version_history": [
+        {
+          "note": "grammar v1 calibrated against this version's godot.log session (2026-09-02)",
+          "sha256": "A4CBD184FCB2D16AAF1C497E0B92419E4752AFB62B5797A0F41281F39DED4C84",
+          "version": "0.25.3"
+        },
+        {
+          "note": "Steam auto-update before the smoke batch; log grammar re-verified compatible (same [CombatSolver/Test] event names)",
+          "sha256": "127A7957E2443A109F8262E0CACC68645B8CD145BCDBE02B75CA0E34E511712E",
+          "version": "0.26.0"
+        },
+        {
+          "note": "Steam auto-update at phase-1 launch (2026-09-02 16:51); grammar assumed compatible, phase-1 audit re-checks snapshot counts vs RESULT lines",
+          "sha256": "F71F1B4799DDCDB801E118F847426EC599D5DFF10FFECD0F9B00E7AB4827C217",
+          "version": "0.27.0"
+        },
+        {
+          "note": "Workshop auto-update(s) observed 2026-09-06 (intermediate 0.28.x not individually captured on disk); grammar v1 full replay of the 2026-09-05/06 session logs verified: 1960 events, 548 snapshots, 0 empty routes, failures typed (9 STALE_STATE / 27 NO_ROUTE); settings persisted full_auto=true",
+          "sha256": "60A9B55B125E517A8F8E34E3B0E89AD278F7DDFA794E2466703B3409E89C3A7A",
+          "version": "0.29.1"
+        },
+        {
+          "note": "Workshop auto-update 2026-09-06 ~17:47 local (0.30.0 seen for one brief session); grammar v1 full replay of the live 0.31.0 session log verified: 161 events, 45 snapshots, 115 deploys, 0 empty routes, 1 typed failure (NO_ROUTE). 0.31.0 full_auto now also performs out-of-combat actions (map votes, reward takes) autonomously - run 1600000003 from embark to Act 3 progressed under mod-solo control with the bridge harness down.",
+          "sha256": "E97879185E853D678D632A16695D06D3A0AF60E2ABD4582C75FB1C02D36512E9",
+          "version": "0.31.0"
+        },
+        {
+          "note": "Re-pinned 2026-09-20T22:58Z with the operator's explicit authorization to proceed past the gate (do not ask again); boot log of game PID 244072 shows CombatSolver 0.43.1 and RitsuLib 0.6.2. Versions between 0.31.0 and 0.43.1 -- including the 0.38.x/0.39.0/0.40.x/0.41.0 sessions this machine holds journals for -- were never individually captured on disk, so no hash is claimed for them; grammar v2 replay of those journals is offline evidence (runs/grammar_v2_replay_20260920T2245Z). full_auto state must be re-read from the settings file before any batch, not assumed from the 0.31.0 note.",
+          "sha256": "AEF117176C992ECCA69F05C7C8C43B7CC4343276A64C237829EAD32E8F88863C",
+          "version": "0.43.1"
+        }
+      ],
+      "workshop_item_id": "3790899961"
+    },
+    "track": "combat_solver_comparison"
+  },
+  "victories": 1,
+  "victory_run": {
+    "acts": {
+      "1": {
+        "first_ts": "2026-10-07T08:14:02.188+00:00",
+        "floors_seen": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "last_ts": "2026-10-07T08:20:02.496+00:00",
+        "max_floor": 17,
+        "min_floor": 1
+      },
+      "2": {
+        "first_ts": "2026-10-07T08:20:03.040+00:00",
+        "floors_seen": [
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33
+        ],
+        "last_ts": "2026-10-07T08:25:39.708+00:00",
+        "max_floor": 33,
+        "min_floor": 17
+      },
+      "3": {
+        "first_ts": "2026-10-07T08:25:40.246+00:00",
+        "floors_seen": [
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "last_ts": "2026-10-07T08:33:41.130+00:00",
+        "max_floor": 49,
+        "min_floor": 33
+      }
+    },
+    "ancients": [
+      {
+        "act": 1,
+        "event_id": "NEOW",
+        "expected_act": 1,
+        "first_ts": "2026-10-07T08:14:02.188+00:00",
+        "floor": 1
+      },
+      {
+        "act": 2,
+        "event_id": "PAEL",
+        "expected_act": 2,
+        "first_ts": "2026-10-07T08:20:04.205+00:00",
+        "floor": 18
+      },
+      {
+        "act": 3,
+        "event_id": "VAKUU",
+        "expected_act": 3,
+        "first_ts": "2026-10-07T08:25:41.413+00:00",
+        "floor": 34
+      }
+    ],
+    "boss_nodes": [
+      {
+        "act": 1,
+        "entities": [
+          "LAGAVULIN_MATRIARCH_0"
+        ],
+        "entities_ever_seen": [
+          "LAGAVULIN_MATRIARCH_0"
+        ],
+        "first_ts": "2026-10-07T08:19:13.788+00:00",
+        "floor": 17,
+        "max_hp_seen": {
+          "LAGAVULIN_MATRIARCH_0": 233
+        },
+        "room": "boss"
+      },
+      {
+        "act": 2,
+        "entities": [
+          "CRUSHER_0",
+          "ROCKET_0"
+        ],
+        "entities_ever_seen": [
+          "CRUSHER_0",
+          "ROCKET_0"
+        ],
+        "first_ts": "2026-10-07T08:24:21.628+00:00",
+        "floor": 33,
+        "max_hp_seen": {
+          "CRUSHER_0": 219,
+          "ROCKET_0": 209
+        },
+        "room": "boss"
+      },
+      {
+        "act": 3,
+        "entities": [
+          "AEONGLASS_0"
+        ],
+        "entities_ever_seen": [
+          "AEONGLASS_0"
+        ],
+        "first_ts": "2026-10-07T08:30:35.301+00:00",
+        "floor": 48,
+        "max_hp_seen": {
+          "AEONGLASS_0": 535
+        },
+        "room": "boss"
+      },
+      {
+        "act": 3,
+        "entities": [
+          "TEST_SUBJECT_0"
+        ],
+        "entities_ever_seen": [
+          "TEST_SUBJECT_0"
+        ],
+        "first_ts": "2026-10-07T08:32:12.780+00:00",
+        "floor": 49,
+        "max_hp_seen": {
+          "TEST_SUBJECT_0": 313
+        },
+        "room": "boss"
+      }
+    ],
+    "deepest_act": 3,
+    "deepest_floor": 49,
+    "ended_with": "game_over",
+    "first_ts": "2026-10-07T08:14:00.891+00:00",
+    "frames": 3096,
+    "hp_at_game_over": 0,
+    "last_ts": "2026-10-07T08:33:41.130+00:00",
+    "victory_flag": true
+  }
+}

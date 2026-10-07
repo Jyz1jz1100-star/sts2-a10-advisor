@@ -1680,6 +1680,78 @@ def claim_phase_action_share():
     return verdicts
 
 
+LIVE_VICTORY = ROOT / "docs/evidence/live_victory_20261007.json"
+
+
+def evaluate_live_victory(artifact: dict) -> dict:
+    """Score the shape of the delivery goal from the run's own recorded rows.
+
+    The goal is a shape, not a number: three acts, each act's own Ancient, and that act's bosses,
+    with combat owned by the client's solver and the between-fight picks owned by a recorded policy
+    version.  So every check here reads the per-run rows the extractor derived from the trace, and
+    two of them exist specifically to keep the inconvenient parts visible: the ending's HP, and the
+    batch's other runs.
+    """
+    run = artifact.get("victory_run") or {}
+    acts = run.get("acts") or {}
+    ancients = run.get("ancients") or []
+    per_act: dict[int, list] = {}
+    for node in run.get("boss_nodes") or []:
+        per_act.setdefault(int(node.get("act")), []).append(node)
+    return {
+        "a_single_run_carries_the_victory": bool(run) and artifact.get("victories") == 1,
+        "the_run_walked_three_acts": {"1", "2", "3"} == set(acts),
+        "the_run_opened_on_the_first_floor_of_act_1": (
+            (acts.get("1") or {}).get("min_floor") == 1),
+        "the_acts_were_walked_in_order": (
+            len(acts) == 3
+            and acts["1"]["first_ts"] < acts["2"]["first_ts"] < acts["3"]["first_ts"]),
+        "each_act_met_exactly_one_of_its_own_ancients": (
+            {int(a.get("act") or 0) for a in ancients} == {1, 2, 3} and len(ancients) == 3),
+        "no_ancient_is_claimed_for_the_wrong_act": bool(ancients) and all(
+            a.get("expected_act") is not None and a.get("act") == a.get("expected_act")
+            for a in ancients),
+        "the_first_two_acts_fought_one_boss_encounter_each": (
+            len(per_act.get(1) or []) == 1 and len(per_act.get(2) or []) == 1),
+        "the_act_2_boss_was_a_pair_fought_together": bool(per_act.get(2)) and any(
+            len(node.get("entities") or []) >= 2 for node in per_act[2]),
+        "the_final_act_fought_two_separate_boss_encounters": (
+            len(per_act.get(3) or []) == 2
+            and len({node.get("floor") for node in per_act[3]}) == 2),
+        "the_client_itself_flagged_the_terminal_state_as_victory": (
+            run.get("victory_flag") is True),
+        # Disclosed, not smoothed over: the ending screen takes the run to 0 HP, and an artifact
+        # that quietly dropped the field would read better and lie.
+        "the_ending_hp_is_disclosed": (
+            "hp_at_game_over" in run and run.get("hp_at_game_over") == 0),
+        "combat_was_owned_by_the_solver_not_by_us": (
+            artifact.get("execution_owner") == "combat_solver_full_auto"),
+        "the_deciding_policy_version_is_recorded": bool(
+            artifact.get("live_choice_policy_version")),
+        # The batch's own verdict travels with the trace, blockers named.  Recording it as false
+        # is not pessimism -- an observational batch is not an acceptance pass, and a reader who
+        # cannot see that from this file would be entitled to call the win certified.
+        "the_batch_verdict_and_its_blockers_are_recorded": (
+            bool(artifact.get("acceptance", {}).get("available"))
+            and "acceptance_claim" in artifact.get("acceptance", {})
+            and isinstance(artifact.get("acceptance", {}).get("acceptance_blockers"), list)),
+        # The solver build is named by hash, because today's installed 0.50.1 carries a version
+        # string identical to the locked one and different bytes -- the version alone cannot
+        # tell a reader which fight engine produced this trace.
+        "the_solver_build_is_identified_by_hash": bool(
+            (artifact.get("acceptance", {}).get("solver_at_end") or {}).get("actual_sha256")),
+        # One trace is a reachability result.  The file has to keep its denominator, or the win
+        # gets quoted as a rate by whoever reads it next.
+        "the_victory_is_reported_with_its_denominator": (
+            int(artifact.get("completed_runs") or 0) > int(artifact.get("victories") or 0) > 0),
+    }
+
+
+def claim_live_victory_trace():
+    """Re-derive the goal's shape from the committed live-run rows."""
+    return evaluate_live_victory(json.loads(LIVE_VICTORY.read_text(encoding="utf-8")))
+
+
 def claim_evidence_bundle_integrity():
     """Re-verify the evidence bundle's own hash binding, independently of the manifest.
 
@@ -1955,15 +2027,30 @@ def claim_report_exec_table_citations():
         if not backed:
             head = cells[0][:22] if cells else "?"
             unbacked.append(f"row {index + 1} ({head}): citation {citation[:52]!r}")
+    def row_about(needle: str) -> str:
+        """Find a row by the question it answers, not by its position.
+
+        These three rows are pinned because each drifted once while every existence check still
+        passed.  Anchoring them by index would have made them break the moment the table grew --
+        which is exactly what happened when the live victory got its row -- so the invariant is
+        now "the row that asks X cites the file that answers it", which survives an insertion
+        anywhere.
+        """
+        return next((row for row in rows if needle in row), "")
+
     return {
-        "row_count_is_the_expected_sixteen": len(rows) == 16,
+        # The count stays exact on purpose: a row that silently disappeared must still read red.
+        "row_count_is_the_expected_count": len(rows) == 17,
         "every_row_has_a_verifiable_citation": not unbacked,
         "unbacked_rows": unbacked,
         "table_precedes_the_body": report.index("| 问题 | 判定 | 出处 |") < report.index("## 结论"),
         "the_two_rows_that_drifted_once_now_cite_files": (
-            "chained_frontier_full_20260919.json" in rows[0]
-            and "dead_end_vocabulary_20260919.json" in rows[5]
-            and "solver_inventory_drift_20260919.json" in rows[-1]),
+            "chained_frontier_full_20260919.json" in row_about("模拟器里取得 Act 1–3 全流程胜利")
+            and "dead_end_vocabulary_20260919.json" in row_about("的解释还成立吗")
+            and "solver_inventory_drift_20260919.json" in row_about("最省力的解锁动作")),
+        "the_live_victory_row_carries_its_own_denyals": (
+            "live_victory_20261007.json" in row_about("真机上取得 Act 1–3 全流程胜利")
+            and "acceptance_claim=false" in row_about("真机上取得 Act 1–3 全流程胜利")),
         "no_row_still_claims_the_refuted_labelling_gap": (
             "缺的是标签可分辨性，不是门槛" not in report),
     }
@@ -3422,6 +3509,8 @@ CLAIMS = {
     "dead_end_vocabulary": (claim_dead_end_vocabulary,                             "every dead-end label the metrics have ever produced"),
     "phase_action_share": (claim_phase_action_share,
                             "which phase the trained steps come from, recomputed from its rows"),
+    "live_victory_trace": (claim_live_victory_trace,
+                           "the goal's shape, re-derived from the live run's own rows"),
     "report_exec_table_citations": (claim_report_exec_table_citations,
                                    "each decision-table row cites something that exists"),
     "objective_clause_audit": (claim_objective_clause_audit,

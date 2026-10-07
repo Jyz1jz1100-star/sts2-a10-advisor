@@ -471,5 +471,104 @@ class PhaseActionPairTests(unittest.TestCase):
         self.assertFalse(verdicts["the_out_of_combat_stream_is_unchanged"])
 
 
+LIVE_VICTORY_RUN = {
+    "acts": {"1": {"min_floor": 1, "max_floor": 17, "first_ts": "2026-10-07T08:14:05+00:00"},
+             "2": {"min_floor": 18, "max_floor": 33, "first_ts": "2026-10-07T08:20:03+00:00"},
+             "3": {"min_floor": 34, "max_floor": 49, "first_ts": "2026-10-07T08:25:40+00:00"}},
+    "ancients": [{"event_id": "NEOW", "act": 1, "expected_act": 1},
+                 {"event_id": "PAEL", "act": 2, "expected_act": 2},
+                 {"event_id": "VAKUU", "act": 3, "expected_act": 3}],
+    "boss_nodes": [{"act": 1, "floor": 17, "entities": ["LAGAVULIN_MATRIARCH_0"]},
+                   {"act": 2, "floor": 33, "entities": ["CRUSHER_0", "ROCKET_0"]},
+                   {"act": 3, "floor": 48, "entities": ["AEONGLASS_0"]},
+                   {"act": 3, "floor": 49, "entities": ["TEST_SUBJECT_0"]}],
+    "victory_flag": True,
+    "hp_at_game_over": 0,
+}
+LIVE_VICTORY = {
+    "victories": 1,
+    "completed_runs": 7,
+    "execution_owner": "combat_solver_full_auto",
+    "live_choice_policy_version": "conservative-visible-v2",
+    "acceptance": {"available": True, "acceptance_claim": False,
+                   "acceptance_blockers": ["observational_mode"],
+                   "solver_at_end": {"actual_sha256": "8" * 64, "matches_lock": False}},
+    "victory_run": LIVE_VICTORY_RUN,
+}
+
+
+class LiveVictoryShapeTests(unittest.TestCase):
+    """The delivery goal is a shape, so the checks that define it have to be breakable.
+
+    Each case here corresponds to a way the trace could be read generously instead of exactly:
+    quoting one win as a rate, calling an act-3 double boss a single one, or letting the act-2 pair
+    collapse to whoever was still alive in the last frame -- which is what the extractor first did,
+    and why that case is pinned.
+    """
+
+    def test_the_recorded_shape_holds(self) -> None:
+        verdicts = V.evaluate_live_victory(dict(LIVE_VICTORY))
+        self.assertTrue(all(verdicts.values()), str(verdicts))
+
+    def test_a_lone_win_quoted_as_its_own_denominator_fails(self) -> None:
+        artifact = {**LIVE_VICTORY, "completed_runs": 1}
+        self.assertFalse(V.evaluate_live_victory(artifact)[
+            "the_victory_is_reported_with_its_denominator"])
+
+    def test_a_missing_ending_hp_is_not_an_improvement(self) -> None:
+        run = {k: v for k, v in LIVE_VICTORY_RUN.items() if k != "hp_at_game_over"}
+        self.assertFalse(V.evaluate_live_victory({**LIVE_VICTORY, "victory_run": run})[
+            "the_ending_hp_is_disclosed"])
+
+    def test_an_act_2_boss_reduced_to_its_survivor_fails(self) -> None:
+        run = dict(LIVE_VICTORY_RUN)
+        run["boss_nodes"] = [dict(node, entities=(["CRUSHER_0"] if node["act"] == 2
+                                                   else node["entities"]))
+                             for node in LIVE_VICTORY_RUN["boss_nodes"]]
+        self.assertFalse(V.evaluate_live_victory({**LIVE_VICTORY, "victory_run": run})[
+            "the_act_2_boss_was_a_pair_fought_together"])
+
+    def test_a_final_act_with_one_boss_encounter_fails(self) -> None:
+        nodes = LIVE_VICTORY_RUN["boss_nodes"]
+        run = dict(LIVE_VICTORY_RUN, boss_nodes=nodes[:1] + nodes[1:2] + nodes[2:3])
+        verdicts = V.evaluate_live_victory({**LIVE_VICTORY, "victory_run": run})
+        self.assertFalse(verdicts["the_final_act_fought_two_separate_boss_encounters"])
+
+    def test_an_ancient_attributed_to_the_wrong_act_fails(self) -> None:
+        run = dict(LIVE_VICTORY_RUN)
+        run["ancients"] = [dict(a, expected_act=(2 if a["event_id"] == "NEOW"
+                                                 else a["expected_act"]))
+                           for a in LIVE_VICTORY_RUN["ancients"]]
+        self.assertFalse(V.evaluate_live_victory({**LIVE_VICTORY, "victory_run": run})[
+            "no_ancient_is_claimed_for_the_wrong_act"])
+
+    def test_a_loss_cannot_be_recorded_as_the_goal(self) -> None:
+        run = dict(LIVE_VICTORY_RUN, victory_flag=False)
+        self.assertFalse(V.evaluate_live_victory({**LIVE_VICTORY, "victory_run": run})[
+            "the_client_itself_flagged_the_terminal_state_as_victory"])
+
+    def test_posting_combat_actions_ourselves_breaks_the_claim(self) -> None:
+        artifact = {**LIVE_VICTORY, "execution_owner": "advisor_replay"}
+        self.assertFalse(V.evaluate_live_victory(artifact)[
+            "combat_was_owned_by_the_solver_not_by_us"])
+
+    def test_an_unversioned_policy_cannot_take_credit(self) -> None:
+        artifact = {**LIVE_VICTORY, "live_choice_policy_version": None}
+        self.assertFalse(V.evaluate_live_victory(artifact)[
+            "the_deciding_policy_version_is_recorded"])
+
+    def test_a_victory_without_its_batch_verdict_is_incomplete(self) -> None:
+        artifact = {**LIVE_VICTORY, "acceptance": {"available": True,
+                                                    "acceptance_claim": False}}
+        self.assertFalse(V.evaluate_live_victory(artifact)[
+            "the_batch_verdict_and_its_blockers_are_recorded"])
+
+    def test_a_solver_named_only_by_version_string_is_not_identified(self) -> None:
+        acceptance = dict(LIVE_VICTORY["acceptance"],
+                          solver_at_end={"mod_manifest_version": "0.50.1"})
+        self.assertFalse(V.evaluate_live_victory({**LIVE_VICTORY, "acceptance": acceptance})[
+            "the_solver_build_is_identified_by_hash"])
+
+
 if __name__ == "__main__":
     unittest.main()

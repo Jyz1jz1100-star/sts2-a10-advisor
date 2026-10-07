@@ -412,6 +412,24 @@
       "ran": true
     }
   },
+  "live_victory_trace": {
+    "a_single_run_carries_the_victory": true,
+    "combat_was_owned_by_the_solver_not_by_us": true,
+    "each_act_met_exactly_one_of_its_own_ancients": true,
+    "no_ancient_is_claimed_for_the_wrong_act": true,
+    "the_act_2_boss_was_a_pair_fought_together": true,
+    "the_acts_were_walked_in_order": true,
+    "the_batch_verdict_and_its_blockers_are_recorded": true,
+    "the_client_itself_flagged_the_terminal_state_as_victory": true,
+    "the_deciding_policy_version_is_recorded": true,
+    "the_ending_hp_is_disclosed": true,
+    "the_final_act_fought_two_separate_boss_encounters": true,
+    "the_first_two_acts_fought_one_boss_encounter_each": true,
+    "the_run_opened_on_the_first_floor_of_act_1": true,
+    "the_run_walked_three_acts": true,
+    "the_solver_build_is_identified_by_hash": true,
+    "the_victory_is_reported_with_its_denominator": true
+  },
   "map_deadend_short_circuits_before_the_refusal_census": {
     "no_map_refusals_on_the_ordinary_promotion_population": true,
     "refusals_on_the_chained_episode_come_from_elsewhere": true,
@@ -552,8 +570,9 @@
   "report_exec_table_citations": {
     "every_row_has_a_verifiable_citation": true,
     "no_row_still_claims_the_refuted_labelling_gap": true,
-    "row_count_is_the_expected_sixteen": true,
+    "row_count_is_the_expected_count": true,
     "table_precedes_the_body": true,
+    "the_live_victory_row_carries_its_own_denyals": true,
     "the_two_rows_that_drifted_once_now_cite_files": true,
     "unbacked_rows": []
   },
