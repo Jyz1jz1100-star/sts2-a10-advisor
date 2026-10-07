@@ -4262,3 +4262,33 @@ relaunched through `steam://rungameid/2868840`, and a new batch is running with 
 `continue` the wedged save, so that trace cannot certify whatever it does next -- but it is also the
 cheapest test of whether the wedge reproduces at the same node.
 
+### The wedge has a named cause, and it is not ours (2026-10-07)
+
+It reproduces. After the restart the new batch continued the same save back into the Act-2 boss
+(KNOWLEDGE_DEMON) and stalled again, this time at round 6 with the bridge state unchanged across four
+samples 20 s apart. The CombatSolver's own combat log ends with:
+
+```
+[CombatSolver/Test] DEPLOY_CHOICE_PAUSED turn=5
+exception=CombatSolver.NativeChoiceSurfaceMismatchException: 原生三选一页面在计划提交前发生变化。
+   at CombatSolver.NativeChoiceSurface.SelectChooseCardAsync(...)
+```
+
+Two occurrences, one per client session (06:11:11 turn=1, 06:24:55 turn=5), identical exception:
+the solver plans a three-way card choice on the native surface, the surface mutates before the plan is
+committed, and the solver **pauses the deployment** instead of re-planning. The client then waits for a
+player action that never comes, so the run is stuck in a combat the advisor is not allowed to touch.
+Evidence kept at `runtime/solver_paused_combat_log.jsonl` (2.88 MB) beside the earlier state/log copies.
+
+Division of labour, stated so nobody "fixes" the wrong thing: the exception is in a third-party,
+operator-owned, auto-updating mod, and per the standing rule it is neither patched nor disabled. What is
+ours is the two things around it -- autoplay has no progress bound for solver-owned combat, so this is
+waited on silently instead of reported (task #41), and the pause is *detectable* from our side by the
+`DEPLOY_CHOICE_PAUSED` signature in the solver log, which belongs in the same watchdog that already
+reads the client log for wedging. Both batches were stopped through the stop file with their sessions
+written (`operator_stop_file`, result code 130, 06:21:13Z and 06:30:50Z).
+
+Consequence for the delivery goal, without softening it: the real-machine path is currently blocked at
+the Act-2 boss by this pause, so the deepest trace cannot become a certified Act 1-3 victory while the
+save sits there. That is a flow blocker, not a strategy result, and no amount of training changes it.
+
