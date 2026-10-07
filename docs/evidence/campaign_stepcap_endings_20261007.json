@@ -1,0 +1,208 @@
+{
+  "aggregates": {
+    "alive_at_the_dead_end": 0,
+    "dead_ends_with_no_engine_legal_basis": 0,
+    "empty_action_mask_by_act": {},
+    "empty_action_mask_by_floor": {},
+    "empty_action_mask_by_phase": {},
+    "empty_action_mask_seeds": [],
+    "empty_action_mask_total": 0,
+    "endings_across_rolled_episodes": {
+      "death": 1197,
+      "step_cap": 3
+    },
+    "episodes_rolled": 1200,
+    "files_rolled": 3,
+    "labelling_layers_observed": {},
+    "named_truncation_located_by_outcome": {
+      "step_cap": 3
+    },
+    "named_truncation_located_total": 3,
+    "named_truncation_mismatch_count": 0,
+    "named_truncation_recorded_in_rolled_files": 3,
+    "per_file_closure_mismatches": [],
+    "per_file_mismatch_count": 0,
+    "recorded_total_in_rolled_files": 0,
+    "roll_anomaly_seeds": [
+      2008000181,
+      2008010197,
+      2008010399
+    ],
+    "roll_anomaly_total": 3
+  },
+  "anomaly_rows": [
+    {
+      "act": 1,
+      "alive": true,
+      "campaign_reset": true,
+      "detail": null,
+      "engine_legal_bases": null,
+      "floor": 5,
+      "hp": 23,
+      "max_hp": 80,
+      "origin": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/early-promotion-step_000040000032.json",
+      "outcome": "step_cap",
+      "phase": "combat",
+      "rejections": 0,
+      "run_cleared": false,
+      "seed": 2008010197,
+      "steps": 4800
+    },
+    {
+      "act": 1,
+      "alive": true,
+      "campaign_reset": true,
+      "detail": null,
+      "engine_legal_bases": null,
+      "floor": 4,
+      "hp": 34,
+      "max_hp": 80,
+      "origin": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/promotion.json",
+      "outcome": "step_cap",
+      "phase": "combat",
+      "rejections": 2,
+      "run_cleared": false,
+      "seed": 2008010399,
+      "steps": 4800
+    },
+    {
+      "act": 1,
+      "alive": true,
+      "campaign_reset": true,
+      "detail": null,
+      "engine_legal_bases": null,
+      "floor": 3,
+      "hp": 32,
+      "max_hp": 80,
+      "origin": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/step_000040000032.json",
+      "outcome": "step_cap",
+      "phase": "combat",
+      "rejections": 0,
+      "run_cleared": false,
+      "seed": 2008000181,
+      "steps": 4800
+    }
+  ],
+  "close_failures": [],
+  "dead_ends": [],
+  "excluded_files": [],
+  "generated_at": "2026-10-07T07:45:31+00:00",
+  "merged_from_shards": false,
+  "not_established": [
+    "that the step horizon this census rolled with equals the one each recording used: committed metrics do not store their own `max_episode_steps`, so `horizon_used_here` names the current stage config instead. It does not move the empty-mask verdict, which is raised long before any horizon, but it is why a `step_cap` count here is not automatically the same measurement as the one in the original file",
+    "that these endings are engine defects in the general case -- the phase and floor distribution is what lets a reader judge that; each row is re-derivable from the (checkpoint, seed) pair recorded beside it",
+    "any overlap with the rejection-phase census: an engine-empty mask is short-circuited before the engine is asked, so the census counter cannot see this class at all",
+    "anything about the shipped game",
+    "that a nonzero `native_reset_raised` count would be an engine property: an earlier pass of this instrument hit 1,244 of them from one process holding 1,500 un-closed envs, which is why every episode's env is closed in a finally here",
+    "that every located ending is a cleared boss: the phase/floor/act columns cover every row, but the node-type and reward-phase traces behind `explained_walls` exist only for the seeds named in `per_seed_explanations`, and each of those is tied to the one checkpoint that ended it",
+    "that the empty map after a boss is the only way this emulator can end a run: committed metrics do record act-2 wins, so a terminal path exists -- what is not established is which choice at the relic or card reward takes one run down it and which leaves the player on a map with no coordinates",
+    "that a step_cap ending is an engine defect: each row shows the player alive inside combat at floor 3-5 of Act 1 having spent the whole 4,800-step horizon, which is what the label records, not a diagnosis of why the fight does not resolve",
+    "that this roll is comparable to the single-act roll of the same seeds: the first pass of this instrument omitted the campaign reset option and reported two wins against records that say wins: 0; the campaign flag on every row is what distinguishes the two environments"
+  ],
+  "per_file": [
+    {
+      "episodes": 500,
+      "metrics_file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/early-promotion-step_000040000032.json",
+      "named_truncations_match": true,
+      "recorded_empty_action_mask": 0,
+      "recorded_named_truncations": 1,
+      "reproduced_empty_action_mask": 0,
+      "reproduced_equals_recorded": true,
+      "reproduced_named_truncations": 1
+    },
+    {
+      "episodes": 500,
+      "metrics_file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/promotion.json",
+      "named_truncations_match": true,
+      "recorded_empty_action_mask": 0,
+      "recorded_named_truncations": 1,
+      "reproduced_empty_action_mask": 0,
+      "reproduced_equals_recorded": true,
+      "reproduced_named_truncations": 1
+    },
+    {
+      "episodes": 200,
+      "metrics_file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/step_000040000032.json",
+      "named_truncations_match": true,
+      "recorded_empty_action_mask": 0,
+      "recorded_named_truncations": 1,
+      "reproduced_empty_action_mask": 0,
+      "reproduced_equals_recorded": true,
+      "reproduced_named_truncations": 1
+    }
+  ],
+  "plan": [
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/checkpoints/step_000040000032.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/early-promotion-step_000040000032.json",
+      "recorded_empty_action_mask": 0,
+      "recorded_ends": {
+        "step_cap": 1
+      },
+      "recorded_named_truncations": 1,
+      "recorded_scope": "simulator_full_run",
+      "rolled_with_campaign_reset": true,
+      "seed_digest": "e713fce29bda783f8bcd3b8bc7757558b27c1774b1be9ffc62549f8ab6ed9e61",
+      "split": "promotion",
+      "stage": "full_run",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/checkpoints/final.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 500,
+      "metrics_file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/promotion.json",
+      "recorded_empty_action_mask": 0,
+      "recorded_ends": {
+        "step_cap": 1
+      },
+      "recorded_named_truncations": 1,
+      "recorded_scope": "simulator_full_run",
+      "rolled_with_campaign_reset": true,
+      "seed_digest": "e713fce29bda783f8bcd3b8bc7757558b27c1774b1be9ffc62549f8ab6ed9e61",
+      "split": "promotion",
+      "stage": "full_run",
+      "window_limit": 500,
+      "window_source": "the current config's partitions",
+      "window_split": "promotion",
+      "window_split_resolved": "promotion",
+      "window_status": "resolved"
+    },
+    {
+      "checkpoint_exists": true,
+      "checkpoint_path": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/checkpoints/step_000040000032.zip",
+      "checkpoint_sha256_matches": true,
+      "episodes": 200,
+      "metrics_file": "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/metrics/step_000040000032.json",
+      "recorded_empty_action_mask": 0,
+      "recorded_ends": {
+        "step_cap": 1
+      },
+      "recorded_named_truncations": 1,
+      "recorded_scope": "simulator_full_run",
+      "rolled_with_campaign_reset": true,
+      "seed_digest": "5a6a76416cd96ed033904c07dd1313f5725437c8774f67c8b6359a12b88156ab",
+      "split": "checkpoint",
+      "stage": "full_run",
+      "window_limit": 200,
+      "window_source": "the current config's partitions",
+      "window_split": "checkpoint",
+      "window_split_resolved": "checkpoint",
+      "window_status": "resolved"
+    }
+  ],
+  "scope": "the campaign arm's full_run metrics files that recorded a step_cap ending, re-rolled at their own checkpoint over their own seed window, WITH options={'campaign': True}",
+  "shard": {
+    "count": 1,
+    "files": 3,
+    "index": 0
+  }
+}

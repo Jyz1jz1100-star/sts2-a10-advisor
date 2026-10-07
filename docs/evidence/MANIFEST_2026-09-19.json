@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "4c4395d6610aa47481ed25389c0e4878c42df89c582bdb4dc705c03409529453",
-  "evidence_file_count": 73,
-  "generated_at": "2026-10-07T06:56:59+00:00",
-  "git_head_at_generation": "7c28736",
+  "bundle_root": "98f61303445fd3a3217f7c087265aea0a3c5c8e38fdcfa20b6952bd0a5de38ad",
+  "evidence_file_count": 74,
+  "generated_at": "2026-10-07T07:47:05+00:00",
+  "git_head_at_generation": "ece9f77",
   "checkpoint_digests_cited": 233,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1496
+    "total_64_hex_strings_seen": 1499
   },
   "resolved_checkpoints": [
     {
@@ -2665,6 +2665,11 @@
       "file": "campaign_pool_sweep_20260922.json",
       "sha256": "28481b439f80577a27fe27f32b1bc9d87ecf677b8d5c7bdd61ccae775ad78052",
       "bytes": 267818
+    },
+    {
+      "file": "campaign_stepcap_endings_20261007.json",
+      "sha256": "08db05f528093ad710895ea4e31554cd75b6f2b3f364000f36b19fbdd151cdb6",
+      "bytes": 9164
     },
     {
       "file": "chained_act2_reachability_20260920.json",

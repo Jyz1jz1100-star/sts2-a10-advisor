@@ -4463,3 +4463,39 @@ Consequence for task #8: **a continuous act 1 -> act 3 floor 49 trace now exists
 (seed `56K0YUCYBBZT`, Ironclad A10, reached the final double boss), and it is blocked at the last
 fight by a mod-side defect, not by anything in this repository. It cannot certify while the fight
 cannot be entered, and it will not be rescued by hand.
+
+## The campaign's three step-caps are located, and the instrument that located them had been lying (2026-10-07)
+
+Task #43 closed, but only after its first result was thrown away.
+
+`scripts/census_empty_mask_endings.py` never passed the `campaign` reset option, so pointing it at
+the campaign arm's metrics re-rolled **single-act** episodes while reporting a clean per-file
+closure. The tell was environmental, not arithmetic: the roll produced two `win` endings against
+three files that each record `wins: 0`. Nothing in the instrument's own mismatch counters saw it --
+recorded and reproduced counts agreed at 1 because the label, not the episode, was being compared.
+`campaign` is now derived per metrics file from its own recorded `scope`, every row is stamped
+`campaign_reset`, `run_cleared` is recorded separately from `player_won` (only the first means the
+campaign finished), and four tests in
+`tests/test_dead_end_reward_rule_instruments.py::CensusCampaignResetTests` hold all of that, the
+mismatched-environment case included.
+
+Rolled correctly over 1,200 campaign episodes at horizon 4,800: **death 1,197, step_cap 3, wins 0** --
+which is what the three files record. All three step_caps located, one per file, zero mismatches
+(`docs/evidence/campaign_stepcap_endings_20261007.json`):
+
+| seed | act | floor | phase | HP at the cap | steps |
+|---|---|---|---|---|---|
+| 2008000181 | 1 | 3 | combat | 32 / 80 | 4,800 |
+| 2008010197 | 1 | 5 | combat | 23 / 80 | 4,800 |
+| 2008010399 | 1 | 4 | combat | 34 / 80 | 4,800 |
+
+That is the useful part: a campaign episode that reaches the horizon is **not** a deep boss stalemate.
+It is the player alive inside an ordinary Act-1 fight on floor 3-5, spending the entire 4,800-step
+budget on one battle. So the vocabulary's `step_cap` sentence has to change direction -- the campaign's
+horizon endings are early-floor non-terminating fights, which is the same "no progress" shape the
+real-machine guard now names at the boss, just 30 floors earlier and in the simulator.
+
+Published gap closed with it: named truncations are 56, and **56 are located per seed** (act1 50 + 3,
+full_run 3). The report's correction section and audit row both say so now; the "53 of 56" wording is
+retired rather than left to rot. Evidence bundle 74 files, manifest rebuilt last, `61/61` scored
+claims, 686 contract + 136 training tests OK.
