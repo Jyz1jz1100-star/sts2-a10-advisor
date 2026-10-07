@@ -4392,3 +4392,46 @@ the v4 figures.
 Reproduce: `scripts/enumerate_act1_terminals.py --config runtime/fanout/b_terminal-1.toml --stage act1
 --checkpoint runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip
 --split promotion --limit 3250 --start-offset {0,1750,3500,6750} --expect-checkpoint-sha256 a1ada27a...`
+
+## The live stall has a cause, and it is a specific relic meeting a specific mod path (2026-10-07)
+
+The deepest real-machine trace ever recorded stopped at **act 3, floor 49** -- the final double
+boss (TORCH_HEAD_AMALGAM 211 HP, QUEEN 419 HP, round 1, player 18 HP) -- on a modal the bridge
+labels `hand_select` with `mode: simple_select`, prompt 选择任意张牌来替换, four cards offered and
+`can_confirm: true`. Nothing advanced for over ten minutes.
+
+It is not a relic-pick screen and not the boss's own debuff. The operator identified the source, and
+the run's relic list confirms it: **`GAMBLING_CHIP` (赌博筹码) -- "在每场战斗开始时，丢弃任意张牌，然后抽
+相同数量张牌"** opens a *multi-select* card surface at the start of every fight.
+
+The correlation across today's three batches is what makes this actionable rather than anecdotal:
+
+| batch | deepest floor reached | choice relics owned | outcome |
+|---|---|---|---|
+| `052654Z` | act 2 floor 33 (Act-2 boss) | `GAMBLING_CHIP` since act 1 floor 10 | stalled on the opening choice; ended in `game_over` at floor 33 after a restart |
+| `063447Z` | **act 3 floor 49** (final boss) | `CHOICES_PARADOX` since act 3 floor 34, `GAMBLING_CHIP` since floor 44 | stalled on the opening choice |
+| `063447Z` | floors 34-43 | `CHOICES_PARADOX` only (single-select: 从5张随机牌中选择1张) | **fought through ~10 floors normally** |
+
+So: a *single*-select combat-start surface is handled; a *select-any-number* surface is where the mod
+stops, and in both recorded cases it stopped at a **boss** opening (roughly 30 normal fights with
+`GAMBLING_CHIP` owned passed without incident, so "always fatal" would be an over-claim). The mod's own
+log names the same code path in both stalls: `CombatSolver.NativeChoiceSurfaceMismatchException:
+原生三选一页面在计划提交前发生变化`, thrown inside `NativeChoiceSurface.SelectChooseCardAsync` -- the
+surface changed between planning and committing the plan.
+
+Division of responsibility, stated so the fix lands in the right tree:
+
+* **the defect is the mod's** -- operator-owned, auto-updating; it is not patched, disabled, worked
+  around in the game, or re-pinned here;
+* **the silence was ours** -- autoplay had no bound on a client-owned fight. Both are now committed:
+  the fight gets a 180-second no-progress bound derived from 13,539 live identical-state samples
+  (p99 = 14 s), and the supervisor reads `DEPLOY_CHOICE_PAUSED` out of the solver's own log and stops
+  with `solver_choice_paused` / exit 14, attributing by the event timestamp rather than file mtime.
+
+Open decision left with the operator, deliberately not taken here: `GAMBLING_CHIP` is a strong
+Ironclad relic, and the only fix on our side would be to decline it at acquisition -- that trades
+measured run strength for flow coverage, so it needs their call. The alternative is a mod-side fix to
+the multi-select path, after which nothing on our side changes.
+
+Verification that the new guard works was run against this exact stall rather than a fixture: see the
+next section.
