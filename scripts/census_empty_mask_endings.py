@@ -144,6 +144,13 @@ def build_plan(args, windows) -> list[dict]:
             if not recorded_named:
                 continue
             stage = str(payload.get("stage") or args.stage)
+            if args.only_stage and stage != args.only_stage:
+                # One config defines one set of stage names, and the trainer resolves a
+                # horizon by looking the stage up in it. A census scoped to a single stage's
+                # run (the campaign arm, whose 4,800-step horizon exists only in its own
+                # config) must not walk into another stage's files: the lookup would raise
+                # StopIteration and the run would die halfway, reporting nothing.
+                continue
             digest = str(payload.get("seed_sha256") or "")
             window = windows.get(digest)
             checkpoint = Path(str(payload.get("checkpoint") or ""))
@@ -644,6 +651,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=ROOT / "config/training_v2.toml")
     parser.add_argument("--stage", default="act1", help="stage used when a file records none")
+    parser.add_argument("--only-stage", default=None,
+                        help="restrict the census to files recording this stage, so a config "
+                             "that defines only one stage can be used without walking into the "
+                             "others' files (the horizon lookup would otherwise abort the run)")
     parser.add_argument("--max-steps", type=int, default=None,
                         help="override the horizon; default is the run's own stage config")
     parser.add_argument("--plan", action="store_true", help="write the work list and stop")
