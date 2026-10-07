@@ -4675,7 +4675,7 @@ Two things to keep, because they generalise:
   Probing it was still worth one reset: it is the check that the population is what the metric
   assumes, and it is recorded as such rather than as a filter that saves compute.
 
-## Why that victory cannot be certified today: one contract item has no producer on this track (2026-10-07)
+## Why that victory cannot be certified today: two blockers, one of which I first misdiagnosed (2026-10-07)
 
 Ran the 11-item assessor over the winning batch's own trace
 (`scripts/assess_full_run.py --trace ... --cohort assisted --seed-mode observational`):
@@ -4689,23 +4689,39 @@ up, and the seed allocation present).
 Two blockers are not launch parameters, and they are the ones worth understanding before any
 certification attempt:
 
-* **`combat_deploy_log_missing` for all seven runs, including the winner.** The contract wants
-  `deploy_log` events per run. On this track the only component that tails the solver's log is
-  autoplay's `route_source`, and `bridge/autoplay.py:2281` builds it only when
-  `not args.out_of_combat_only` -- because that source is not an evidence reader, it is the
-  *combat executor*: `_combat_tick` posts the logged route over the bridge. We run
-  `--out-of-combat-only` precisely to keep the solver as sole execution owner, and the supervisor
-  additionally hands autoplay `--log-dir ""`. So on the acceptance track the item that asks "did the
-  solver really play this fight" has **no producer**: it cannot pass, and cannot fail informatively
-  either. That is the same class of defect as the two contract items found unable to fail on
-  09-22 -- an assertion wired to a path that never runs. The fix is a read-only deploy-evidence
-  reader (the keeper already tails those logs), not a second combat executor; nothing here should
-  be "fixed" by letting autoplay post combat actions.
-* **`illegal_actions_observed`.** The victory run's own trace shows 812 accepted posts and **3
-  refused** (`No card selection screen is open`, `Unknown menu option: standard`, `Rewards screen is
-  not open`) -- stale-decision races, each retried successfully. The contract's tolerance is zero.
-  So a certified run needs the driver not to post into a state it has already superseded, which is
-  a real fix in `bridge/autoplay.py`, not a threshold change.
+* **`combat_deploy_log_missing` for all seven runs, including the winner.** I first wrote here that
+  this item has *no producer* on the out-of-combat track. **That was wrong**, and the correction is
+  the part worth keeping: `assess_full_run.merge_comparison_evidence` shows the producer exists -- the
+  comparison child writes `deploy_log` events into `battles.jsonl`, and the supervisor already passes
+  them to the assessor (`status.json -> assessor.comparison_evidence`). My manual command simply
+  omitted `--comparison-dir`. Re-running it with the evidence attached produced a different, deeper
+  refusal: `missing seed for battle_id 'csb-0001-f2'` -- all 50 battle rows carry `run_id` but **no
+  seed**, because the batch was observational. So the chain is: deploy evidence needs seed binding ->
+  seed binding needs `--mode fixed` -> fixed embark needs a bridge that accepts a seed. The installed
+  STS2MCP **0.4.0 appears to carry exactly that path** (`BeginStandardSingleplayerSeededRun`,
+  `requestedSeed`, `CanonicalizeSeed`, `SetSeed` present in the binary), while
+  `docs/FIXED_SEED_FEASIBILITY.md` (09-02) and `data/combat_solver/fixed_battle_seeds.json` still
+  assert `installed_bridge_supported=false` -- a stale self-belief, now something to *test* rather than
+  work around. `route_source` stays gated as designed: no second combat executor, and autoplay must
+  still never post a combat action.
+* **`illegal_actions_observed`.** 812 posts accepted, **3 refused** -- and the assessor counts any
+  refused post as an illegal action (`assess_full_run.py:1339,1436`: status in
+  {error, failed, rejected...} -> `illegal_actions += 1`), with tolerance zero. Reading the three with
+  their surrounding polls shows they are **not one "stale decision" class**, as I first assumed:
+  (a) 09:11:32 -- four `claim_reward index 0` posts all returned ok **under one unchanged decision id**,
+  then `proceed` returned ok, then the driver claimed again and was refused because the screen was
+  closing: the bug is posting *after* an accepted screen-terminal action, and the bridge's own staleness
+  guard could not catch it since the id never moved;
+  (b) 08:21:29 -- `select_card index 0` posted on a `card_select` frame whose own flags said
+  `can_confirm: false, can_skip: true`, and the next poll was already `elite`: the driver acted on a
+  screen that had not become actionable (or was already gone) instead of requiring the screen's flags;
+  (c) 08:42:53 -- `menu_select standard` refused ~100 ms after the mode screen appeared listing
+  `standard` enabled, the state bounced back to `main`, and the identical sequence succeeded one second
+  later: a client-side readiness window that the advertised state does not describe.
+  So the fix is at the two boundaries where our own data already says no: require the screen's
+  readiness flags before posting, and stop posting at a screen once a terminal action for it has been
+  accepted. (c) is upstream timing and cannot be closed by us -- if it survives those two guards it
+  gets reported with its count, not absorbed by relaxing the item.
 
 Consequences, stated as decisions rather than vibes:
 

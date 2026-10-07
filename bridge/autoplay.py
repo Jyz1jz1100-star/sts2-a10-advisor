@@ -224,6 +224,12 @@ def hand_multiset(hand: list[dict[str, Any]]) -> multiset_type:
     )
 
 _COMBAT_SCREEN_TYPES = {"monster", "elite", "boss", "hand_select"}
+# Screens the bridge reports *instead of* the fight it interrupts: the `battle` block is absent
+# while one is up, so their owner can only be established from the frame before them.
+_TRANSIENT_OVERLAY_SCREENS = {"card_select", "bundle_select", "overlay"}
+# Actions whose acknowledgement means this screen is finished with, whichever screen it was.
+# `menu_select` is added at the call site: it ends a menu surface only because it navigates away.
+_TERMINAL_SCREEN_ACTIONS = {"proceed", "confirm_selection"}
 _HEURISTIC_SCREENS = {"card_reward", "shop", "rest_site", "map"}
 # card_select is not a combat screen type: it doubles as the out-of-combat grid
 # screens and the in-combat selection (battle key present).  The build's own
@@ -241,6 +247,20 @@ _HEURISTIC_SCREENS = {"card_reward", "shop", "rest_site", "map"}
 # one ``select_card`` posted against it returned ``No card selection screen is
 # open``.
 _COMBAT_OWNED_CARD_SELECT_SCREENS = frozenset({"NCombatPileCardSelectScreen"})
+
+
+def _screen_key(state: dict[str, Any]) -> tuple:
+    """Which screen instance a decision belongs to, for the accepted-exit latch.
+
+    Menu surfaces carry no floor, so the visible surface name is the only thing that separates
+    ``main`` from ``singleplayer``; using it keeps the latch from blocking the *next* menu step,
+    which is legitimate work on a screen the previous one already left.
+    """
+    screen = state.get("run") or {}
+    state_type = str(state.get("state_type") or "unknown")
+    if state_type == "menu":
+        return (state_type, str(state.get("menu_screen") or ""))
+    return (state_type, screen.get("act"), screen.get("floor"))
 
 
 class WaitForTransition:
@@ -815,6 +835,8 @@ class AutoPlayer:
         self._last_screen: str | None = None
         #: ``select_card`` toggles, so the driver remembers which grid indices it
         #: has already clicked on the current card-selection screen.
+        self._accepted_exit: tuple | None = None
+        self._combat_screen_floor: tuple[Any, Any] | None = None
         self._card_select_screen: tuple[Any, ...] | None = None
         self._card_select_picks: set[int] = set()
         self._stall_since: float | None = None
@@ -892,8 +914,25 @@ class AutoPlayer:
         state_type = str(state.get("state_type") or "unknown")
         fresh = self._last_screen != state_type
         self._last_screen = state_type
+        run = state.get("run") or {}
+        screen_key = _screen_key(state)
         if state_type in _COMBAT_SCREEN_TYPES:
+            # Remember where the fight is: the bridge strips the `battle` block while an
+            # in-combat overlay is up, so a chooser that follows a combat frame at the same
+            # floor is the solver's, and the only evidence for that is the frame before it.
+            self._combat_screen_floor = (run.get("act"), run.get("floor"))
             return None  # the Combat Solver owns every combat screen
+        if self._accepted_exit == screen_key:
+            # We already posted the action that ends this screen and the client acknowledged
+            # it; a frame that still shows the screen is the transition resolving, not work
+            # left over. Posting again is what produced "Rewards screen is not open" and the
+            # duplicate "Returning to main menu" whose late effect bounced the mode screen.
+            return WaitForTransition(
+                f"the exit already accepted at {state_type} has not cleared the screen")
+        if state_type not in _TRANSIENT_OVERLAY_SCREENS:
+            # The fight is over: rewards, map or event at the same floor are ours again, and a
+            # chooser after them must not inherit the combat context.
+            self._combat_screen_floor = None
         if state_type != "map":
             self._map_travel_committed = None
         event = state.get("event") or {}
@@ -1102,6 +1141,16 @@ class AutoPlayer:
             c for c in selection.get("cards") or [] if isinstance(c, dict)
         ]
         run = state.get("run") or {}
+        # No `battle` block, but the frame before this one was a fight at this same floor: the
+        # bridge removes the battle object while an in-combat chooser is up, so this overlay is
+        # the solver's. Posting `select_card` into it is what came back as "No card selection
+        # screen is open" at 08:21:29, one poll before the same elite round reappeared.
+        if self._combat_screen_floor == (run.get("act"), run.get("floor")):
+            # The coverage note carries the *why*; the screen type stays what it is, because the
+            # log line and the ledger both print it as the client's own name for the overlay.
+            self.coverage.note_deferred_to_combat(
+                f"{screen_type or 'unknown'} (after combat at this floor)")
+            return DeferredToCombat(screen_type or "unknown")
         identity = (screen_type, run.get("act"), run.get("floor"), len(cards))
         if identity != self._card_select_screen:
             self._card_select_screen = identity
@@ -1393,6 +1442,20 @@ class AutoPlayer:
                 payload["target"] = entity
             return payload
         return None
+
+    def note_action_accepted(self, state: dict[str, Any], payload: dict[str, Any]) -> None:
+        """Remember that the client acknowledged the action which ends this screen.
+
+        Called only after a POST returns without error. The bridge can keep reporting a screen for
+        hundreds of milliseconds after its exit is accepted -- and the decision id does not always
+        move when it does -- so an id comparison alone never told us the screen was gone.
+        """
+        action = str((payload or {}).get("action") or "")
+        state_type = str(state.get("state_type") or "unknown")
+        terminal = action in _TERMINAL_SCREEN_ACTIONS or (
+            action == "menu_select" and state_type in {"menu", "game_over"})
+        if terminal:
+            self._accepted_exit = _screen_key(state)
 
     def _post(
         self,
@@ -1881,6 +1944,7 @@ class AutoPlayer:
                                 "proceed escape did not change state",
                             )
                     self.controller.send_action(payload, expected_decision_id=decision_id)
+                    self.note_action_accepted(state, payload)
                     if payload.get("action") == "choose_map_node":
                         # Only an acknowledged travel counts as committed: a
                         # refused one leaves the map genuinely open, and the

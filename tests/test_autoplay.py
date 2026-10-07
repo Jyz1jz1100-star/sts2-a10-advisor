@@ -1752,3 +1752,98 @@ class CrystalSphereTests(unittest.TestCase):
         decision = self.player.decide(state)
         self.assertIsInstance(decision, WaitForTransition)
         self.assertEqual(self.player.coverage.coverage()["unhandled_screens"], {})
+
+
+class AcceptedExitLatchTests(unittest.TestCase):
+    """Two of the three refused posts in the winning batch were our own second posts.
+
+    The trace is explicit: an accepted `proceed` on a rewards screen at act 3 floor 48 was followed
+    by a `claim_reward` because the bridge kept reporting that screen for ~600 ms afterwards; and an
+    accepted `main_menu` on `game_over` was posted twice for the same reason, after which the menu
+    screen refused `standard`. The rule these break is not a timing trick -- once the client has
+    acknowledged the action that *ends* a screen, that screen is no longer ours to act on, and any
+    further frame of it is the transition still resolving.
+    """
+
+    def _rewards(self, floor: int, items: int = 3) -> dict:
+        return {
+            "state_type": "rewards",
+            "run": {"act": 3, "ascension": 10, "floor": floor},
+            "player": {"hp": 40, "max_hp": 80},
+            "rewards": {
+                "can_proceed": False,
+                "items": [{"index": i, "type": "potion", "description": "x"}
+                          for i in range(items)],
+            },
+        }
+
+    def test_a_reward_screen_is_claimable_before_any_exit_is_accepted(self) -> None:
+        decision = player().decide(self._rewards(48))
+        self.assertEqual({"action": "claim_reward", "index": 0}, decision)
+
+    def test_an_accepted_exit_closes_that_screen_to_the_driver(self) -> None:
+        subject = player()
+        state = self._rewards(48)
+        subject.note_action_accepted(state, {"action": "proceed"})
+        decision = subject.decide(state)
+        self.assertIsInstance(decision, WaitForTransition)
+        self.assertIn("already accepted", str(decision.reason))
+
+    def test_the_latch_is_per_screen_so_the_next_floor_is_still_ours(self) -> None:
+        subject = player()
+        subject.note_action_accepted(self._rewards(48), {"action": "proceed"})
+        self.assertIsInstance(subject.decide(self._rewards(48)), WaitForTransition)
+        self.assertEqual({"action": "claim_reward", "index": 0},
+                         subject.decide(self._rewards(49)))
+
+    def test_a_non_exit_action_does_not_latch_the_screen(self) -> None:
+        subject = player()
+        state = self._rewards(48)
+        subject.note_action_accepted(state, {"action": "claim_reward", "index": 0})
+        self.assertEqual({"action": "claim_reward", "index": 0}, subject.decide(state))
+
+    def test_a_second_main_menu_post_is_what_bounced_the_mode_screen(self) -> None:
+        subject = player()
+        state = load("game_over")
+        subject.note_action_accepted(state, {"action": "menu_select", "option": "main_menu"})
+        self.assertIsInstance(subject.decide(state), WaitForTransition)
+
+
+class InCombatOverlayOwnershipTests(unittest.TestCase):
+    """An overlay that appears *inside* a fight belongs to the solver, battle key or not.
+
+    The refused `select_card` was posted on a frame whose own payload said `screen_type: "choose"`
+    with `can_confirm: false`, no `battle` object at all, and the very next poll was the same elite
+    fight at the same round. The bridge strips the battle block while an overlay is up, so the only
+    evidence that it was in-fight is the frame we ourselves saw one poll earlier -- which is exactly
+    what the existing `battle is not None` guard cannot reach.
+    """
+
+    def _overlay(self, floor: int) -> dict:
+        return {
+            "state_type": "card_select",
+            "run": {"act": 1, "ascension": 10, "floor": floor},
+            "player": {"hp": 40, "max_hp": 80},
+            "card_select": {
+                "screen_type": "choose", "prompt": "Choose a card.",
+                "can_confirm": False, "can_skip": True, "can_cancel": True,
+                "cards": [{"index": 0, "id": "TAUNT", "cost": "1", "name": "x",
+                           "description": "x", "type": "Skill", "rarity": "Common",
+                           "keywords": [], "is_upgraded": False, "star_cost": None}],
+            },
+        }
+
+    def test_overlay_right_after_a_combat_frame_is_deferred_not_posted(self) -> None:
+        subject = player()
+        elite = load("elite")
+        self.assertIsNone(subject.decide(elite))
+        decision = subject.decide(self._overlay(elite["run"]["floor"]))
+        self.assertEqual("choose", getattr(decision, "screen_type", None))
+        deferred = json.dumps(subject.coverage.coverage(), ensure_ascii=False)
+        self.assertIn("after combat at this floor", deferred)
+
+    def test_the_same_overlay_after_a_map_frame_is_still_ours(self) -> None:
+        subject = player()
+        self.assertIsNotNone(subject.decide(load("map")))
+        decision = subject.decide(self._overlay(load("map")["run"]["floor"]))
+        self.assertNotEqual("choose", getattr(decision, "screen_type", None))
