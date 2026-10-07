@@ -531,6 +531,28 @@ class FrozenCombatStageConfigTests(unittest.TestCase):
         self.pre = load_v2_training_config(self.PRE)
         self.g1 = load_v2_training_config(self.G1)
 
+    def test_the_plan_names_the_executor_so_the_record_says_which_arm_it_is(self) -> None:
+        """plan.json omitted the executor for a whole arm, and nothing could tell.
+
+        The same failure shape as the warm_start block, which used to be written from the flag
+        rather than from what was loaded: an arm is only attributable if the record states who
+        plays its combat, and a checkpoint the file cannot read has to say so instead of
+        reporting a pass.
+        """
+        from training.v2_curriculum import plan
+
+        g1 = plan(self.g1, PROJECT_ROOT)
+        stage = next(s for s in g1["stages"] if s["name"] == "full_run")
+        self.assertEqual("frozen", stage["combat_executor"])
+        attestation = stage["combat_executor_checkpoint"]
+        self.assertEqual("step_000040000032.zip", attestation["path"])
+        self.assertEqual(64, len(attestation["sha256"] or ""))
+
+        pre = plan(self.pre, PROJECT_ROOT)
+        pre_stage = next(s for s in pre["stages"] if s["name"] == "full_run")
+        self.assertIsNone(pre_stage["combat_executor"])
+        self.assertIsNone(pre_stage["combat_executor_checkpoint"])
+
     def test_only_the_g1_stage_asks_for_a_frozen_executor(self) -> None:
         self.assertIsNone(self.pre.stage("full_run").combat_executor)
         self.assertEqual(self.g1.stage("full_run").combat_executor, "frozen")

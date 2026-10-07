@@ -5082,3 +5082,23 @@ delta 0.000pp, CI [-1.39,+1.39], δ=+1.5pp excluded). And the three-act victorie
 client-generated alphanumeric seeds, which the runner still cannot register, so a *seeded* three-act
 trace additionally needs either the allocation extended to requested+canonical alphanumeric seeds or a
 registered seed that survives past act 1.
+
+## 2026-10-07 (evening, thirteenth entry): the first G1-stacked arm is running, started outside its own gate order, and the plan file can now prove which arm it is
+
+Owner instruction was to start formal training after #52; #52 came back positive for content
+reproducibility, but the gate that governs funding is G4, and G4 said no (28/974 vs 28/974, delta
+0.000pp, CI [-1.39,+1.39] excluding delta=+1.5pp). So this is recorded as a **deviation, not a
+pass**: `config/production_campaign_v5_g1.toml` is running at the pre-registered 1.5M-step ceiling
+(run directory `runtime/production_campaign_v5_g1/v2curriculum-20261007T145934Z/`), as a second
+independent measurement of the same axis, and `docs/TRAINING_GATES_2026-10-07.md` now carries the
+amendment with its boundaries written before any result exists -- including that a green arm here
+still does not authorize multi-day training, because G5's second half demands candidate-versus-baseline
+pairing **on the real client under the full 11-item contract**, and a simulator number does not satisfy that.
+
+One gap closed on the way in, and it is the warm-start bug wearing a different hat: `plan.json` did not
+record `combat_executor` at all, so a finished run directory could not prove it was the G1 stack rather
+than the pre-G1 arm. `plan()` now emits the executor plus the checkpoint's name, existence flag and
+sha256 (`step_000040000032.zip`, `f1385cf7ef552eb6...`), and records `null` honestly for the pre-G1
+config. Verified against the same loader the running process uses: `combat_executor=frozen`, absolute
+checkpoint path, file present -- so the arm in flight is the frozen-combat stack, established from the
+parse plus the factory's own guard, not from my reading of a TOML file.

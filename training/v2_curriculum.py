@@ -519,6 +519,22 @@ def _emulator_provenance(config: V2TrainingConfig, project_root: Path) -> dict:
     }
 
 
+def _executor_checkpoint_attestation(stage) -> dict | None:
+    """Name the frozen executor's checkpoint, and say whether it could be read here."""
+    path = getattr(stage, "combat_executor_checkpoint", None)
+    if not path:
+        return None
+    resolved = Path(path)
+    if not resolved.is_absolute():
+        resolved = PROJECT_ROOT / resolved
+    exists = resolved.is_file()
+    return {
+        "path": resolved.name,
+        "exists": exists,
+        "sha256": (hashlib.sha256(resolved.read_bytes()).hexdigest() if exists else None),
+    }
+
+
 def plan(config: V2TrainingConfig, project_root: Path,
          warm_start: dict | None = None) -> dict:
     return {
@@ -557,6 +573,14 @@ def plan(config: V2TrainingConfig, project_root: Path,
                 "checkpoint_every_steps": stage.checkpoint_every_steps,
                 "promotion_probe_every_steps": stage.promotion_probe_every_steps,
                 "initialize_from_previous": stage.initialize_from_previous,
+                # G1's entire claim is that combat is not in the trained action space, and a plan
+                # that omits the executor cannot show which arm it describes -- the same hole the
+                # warm_start block had, where the field was written from the flag rather than from
+                # what was actually loaded. The checkpoint is named by digest because it lives under
+                # a gitignored runtime directory, so a reader elsewhere sees "recorded, unverifiable"
+                # rather than a silent pass.
+                "combat_executor": stage.combat_executor,
+                "combat_executor_checkpoint": _executor_checkpoint_attestation(stage),
                 "scope": stage.scope,
                 "promotion": {
                     "episodes": stage.promotion_eval_episodes,
