@@ -4942,3 +4942,30 @@ seeded-embark probe cannot be issued without either driving that parked run to a
 clearing the save -- the second being `abandon_run`/save deletion, which stays operator-owned. The
 ask is therefore one line, and `docs/FIXED_SEED_FEASIBILITY.md` carries it with the pass criterion
 so the decision does not need another session to be actionable.
+
+## 2026-10-07 (evening, ninth entry): --max-runs now counts runs collected, which is what lets a batch end at a free menu
+
+The overshoot was readable straight off the last batch's tail: `menu` -> `unknown` -> `compendium`
+-> `run_identity` -> `session_end`, and the client left sitting on a fresh act-1 floor-1 Neow event
+with `is_in_progress=true` and `run_time=2`. Cause: the loop gated on `runs_started`, which only an
+embark increments, so a batch that opened by continuing a leftover run collected its quota from a
+free run and then embarked one more than it could ever drive. Every batch did this, so the client is
+never left at the menu -- and a seeded embark needs the menu, which is why #47's remaining step was
+an operator question rather than a technical one.
+
+Fix: count a run where it is actually collected. `_seal_run` now credits `runs_adopted` when the run
+it closes was never embarked by this process, and the loop condition reads
+`runs_started + runs_adopted < max_runs`. Counting at seal time rather than on the first frame was
+forced by the suite, not chosen: the first-frame version made three existing screen-behaviour tests
+pass, then stop -- their fixtures open mid-run (an enchant modal at act 3 floor 39, a rewards
+screen, a spent rest site), so a frame-only rule charged them a run they never reached a terminal
+with. A run that is never sealed is never counted, which is also the correct live semantics: the
+in-flight run is reported separately in the summary.
+
+`runs_adopted` is in the batch summary next to `runs_started` rather than folded into it, because a
+reader has to be able to tell that one of the collected runs came off the save. Two tests added
+(`AdoptedRunCountsAgainstMaxRunsTests`): a collected-without-embark run consumes the quota and the
+batch embarks zero times; a menu start consumes nothing. Light suite 773 tests OK, training 154 OK,
+claims 64/64 -- and the semantics note matters for the documented batch command: `--max-runs 6` now
+means six runs gathered, not six runs started, so a batch that continues a leftover run embarks five
+times and stops at the menu.

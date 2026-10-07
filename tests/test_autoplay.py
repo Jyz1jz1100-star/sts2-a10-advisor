@@ -1496,6 +1496,89 @@ class CombatProgressBoundTests(unittest.TestCase):
         self.assertEqual(0, player._combat_state_moved)
 
 
+class AdoptedRunCountsAgainstMaxRunsTests(unittest.TestCase):
+    """A run already on the save consumes the budget, so a batch can end at a free menu.
+
+    Measured on the three 2026-10-07 batches: each opened by continuing a leftover run and each
+    closed by embarking one run too many -- the last trace ends ``menu`` → ``unknown`` →
+    ``compendium`` → ``run_identity`` → ``session_end``, leaving a fresh act-1 floor-1 run parked
+    with ``run_time=2``.  ``--max-runs`` was counting embarks, so a batch that collected its quota
+    from a continued run still started another it never drove.  That parked run is not cosmetic:
+    it is what makes a seeded-embark probe impossible without touching a save, because the probe
+    needs the menu.
+    """
+
+    class _Scripted:
+        recorder = None
+
+        def __init__(self, frames: list[dict], *, after_start: dict) -> None:
+            self._frames = frames
+            self._after_start = after_start
+            self._cursor = 0
+            self.starts: list[Any] = []
+
+        def get_state(self):
+            # After the scripted frames run out the client is treated as parked on the last
+            # screen, which is what a real stalled client does and what makes the bounded
+            # guards (not the fixture) decide when the batch ends.
+            frame = self._frames[min(self._cursor, len(self._frames) - 1)]
+            self._cursor += 1
+            return dict(frame), f"d{self._cursor}"
+
+        def get_compendium(self, record: bool = True):
+            return {"current_run": None}
+
+        def start_ironclad_a10(self, **kwargs):
+            self.starts.append(kwargs.get("seed"))
+            return dict(self._after_start), "d-start"
+
+        def send_action(self, payload, expected_decision_id=None):
+            return {"status": "ok"}, None
+
+    @staticmethod
+    def _map(floor: int, act: int = 1) -> dict:
+        return {
+            "state_type": "map",
+            "run": {"act": act, "floor": floor, "ascension": 10},
+            "player": {"hp": 60, "max_hp": 80, "potions": []},
+            "map": {
+                "current_position": {"col": 3, "row": 8, "type": "Monster"},
+                "next_options": [{
+                    "index": 0, "col": 4, "row": 9, "type": "RestSite",
+                    "leads_to": [{"col": 3, "row": 10, "type": "Monster"}],
+                }],
+            },
+        }
+
+    def test_a_run_collected_without_an_embark_uses_the_quota(self) -> None:
+        controller = self._Scripted(
+            [self._map(5),
+             {"state_type": "game_over",
+              "run": {"act": 1, "floor": 5, "ascension": 10},
+              "player": {"hp": 0, "max_hp": 80},
+              "game_over": {"is_victory": False}}],
+            after_start=self._map(1),
+        )
+        player = AutoPlayer(controller, max_runs=1, max_actions=50, poll=0,
+                            travel_settle_seconds=0.0)
+        summary = player.run()
+        self.assertEqual(summary["runs_adopted"], 1, summary)
+        self.assertEqual(summary["runs_started"], 0, summary)
+        self.assertEqual(controller.starts, [], "the quota was already spent by the continued run")
+
+    def test_a_menu_start_does_not_charge_itself_an_adopted_run(self) -> None:
+        controller = self._Scripted(
+            [{"state_type": "menu", "menu_screen": "character_select",
+              "run": {"act": 1, "floor": 0, "ascension": 10},
+              "options": ["play"]}],
+            after_start=self._map(1),
+        )
+        player = AutoPlayer(controller, max_runs=1, max_actions=4, poll=0,
+                            travel_settle_seconds=0.0)
+        summary = player.run()
+        self.assertEqual(summary["runs_adopted"], 0, summary)
+
+
 if __name__ == "__main__":
     unittest.main()
 

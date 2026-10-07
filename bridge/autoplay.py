@@ -830,6 +830,15 @@ class AutoPlayer:
         self._travel_reposts = 0
         self._max_unhandled_per_screen = 10
         self.runs_started = 0
+        # A batch that opens on a leftover run drives a run it never embarked, so counting only
+        # embarks makes --max-runs mean two different things depending on what was on the save:
+        # it collects the quota, then embarks one extra run it immediately abandons at the menu.
+        # That last embark is why every batch used to leave a fresh act-1 run parked on the
+        # client -- and a parked run is exactly what a seeded embark probe cannot work around.
+        # Counted where a run is actually collected (``_seal_run``), so a batch that never reaches
+        # a terminal cannot charge itself runs it did not gather.
+        self.runs_adopted = 0
+        self._current_run_embarked = False
         self.consecutive_failures = 0
         self._advance_id: str | None = None
         self._advance_posts = 0
@@ -1702,7 +1711,8 @@ class AutoPlayer:
         state_type = ""
         decision_id: str | None = None
         bridge_unavailable_since: float | None = None
-        while self.runs_started < self.max_runs and self._actions_total() < self.max_actions:
+        while (self.runs_started + self.runs_adopted) < self.max_runs \
+                and self._actions_total() < self.max_actions:
             try:
                 state, decision_id = self.controller.get_state()
             except BridgeConnectionError as exc:
@@ -2084,6 +2094,7 @@ class AutoPlayer:
             self._seed_ledger.finalize_started(entry, identity)
             self._seed_identity_checked = True
         self.runs_started += 1
+        self._current_run_embarked = True
         self.consecutive_failures = 0
         time.sleep(self.poll)
         return state, decision_id
@@ -2098,6 +2109,17 @@ class AutoPlayer:
         if coverage["acts_seen"]:
             coverage["sealed_by"] = reason
             self.completed_runs.append(coverage)
+            if not self._current_run_embarked:
+                # A run the driver never started still ended up collected, so it uses the quota
+                # exactly like an embark would.  This is the whole overshoot fix: without it the
+                # batch embarks one run past what it can drive and leaves it parked on the client.
+                self.runs_adopted += 1
+                print(
+                    "[autoplay] collected a run it never embarked; it uses one of the "
+                    f"{self.max_runs} --max-runs",
+                    flush=True,
+                )
+        self._current_run_embarked = False
         self.coverage = RunCoverage()
         self._bypass_counts.clear()
         self._unhandled_counts.clear()
@@ -2108,6 +2130,9 @@ class AutoPlayer:
     def summary(self) -> dict[str, Any]:
         result = {
             "runs_started": self.runs_started,
+            # Named separately rather than folded into runs_started: a reader has to be able to see
+            # that one of the collected runs came off the save rather than from an embark.
+            "runs_adopted": self.runs_adopted,
             "actions_total": self._actions_total(),
             "actions_by_screen": dict(self.actions_by_screen),
             # The in-flight run is reported only once it is actually a run: the
