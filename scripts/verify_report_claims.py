@@ -1763,6 +1763,84 @@ def claim_live_victory_trace():
     return evaluate_live_victory(json.loads(LIVE_VICTORY.read_text(encoding="utf-8")))
 
 
+OUT_OF_COMBAT_SCREEN = ROOT / "docs/evidence/out_of_combat_screen_20261007.json"
+
+
+def evaluate_screen(artifact: dict) -> dict:
+    """Re-derive the G4 screen from its own per-episode rows.
+
+    Three things are checked rather than quoted: that the two arms really are one variable apart,
+    that the headline numbers come from the rows and not from a summary someone typed, and that the
+    verdict word still matches the interval arithmetic -- because the sentence "undetermined" is
+    cheap to edit and the interval is not.
+    """
+    rows = artifact.get("rows") or []
+    stats = artifact.get("statistics") or {}
+    combat = artifact.get("combat") or {}
+    per_arm = {arm: [row for row in rows if row.get("arm") == arm]
+               for arm in ("trained", "positional")}
+    seeds = {arm: {row.get("seed") for row in part} for arm, part in per_arm.items()}
+
+    def arrivals(arm: str) -> int:
+        return sum(1 for row in per_arm[arm]
+                   if int((row.get("floors_by_act") or {}).get("1") or 0) >= 17)
+
+    pairs = []
+    for seed in seeds.get("trained", set()) & seeds.get("positional", set()):
+        by_seed = {row.get("arm"): row for row in rows if row.get("seed") == seed}
+        pairs.append((bool(by_seed["trained"].get("reached_act1_boss")),
+                      bool(by_seed["positional"].get("reached_act1_boss"))))
+    b = sum(1 for t, p in pairs if t and not p)
+    c = sum(1 for t, p in pairs if p and not t)
+    n = len(pairs)
+    summary = artifact.get("summary_by_arm") or {}
+
+    def verdict_matches_interval(word: str, low: float, high: float, delta: float) -> bool:
+        if low > delta:
+            return word.startswith("pass")
+        if high < 0.0:
+            return word.startswith("stop")
+        return word.startswith("undetermined")
+
+    interval = stats.get("normal_95_on_paired_difference") or [None, None]
+    return {
+        "both_arms_played_with_one_frozen_executor": (
+            combat.get("executor") == "frozen" and combat.get("shared_by_both_arms") is True
+            and bool(combat.get("checkpoint_sha256"))),
+        "the_arms_are_paired_on_identical_seeds": (
+            seeds["trained"] == seeds["positional"] and bool(seeds["trained"])),
+        "only_the_screen_half_was_rolled": bool(rows) and all(
+            row.get("holdout") == "screen" for row in rows),
+        "the_discordant_cells_recompute_from_the_rows": (
+            stats.get("trained_only") == b and stats.get("positional_only") == c
+            and stats.get("pairs") == n),
+        "the_paired_difference_recomputes_from_the_rows": (
+            n > 0 and stats.get("paired_arrival_difference") == round((b - c) / n, 6)),
+        "the_arrival_counts_recompute_from_the_rows": all(
+            int((summary.get(arm) or {}).get("arrivals", -1)) == arrivals(arm)
+            for arm in ("trained", "positional")),
+        "neither_arm_ever_acted_inside_a_combat_state": all(
+            (summary.get(arm) or {}).get("agent_stream_contains_combat") is False
+            for arm in ("trained", "positional")),
+        "both_arms_actually_fought": all(
+            int((summary.get(arm) or {}).get("absorbed_combat_steps") or 0) > 0
+            for arm in ("trained", "positional")),
+        # The registered trichotomy, re-derived from the interval it reports.  A pass that the
+        # interval does not support is the failure mode this whole gate was built against.
+        "the_verdict_matches_its_own_interval": (
+            interval[0] is not None and verdict_matches_interval(
+                str(artifact.get("verdict") or ""), interval[0], interval[1],
+                float(stats.get("delta") or 0.0))),
+        "the_registered_arm_amendment_is_recorded": bool(
+            (artifact.get("arm_amendment") or {}).get("why_changed_before_any_look")),
+    }
+
+
+def claim_out_of_combat_screen():
+    """Re-derive the G4 screen's numbers and check its verdict against its interval."""
+    return evaluate_screen(json.loads(OUT_OF_COMBAT_SCREEN.read_text(encoding="utf-8")))
+
+
 def claim_evidence_bundle_integrity():
     """Re-verify the evidence bundle's own hash binding, independently of the manifest.
 
@@ -3522,6 +3600,9 @@ CLAIMS = {
                             "which phase the trained steps come from, recomputed from its rows"),
     "live_victory_trace": (claim_live_victory_trace,
                            "the goal's shape, re-derived from the live run's own rows"),
+    "out_of_combat_screen": (claim_out_of_combat_screen,
+                             "the G4 paired screen, re-derived from its rows and read against "
+                             "its own interval"),
     "report_exec_table_citations": (claim_report_exec_table_citations,
                                    "each decision-table row cites something that exists"),
     "objective_clause_audit": (claim_objective_clause_audit,

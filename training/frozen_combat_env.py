@@ -42,14 +42,11 @@ DEFAULT_MAX_COMBAT_STEPS = 400
 
 __all__ = [
     "COMBAT_PHASE",
-    "DefaultMaxCombatSteps",
+    "DEFAULT_MAX_COMBAT_STEPS",
     "FrozenCombatExecutor",
     "IllegalExecutorAction",
     "frozen_maskable_executor",
 ]
-
-#: Kept importable for callers that want the number without the literal.
-DefaultMaxCombatSteps = DEFAULT_MAX_COMBAT_STEPS
 
 
 class IllegalExecutorAction(RuntimeError):
@@ -92,7 +89,6 @@ class FrozenCombatExecutor(gym.Wrapper):
         return self.env.action_masks()  # type: ignore[attr-defined]
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
-        self._episode_steps = 0
         observation, info = self.env.reset(seed=seed, options=options)
         # The run should open at the ancient's offer, but a stack that hands back a fight here
         # would leak a combat state into the agent's first observation, so settle it anyway.

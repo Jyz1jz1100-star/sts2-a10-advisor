@@ -23,7 +23,7 @@
 | 按幕过滤训练种子有用吗？ | **没用，方向还是反的**：Δ mean_floor −0.280，CI [−0.583, +0.020]，上界≈0 已排除有意义的增益 | 本节"A/B 结果"小节；两臂运行目录 `runtime/act1_ab/a1filt`、`runtime/act1_ab/a1mix`（gitignored，故不作为可复核出处） |
 | 采样评估能救 boss 僵持吗？ | **不能**：8 次采样全部第 4–8 层阵亡，连 boss 都到不了；僵持是 59930 个不重复状态的僵局，不是循环 | `chained_frontier_full_20260919.json`、"僵持的机制"一节 |
 | "'0 非法动作'这句话有多强？" | **比字面弱，且是半结构性的（但已定位到阶段：拒绝全部在 shop 641/2,866=22.4% 与 event 112/4,305=2.6%；combat 130,993 个决策、relic_reward 17,698、card_reward 5,459 全为 0；**map 也是量过的 0：11,060 个地图决策**）**：契约有三条通道，策略侧越界确实是 0，但同一批 39,891 局里引擎拒绝了 **18,160 次掩码内动作**（act1 每局 0.53 次）。默认 `rejection_mode="filter"` 会把被拒动作摘掉后**把决策交回策略重选**，所以"0 非法"里混着"被拦下后改选"——本文所有"策略在某状态选了 X"都指**过滤后实际执行**的那一步。旧 schema 另把 861 局记成 `native_rejection` 结束，与现行 schema 的 0 局并不矛盾。而链分支上那处地图死路**看着像**该被计入 map 拒绝、其实一次也不计入：引擎掩码为空时契约根本不问引擎，直接以 `empty_action_mask` 收尾（接手的是 `v2_flat_env.py:240-250`，外层 `v2_run_wrapper.py:241-253` 只是备手；实测该步前后拒绝计数都是 6）。两侧由 `map_deadend_short_circuits_before_the_refusal_census` 从两个工件各自重算钉住 | `contract_channels_20260919.json`、`census_contract_channels.py`、`rejection_phase_attribution_20260919.json`、`census_rejection_phases.py`、`chained_map_deadend_fork_20260920.json` |
-| 报告里的哈希可信吗 | **可核对，而且整套产物现在被一个根哈希绑住**：77 个证据文件各有 sha256 + 字节数，排序拼接取 sha256 得 `bundle_root`（清单不给自己算哈希）；产物里在 checkpoint 语义键下出现的 **233 个摘要在本机全部对得上真实文件、逐个重算 0 处不符**。另有 379 条历史文件摘要 369 条一致、0 条不符（10 条指向未重写的历史副本绝对路径），9 个胜局台账每行同时记"重算摘要"与"矩阵记录摘要"且逐行相等。**清单本身不是可信来源**：声明 `evidence_bundle_integrity` 独立重算它的每一项，`tests/test_evidence_manifest.py` 证明改一个字节就会让 `bundle_root` 变 | `MANIFEST_2026-09-19.json`、`scripts/build_evidence_manifest.py`、"哈希链证据"一节、台账 |
+| 报告里的哈希可信吗 | **可核对，而且整套产物现在被一个根哈希绑住**：78 个证据文件各有 sha256 + 字节数，排序拼接取 sha256 得 `bundle_root`（清单不给自己算哈希）；产物里在 checkpoint 语义键下出现的 **233 个摘要在本机全部对得上真实文件、逐个重算 0 处不符**。另有 379 条历史文件摘要 369 条一致、0 条不符（10 条指向未重写的历史副本绝对路径），9 个胜局台账每行同时记"重算摘要"与"矩阵记录摘要"且逐行相等。**清单本身不是可信来源**：声明 `evidence_bundle_integrity` 独立重算它的每一项，`tests/test_evidence_manifest.py` 证明改一个字节就会让 `bundle_root` 变 | `MANIFEST_2026-09-19.json`、`scripts/build_evidence_manifest.py`、"哈希链证据"一节、台账 |
 | 目标要求的"逐阶段 warm-start 阶梯"做到了吗？ | **前两级接上了，后两级没跑**：warm-start 是真的且被代码强制（无父即 raise）；配的 5 级里 floor3 **晋升过**（两次 500 局评估都判通过），floor6 也**晋升过**——训练器当天写下的 `promotion_decision.json` 记着 boundary 0.86 对**当时的门槛 0.80**；**用今天的配置复算同一批记录则不通过**（要求已抬到 0.93，还新增 Wilson 下界 0.90），所以"复现当年阶梯"与"按现配置跑阶梯"是两个实验（本节先前写"floor6 五次评估无一通过"是拿今天的门槛去答昨天的问题，见账目第 20 行；那五次里还有三次属于目录名自称 `aborted-…` 的被中止运行）。floor10 有一次 500 局评估且未通过（boundary_rate 0.238 < 0.70，本节先前写"无晋升判定"是错的，见账目第 19 行）；**floor13 盘上无任何目录**。所以 act1 那批臂跨了 floor10/floor13 两级；09-18 那批共 **19 个臂运行两种自证（`plan.json` 的 `warm_start`、逐阶段 `origin.json`）都没有**——17 个 act1 阶段臂 + 2 个 floor3→floor6 阶梯臂（`fanout_attestation_20260919.json` 逐臂数出来的；本节先前写 13，是只数了 `runtime/fanout` 一部分的旧口径），只有启动脚本背书。**09-19 的两个 A/B 臂则两条都有且互相印证、父级摘要可从文件重算**——缺口按窗口收窄，但那条边只是同阶段跨臂，跳级本身没变好 | 文末"目标要求 3 实测"一节、`ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` |
 | 瓶颈到底在哪一层？ | **普查给到了逐种子、逐幕的精度**：3,500 个非脚本种子里 4.63% 走到 boss；**到达率两幕几乎相同（83 对 79），差别全在 boss 战**——Act 2 boss 斩杀率 **31.6% [22.5,42.6]**，Act 1 boss **83 次到达 0 胜 [0,4.4%]**。所以对第一幕而言墙就是 boss 战本身，不是"走不到"。
    （**这两个数是头部 3,500 种子的**；分区扫到 10,000 后：Act 1 到达 248 局、胜 3 局 = **1.2% [0.4,3.5]**，
@@ -412,7 +412,7 @@ VERDICT: reproduced        (exit code 0)
 
 **这一节以前只做到"每个产物各自钉住它用的检查点摘要"，缺的是把整套产物绑在一起的东西。**
 现在有了：`scripts/build_evidence_manifest.py` 生成 `docs/evidence/MANIFEST_2026-09-19.json`，
-为 `docs/evidence` 下其余 **77 个** JSON 产物各记 sha256 与字节数，再对排序后的
+为 `docs/evidence` 下其余 **78 个** JSON 产物各记 sha256 与字节数，再对排序后的
 "文件名 + 两个空格 + 摘要"逐行拼接取 sha256，得到 `bundle_root`（值只写在清单里，本文不抄）。
 清单不给自己算哈希（否则自指会让自己成为验证链里可被替换的一环）。
 
@@ -1755,7 +1755,7 @@ digest mismatches: 0
 **两幕到场资源是否可比**（七个资源的差与区间从逐种子行重算，并要求到达/判赢数复现已提交普查的 162/83/79/25）。
 **升级逐卡归到发生的那一步**（开局新增 + 各通道增量 − 删卡必须等于终局总数，余量必须为 0，并与营地普查的 29 逐位对齐））、
 **升级来源逐路归账**（三台仪器对同一平均数 0.326 必须相等，事件/营地两笔贡献从逐次到访行重算，营地那 1,883 次机会的合法性与 29 次取用也从行重算，余量 599 写成一个数而不是含糊过去）。
-当前 **63/63 计分声明与盘上一致**（退出码 0）；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验：`harness_self_description` 这条就是从正文里把这个数字抠出来、和注册表实际大小对账。）期望值是**照本文正文手抄**的，
+当前 **64/64 计分声明与盘上一致**（退出码 0）；（这一句本身就是一个教训：我连着几次用不带断言的字符串替换去改这个计数，结果连续几个提交里它都停留在 18/18，与脚本实际报的数字脱节——报告自称的严谨度被高估了 3 项。现在改成断言式替换，并把计数纳入校验：`harness_self_description` 这条就是从正文里把这个数字抠出来、和注册表实际大小对账。）期望值是**照本文正文手抄**的，
 不是从脚本输出复制的，所以盘上一变就会报 DRIFT 而不是悄悄把期望改成实测。
 
 **跑这个脚本要用对解释器。** 本晚踩到的是同一句话的反方向：用项目的"契约解释器"
@@ -1774,7 +1774,7 @@ digest mismatches: 0
 实际有 5 条发现加一个"谁判定"，于是那条"发现数对不对"的检查为 false，而验证器照样报全部一致）。
 现在 `main()` 把任何 false 检查单独算作 drift（状态 `FALSE_CHECK`、退出码 1），除非运行方在期望
 文件里用 `_expected_false_checks` 明确声明"这条就是被证伪的结论"。行为由
-`tests/test_report_claim_gate.py`（53 项，毫秒级、不加载模拟器）钉住：其中一项扫已提交的期望文件、
+`tests/test_report_claim_gate.py`（62 项，毫秒级、不加载模拟器）钉住：其中一项扫已提交的期望文件、
 要求不存在未声明的 false，另一项要求每个已注册声明都在期望文件里有条目（漏钉会报 UNPINNED），
 本晚新加的第三项要求"抛异常的声明"退出码仍为 1 且被按名字列出（防的就是上面那个 39/40 误读）。
 
@@ -2869,7 +2869,7 @@ n=2 不构成结论，但"演示内容按数值泄漏到普通种子"这条是�
 | 用 **V2 契约栈** | **达成** | OBS_SIZE 1739 / FLAT_SIZE 225 / TARGET_SLOTS 7，全部按代码重算而非引用 | —（由声明直接对代码重算） | `v2_contract_sizes` |
 | **逐阶段 warm-start 阶梯** | **部分达成** | warm-start 由代码强制（无父即 raise）。配置里的 5 级，按**当天生效的门槛**判定：floor3 晋升、floor6 晋升（boundary 0.86 对当时要求的 0.80）、floor10 起再无晋升、floor13 盘上无目录——所以 act1 的臂跨了 floor10/floor13 两级，而链条前两级是接上的。**门槛后来被抬过**：拿今天的配置复算同一批记录，floor6 不再通过（要求 0.93，且新增 Wilson 下界 0.90），因此"复现当年那条阶梯"和"按现在的配置跑一条阶梯"是两个实验。口径细节：campaign 的 500 局晋升评估共 5 次、晋升 2 次，另有 3 条属于目录名自称 `aborted-…` 的被中止运行、以及 30 局的冒烟阶梯，三类按 `run_kind` 分列不混算。逐条判定见 `ladder_promotion_ledger_20260919.json`（训练器当天写的 `promotion_decision.json` 与仓库自己的 `decide_promotion` 并列，不是手写阈值；缺字段的门槛条款现在拒绝评分而不是拿默认值比大小）。09-18 那批 19 个臂运行缺逐运行自证（父级只写在启动脚本里）；09-19 起的两个 A/B 臂两种自证都有且互相印证 | `ladder_lineage_20260919.json`、`ladder_promotion_ledger_20260919.json` | `ladder_lineage`、`ladder_rungs`、`promoted_checkpoint_digests`、`ladder_promotion_ledger`、`promotion_gate_refuses_unrecorded_inputs` |
 | 以 **scripts/run_curriculum_fanout.py 多臂并发跑过夜** | **达成** | 落盘不靠回忆计数，且**已提交成索引**（`fanout_attestation_20260919.json`）：21 个带 plan.json 的臂运行（19 个 act1 阶段 + 2 个 floor3→floor6 阶梯臂），活动窗口从 2026-09-18T17:35Z 到 2026-09-19T01:24Z（约 7.8 小时，跨夜），190 对可能重叠里有 110 对窗口气重叠⇒并发；它们产出的 118 份指标文件**全部**出现在已提交的指标索引里。两条限定：并发是从文件 mtime 窗口推的（plan.json 不记时间戳），且 21 个 plan 里只有 2 个带 `warm_start` 块——其余早于该字段，其父级仍只有启动脚本文本可查。吞吐另测：单臂约 370-885 fps 视阶段而定、12 并发约 9.3 倍 | `act1_evidence_20260919.json` | `metrics_file_count`、`act1_scope_population`、`campaign_truncation_class` |
-| 产出**含哈希链证据**的评估报告 | **达成，并且链现在延伸到引擎** | 77 个证据文件由 bundle_root 绑定；233 个被引用的检查点摘要在本机全部对上真实文件并重算相符（这个数字从 14 涨到 219、再到 233，是因为指标索引把每个指标文件引用的检查点摘要也带进了清单，2026-09-22 的三幕 campaign pilot 又添了 5 个，2026-09-23 的八个生产检查点各再添 1 个（20M 那次连同它的 promotion 探针只带来 1 个新摘要，因为两者指向同一个 checkpoint 文件））；声明逐条与盘核对。300 份指标原件在 gitignore 里，故已提交一份逐文件哈希+字段的索引，使门面数字在任何机器上都能重算（`metrics_index_reviewability` 不读任何被 ignore 的文件）。**再往下一环也补上了**：本文所有引擎结论都以 `文件.cs:行号` 形式引用，而那棵源码树不是 git 仓库、没有提交可指，模拟器自带的守卫只比 mtime——所以 `emulator_source_provenance_20261007_v6.json` 记下 38 份引擎源码的树摘要、11 份被引文件的逐文件 sha256、评测加载的原生库 sha256，以及**每一处被引行号那段文本的哈希**；它把"引擎换了"变成 DRIFT 而不是悄悄指向别的代码，而"重新生成快照时行号自己滑了"这一类比它抓不到，靠 `scripts/verify_engine_citations.py` 拿锚点表核对（见"哈希链证据"一节末）。清单与索引都不是可信来源——它们自己也被独立重算 | `MANIFEST_2026-09-19.json`、`emulator_source_provenance_20261007_v6.json` | `evidence_bundle_integrity`、`engine_findings_checklist`、`emulator_source_provenance` |
+| 产出**含哈希链证据**的评估报告 | **达成，并且链现在延伸到引擎** | 78 个证据文件由 bundle_root 绑定；233 个被引用的检查点摘要在本机全部对上真实文件并重算相符（这个数字从 14 涨到 219、再到 233，是因为指标索引把每个指标文件引用的检查点摘要也带进了清单，2026-09-22 的三幕 campaign pilot 又添了 5 个，2026-09-23 的八个生产检查点各再添 1 个（20M 那次连同它的 promotion 探针只带来 1 个新摘要，因为两者指向同一个 checkpoint 文件））；声明逐条与盘核对。300 份指标原件在 gitignore 里，故已提交一份逐文件哈希+字段的索引，使门面数字在任何机器上都能重算（`metrics_index_reviewability` 不读任何被 ignore 的文件）。**再往下一环也补上了**：本文所有引擎结论都以 `文件.cs:行号` 形式引用，而那棵源码树不是 git 仓库、没有提交可指，模拟器自带的守卫只比 mtime——所以 `emulator_source_provenance_20261007_v6.json` 记下 38 份引擎源码的树摘要、11 份被引文件的逐文件 sha256、评测加载的原生库 sha256，以及**每一处被引行号那段文本的哈希**；它把"引擎换了"变成 DRIFT 而不是悄悄指向别的代码，而"重新生成快照时行号自己滑了"这一类比它抓不到，靠 `scripts/verify_engine_citations.py` 拿锚点表核对（见"哈希链证据"一节末）。清单与索引都不是可信来源——它们自己也被独立重算 | `MANIFEST_2026-09-19.json`、`emulator_source_provenance_20261007_v6.json` | `evidence_bundle_integrity`、`engine_findings_checklist`、`emulator_source_provenance` |
 | **诚实的范围声明**（simulator_act1，不等于真机 A10 验收） | **达成，并加强为结构性理由** | 范围声明不再只是「样本不同」：本模拟器有 5 处会改变胜负口径的判定缺陷（boss 完成分叉、战败也写 Complete、幽灵药水格、事件 default 掩码臂、战斗卡奖永不 roll 升级），门槛全绿只等于「这台模拟器判据下全绿」。最前面是 26 行自我推翻账目 | `act2_boss_misexit_rate_20260919.json`、`potion_slot_cost_20260919.json`、`event_mask_case_audit_20260919.json`、`reward_upgrade_availability_20260919.json` | `boss_completion_fork`、`potion_slot_cost`、`engine_findings_checklist` |
 
 **审计结论（不美化）**：九项里七项达成或达成但带明确限定；第一项（Act 1-3 全流程胜利）**没达成，也不是「再努力一点」的问题**——模拟器没有第三幕，跨幕只有一条演示种子门控的分支，检查点穷举（09-19 的 84 枚、09-20 重跑时的 102 枚）后 0 次走完两幕。因此本目标不能标记为完成；剩下的路不在这台模拟器里，而在真机三幕那条当前被模组清单门卡住的路上。

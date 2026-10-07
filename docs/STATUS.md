@@ -4665,9 +4665,97 @@ Two things to keep, because they generalise:
 * a metric must be validated against a **known positive**, not only against a scripted fixture.
   The unit tests passed the whole time — they exercised a fake env whose floors I wrote by hand,
   so they could not see a systematically mis-read real one;
-* the pre-registration's baseline was quoted from the wrong population: 309/10,000 = 3.09% comes
-  from `act1_terminal_census_3500_20260919.json`, which is `stage: act1`,
-  `scope: simulator_act1`, 1,600-step cap — a *single-act* episode. The campaign walk is a
-  different population and its arrival rate has to be measured on campaign episodes (this screen
-  is that measurement), not inherited. That is the mixed-act label error in a new costume, and this
-  time I caught it before it became a funding decision.
+* the suspicion I wrote next to that finding was itself wrong, and the rerun refuted it: I claimed
+  the registered 3.09% baseline "comes from the single-act stage, so it is the wrong population".
+  Measured on campaign episodes, act-1 arrival is **28/974 = 2.87%** -- the same rate. The baseline
+  was fine; only the instrument was broken. Retracted here rather than left standing, because the
+  two claims look identical in summary and point at opposite fixes.
+* every campaign episode opens in act 1 (60/60 sampled seeds), so "which act does this seed
+  generate" is a property of the **single-act** stage and does not transfer to the campaign walk.
+  Probing it was still worth one reset: it is the check that the population is what the metric
+  assumes, and it is recorded as such rather than as a filter that saves compute.
+
+## Why that victory cannot be certified today: one contract item has no producer on this track (2026-10-07)
+
+Ran the 11-item assessor over the winning batch's own trace
+(`scripts/assess_full_run.py --trace ... --cohort assisted --seed-mode observational`):
+`decidable: false, accepted: false`, 20 blockers. Most are provenance inputs I did not pass
+(`checkpoint_hash_missing`, `data_hash_missing`, `model_id_missing`, `raw_seed_missing`,
+`allowed_mod_inventory_missing_or_mismatch`, the ascension/character/game-mode verifications) --
+those say "this batch was not launched as an acceptance batch", which is true and fixable by
+launching one (`--mode fixed --track acceptance`; a `--dry-run` shows preflight clean, the bridge
+up, and the seed allocation present).
+
+Two blockers are not launch parameters, and they are the ones worth understanding before any
+certification attempt:
+
+* **`combat_deploy_log_missing` for all seven runs, including the winner.** The contract wants
+  `deploy_log` events per run. On this track the only component that tails the solver's log is
+  autoplay's `route_source`, and `bridge/autoplay.py:2281` builds it only when
+  `not args.out_of_combat_only` -- because that source is not an evidence reader, it is the
+  *combat executor*: `_combat_tick` posts the logged route over the bridge. We run
+  `--out-of-combat-only` precisely to keep the solver as sole execution owner, and the supervisor
+  additionally hands autoplay `--log-dir ""`. So on the acceptance track the item that asks "did the
+  solver really play this fight" has **no producer**: it cannot pass, and cannot fail informatively
+  either. That is the same class of defect as the two contract items found unable to fail on
+  09-22 -- an assertion wired to a path that never runs. The fix is a read-only deploy-evidence
+  reader (the keeper already tails those logs), not a second combat executor; nothing here should
+  be "fixed" by letting autoplay post combat actions.
+* **`illegal_actions_observed`.** The victory run's own trace shows 812 accepted posts and **3
+  refused** (`No card selection screen is open`, `Unknown menu option: standard`, `Rewards screen is
+  not open`) -- stale-decision races, each retried successfully. The contract's tolerance is zero.
+  So a certified run needs the driver not to post into a state it has already superseded, which is
+  a real fix in `bridge/autoplay.py`, not a threshold change.
+
+Consequences, stated as decisions rather than vibes:
+
+1. **The win stands as a recorded trace, not as a certified clear** -- exactly what
+   `docs/evidence/live_victory_20261007.json` says, and the claim keeps the blockers in the file.
+2. Before any acceptance batch is launched, the deploy-evidence gap needs an answer, otherwise the
+   batch will return the same unfixable blocker at hours of live cost.
+3. `--mode fixed --track acceptance` is otherwise ready: preflight clean, game v0.111.0 /
+   commit 41cef1ea / build 24724944 matching the lock, bridge v0.4.0 answering on 15526.
+
+## G4 run as registered: the trained out-of-combat policy is indistinguishable from "pick the first option" (2026-10-07)
+
+`docs/evidence/out_of_combat_screen_20261007.json`, claim `out_of_combat_screen`, 1,948 campaign
+episodes (974 seed pairs, screen half only; the 1,026 sealed seeds were never rolled), both arms
+fighting with the same frozen executor.
+
+| arm | arrivals at the act-1 boss | mean act-1 floor | entered act 2 | wins |
+|---|---|---|---|---|
+| trained checkpoint | **28 / 974 = 2.87%** | 7.59 | 0 | 0 |
+| lowest legal index | **28 / 974 = 2.87%** | 7.37 | 0 | 0 |
+
+Discordance is perfectly balanced: 24 pairs trained-only, 24 positional-only, so the paired
+difference is **0.000 pp with a 95% interval of [-1.394, +1.394] pp**. Per the registered
+trichotomy the verdict is **undetermined** -- and the harder fact sits right next to it: the
+interval's *upper* bound falls below the pre-registered δ = +1.5pp, so the improvement this gate
+was willing to fund is **excluded at 95% confidence**, not merely unmeasured.
+
+**The answer to "when do we start formal training" is: not on this evidence.** With fighting held
+identical, the current out-of-combat decisions buy zero measurable progress over taking the first
+legal option every time. Spending a multi-day budget here would reproduce what the 40M arm already
+showed -- a near-perfect value function (EV 0.956) and a flat depth curve -- at more cost.
+
+Three boundaries on how far this result reaches, because each is a different mistake if blurred:
+
+* it compares **these two arms**, not "out-of-combat decisions in general". Both arms die at floors
+  5-8 in bulk; what limits them is the fight, which the product delegates to the solver. The screen
+  says nothing about whether *better map/relic/rest choices by a different agent* would help -- it
+  says the trained agent's choices are, on this population, not distinguishable from a constant.
+* the mean-floor gap (7.59 vs 7.37) was **seen after the look** and is recorded as an observation
+  only; the registered criterion is untouched and does not become floor.
+* the sealed half stays sealed. It belongs to this screen's confirmation, not to rescuing a gate
+  that came back uninformative.
+
+Incidental gain worth keeping: G1 now has scale evidence rather than a 60-episode audit -- across
+these 1,948 episodes **neither arm ever received a combat decision**, while 214,668 combat
+transitions were absorbed by the frozen executor (108,417 trained, 106,251 positional). The
+`neither_arm_ever_acted_inside_a_combat_state` check reads those fields from the rows, so the
+claim fails if a future arm leaks a fight back into the loss.
+
+Next, in the order the gates actually allow: G3 wants one reproducible three-act simulator trace
+under the same responsibility split (the screen shows the campaign policy cannot produce it -- so
+this is now a *content/engine* question, not a training one), and the live track wants #47 and #48
+closed before an acceptance batch can return anything but the same two unfixable blockers.

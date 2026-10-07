@@ -588,5 +588,93 @@ class LiveVictoryShapeTests(unittest.TestCase):
         self.assertFalse(verdicts["no_action_was_ever_posted_during_a_combat_state"])
 
 
+def _screen_row(seed: int, arm: str, floor: int, *, absorbed: int = 210) -> dict:
+    arrived = floor >= 17
+    return {"seed": seed, "arm": arm, "holdout": "screen",
+            "floors_by_act": {"1": floor}, "deepest_act": 1,
+            "reached_act1_boss": arrived, "won": False,
+            "absorbed_combat_steps": absorbed,
+            "agent_phases": {"map": 4, "relic_reward": 2}}
+
+
+SCREEN_ROWS = ([_screen_row(1, "trained", 17), _screen_row(1, "positional", 5)]
+               + [_screen_row(2, "trained", 17), _screen_row(2, "positional", 16)]
+               + [_screen_row(3, "trained", 5), _screen_row(3, "positional", 17)]
+               + [_screen_row(4, "trained", 16), _screen_row(4, "positional", 17)])
+SCREEN = {
+    "combat": {"executor": "frozen", "shared_by_both_arms": True,
+               "checkpoint_sha256": "a" * 64},
+    "arm_amendment": {"why_changed_before_any_look": "the simulator publishes no option text"},
+    "statistics": {"pairs": 4, "trained_only": 2, "positional_only": 2,
+                   "paired_arrival_difference": 0.0, "delta": 0.015,
+                   "normal_95_on_paired_difference": [-0.2, 0.2]},
+    "summary_by_arm": {"trained": {"arrivals": 2, "agent_stream_contains_combat": False,
+                                   "absorbed_combat_steps": 840},
+                       "positional": {"arrivals": 2, "agent_stream_contains_combat": False,
+                                      "absorbed_combat_steps": 840}},
+    "verdict": "undetermined: the interval does not settle the delta",
+    "rows": SCREEN_ROWS,
+}
+
+
+class OutOfCombatScreenTests(unittest.TestCase):
+    """The screen's verdict has to be re-derived, and it has to match its own interval.
+
+    A paired null result is the easiest thing in the repository to fake -- two arms that quietly
+    differ in more than the rule under test, or a summary sentence that the numbers do not say.
+    Every case below breaks one of those and expects exactly one check to go red.
+    """
+
+    def test_the_clean_screen_holds(self) -> None:
+        verdicts = V.evaluate_screen(dict(SCREEN))
+        self.assertTrue(all(verdicts.values()), str(verdicts))
+
+    def test_a_pass_the_interval_does_not_support_fails(self) -> None:
+        screen = dict(SCREEN, verdict="pass: the paired improvement clears the delta")
+        self.assertFalse(V.evaluate_screen(screen)["the_verdict_matches_its_own_interval"])
+
+    def test_a_rolling_up_of_the_sealed_half_is_caught(self) -> None:
+        rows = [dict(SCREEN_ROWS[0], holdout="sealed")] + SCREEN_ROWS[1:]
+        self.assertFalse(V.evaluate_screen({**SCREEN, "rows": rows})[
+            "only_the_screen_half_was_rolled"])
+
+    def test_unpaired_seeds_break_the_pairing(self) -> None:
+        rows = [row for row in SCREEN_ROWS if not (row["seed"] == 4 and row["arm"] == "trained")]
+        verdicts = V.evaluate_screen({**SCREEN, "rows": rows})
+        self.assertFalse(verdicts["the_arms_are_paired_on_identical_seeds"])
+
+    def test_a_typed_arrival_count_does_not_survive_the_rows(self) -> None:
+        summary = {"trained": dict(SCREEN["summary_by_arm"]["trained"], arrivals=9),
+                   "positional": SCREEN["summary_by_arm"]["positional"]}
+        self.assertFalse(V.evaluate_screen({**SCREEN, "summary_by_arm": summary})[
+            "the_arrival_counts_recompute_from_the_rows"])
+
+    def test_a_combat_decision_in_an_arm_is_caught(self) -> None:
+        rows = [dict(row, agent_phases={**row["agent_phases"], "combat": 3})
+                if row["seed"] == 1 and row["arm"] == "trained" else row
+                for row in SCREEN_ROWS]
+        summary = {arm: dict(values, agent_stream_contains_combat=(
+            arm == "trained")) for arm, values in SCREEN["summary_by_arm"].items()}
+        self.assertFalse(V.evaluate_screen({**SCREEN, "rows": rows,
+                                            "summary_by_arm": summary})[
+            "neither_arm_ever_acted_inside_a_combat_state"])
+
+    def test_an_arm_that_never_fought_is_not_a_screen(self) -> None:
+        summary = {arm: dict(values, absorbed_combat_steps=(0 if arm == "positional" else 840))
+                   for arm, values in SCREEN["summary_by_arm"].items()}
+        self.assertFalse(V.evaluate_screen({**SCREEN, "summary_by_arm": summary})[
+            "both_arms_actually_fought"])
+
+    def test_tampering_with_the_discordant_cells_is_caught(self) -> None:
+        statistics = dict(SCREEN["statistics"], trained_only=7)
+        self.assertFalse(V.evaluate_screen({**SCREEN, "statistics": statistics})[
+            "the_discordant_cells_recompute_from_the_rows"])
+
+    def test_a_missing_frozen_executor_blocks_the_claim(self) -> None:
+        combat = dict(SCREEN["combat"], executor="agent")
+        self.assertFalse(V.evaluate_screen({**SCREEN, "combat": combat})[
+            "both_arms_played_with_one_frozen_executor"])
+
+
 if __name__ == "__main__":
     unittest.main()

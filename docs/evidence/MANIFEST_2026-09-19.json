@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "e81bc3d0b410f78391973133f14052f987202560f8337667499bd618623238ee",
-  "evidence_file_count": 77,
-  "generated_at": "2026-10-07T09:38:20+00:00",
-  "git_head_at_generation": "3d24ee2",
+  "bundle_root": "f94b6b45d64e8357486a4e830cfb8d129fcdbe2938babde8fd76aaeb367bfd4c",
+  "evidence_file_count": 78,
+  "generated_at": "2026-10-07T09:48:15+00:00",
+  "git_head_at_generation": "240842f",
   "checkpoint_digests_cited": 233,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1502
+    "total_64_hex_strings_seen": 1503
   },
   "resolved_checkpoints": [
     {
@@ -2353,6 +2353,7 @@
       "sha256": "f1385cf7ef552eb693ef00e215b1c52fdccf3924105e23d2a3179e50f7ad0474",
       "cited_by": [
         "metrics_index_20260919.json",
+        "out_of_combat_screen_20261007.json",
         "phase_action_share_20261007.json",
         "phase_action_share_frozen_20261007.json"
       ],
@@ -2535,8 +2536,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "f3b7e47f5c838ab2a5a258bc90182c313354af4bddcbf07c39265a41fef448c4",
-      "bytes": 27396
+      "sha256": "901d7bc70594bb1ab5e1a681c32fde783ea08e2aec2e8e87bac6e021c2d1b87c",
+      "bytes": 27967
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2802,6 +2803,11 @@
       "file": "opening_choice_20260919.json",
       "sha256": "acebde70e3278f84fae2572a84b45c2b8a5cd250e457062752aadcf7a866f714",
       "bytes": 2402593
+    },
+    {
+      "file": "out_of_combat_screen_20261007.json",
+      "sha256": "e92c47644739e71489ae92570ed6218354aa1868a991905470730ce664f70faa",
+      "bytes": 1047791
     },
     {
       "file": "phase_action_share_20261007.json",

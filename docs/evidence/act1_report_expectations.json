@@ -481,6 +481,18 @@
     "the_take_rate_depends_on_the_position": true,
     "the_upgrade_relic_is_rarely_offered_at_all": true
   },
+  "out_of_combat_screen": {
+    "both_arms_actually_fought": true,
+    "both_arms_played_with_one_frozen_executor": true,
+    "neither_arm_ever_acted_inside_a_combat_state": true,
+    "only_the_screen_half_was_rolled": true,
+    "the_arms_are_paired_on_identical_seeds": true,
+    "the_arrival_counts_recompute_from_the_rows": true,
+    "the_discordant_cells_recompute_from_the_rows": true,
+    "the_paired_difference_recomputes_from_the_rows": true,
+    "the_registered_arm_amendment_is_recorded": true,
+    "the_verdict_matches_its_own_interval": true
+  },
   "phase_action_share": {
     "absorbed_combat_carries_the_difference": true,
     "checkpoint_digest_matches_the_file": true,

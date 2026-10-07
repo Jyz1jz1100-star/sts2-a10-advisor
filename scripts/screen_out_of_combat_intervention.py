@@ -31,12 +31,20 @@ import hashlib
 import json
 import multiprocessing as mp
 import pathlib
+import statistics
 import sys
 from collections import Counter
 from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+
+
+def _relative(path: pathlib.Path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
 EMULATOR = ROOT.parent / "third_party" / "slay-the-spire-2-emulator-main"
 sys.path.insert(0, str(EMULATOR / "src"))
 
@@ -267,6 +275,10 @@ def main() -> int:
     parser.add_argument("--out", type=pathlib.Path, required=True)
     args = parser.parse_args()
 
+    # Imported here rather than at module level so the screen's arithmetic stays testable on an
+    # interpreter without the training stack.
+    from training.campaign_content import CAMPAIGN_ENVIRONMENT_VERSION
+
     checkpoint = args.checkpoint.resolve()
     if not checkpoint.is_file():
         raise SystemExit(f"checkpoint not found: {checkpoint}")
@@ -318,8 +330,35 @@ def main() -> int:
     trained_rate = sum(a for a, _ in pairs) / len(pairs) if pairs else 0.0
     positional_rate = sum(b for _, b in pairs) / len(pairs) if pairs else 0.0
 
+    def per_arm(name: str) -> dict:
+        sub = [pair[name] for pair in complete if name in pair]
+        floors = [int((row["floors_by_act"] or {}).get("1") or 0) for row in sub]
+        return {
+            "episodes": len(sub),
+            "arrivals": sum(1 for f in floors if f >= ACT1_BOSS_FLOOR),
+            "mean_act1_floor": round(statistics.fmean(floors), 4) if floors else None,
+            "max_act1_floor": max(floors, default=0),
+            "episodes_entering_act_2": sum(1 for row in sub if int(row["deepest_act"]) >= 2),
+            "wins": sum(1 for row in sub if row["won"]),
+            "absorbed_combat_steps": sum(row["absorbed_combat_steps"] for row in sub),
+            "agent_stream_contains_combat": any(
+                "combat" in row["agent_phases"] for row in sub),
+        }
+
     artifact = {
         "metric": METRIC,
+        "generated_by": "scripts/screen_out_of_combat_intervention.py",
+        "how_to_recheck": " ".join((
+            "../third_party/slay-the-spire-2-emulator-main/.venv/Scripts/python.exe",
+            "scripts/screen_out_of_combat_intervention.py",
+            f"--seed-start {args.seed_start}",
+            f"--candidate-seeds {args.candidate_seeds}",
+            f"--pairs {args.pairs}",
+            f"--workers {args.workers}",
+            f"--out {args.out.as_posix()}")),
+        "engine_environment_version": CAMPAIGN_ENVIRONMENT_VERSION,
+        "config": _relative(args.config.resolve()),
+        "summary_by_arm": {"trained": per_arm("trained"), "positional": per_arm("positional")},
         "arms": {"trained": "the frozen checkpoint's out-of-combat decisions",
                  "positional": "lowest advertised legal index (the shipped positional constant)"},
         "arm_amendment": {
