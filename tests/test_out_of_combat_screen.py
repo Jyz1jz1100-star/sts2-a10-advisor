@@ -144,5 +144,60 @@ class RolloutShapeTests(unittest.TestCase):
             self.assertIn(f'"{key}"', source, f"row field {key} disappeared")
 
 
+class _ScriptedEpisode:
+    """A minimal env surface: floors walked, then a terminal state."""
+
+    def __init__(self, floors, *, terminate=True, phase="map"):
+        self.floors = list(floors)
+        self.cursor = 0
+        self.terminate = terminate
+
+    def reset(self, *, seed=None, options=None):
+        self.cursor = 0
+        return object(), self._info()
+
+    def action_masks(self):
+        return [True, False]
+
+    def step(self, action):
+        self.cursor = min(self.cursor + 1, len(self.floors) - 1)
+        done = self.cursor == len(self.floors) - 1 and self.terminate
+        return object(), 0.0, done, False, self._info()
+
+    def close(self):
+        pass
+
+    def _info(self):
+        return {"phase_name": "map", "act": 1, "floor": self.floors[self.cursor]}
+
+
+class TerminalFloorTests(unittest.TestCase):
+    """A boss arrival that ends in death still has to be counted as an arrival.
+
+    The screen's whole metric is "did this episode stand on floor 17", and the state where that is
+    true is usually the one the run dies on.  An instrument that records only the states it decided
+    *from* reports that episode as floor 16 -- which is exactly what the first version did, and what
+    would have made today's zero arrivals an artefact instead of a measurement.
+    """
+
+    def test_the_terminal_state_floor_is_recorded(self) -> None:
+        row = S._roll(lambda seed: _ScriptedEpisode([1, 5, 16, 17]),
+                      lambda obs, mask: 0, 1, 4800)
+        self.assertEqual({"1": 17}, row["floors_by_act"])
+        self.assertTrue(row["reached_act1_boss"])
+
+    def test_an_episode_that_never_reaches_the_boss_floor_still_fails_the_metric(self) -> None:
+        row = S._roll(lambda seed: _ScriptedEpisode([1, 5, 16]),
+                      lambda obs, mask: 0, 1, 4800)
+        self.assertEqual({"1": 16}, row["floors_by_act"])
+        self.assertFalse(row["reached_act1_boss"])
+
+    def test_generated_act_and_step_counts_come_from_the_walk(self) -> None:
+        row = S._roll(lambda seed: _ScriptedEpisode([1, 2, 3]), lambda obs, mask: 0, 7, 4800)
+        self.assertEqual(1, row["generated_act"])
+        self.assertEqual("screen" if S.holdout_of(7) == "screen" else "sealed", row["holdout"])
+        self.assertEqual(2, row["agent_steps"])
+
+
 if __name__ == "__main__":
     unittest.main()

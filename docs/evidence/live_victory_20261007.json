@@ -41,6 +41,75 @@
     ],
     "stop_reason": "autoplay_completed"
   },
+  "actions_batch_wide": {
+    "action_during_combat_state_count": 0,
+    "actions_by_state_type": {
+      "card_reward": 82,
+      "card_select": 40,
+      "event": 82,
+      "game_over": 14,
+      "map": 154,
+      "menu": 50,
+      "rest_site": 50,
+      "rewards": 302,
+      "shop": 23,
+      "treasure": 18
+    },
+    "actions_posted_during_combat_states": {},
+    "posted_actions": {
+      "choose_event_option": 82,
+      "choose_map_node": 153,
+      "choose_rest_option": 25,
+      "claim_reward": 222,
+      "claim_treasure_relic": 9,
+      "confirm_selection": 16,
+      "menu_select": 64,
+      "proceed": 121,
+      "select_card": 24,
+      "select_card_reward": 82,
+      "shop_purchase": 16,
+      "use_potion": 1
+    },
+    "posted_actions_total": 815,
+    "result_statuses": {
+      "error": 3,
+      "ok": 812
+    }
+  },
+  "actions_in_the_victory_run": {
+    "action_during_combat_state_count": 0,
+    "actions_by_state_type": {
+      "card_reward": 22,
+      "card_select": 18,
+      "event": 22,
+      "game_over": 2,
+      "map": 49,
+      "rest_site": 16,
+      "rewards": 91,
+      "shop": 11,
+      "treasure": 6
+    },
+    "actions_posted_during_combat_states": {},
+    "posted_actions": {
+      "choose_event_option": 22,
+      "choose_map_node": 48,
+      "choose_rest_option": 8,
+      "claim_reward": 66,
+      "claim_treasure_relic": 3,
+      "confirm_selection": 6,
+      "menu_select": 2,
+      "proceed": 40,
+      "select_card": 12,
+      "select_card_reward": 22,
+      "shop_purchase": 7,
+      "use_potion": 1
+    },
+    "posted_actions_total": 237,
+    "result_statuses": {
+      "error": 1,
+      "ok": 236
+    }
+  },
   "batch_id": "ssb-20261007T081357Z-73310af4",
   "cohort": "assisted",
   "completed_runs": 7,

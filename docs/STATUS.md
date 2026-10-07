@@ -4639,3 +4639,35 @@ Two disclosures that belong next to the win, not in a footnote:
 Sequelling consequence: **the live path is no longer blocked by an unreachable final act**, so the
 remaining live risk is reproducibility on the acceptance track (G2) and the multi-select modal
 (#42/#44), not "can a run get there at all".
+
+## The screen's first null was my instrument, and the check that caught it (2026-10-07)
+
+Ran the pre-registered G4 screen (974 paired campaign episodes, combat frozen, arms = the frozen
+checkpoint's out-of-combat decisions vs the lowest legal index). It came back
+**0 arrivals in 1,948 episodes, both arms, zero discordant pairs** — a clean, decisive null that
+would have said "the campaign population has no act-1 progress signal, so do not fund G5".
+
+It was wrong, and the reason was mine: `_roll` recorded the floor of the state it *decided from*,
+so an episode that walked onto floor 17 and died in the boss fight was recorded as floor 16. The
+arrivals are exactly the cases that bug hides, which is why the metric read zero rather than noisy.
+The tell was that "0 of 974" is not compatible with anything: at a plausible 2% arrival rate, zero
+has probability about 10⁻⁹, and this project's own rule is that an all-zero probe is the probe, not
+the population.
+
+The check that settled it, run before rewriting the result: the same script, the same fix, 200
+paired episodes on the arm's *final* partition — **trained 5/200 (2.5%), positional 4/200 (2.0%)**,
+max floor 17. So the instrument sees arrivals when they are there, the promotion partition's zero
+was the off-by-one, and the campaign population does have a measurable act-1 arrival rate. The
+screen is rerunning on the promotion partition now.
+
+Two things to keep, because they generalise:
+
+* a metric must be validated against a **known positive**, not only against a scripted fixture.
+  The unit tests passed the whole time — they exercised a fake env whose floors I wrote by hand,
+  so they could not see a systematically mis-read real one;
+* the pre-registration's baseline was quoted from the wrong population: 309/10,000 = 3.09% comes
+  from `act1_terminal_census_3500_20260919.json`, which is `stage: act1`,
+  `scope: simulator_act1`, 1,600-step cap — a *single-act* episode. The campaign walk is a
+  different population and its arrival rate has to be measured on campaign episodes (this screen
+  is that measurement), not inherited. That is the mixed-act label error in a new costume, and this
+  time I caught it before it became a funding decision.

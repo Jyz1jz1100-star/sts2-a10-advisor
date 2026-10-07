@@ -416,6 +416,7 @@
     "a_single_run_carries_the_victory": true,
     "combat_was_owned_by_the_solver_not_by_us": true,
     "each_act_met_exactly_one_of_its_own_ancients": true,
+    "no_action_was_ever_posted_during_a_combat_state": true,
     "no_ancient_is_claimed_for_the_wrong_act": true,
     "the_act_2_boss_was_a_pair_fought_together": true,
     "the_acts_were_walked_in_order": true,
@@ -428,7 +429,8 @@
     "the_run_opened_on_the_first_floor_of_act_1": true,
     "the_run_walked_three_acts": true,
     "the_solver_build_is_identified_by_hash": true,
-    "the_victory_is_reported_with_its_denominator": true
+    "the_victory_is_reported_with_its_denominator": true,
+    "the_victory_run_was_actually_driven": true
   },
   "map_deadend_short_circuits_before_the_refusal_census": {
     "no_map_refusals_on_the_ordinary_promotion_population": true,

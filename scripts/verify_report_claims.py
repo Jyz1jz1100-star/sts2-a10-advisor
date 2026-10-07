@@ -1740,6 +1740,17 @@ def evaluate_live_victory(artifact: dict) -> dict:
         # tell a reader which fight engine produced this trace.
         "the_solver_build_is_identified_by_hash": bool(
             (artifact.get("acceptance", {}).get("solver_at_end") or {}).get("actual_sha256")),
+        # The contract's single-execution-owner rule, checked the only way it can be checked:
+        # every action row tagged with the screen it was posted on, and no fight among them.
+        # A missing counter fails, because absent is not the same as zero.
+        "no_action_was_ever_posted_during_a_combat_state": (
+            int((artifact.get("actions_in_the_victory_run") or {}).get(
+                "action_during_combat_state_count", -1)) == 0
+            and int((artifact.get("actions_batch_wide") or {}).get(
+                "action_during_combat_state_count", -1)) == 0),
+        "the_victory_run_was_actually_driven": int(
+            (artifact.get("actions_in_the_victory_run") or {}).get("posted_actions_total")
+            or 0) > 100,
         # One trace is a reachability result.  The file has to keep its denominator, or the win
         # gets quoted as a rate by whoever reads it next.
         "the_victory_is_reported_with_its_denominator": (

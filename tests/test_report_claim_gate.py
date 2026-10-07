@@ -493,6 +493,12 @@ LIVE_VICTORY = {
     "acceptance": {"available": True, "acceptance_claim": False,
                    "acceptance_blockers": ["observational_mode"],
                    "solver_at_end": {"actual_sha256": "8" * 64, "matches_lock": False}},
+    "actions_in_the_victory_run": {"posted_actions_total": 412,
+                                   "action_during_combat_state_count": 0,
+                                   "posted_actions": {"claim_reward": 120,
+                                                      "choose_map_node": 96}},
+    "actions_batch_wide": {"posted_actions_total": 815,
+                           "action_during_combat_state_count": 0},
     "victory_run": LIVE_VICTORY_RUN,
 }
 
@@ -568,6 +574,18 @@ class LiveVictoryShapeTests(unittest.TestCase):
                           solver_at_end={"mod_manifest_version": "0.50.1"})
         self.assertFalse(V.evaluate_live_victory({**LIVE_VICTORY, "acceptance": acceptance})[
             "the_solver_build_is_identified_by_hash"])
+
+    def test_one_posted_combat_action_breaks_the_owner_rule(self) -> None:
+        actions = dict(LIVE_VICTORY["actions_in_the_victory_run"],
+                       action_during_combat_state_count=1)
+        verdicts = V.evaluate_live_victory({**LIVE_VICTORY, "actions_in_the_victory_run": actions})
+        self.assertFalse(verdicts["no_action_was_ever_posted_during_a_combat_state"])
+
+    def test_a_missing_action_counter_is_not_read_as_zero(self) -> None:
+        # Absent is not the same as clean: an instrument that never tagged screens must not be
+        # able to satisfy the owner rule by saying nothing.
+        verdicts = V.evaluate_live_victory({**LIVE_VICTORY, "actions_batch_wide": {}})
+        self.assertFalse(verdicts["no_action_was_ever_posted_during_a_combat_state"])
 
 
 if __name__ == "__main__":

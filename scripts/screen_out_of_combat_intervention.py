@@ -80,8 +80,6 @@ class _Trained:
 
 
 def _roll(factory: Any, decide: Any, seed: int, budget: int) -> dict[str, Any]:
-    import numpy as np
-
     env = factory(seed)
     try:
         observation, info = env.reset(seed=seed, options={"campaign": True})
@@ -89,23 +87,34 @@ def _roll(factory: Any, decide: Any, seed: int, budget: int) -> dict[str, Any]:
         horizon = min(int(inner) if inner else budget, budget)
         acts: Counter = Counter()
         floors: dict[int, int] = {}
+
+        def visit(state: dict) -> None:
+            """Record the floor an episode *stood on*, for every state it landed in.
+
+            Counting only the states the agent decided in would miss the terminal one, and the
+            terminal state is where a boss arrival is recorded -- an episode that reaches floor 17
+            and dies there reads as "max floor 16" if the last state is never visited. This is the
+            metric the whole gate is defined on, so it has to see the death square.
+            """
+            act = int(state.get("act") or 0)
+            floor = int(state.get("floor") or 0)
+            if act and floor:
+                floors[act] = max(floors.get(act, 0), floor)
+
+        last: dict[str, Any] = dict(info or {})
+        visit(last)
         steps = 0
         absorbed = 0
         done = False
-        last: dict[str, Any] = dict(info or {})
         while not done and steps < horizon:
             mask = env.action_masks()
-            if not np.any(mask):
+            if not any(bool(value) for value in mask):
                 break
-            phase = str(last.get("phase_name") or "unknown")
-            act = int(last.get("act") or 0)
-            floor = int(last.get("floor") or 0)
-            acts[phase] += 1
-            if act:
-                floors[act] = max(floors.get(act, 0), floor)
+            acts[str(last.get("phase_name") or "unknown")] += 1
             action = decide(observation, mask)
             observation, _r, terminated, truncated, info = env.step(int(action))
             last = dict(info or {})
+            visit(last)
             absorbed += int(last.get("combat_steps") or 0)
             done = bool(terminated or truncated)
             steps += 1
@@ -345,13 +354,14 @@ def main() -> int:
             "that arrival is the right target if the product's win condition turns out to be "
             "reachable only through act 2 and 3 decisions",
         ],
-        "rows": [row for pair in ordered for row in (pair["trained"], pair["positional"])],
+        "rows": [row for pair in complete for row in (pair["trained"],
+                                                 pair["positional"])],
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(artifact, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
                         encoding="utf-8")
     print(json.dumps({k: artifact[k] for k in
-                      ("candidate_seeds_probed", "screen_half_act1_seeds",
+                      ("candidate_seeds_probed", "screen_half_opening_in_act_1",
                        "incomplete_pairs_dropped", "pairs_used",
                        "trained_arrival_rate", "positional_arrival_rate", "verdict")},
                      ensure_ascii=False, indent=1))

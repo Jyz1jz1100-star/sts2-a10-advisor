@@ -21,6 +21,7 @@ import hashlib
 import json
 import pathlib
 import sys
+from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -173,16 +174,61 @@ def _acceptance(batch_dir: pathlib.Path) -> dict:
     }
 
 
+def _actions(rows) -> dict:
+    """Every action the driver posted, tagged with the screen it was posted on.
+
+    The acceptance contract gives combat to the client's solver, so "we never posted a combat
+    action" is not a style preference but a claim with a counterexample shape: an action row whose
+    preceding state is a fight.  Tagging every action by that state is what makes it checkable
+    rather than asserted.
+    """
+    combat_states = {"boss", "monster", "elite", "hand_select"}
+    last_state = None
+    by_name: Counter = Counter()
+    by_state: Counter = Counter()
+    during_combat: Counter = Counter()
+    statuses: Counter = Counter()
+    for row in rows:
+        event = row.get("event_type")
+        raw = row.get("raw") or {}
+        if event == "state":
+            last_state = raw.get("state_type")
+        elif event == "action":
+            name = raw.get("action") if isinstance(raw, dict) else None
+            by_name[str(name)] += 1
+            by_state[str(last_state)] += 1
+            if last_state in combat_states:
+                during_combat[f"{last_state}:{name}"] += 1
+        elif event == "result":
+            statuses[str(raw.get("status") if isinstance(raw, dict) else raw)] += 1
+    return {
+        "posted_actions": dict(by_name.most_common()),
+        "posted_actions_total": sum(by_name.values()),
+        "actions_by_state_type": dict(by_state.most_common()),
+        "actions_posted_during_combat_states": dict(during_combat.most_common()),
+        "action_during_combat_state_count": sum(during_combat.values()),
+        "result_statuses": dict(statuses.most_common()),
+    }
+
+
 def build(trace: pathlib.Path) -> dict:
     rows = list(_iter_rows(trace))
     session = next((r["raw"] for r in rows if r.get("event_type") == "session"), {})
     identity = next((r["raw"] for r in rows if r.get("event_type") == "run_identity"), {})
     runs = [_summarise(w) for w in _run_windows(rows) if len(w["frames"]) > 20]
     wins = [r for r in runs if r["victory_flag"] is True]
+    victory_window = wins[-1] if wins else None
+    posted = _actions(rows)
+    victory_posted = _actions(
+        [row for row in rows
+         if victory_window and victory_window["first_ts"] <= row["timestamp_utc"]
+         <= victory_window["last_ts"]]) if victory_window else {}
     return {
         "batch_id": trace.parent.name,
         "trace_sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
         "trace_rows": len(rows),
+        "actions_batch_wide": posted,
+        "actions_in_the_victory_run": victory_posted,
         "game": session.get("observed_game"),
         "version_lock": session.get("version_lock"),
         "execution_owner": session.get("execution_owner"),
