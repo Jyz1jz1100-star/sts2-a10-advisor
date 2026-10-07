@@ -302,12 +302,15 @@
     "tier_arrivals_sum_to_arrivals": true
   },
   "evidence_bundle_integrity": {
-    "bundle_root_recomputes": true,
-    "checkpoint_files_rehashed_here": 233,
-    "digests_and_sizes_recompute": true,
-    "every_citation_is_accounted_for": true,
     "listing_matches_disk": true,
+    "digests_and_sizes_recompute": true,
+    "no_evidence_digest_field_is_malformed": true,
+    "evidence_digest_fields_malformed": [],
+    "evidence_digest_fields_recorded_as_bare_prefixes": 9,
+    "bundle_root_recomputes": true,
     "manifest_excludes_itself": true,
+    "checkpoint_files_rehashed_here": 233,
+    "every_citation_is_accounted_for": true,
     "no_citation_is_loose": true
   },
   "evidence_matrix_totals": {
@@ -616,12 +619,22 @@
     "observation_size": 1739
   },
   "win_ledger": {
-    "every_reproduced_win_is_a_clean_terminal_win": true,
+    "wins_reproduced": 9,
+    "wins_failed_to_reproduce": 0,
     "rows": 5,
-    "the_recorded_rows_match_the_rows_this_file_carries": true,
+    "every_reproduced_win_is_a_clean_terminal_win": true,
     "the_terminal_floor_agrees_with_the_engines_boss_row_constant": true,
     "two_runs_recorded_and_their_rows_hash_alike": true,
-    "wins_failed_to_reproduce": 0,
-    "wins_reproduced": 9
+    "the_recorded_rows_match_the_rows_this_file_carries": true,
+    "live_win_replay_inputs_missing": [],
+    "the_ledger_wins_replay_on_the_current_engine": false
+  },
+  "_expected_false_checks": {
+    "win_ledger": [
+      "the_ledger_wins_replay_on_the_current_engine"
+    ]
+  },
+  "_expected_false_reasons": {
+    "win_ledger.the_ledger_wins_replay_on_the_current_engine": "the nine named Act-1 wins do not replay on fidelity-v5: 0/9 measured 2026-10-07 by scripts/act1_win_ledger.py over the same arms, seeds and checkpoint digests. The red is the finding. Clear it by re-deriving strength, never by deleting the check."
   }
 }

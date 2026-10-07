@@ -4292,3 +4292,65 @@ Consequence for the delivery goal, without softening it: the real-machine path i
 the Act-2 boss by this pause, so the deepest trace cannot become a certified Act 1-3 victory while the
 save sits there. That is a flow blocker, not a strategy result, and no amount of training changes it.
 
+## A digest that was not one, the first declared red, and the honest engine measured again (2026-10-07)
+
+**The evidence bundle could carry a broken identifier and every hash check stayed green.** The
+manifest harvests digests with `[0-9a-f]{64}`. A 61-hex value -- a sha256 with three characters
+dropped in transcription -- matches that regex zero times, so it is not "a digest that fails to
+verify", it is *invisible*: no claim ever looked at it. The first thing to notice was
+`scripts/enumerate_act1_terminals.py --expect-checkpoint-sha256`, which refused to roll because the
+digest named no file. Audit of the whole bundle: 15 digest-shaped fields were not full sha256s --
+2 genuinely malformed (`act2_boss_misexit_rate_20260919.json`,
+`act2_boss_clear_recoverability_20260920.json`, both the same dropped-trigram value) and 13 that are
+16-hex prefixes sitting under a key that claims a sha256. The two malformed values were repaired to
+the file's real digest (`a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e`), the three
+`chained_frontier_full_20260919.json` rows whose own `checkpoint` path resolves were upgraded from
+prefix to full digest after confirming the prefix matched, and each repair is recorded inside the
+artifact under `field_corrections` with the old value, the reason and the date -- no overwrite that
+hides what it changed. The nine `boss_generality` prefixes carry no sibling path, so they cannot be
+resolved honestly; they stay as a **counted** residual rather than an exception list.
+
+`claim_evidence_bundle_integrity` now asserts the class that bit us (`no_evidence_digest_field_is_malformed`
+plus the offending paths by name) and surfaces the naming smell as an integer that has to be re-pinned
+to change (`evidence_digest_fields_recorded_as_bare_prefixes`: 9). Seven cases in
+`tests/test_report_claim_gate.py::DigestFieldShapeTests` show the gate can fail, including one that
+scans the committed bundle.
+
+**`win_ledger` was a records check all along, and it is now also a replay.** Every key it carried
+compares the committed ledger with the committed matrix and with the digests the ledger itself stores,
+which is why all of them stayed green through the 0/9 result above. That is a legitimate claim about
+records and a misleading one about strength, so the claim now also runs `scripts/act1_win_ledger.py`
+against the installed engine -- the script that owns the judgement, not a second implementation -- and
+reports `the_ledger_wins_replay_on_the_current_engine`. Absent checkpoints/configs are returned as a
+named list and read as *not runnable* rather than as a zero, because a machine that measured nothing
+must not be able to satisfy a count pinned at nothing.
+
+This is the **first use of the harness's declared-refutation slot** (`_expected_false_checks`, present
+in the code since the gate was written and documented as "currently unused"). The replay red is pinned
+as false *and declared*, with its reason and re-derivation condition stored beside it in
+`_expected_false_reasons`: cleared by re-deriving strength, never by deleting the check. Declaring it
+is what keeps `61/61 scored claims match the disk` honest -- the tally no longer means "nothing is
+false", it means "nothing is false except the refutations somebody signed".
+
+**Drift captured, not re-pinned:** the installed CombatSolver is now 0.50.1 (was 0.45.0 when the three
+certified clears were obtained). The operator lock files still name `STS2_MCP` only and were not
+touched; results across that boundary are different regimes and must not be pooled. The wedged Act-2
+boss save resolved itself into `game_over` at floor 33 once the mod was updated, so no manual rescue
+and no `abandon_run` was needed, and a fresh acceptance batch is running under 0.50.1.
+
+**The honest engine, re-measured where the published numbers came from.** Head window of the
+`b_terminal-1 step_2M x promotion` partition -- the same 3,500 seeds, same arm config, same 1,600-step
+stage cap, checkpoint digest verified -- on fidelity-v5:
+
+| generated act | arrivals at floor 17 | boss wins | v4 for comparison |
+|---|---|---|---|
+| Act 1 | 105 | **0** | 83 arrivals, 0 wins |
+| Act 2 | 95 | **35** | 79 arrivals, **25** wins |
+
+So the v5 engine is **not** uniformly harder, and that sharpens what the 0/9 means. Act-2 boss kills
+got *more* common (25 to 35 over the same seeds), arrivals at floor 17 got more common in both acts,
+and fight resolution is plainly intact. What disappeared is the specific set of Act-1 wins that had
+been certified -- and the named nine live in the **tail** window, not here. The tail (6,500 seeds,
+where v4 recorded 3 Act-1 wins in 165 arrivals and 40 Act-2 wins in 162) is running now; until it
+finishes, the honest statement is: *Act 2 is more winnable on v5 than on v4, Act-1 arrivals are up,
+and the Act-1 win capability is unproven on the honest engine.*

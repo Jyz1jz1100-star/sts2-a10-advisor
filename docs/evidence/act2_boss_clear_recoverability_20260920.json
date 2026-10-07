@@ -27,6 +27,16 @@
     "every seed in every group was forked at the checkpoint that recorded its loss, so a recoverable verdict is about the policy that actually played the run",
     "of the 34 forked seeds, 34 had at least one legal action at the relic-reward screen that ended the run as a win, and the policy took it on 0 of them"
   ],
+  "field_corrections": [
+    {
+      "field": "source_measurement.checkpoint_sha256",
+      "how_to_recheck": "sha256 of runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip",
+      "now": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "repaired_at": "2026-10-07",
+      "was": "a1ada27ad997a425e6ad10d33d11f5a2f2c3a67003732a68f27cf73e57c1e",
+      "why": "the recorded value is 61 hex characters, not a sha256; it is this checkpoint file's digest with three characters dropped. Repaired by re-hashing the file named by this artifact's own `checkpoint` path."
+    }
+  ],
   "fork_phase": "relic_reward",
   "generated_at": "2026-09-19T18:58:02+00:00",
   "groups": [
@@ -538,7 +548,7 @@
   "scope": "every seed the Act-2 boss mis-exit measurement recorded as cleared-but-not-judged, forked at the relic-reward screen of its own checkpoint",
   "source_measurement": {
     "artifact": "docs/evidence/act2_boss_misexit_rate_20260919.json",
-    "checkpoint_sha256": "a1ada27ad997a425e6ad10d33d11f5a2f2c3a67003732a68f27cf73e57c1e",
+    "checkpoint_sha256": "a1ada27ad997a425e6ad10d33c13d11f5a2f2c3a67003732a68f27cf73e57c1e",
     "groups": {
       "independent_window_checkpoint_split": 6,
       "second_checkpoint_generality": 7,

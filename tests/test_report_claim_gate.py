@@ -262,5 +262,78 @@ class AuditVerdictShapeTests(unittest.TestCase):
         self.assertFalse(V.evaluate_audit_verdicts(verdicts)["warm_start_ladder_still_says_partly"])
 
 
+class DigestFieldShapeTests(unittest.TestCase):
+    """A field named sha256 has to be one, or say how short it is.
+
+    The manifest harvests digests with a 64-hex regex, so the 61-character value that
+    `act2_boss_misexit_rate_20260919.json` shipped matched nothing: every hash check stayed
+    green, and the first thing to notice was a downstream script refusing to roll against a
+    digest that named no file. These cases keep that class from coming back, and keep the
+    gate from pretending the 16-hex prefix convention is the same defect.
+    """
+
+    FULL = "a" * 64
+    PREFIX = "a" * 16
+    DROPPED = "a" * 61
+
+    def _split(self, tree) -> dict:
+        return V.classify_digest_fields(tree)
+
+    def test_a_sixty_one_hex_digest_is_malformed(self) -> None:
+        split = self._split({"checkpoint_sha256": self.DROPPED})
+        self.assertEqual(["/checkpoint_sha256 (61 hex chars)"], split["malformed"])
+
+    def test_a_full_digest_and_a_declared_prefix_are_both_clean(self) -> None:
+        split = self._split({"checkpoint_sha256": self.FULL,
+                             "checkpoint_sha256_first16": self.PREFIX})
+        self.assertEqual([], split["malformed"])
+        self.assertEqual([], split["abbreviated"])
+        self.assertEqual(["/checkpoint_sha256"], split["full"])
+
+    def test_a_bare_prefix_under_a_sha256_key_is_counted_not_failed(self) -> None:
+        split = self._split({"rows": [{"checkpoint_sha256": self.PREFIX}]})
+        self.assertEqual([], split["malformed"])
+        self.assertEqual(["/rows[0]/checkpoint_sha256"], split["abbreviated"])
+
+    def test_non_hex_and_unrelated_keys_are_ignored(self) -> None:
+        split = self._split({"model_name": "a" * 61, "checkpoint_sha256": "zz" * 30})
+        self.assertEqual([], split["malformed"])
+
+    def test_the_committed_bundle_carries_no_malformed_digest(self) -> None:
+        offenders = []
+        for path in sorted((ROOT / "docs/evidence").glob("*.json")):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            offenders += [f"{path.name}{item}"
+                          for item in V.classify_digest_fields(payload)["malformed"]]
+        self.assertEqual([], offenders, "a digest field that is not a sha256")
+
+
+class LiveWinReplayAvailabilityTests(unittest.TestCase):
+    """The live replay must read "cannot check" when its inputs are gone, never green.
+
+    The replay itself is deliberately not run here (it loads five checkpoints). What is
+    pinned is the absence path, because a count pinned at zero would otherwise be satisfied
+    by a machine that never measured anything.
+    """
+
+    def test_missing_checkpoints_are_named_and_the_replay_is_not_runnable(self) -> None:
+        ledger = {"rows": [{"seeds": [1, 2],
+                            "checkpoint": "runtime/definitely-absent/step_1.zip",
+                            "config": "runtime/definitely-absent.toml"}]}
+        result = V.live_win_ledger_replay(ledger)
+        self.assertFalse(result["runnable"])
+        self.assertIsNone(result["reproduced"])
+        self.assertTrue(result["missing"], "absence has to be named, not counted as zero")
+        self.assertEqual(2, result["recorded_wins"])
+
+    def test_a_ledger_without_named_wins_is_not_runnable(self) -> None:
+        result = V.live_win_ledger_replay({"rows": []})
+        self.assertFalse(result["runnable"])
+        self.assertEqual(0, result["recorded_wins"])
+
+
 if __name__ == "__main__":
     unittest.main()

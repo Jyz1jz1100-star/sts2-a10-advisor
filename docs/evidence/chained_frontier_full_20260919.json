@@ -9,7 +9,7 @@
   "chained_runs": [
     {
       "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\act1_overnight\\b_terminal\\v2curriculum-20260918T175708Z\\act1\\checkpoints\\step_000001000008.zip",
-      "checkpoint_sha256": "f7ba5c02c270931d",
+      "checkpoint_sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
       "final_act": 2,
       "final_floor": 19,
       "final_player_hp": 37,
@@ -22,7 +22,7 @@
     },
     {
       "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\b_terminal-1\\v2curriculum-20260918T182051Z\\act1\\checkpoints\\step_000001000008.zip",
-      "checkpoint_sha256": "0af9d1719f96011a",
+      "checkpoint_sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
       "final_act": 2,
       "final_floor": 19,
       "final_player_hp": 37,
@@ -35,7 +35,7 @@
     },
     {
       "checkpoint": "G:\\qoder\\sts2-a10-advisor\\runtime\\fanout\\c_explore-1\\v2curriculum-20260918T182830Z\\act1\\checkpoints\\step_000002000016.zip",
-      "checkpoint_sha256": "7867df360a4fdf38",
+      "checkpoint_sha256": "7867df360a4fdf38f84643d6ab6db0b8b13debd022d0e13a834b6ebc0384e1cc",
       "final_act": 2,
       "final_floor": 22,
       "final_player_hp": 0,
@@ -48,21 +48,31 @@
     }
   ],
   "checkpoints_found_on_disk": 84,
+  "field_corrections": [
+    {
+      "field": "chained_runs[].checkpoint_sha256",
+      "now": "full sha256 of the file named by the row's own `checkpoint` path",
+      "repaired_at": "2026-10-07",
+      "rows_repaired": 3,
+      "was": "16-hex prefix",
+      "why": "a prefix under a field named sha256 cannot be verified, and the evidence manifest scans only 64-hex values, so these rows were invisible to every digest check"
+    }
+  ],
   "frontier": "Act 2 floor 22 (deepest of the whole repository); no checkpoint cleared Act 2",
   "generated_at": "2026-09-19T05:28:20Z",
   "illegal_actions_total": 0,
   "max_floor_histogram": {
+    "15": 2,
+    "17": 1,
+    "19": 2,
     "2": 1,
+    "22": 1,
     "3": 4,
     "4": 19,
     "5": 4,
     "6": 12,
     "7": 3,
-    "8": 25,
-    "15": 2,
-    "17": 1,
-    "19": 2,
-    "22": 1
+    "8": 25
   },
   "max_steps_per_run": 4000,
   "open_questions": [

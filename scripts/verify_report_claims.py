@@ -251,6 +251,50 @@ EMULATOR_SOURCE_PROVENANCE = (
     ROOT / "docs/evidence/emulator_source_provenance_20261007_v6.json"
 )
 
+def live_win_ledger_replay(ledger: dict) -> dict:
+    """Re-replay the ledger's named wins on whatever engine is installed *now*.
+
+    ``claim_win_ledger`` otherwise compares records with records: it proves the committed rows
+    still agree with the committed matrix and with the digests this file itself carries. That is
+    a real claim, but on 2026-10-07 it read green while the same nine seeds replayed 0/9 against
+    fidelity-v5 -- a records check cannot see an engine that got harder when the scripted
+    outcome overrides were deleted. So the replay runs the script that owns the judgement rather
+    than a second implementation of it, and the result is reported beside the records.
+
+    Missing checkpoints or arm configs are returned as a named list, never as a zero: a machine
+    without the gitignored run directories must read as "cannot check", not as "did not reproduce"
+    and certainly not as green.
+    """
+    rows = [entry for entry in ledger.get("rows", []) if (entry.get("seeds") or [])]
+    recorded_wins = sum(len(entry.get("seeds") or []) for entry in rows)
+    missing = [str(ROOT / entry["checkpoint"]) for entry in rows
+               if not (ROOT / entry["checkpoint"]).is_file()]
+    missing += [str(ROOT / entry["config"]) for entry in rows
+                if entry.get("config") and not Path(entry["config"]).is_file()
+                and not (ROOT / entry["config"]).is_file()]
+    if missing or not rows:
+        return {"runnable": False, "reproduced": None, "missing": sorted(set(missing)),
+                "recorded_wins": recorded_wins}
+
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "ledger.json"
+        completed = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/act1_win_ledger.py"), "--out", str(out)],
+            cwd=ROOT, capture_output=True, text=True, timeout=1800)
+        if completed.returncode not in (0, 1) or not out.is_file():
+            return {"runnable": False, "reproduced": None,
+                    "missing": [f"replay exited {completed.returncode}"],
+                    "recorded_wins": recorded_wins}
+        replayed = json.loads(out.read_text(encoding="utf-8"))
+    return {"runnable": True,
+            "reproduced": int(replayed.get("wins_reproduced", -1)),
+            "missing": [],
+            "recorded_wins": recorded_wins}
+
+
 def claim_win_ledger():
     ledger = json.loads((ROOT / "docs/evidence/act1_win_ledger_20260919.json").read_text(encoding="utf-8"))
     runs = ledger.get("verification_runs", [])
@@ -264,6 +308,7 @@ def claim_win_ledger():
                      and str(cite.get("first_line")) == "14"
                      and (match := re.search(r"MapBossRow\s*=\s*(\d+)", str(cite.get("snippet"))))),
                     None)
+    replay = live_win_ledger_replay(ledger)
     return {"wins_reproduced": ledger["wins_reproduced"],
             "wins_failed_to_reproduce": ledger["wins_failed_to_reproduce"],
             "rows": ledger["win_rows"],
@@ -291,7 +336,15 @@ def claim_win_ledger():
                 and ledger.get("rows_identical_across_runs") is True
                 and all(entry["wins_failed_to_reproduce"] == 0 for entry in runs)),
             "the_recorded_rows_match_the_rows_this_file_carries": bool(runs) and rows_digest(
-                ledger["rows"]) == runs[-1]["rows_sha256"]}
+                ledger["rows"]) == runs[-1]["rows_sha256"],
+            # ...and what the current engine says when the same seeds are replayed against it.
+            # Every check above compares records with records, so all of them stayed green while
+            # the nine named wins replayed 0/9 on fidelity-v5. This one is declared false in the
+            # expectations file rather than dropped: the red is the finding.
+            "live_win_replay_inputs_missing": replay["missing"],
+            "the_ledger_wins_replay_on_the_current_engine": (
+                replay["runnable"] and replay["reproduced"] == replay["recorded_wins"]),
+            }
 
 
 def claim_ladder_rungs():
@@ -1472,6 +1525,48 @@ def claim_refusal_class_generality():
     }
 
 
+def classify_digest_fields(tree) -> dict:
+    """Split every ``*sha256``/``*digest``-keyed string in a JSON tree by how valid it is.
+
+    The evidence manifest harvests digests with ``\\b[0-9a-f]{64}\\b``, so a value that is a
+    sha256 *shaped* typo -- 61 hex characters, three dropped in transcription -- matches
+    nothing and is therefore invisible to every digest check in the bundle. That is not
+    hypothetical: `act2_boss_misexit_rate_20260919.json` shipped exactly that, and the only
+    thing that noticed was `enumerate_act1_terminals.py --expect-checkpoint-sha256` refusing
+    to roll against a digest that named no file. A field called sha256 has to either be one
+    or say how short it is.
+    """
+    full: list[str] = []
+    abbreviated: list[str] = []
+    malformed: list[str] = []
+
+    def walk(node, at: str, named: bool, declared: bool) -> None:
+        if isinstance(node, dict):
+            for child_key, child in node.items():
+                key_text = str(child_key).lower()
+                walk(child, f"{at}/{child_key}",
+                     "sha256" in key_text or "digest" in key_text,
+                     key_text.endswith("first16"))
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                walk(child, f"{at}[{index}]", named, declared)
+        elif isinstance(node, str) and named and re.fullmatch(r"[0-9a-fA-F]+", node):
+            if len(node) == 64:
+                full.append(at)
+            elif len(node) == 16 and not declared:
+                # A 16-hex value under a field that claims to hold a sha256 cannot verify
+                # anything, but it is at least self-consistent in length. Counted, not failed:
+                # the failure is reserved for the class that silently matches nothing.
+                abbreviated.append(at)
+            elif len(node) == 16:
+                pass
+            else:
+                malformed.append(f"{at} ({len(node)} hex chars)")
+
+    walk(tree, "", False, False)
+    return {"full": full, "abbreviated": abbreviated, "malformed": malformed}
+
+
 def claim_evidence_bundle_integrity():
     """Re-verify the evidence bundle's own hash binding, independently of the manifest.
 
@@ -1495,9 +1590,29 @@ def claim_evidence_bundle_integrity():
         f"{entry['file']}  {entry['sha256']}\n"
         for entry in sorted(manifest["files"], key=lambda e: e["file"])).encode("utf-8")).hexdigest()
     checkpoints = manifest["resolved_checkpoints"]
+    malformed: list[str] = []
+    abbreviated: list[str] = []
+    for entry in manifest["files"]:
+        path = evidence / entry["file"]
+        if not path.is_file():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        split = classify_digest_fields(payload)
+        malformed += [f"{entry['file']}{item}" for item in split["malformed"]]
+        abbreviated += [f"{entry['file']}{item}" for item in split["abbreviated"]]
     return {
         "listing_matches_disk": on_disk == sorted(listed),
         "digests_and_sizes_recompute": digest_ok and len(manifest["files"]) == len(on_disk),
+        # Counts, not just a boolean: a digest field that is neither a sha256 nor a declared
+        # 16-hex prefix used to match nothing at all, so the bundle could carry a broken
+        # identifier and every hash check stayed green.
+        "no_evidence_digest_field_is_malformed": not malformed,
+        # Named, so a failure says which artifact to repair rather than only that one exists.
+        "evidence_digest_fields_malformed": sorted(malformed),
+        "evidence_digest_fields_recorded_as_bare_prefixes": len(abbreviated),
         "bundle_root_recomputes": root == manifest["bundle_root"],
         "manifest_excludes_itself": "MANIFEST_2026-09-19.json" not in listed,
         # A count, not a boolean: the checkpoint zips live under gitignored runs/ and runtime/,

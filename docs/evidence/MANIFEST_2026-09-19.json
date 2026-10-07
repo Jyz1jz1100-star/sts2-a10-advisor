@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "7862bdd6de31f39501426b2d2d3a0a91f62288f8e3a0f8574da73462534f09da",
+  "bundle_root": "4c4395d6610aa47481ed25389c0e4878c42df89c582bdb4dc705c03409529453",
   "evidence_file_count": 73,
-  "generated_at": "2026-10-07T06:18:21+00:00",
-  "git_head_at_generation": "9de5ef2",
+  "generated_at": "2026-10-07T06:56:59+00:00",
+  "git_head_at_generation": "7c28736",
   "checkpoint_digests_cited": 233,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1489
+    "total_64_hex_strings_seen": 1496
   },
   "resolved_checkpoints": [
     {
@@ -170,6 +170,7 @@
       "sha256": "0af9d1719f96011a68421ce353e48ad2b135205a4c98cbd3674ed05860279761",
       "cited_by": [
         "chained_act2_reachability_20260920.json",
+        "chained_frontier_full_20260919.json",
         "chained_frontier_full_20260920.json",
         "chained_map_deadend_fork_20260920.json",
         "chained_terminal_gates_20260919.json",
@@ -1201,6 +1202,7 @@
       "sha256": "7867df360a4fdf38f84643d6ab6db0b8b13debd022d0e13a834b6ebc0384e1cc",
       "cited_by": [
         "chained_act2_reachability_20260920.json",
+        "chained_frontier_full_20260919.json",
         "chained_frontier_full_20260920.json",
         "chained_terminal_gates_20260919.json",
         "metrics_index_20260919.json"
@@ -1568,7 +1570,9 @@
         "act1_boss_arrival_anatomy_20260919.json",
         "act1_terminal_census_3500_20260919.json",
         "act1_win_ledger_20260919.json",
+        "act2_boss_clear_recoverability_20260920.json",
         "act2_boss_completion_fork_20260919.json",
+        "act2_boss_misexit_rate_20260919.json",
         "act2_boss_misexit_signature_verified_20260919.json",
         "act2_boss_node_comparison_20260919.json",
         "act2_named_wins_individual_replay_20260920.json",
@@ -2427,6 +2431,7 @@
       "sha256": "f7ba5c02c270931d57f472999d0889bdd0f34b8537cbe3df999d71489c38cab6",
       "cited_by": [
         "chained_act2_reachability_20260920.json",
+        "chained_frontier_full_20260919.json",
         "chained_frontier_full_20260920.json",
         "chained_map_deadend_fork_20260920.json",
         "chained_terminal_gates_20260919.json",
@@ -2528,8 +2533,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "c343a62ef0e104baae317682d40eab965262b7930f40c2c936a7d31eac6e58e5",
-      "bytes": 24801
+      "sha256": "5354ed0807af029c77179b10c8582622ec48c1e79cc765e4d65562718b80730f",
+      "bytes": 25531
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2543,8 +2548,8 @@
     },
     {
       "file": "act2_boss_clear_recoverability_20260920.json",
-      "sha256": "b318ff61b228b6878fd8e65b4b3ec5ee2e18e4d3e2b4824c9104c108bc3de63c",
-      "bytes": 16867
+      "sha256": "e1d2cbe8ff0d32cce69d5f3f99cc1ad8e0e6d6a4bede95e77aeaa9aef09c8687",
+      "bytes": 17522
     },
     {
       "file": "act2_boss_completion_fork_20260919.json",
@@ -2553,8 +2558,8 @@
     },
     {
       "file": "act2_boss_misexit_rate_20260919.json",
-      "sha256": "d22b435329ed03170328b49709881598b73cc8e567fda28003e669d27556ee6b",
-      "bytes": 10892
+      "sha256": "624a8e4729e5eee8cac3b22061f6ce943564f1f47595022da1ab011b2a7394a6",
+      "bytes": 11528
     },
     {
       "file": "act2_boss_misexit_signature_verified_20260919.json",
@@ -2668,8 +2673,8 @@
     },
     {
       "file": "chained_frontier_full_20260919.json",
-      "sha256": "802618c733baf88a8e503f90cf9e6f54f0b73016270bb3cbdfe8e8f595cf7a4d",
-      "bytes": 4155
+      "sha256": "fb74f976d3e526ff34adfb190f8cc5e2de3e3e0273144d5313a46d44cb6f3930",
+      "bytes": 4748
     },
     {
       "file": "chained_frontier_full_20260920.json",
