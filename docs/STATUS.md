@@ -4435,3 +4435,31 @@ the multi-select path, after which nothing on our side changes.
 
 Verification that the new guard works was run against this exact stall rather than a fixture: see the
 next section.
+
+### The guard fired on the real stall, not on a fixture (2026-10-07)
+
+`ssb-20261007T071936Z-86be5479` was launched against the still-stuck save and behaved exactly as
+designed:
+
+```
+[autoplay] stopping: combat_no_progress (hand_select at act 3 floor 49 left the state unchanged
+for 180s (bound 180s; the observed p99 of identical-state combat runs is 14s over 13,539 samples))
+```
+
+* the batch stopped itself in three minutes instead of being stopped by hand after fifteen;
+* `stop_reason: autoplay_classified_stop`, and the concrete reason plus floor/act/HP are carried in
+  the child's own summary and the trace, so the record says *what* stalled;
+* **`solver_pause` stayed `null`** -- correct, and the point of keeping the two detectors apart: the
+  mod logged no new `DEPLOY_CHOICE_PAUSED` this session (the two earlier ones predate the batch, and
+  attribution is by event timestamp, not file mtime), so the *state* bound caught it rather than the
+  log signature. One would have produced a false claim about the mod's behavior; the other is a fact
+  about observed state.
+
+`result_code 5 (EXIT_CHILD_FAILED)` for a deliberate classified stop is pre-existing, tested behavior
+(`test_autoplay_classified_stop_preserves_reason_and_residual`) -- the reason lives in `stop_reason`,
+the code only says "the batch did not run to completion". Left as is.
+
+Consequence for task #8: **a continuous act 1 -> act 3 floor 49 trace now exists on the real client**
+(seed `56K0YUCYBBZT`, Ironclad A10, reached the final double boss), and it is blocked at the last
+fight by a mod-side defect, not by anything in this repository. It cannot certify while the fight
+cannot be entered, and it will not be rescued by hand.
