@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "8b7c9c20581bc0eb1f7536584eccf76abbe99651c4c71312407051e2bf2a3321",
-  "evidence_file_count": 80,
-  "generated_at": "2026-10-07T14:09:18+00:00",
-  "git_head_at_generation": "10f801b",
+  "bundle_root": "796d9d6e53d0083151aaf1acfbab017b3586b2a84ee37dab6e1de43c4081e82b",
+  "evidence_file_count": 81,
+  "generated_at": "2026-10-07T14:40:21+00:00",
+  "git_head_at_generation": "0afbb2e",
   "checkpoint_digests_cited": 233,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2863,6 +2863,11 @@
       "file": "reward_upgrade_availability_20260919.json",
       "sha256": "e65339b3e3ebd83a4cb10a3b03bd6a8f6b265b379d9fe641e639d48771994923",
       "bytes": 3907132
+    },
+    {
+      "file": "seeded_embark_20261007.json",
+      "sha256": "38ffaecb8661d457c251cae2395faeb928828eaefebbec682b0eedbc314a50f2",
+      "bytes": 2540
     },
     {
       "file": "solver_inventory_drift_20260919.json",

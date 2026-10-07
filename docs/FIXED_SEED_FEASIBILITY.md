@@ -135,3 +135,36 @@ StartNewSingleplayerRun                                             不存在（
 
 探测的判定标准不变（三者齐了才把 false 改 true）：`seed_requested` 与 `seed_canonical` 都等于
 请求值、`seed_injection` 为真，随后 `compendium.current_run.seed` 与 canonical 一致。
+
+## 2026-10-07 判定：三条都齐了，`installed_bridge_supported` 改为 true
+
+批次 `ssb-20261007T143453Z-a8c7de56`（`--mode fixed --track acceptance`，注册 seed
+`"1600000000"`）里，同一次开局给出三件事，逐字存进
+`docs/evidence/seeded_embark_20261007.json`（生成脚本
+`scripts/capture_seeded_embark_evidence.py`）：
+
+- POST 响应：`seed_requested="1600000000"`、`seed_canonical="1600000000"`、
+  `seed_injection="NCharacterSelectScreen.BeginRun"`、**`seed_verified=false`**
+  （桥接自己不作证，这是设计，不是失败）；
+- authoritative 回读：`compendium.current_run.seed == "1600000000"`，并且 `run_identity`
+  同时带上 `seed_requested / seed_canonical / seed`；两者不一致时
+  `bridge/trace_controller.py:190-192` 直接 `raise`，所以"这一局跑出来了"本身就是那条 mismatch 检查通过的结果；
+- 我方按 v0.111.0 规则重算的 canonical 与桥接给的相同（这条 seed 里不需要消歧 `O/I`）。
+
+因此 `data/combat_solver/fixed_battle_seeds.json` 的 `installed_bridge_supported` **改为 true**，
+并强制带上 `verified_on_batch / evidence / verified_by` 三个字段；
+`tests/test_seed_allocation.py` 从"断言 false"改成"断言 true，而且必须附证据、证据文件必须存在、
+三判据必须全真"。**这条 flip 不写"可复现"**：它只回答"请求的 seed 到没到游戏、能不能读回来"；
+同一 seed 两局是否同结果，是另一次测量。
+
+两条边界，别顺手混进来：
+
+1. **轨道。** 这次跑在 acceptance 轨（`--mod-gate attest`）。比较轨仍在版本锁上拒绝——
+   安装的 CombatSolver/RitsuLib 字节与锁里的钉不符（求解器 10-06 自动更新到 0.50.1），
+   `run_solver_comparison.py:203-209` 给的两种出路就是"在授权下重钉"或"走 acceptance 轨"。
+   **重钉是运维方的决定，这次没动锁。** 我第一次跑 fixed 就是漏了 `--track acceptance`，
+   于是被子进程以 `comparison_failed` 打死，那次连开局都没走到。
+2. **十进制 seed 现在合法，字母数字仍需扩展。** runner 只接受注册的整数分区；真机自己生成的
+   12 位字母串（今天见过 `V59C1ZSYZUZV`、`K2873DFE2BWZ`）只能观察，不能产 fixed-seed 结论——
+   上面"字母数字 seed 的规则"那条仍然有效，扩展 allocation/partition 才算解锁。
+

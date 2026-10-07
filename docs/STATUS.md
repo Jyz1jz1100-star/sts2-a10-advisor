@@ -5003,3 +5003,43 @@ two different client processes (06:11:11Z `turn=1`, 13:08:14Z `turn=9`), in the 
 written out verbatim with log directory names, because those are the two things only our logs carry.
 
 No combat action was posted, no save was cleared, no lock was re-pinned, no gate was relaxed.
+
+## 2026-10-07 (evening, eleventh entry): the operator's click, a third victory, and the fixed-seed read-back that flips a four-month-old false
+
+**The overshoot fix was falsified by the hardware before it was proven by it.** The corrected rule
+(collect-count, finish what you started, gate the embark at the menu) was tested twice on live
+clients. `ssb-20261007T141100Z-56e838c0` opened on the parked act-1 run, drove it all the way to act 3
+floor 49 with the client's own victory flag -- the **third** three-act victory today -- and then
+stopped at the menu with `stop_reason: max_runs_collected` and `runs_started: 0`.
+`ssb-20261007T143453Z-a8c7de56` did the same on a run it embarked itself. Neither left a parked run,
+which is the behavior every batch today had until 14:11Z.
+
+**That victory trace reads 10/11, and the two refused posts are not the class #48 fixed.** The gate
+reports `posted=231 refused=2`, both `No card selection screen is open`, at act 2 floor 33 and act 3
+floor 35. The decision id in each case was *current* -- the screen genuinely closed in the ~40 ms
+between the poll and the post -- so this is a different hole: the chooser-defer guard existed, was
+correct, and had a test that passed, because the test called `decide()` on the fight first. On the
+out-of-combat track the loop intercepts combat screens before any decision is made, so the memo the
+guard consults (`_combat_screen_floor`) was never written. Ownership is now recorded on
+*observation*, one writer, with a test that drives the loop instead of the unit.
+
+**The seeded embark works on the installed bridge, and the flag flipped with its evidence attached.**
+A fixed-mode batch on the acceptance track requested the registered seed `1600000000`; the POST echoed
+`seed_requested` and `seed_canonical` equal to it, named `NCharacterSelectScreen.BeginRun` as the
+injection path, and reported `seed_verified=false` -- which is the design, not a failure: the bridge
+never attests itself. The authoritative read-back
+(`compendium.current_run.seed`, merged by the run-identity guard, which raises on any mismatch) also
+said `1600000000`. That is the three-part criterion `docs/FIXED_SEED_FEASIBILITY.md` has carried since
+09-02, met on the binary actually installed, so `installed_bridge_supported` is now `true` with
+`verified_on_batch`, `evidence` and `verified_by` required fields, and
+`tests/test_seed_allocation.py` asserts the true *and* the artifact behind it. What it does not claim:
+that two runs on one seed agree -- reproducibility of outcomes is a separate measurement, still open.
+
+Two things learned the hard way inside that probe. The first attempt died as `comparison_failed`
+because I omitted `--track acceptance`: the comparison track refuses while the installed
+CombatSolver/RitsuLib bytes differ from the pin (the solver auto-updated to 0.50.1 on 10-06), and its
+own error says either re-pin under authorization -- operator-owned, untouched here -- or run the
+acceptance track with `--mod-gate attest`. And the run itself died on act 1 floor 9, so the contract
+reads False for progression reasons while its legality, provenance and stream items pass: a seeded run
+is not a certified run. `seed_mode=fixed` now appears in the provenance line of a real trace for the
+first time.

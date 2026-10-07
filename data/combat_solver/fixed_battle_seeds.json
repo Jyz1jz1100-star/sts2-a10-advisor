@@ -3,10 +3,13 @@
   "allocation_kind": "run_seed",
   "seed_mode": "fixed_verification_required",
   "seed_injection": {
-    "installed_bridge_supported": false,
+    "installed_bridge_supported": true,
     "candidate_bridge_supported": true,
     "verification_field": "current_run.seed",
-    "note": "The candidate bridge can inject these seeds, but the currently installed bridge is not yet verified or lock-updated for injection. A fixed run is valid only when the candidate bridge is installed and the authoritative current_run.seed is read back and matches the requested canonical seed."
+    "note": "The installed bridge injects these seeds. Verified on 2026-10-07 by a real fixed-mode embark on the acceptance track: the POST echoed seed_requested and seed_canonical equal to the registered value, named NCharacterSelectScreen.BeginRun as the injection path, and the authoritative compendium.current_run.seed read back the same value — which is the rule docs/FIXED_SEED_FEASIBILITY.md set. The bridge's own seed_verified stays false by design, so the read-back, not the response, is the verification; the run-identity guard fails closed on any mismatch, which is why a batch that produced a run_identity is itself the test. This says nothing about whether two runs on one seed agree — reproducibility of outcomes is a separate measurement.",
+    "verified_on_batch": "ssb-20261007T143453Z-a8c7de56",
+    "evidence": "docs/evidence/seeded_embark_20261007.json",
+    "verified_by": "scripts/capture_seeded_embark_evidence.py — requested/canonical/read-back all equal \"1600000000\" on one real embark; the bridge itself reports seed_verified=false and never attests"
   },
   "partition": {
     "name": "combat_solver_fixed_battles",

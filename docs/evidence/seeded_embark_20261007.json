@@ -1,0 +1,62 @@
+{
+  "authoritative_read_back": {
+    "ascension": 10,
+    "character": "IRONCLAD",
+    "field": "compendium.current_run.seed (via run_identity)",
+    "game_mode": "standard",
+    "run_id": "modded:profile1:1791383694",
+    "seed": "1600000000"
+  },
+  "batch_id": "ssb-20261007T143453Z-a8c7de56",
+  "bridge_self_attestation": false,
+  "canonical_seed_from_bridge": "1600000000",
+  "canonical_seed_recomputed_here": "1600000000",
+  "criteria": {
+    "bridge_names_an_injection_path": true,
+    "canonical_is_stable_under_the_games_rule": true,
+    "read_back_equals_canonical": true,
+    "requested_equals_canonical": true
+  },
+  "embark_result_verbatim": {
+    "message": "Embarking on run (seed: 1600000000)",
+    "seed_canonical": "1600000000",
+    "seed_injection": "NCharacterSelectScreen.BeginRun",
+    "seed_requested": "1600000000",
+    "seed_verified": false,
+    "status": "ok"
+  },
+  "game": {
+    "app_id": "2868840",
+    "branch": "public-beta",
+    "commit": "41cef1ea",
+    "main_assembly_hash": 222455745,
+    "steam_build_id": "24724944",
+    "version": "v0.111.0"
+  },
+  "generated_at_utc": "2026-10-07T14:37:44.645841+00:00",
+  "generated_by": "scripts/capture_seeded_embark_evidence.py",
+  "how_to_recheck": "python scripts/supervise_solver_batch.py --mode fixed --track acceptance --seed-file data/combat_solver/fixed_battle_seeds.json --max-runs 1 --max-actions 3000 --poll 0.5 --allow-actions  (the controller refuses the run outright on a seed mismatch, so a batch that produces a run_identity is itself the test)",
+  "injection_path_named_by_bridge": "NCharacterSelectScreen.BeginRun",
+  "not_established": [
+    "that the seeded run is reproducible in its outcomes -- this file answers only whether the requested seed reaches the game and is read back; comparing two runs on one seed is a separate measurement",
+    "anything about the comparison track's mod lock: this batch ran on the acceptance track with --mod-gate attest, because the installed solver differs from the pin"
+  ],
+  "requested_seed": "1600000000",
+  "run_identity_verbatim": {
+    "ascension": 10,
+    "character": "IRONCLAD",
+    "character_id": "IRONCLAD",
+    "character_title": "铁甲战士",
+    "game_mode": "standard",
+    "run_id": "modded:profile1:1791383694",
+    "save_scope": "modded",
+    "seed": "1600000000",
+    "seed_canonical": "1600000000",
+    "seed_requested": "1600000000"
+  },
+  "schema_version": 1,
+  "seed_mode": "fixed",
+  "solver_at_start": [
+    {}
+  ]
+}

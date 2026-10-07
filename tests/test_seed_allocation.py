@@ -155,10 +155,33 @@ class SeedMetadataTests(unittest.TestCase):
         path = Path(__file__).parents[1] / "data" / "combat_solver" / "fixed_battle_seeds.json"
         payload = json.loads(path.read_text(encoding="utf-8"))
         injection = payload["seed_injection"]
-        self.assertFalse(injection["installed_bridge_supported"])
+        self.assertTrue(injection["installed_bridge_supported"])
         self.assertTrue(injection["candidate_bridge_supported"])
         self.assertNotIn("supported_by_bridge", injection)
+        # The rule that made a fixed run valid, kept in the file itself so a reader cannot inherit
+        # the flag without the condition.
         self.assertIn("authoritative", injection["note"])
+
+    def test_installed_support_is_only_claimed_with_its_real_embark_attached(self) -> None:
+        """A flipped capability flag names the batch and the artifact that proved it.
+
+        The flag used to read false because nothing had ever requested a seed and read it back on the
+        installed bridge; on 2026-10-07 a fixed-mode embark did exactly that. Claiming it without the
+        three-way record would be the same kind of unverified statement -- so the fields are required
+        here, and the evidence file has to exist. Regenerating the allocation with
+        ``scripts/make_solver_comparison_seeds.py`` resets the flag to false on purpose, and this test
+        goes red rather than quietly accepting a verdict nobody re-measured.
+        """
+        root = Path(__file__).parents[1]
+        payload = json.loads((root / "data" / "combat_solver" / "fixed_battle_seeds.json")
+                             .read_text(encoding="utf-8"))
+        injection = payload["seed_injection"]
+        self.assertTrue(injection["verified_on_batch"].startswith("ssb-"))
+        self.assertTrue((root / injection["evidence"]).exists(), injection["evidence"])
+        evidence = json.loads((root / injection["evidence"]).read_text(encoding="utf-8"))
+        self.assertEqual(evidence["requested_seed"], evidence["authoritative_read_back"]["seed"])
+        self.assertTrue(all(evidence["criteria"].values()), evidence["criteria"])
+        self.assertEqual(evidence["seed_mode"], "fixed")
 
 
 if __name__ == "__main__":
