@@ -227,9 +227,11 @@ _COMBAT_SCREEN_TYPES = {"monster", "elite", "boss", "hand_select"}
 # Screens the bridge reports *instead of* the fight it interrupts: the `battle` block is absent
 # while one is up, so their owner can only be established from the frame before them.
 _TRANSIENT_OVERLAY_SCREENS = {"card_select", "bundle_select", "overlay"}
-# Actions whose acknowledgement means this screen is finished with, whichever screen it was.
-# `menu_select` is added at the call site: it ends a menu surface only because it navigates away.
-_TERMINAL_SCREEN_ACTIONS = {"proceed", "confirm_selection"}
+# Actions whose acknowledgement means this screen is finished with. Deliberately one entry:
+# `confirm_selection` was here first and cost a run -- a shop floor legitimately shows two different
+# card choosers, and no observed refusal ever came from a second confirm. `menu_select` is added at
+# the call site, because it ends a menu surface only in that it navigates away from it.
+_TERMINAL_SCREEN_ACTIONS = {"proceed"}
 _HEURISTIC_SCREENS = {"card_reward", "shop", "rest_site", "map"}
 # card_select is not a combat screen type: it doubles as the out-of-combat grid
 # screens and the in-combat selection (battle key present).  The build's own
@@ -252,15 +254,23 @@ _COMBAT_OWNED_CARD_SELECT_SCREENS = frozenset({"NCombatPileCardSelectScreen"})
 def _screen_key(state: dict[str, Any]) -> tuple:
     """Which screen instance a decision belongs to, for the accepted-exit latch.
 
-    Menu surfaces carry no floor, so the visible surface name is the only thing that separates
-    ``main`` from ``singleplayer``; using it keeps the latch from blocking the *next* menu step,
-    which is legitimate work on a screen the previous one already left.
+    The floor is not enough. A shop floor legitimately presents several screens of the same
+    ``state_type`` -- remove one card, then enchant three -- and measuring that collision cost a run
+    that reached act 3 floor 39: confirming the first chooser latched the second, and the client sat
+    on 615 identical frames while we held. So the screen's own identity (its surface name, its
+    prompt, how many things it offers) belongs in the key.
     """
     screen = state.get("run") or {}
     state_type = str(state.get("state_type") or "unknown")
+    body = state.get(state_type)
     if state_type == "menu":
         return (state_type, str(state.get("menu_screen") or ""))
-    return (state_type, screen.get("act"), screen.get("floor"))
+    if isinstance(body, dict):
+        detail = (str(body.get("screen_type") or ""), str(body.get("prompt") or ""),
+                  max((len(v) for v in body.values() if isinstance(v, list)), default=0))
+    else:
+        detail = ()
+    return (state_type, screen.get("act"), screen.get("floor")) + detail
 
 
 class WaitForTransition:

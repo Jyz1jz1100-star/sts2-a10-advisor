@@ -1847,3 +1847,53 @@ class InCombatOverlayOwnershipTests(unittest.TestCase):
         self.assertIsNotNone(subject.decide(load("map")))
         decision = subject.decide(self._overlay(load("map")["run"]["floor"]))
         self.assertNotEqual("choose", getattr(decision, "screen_type", None))
+
+
+class LatchGranularityTests(unittest.TestCase):
+    """The first version of the accepted-exit latch was too coarse, and it cost a run.
+
+    Measured on `ssb-20261007T100846Z-f99854b0`: a shop floor legitimately shows *two* different
+    card choosers at the same act/floor -- remove-one-card, then enchant-three-cards. The latch keyed
+    on (state_type, act, floor), so confirming the first one closed the second to the driver, and the
+    client sat on 615 identical frames of `NDeckEnchantSelectScreen` while we held. So the latch has
+    to identify the screen, not the floor, and `confirm_selection` -- which never caused a single
+    refusal in either batch -- does not belong among the exits at all.
+    """
+
+    def _chooser(self, floor: int, screen_type: str, cards: int) -> dict:
+        return {
+            "state_type": "card_select",
+            "run": {"act": 3, "ascension": 10, "floor": floor},
+            "player": {"hp": 60, "max_hp": 80},
+            "card_select": {
+                "screen_type": screen_type, "prompt": f"p-{screen_type}",
+                "can_confirm": True, "cards": [
+                    {"index": i, "id": f"C{i}", "cost": "1", "name": "x",
+                     "description": "x", "type": "Skill", "rarity": "Common",
+                     "keywords": [], "is_upgraded": False, "star_cost": None}
+                    for i in range(cards)],
+            },
+        }
+
+    def test_a_second_chooser_on_the_same_floor_is_still_ours(self) -> None:
+        subject = player()
+        removal = self._chooser(39, "select", 26)
+        subject.note_action_accepted(removal, {"action": "confirm_selection"})
+        enchant = self._chooser(39, "NDeckEnchantSelectScreen", 24)
+        decision = subject.decide(enchant)
+        self.assertNotIsInstance(decision, WaitForTransition)
+        self.assertIsNotNone(decision)
+
+    def test_confirming_a_selection_does_not_close_the_screen(self) -> None:
+        # No observed refusal ever came from a second confirm, and the enchant flow legitimately
+        # re-presents the same chooser shape while it collects picks.
+        subject = player()
+        state = self._chooser(38, "NDeckEnchantSelectScreen", 7)
+        subject.note_action_accepted(state, {"action": "confirm_selection"})
+        self.assertNotIsInstance(subject.decide(state), WaitForTransition)
+
+    def test_an_accepted_proceed_still_closes_its_own_screen(self) -> None:
+        subject = player()
+        state = self._chooser(39, "select", 26)
+        subject.note_action_accepted(state, {"action": "proceed"})
+        self.assertIsInstance(subject.decide(state), WaitForTransition)
