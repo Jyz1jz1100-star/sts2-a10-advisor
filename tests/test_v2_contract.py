@@ -514,6 +514,77 @@ class CurriculumConfigTests(unittest.TestCase):
                 load_v2_training_config(temp)
 
 
+class FrozenCombatStageConfigTests(unittest.TestCase):
+    """G1's config is a second arm, so its non-executor fields have to be provably the same.
+
+    The claim being locked is the one that makes the paired phase audit meaningful: the two
+    campaign stacks differ in who plays combat, in nothing else.  Reward in particular -- if the
+    G1 arm also changed the return, a difference in depth could never be attributed to the
+    executor.  Seed ranges are checked too, because an arm that trained on the 40M population's
+    seeds is not a new measurement of anything.
+    """
+
+    PRE = PROJECT_ROOT / "config" / "production_campaign_v5.toml"
+    G1 = PROJECT_ROOT / "config" / "production_campaign_v5_g1.toml"
+
+    def setUp(self) -> None:
+        self.pre = load_v2_training_config(self.PRE)
+        self.g1 = load_v2_training_config(self.G1)
+
+    def test_only_the_g1_stage_asks_for_a_frozen_executor(self) -> None:
+        self.assertIsNone(self.pre.stage("full_run").combat_executor)
+        self.assertEqual(self.g1.stage("full_run").combat_executor, "frozen")
+
+    def test_the_two_stacks_share_one_reward_block(self) -> None:
+        from dataclasses import asdict
+
+        self.assertEqual(asdict(self.pre.reward), asdict(self.g1.reward))
+
+    def test_the_two_stacks_share_the_campaign_horizon_and_algorithm(self) -> None:
+        pre, g1 = self.pre.stage("full_run"), self.g1.stage("full_run")
+        self.assertEqual((g1.max_episode_steps, g1.campaign), (pre.max_episode_steps, True))
+        self.assertEqual(
+            (self.g1.algorithm.gamma, self.g1.algorithm.n_steps, self.g1.algorithm.batch_size),
+            (self.pre.algorithm.gamma, self.pre.algorithm.n_steps, self.pre.algorithm.batch_size))
+
+    def test_the_g1_seeds_never_touch_the_40m_population_or_the_heldout_window(self) -> None:
+        # The 40M arm trained on 2000000000..2003999999, and the promotion window the phase audit
+        # and the G4 screen read is 2008010000..2008019999.
+        forbidden = [(2_000_000_000, 2_004_000_000), (2_008_010_000, 2_008_020_000)]
+        for partition in self.g1.seeds.as_list():
+            for low, high in forbidden:
+                self.assertTrue(
+                    partition.stop <= low or partition.start >= high,
+                    f"{partition.name} overlaps a population another measurement owns")
+
+    def test_an_unknown_executor_spelling_is_refused(self) -> None:
+        import tempfile
+
+        source = self.G1.read_text(encoding="utf-8")
+        # Line-anchored: the config's header comment quotes the same key, and replacing that
+        # occurrence instead would leave the real setting untouched and the test vacuous.
+        broken = source.replace('\ncombat_executor = "frozen"', '\ncombat_executor = "solver"', 1)
+        self.assertNotEqual(broken, source, "the executor mutation did not apply")
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory) / "bad_executor.toml"
+            temp.write_text(broken, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "combat_executor"):
+                load_v2_training_config(temp)
+
+    def test_a_frozen_executor_without_a_checkpoint_is_refused(self) -> None:
+        import tempfile
+
+        source = self.G1.read_text(encoding="utf-8")
+        broken = "\n".join(line for line in source.splitlines()
+                           if not line.startswith("combat_executor_checkpoint")) + "\n"
+        self.assertNotEqual(broken, source, "dropping the checkpoint line did not apply")
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory) / "no_checkpoint.toml"
+            temp.write_text(broken, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "combat_executor_checkpoint"):
+                load_v2_training_config(temp)
+
+
 class DeterministicReplayTests(unittest.TestCase):
     def test_masks_are_a_pure_function_of_the_observation(self) -> None:
         """Same raw state => same flat mask (the replay-verification basis)."""

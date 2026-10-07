@@ -67,6 +67,12 @@ class V2StageConfig:
     #: simulator deals per seed. The reset chain already forwards this down to the
     #: native layer; nothing above it was ever asking.
     campaign: bool = False
+    #: G1: ``"frozen"`` plays every combat state with the checkpoint named below instead of
+    #: with the learner, so the updated actions are all out-of-combat -- which is the layer
+    #: the product actually ships (the client's fights belong to a third-party solver).
+    #: Measured first: 80.2% of a campaign arm's gradient was in-fight card selection.
+    combat_executor: str | None = None
+    combat_executor_checkpoint: str | None = None
 
     @property
     def scope(self) -> str:
@@ -162,6 +168,12 @@ def load_v2_training_config(path: Path) -> V2TrainingConfig:
             max_episode_steps=int(_require(table, "max_episode_steps", int)),
             max_floor=(int(table["max_floor"]) if "max_floor" in table else None),
             campaign=bool(table.get("campaign", False)),
+            combat_executor=(None if "combat_executor" not in table
+                             else str(table["combat_executor"])),
+            combat_executor_checkpoint=(
+                None if "combat_executor_checkpoint" not in table
+                else _relative_to_config(table["combat_executor_checkpoint"])
+            ),
             initialize_from_previous=bool(table.get("initialize_from_previous", False)),
             train_seeds_file=(
                 None if "train_seeds_file" not in table
@@ -293,6 +305,18 @@ def _validate_stage(stage: V2StageConfig) -> None:
         raise ValueError(
             f"stage {stage.name}: a terminal stage must gate on win rate, not boundary"
         )
+    if stage.combat_executor is not None:
+        # One spelling only: a stage that asks for "solver" or "bc" would be asking for an
+        # executor this repository does not have, and the silent default would be to train
+        # the combat layer anyway.
+        if stage.combat_executor != "frozen":
+            raise ValueError(
+                f"stage {stage.name}: combat_executor must be 'frozen', "
+                f"got {stage.combat_executor!r}")
+        if not stage.combat_executor_checkpoint:
+            raise ValueError(
+                f"stage {stage.name}: combat_executor='frozen' requires "
+                "combat_executor_checkpoint")
 
 
 __all__ = [

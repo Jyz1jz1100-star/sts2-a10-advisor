@@ -1567,7 +1567,64 @@ def classify_digest_fields(tree) -> dict:
     return {"full": full, "abbreviated": abbreviated, "malformed": malformed}
 
 
-PHASE_ACTION_SHARE = ROOT / "docs/evidence/phase_action_share_20261007.json"
+PHASE_ACTION_SHARE = ROOT / "docs/evidence/phase_action_share_frozen_20261007.json"
+#: The pre-G1 measurement, kept on disk because it is the reason G1 exists.  Its number is
+#: re-derived here rather than trusted: making the training stream out-of-combat is not allowed
+#: to quietly rewrite the deficit that justified the change.
+PHASE_ACTION_SHARE_PRE_G1 = ROOT / "docs/evidence/phase_action_share_20261007.json"
+
+
+def evaluate_phase_pair(frozen: dict, pre: dict) -> dict:
+    """Score the two audits against each other, not just each against itself.
+
+    ``combat == 0`` in the agent stream is worth nothing if the fights went missing instead of
+    moving, or if the two runs differ in something other than who plays combat.  Both arms here
+    are the *same* frozen weights over the *same* seeds, so the pair has to agree everywhere
+    except in the one field that changed -- which is a far stronger statement than either
+    artifact can make alone, and the reason the pre-G1 measurement is kept on disk.
+    """
+    frozen_seeds = [row.get("seed") for row in frozen.get("per_episode") or []]
+    pre_seeds = [row.get("seed") for row in pre.get("per_episode") or []]
+    absorbed = int(frozen.get("absorbed_combat_steps") or 0)
+    pre_combat = sum(int((row.get("phases") or {}).get("combat") or 0)
+                     for row in pre.get("per_episode") or [])
+    frozen_total = sum(int(row.get("steps") or 0)
+                       for row in frozen.get("per_episode") or [])
+
+    def out_of_combat(artifact: dict) -> dict:
+        counts: dict[str, int] = {}
+        for row in artifact.get("per_episode") or []:
+            for phase, value in (row.get("phases") or {}).items():
+                if phase != "combat":
+                    counts[phase] = counts.get(phase, 0) + int(value)
+        return counts
+
+    return {
+        "the_two_arms_ran_on_the_same_seeds": bool(frozen_seeds) and frozen_seeds == pre_seeds,
+        "the_two_arms_ran_the_same_number_of_episodes": (
+            int(frozen.get("episodes") or 0) == int(pre.get("episodes") or 0) > 0),
+        "the_two_arms_share_one_frozen_checkpoint": (
+            frozen.get("checkpoint_sha256") == pre.get("checkpoint_sha256")
+            and bool(frozen.get("checkpoint_sha256"))),
+        # The 80.2% that motivated G1 has to still be the number the old artifact's rows give.
+        "the_pre_g1_deficit_still_recomputes": (
+            pre.get("combat_step_share")
+            == round(pre_combat / (pre.get("total_steps") or 1), 4) and pre_combat > 0),
+        # Zero in the agent stream with zero absorbed would be a wrapper that deletes fights;
+        # an absorbed count that does not equal the pre-G1 combat count would be one that also
+        # changed the decisions the agent made.
+        "absorbed_combat_carries_the_difference": (
+            absorbed > 0 and absorbed == pre_combat
+            and frozen_total + absorbed == int(pre.get("total_steps") or 0)),
+        "the_out_of_combat_stream_is_unchanged": out_of_combat(frozen) == out_of_combat(pre),
+        "the_frozen_arm_is_the_one_declaring_a_frozen_executor": (
+            frozen.get("combat_executor") == "frozen" and pre.get("combat_executor") == "agent"),
+        # An executor that had to be stopped mid-fight is a defect, and truncating the episode
+        # for it would otherwise read as the run simply ending.
+        "no_transition_had_to_be_capped_by_the_executor": (
+            int(frozen.get("executor_step_capped_transitions") or 0) == 0),
+    }
+
 
 
 def evaluate_phase_share(artifact: dict, digest_ok: bool, checkpoint_missing: list) -> dict:
@@ -1606,17 +1663,20 @@ def evaluate_phase_share(artifact: dict, digest_ok: bool, checkpoint_missing: li
 
 
 def claim_phase_action_share():
-    """Re-derive the phase audit's numbers from its own per-episode rows."""
+    """Re-derive both phase audits from their own rows, then compare them as a pair."""
     data = json.loads(PHASE_ACTION_SHARE.read_text(encoding="utf-8"))
+    pre = json.loads(PHASE_ACTION_SHARE_PRE_G1.read_text(encoding="utf-8"))
     path = ROOT / data["checkpoint"]
     missing = [] if path.is_file() else [str(path)]
     digest_ok = bool(path.is_file()) and (
         hashlib.sha256(path.read_bytes()).hexdigest() == data.get("checkpoint_sha256"))
     doc = (ROOT / "docs/TRAINING_GATES_2026-10-07.md").read_text(encoding="utf-8")
     verdicts = evaluate_phase_share(data, digest_ok, missing)
+    verdicts.update(evaluate_phase_pair(data, pre))
     verdicts["gates_doc_quotes_the_combat_share"] = (
         f"{data['combat_step_share'] * 100:.1f}%" in doc
-        and f"{data['out_of_combat_step_share'] * 100:.1f}%" in doc)
+        and f"{data['out_of_combat_step_share'] * 100:.1f}%" in doc
+        and f"{pre['combat_step_share'] * 100:.1f}%" in doc)
     return verdicts
 
 

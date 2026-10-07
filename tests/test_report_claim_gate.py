@@ -336,13 +336,14 @@ class LiveWinReplayAvailabilityTests(unittest.TestCase):
 
 
 class PhaseActionShareTests(unittest.TestCase):
-    """The responsibility audit has to be falsifiable, and its red is the finding.
+    """The responsibility audit has to be falsifiable in both directions.
 
-    80.2% of the steps a campaign arm trains on are combat decisions the real client hands to a
-    third-party solver, so the trainer is optimising a layer the product does not ship. The gate
-    carries that as a declared false check (`trained_actions_are_all_out_of_combat`), which means
-    the arithmetic around it must be able to fail: shares that no longer recompute, a total that
-    does not match its rows, or a checkpoint that is not the file the audit read.
+    80.2% of the steps a campaign arm used to train on were combat decisions the real client hands
+    to a third-party solver, so the trainer was optimising a layer the product does not ship.  That
+    was carried as a declared false check; ``training/frozen_combat_env.py`` clears it, which makes
+    the opposite failure the dangerous one -- an arm that reports ``combat == 0`` because the fights
+    went missing rather than because they moved.  Every arithmetic check here therefore has to be
+    able to fail for a reason that is not "the file was edited to look aligned".
     """
 
     ARTIFACT = {
@@ -388,6 +389,86 @@ class PhaseActionShareTests(unittest.TestCase):
         verdicts = V.evaluate_phase_share(artifact, True, [])
         self.assertFalse(verdicts["recorded_total_steps_matches_the_rows"])
         self.assertFalse(verdicts["trained_actions_are_all_out_of_combat"])
+
+
+FROZEN = {
+    "episodes": 2,
+    "combat_executor": "frozen",
+    "checkpoint_sha256": "a" * 64,
+    "total_steps": 40,
+    "absorbed_combat_steps": 160,
+    "executor_step_capped_transitions": 0,
+    "per_episode": [{"seed": 1, "steps": 20, "phases": {"map": 20}},
+                    {"seed": 2, "steps": 20, "phases": {"map": 20}}],
+}
+PRE_G1 = {
+    "episodes": 2,
+    "combat_executor": "agent",
+    "checkpoint_sha256": "a" * 64,
+    "total_steps": 200,
+    "combat_step_share": 0.8,
+    "per_episode": [{"seed": 1, "steps": 100, "phases": {"combat": 80, "map": 20}},
+                    {"seed": 2, "steps": 100, "phases": {"combat": 80, "map": 20}}],
+}
+
+
+class PhaseActionPairTests(unittest.TestCase):
+    """The two arms have to differ in exactly one thing: who plays combat.
+
+    A frozen arm on its own can always be made to look aligned by deleting fights, changing seeds,
+    or rerunning against other weights.  Read against the pre-G1 artifact -- same checkpoint, same
+    seeds, same episode budget -- the only surviving explanation for ``combat == 0`` is that the
+    transitions moved rather than vanished.
+    """
+
+    def test_the_clean_pair_holds(self) -> None:
+        verdicts = V.evaluate_phase_pair(dict(FROZEN), dict(PRE_G1))
+        self.assertTrue(all(verdicts.values()), str(verdicts))
+
+    def test_an_absorbed_count_of_zero_is_not_alignment(self) -> None:
+        frozen = {**FROZEN, "absorbed_combat_steps": 0}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["absorbed_combat_carries_the_difference"])
+
+    def test_a_wrapper_that_also_changed_the_fights_does_not_pass(self) -> None:
+        # Fewer absorbed steps than the pre-G1 arm spent in combat means the battles themselves
+        # went differently, so the two streams are not one variable apart.
+        frozen = {**FROZEN, "absorbed_combat_steps": 159}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["absorbed_combat_carries_the_difference"])
+
+    def test_different_seed_lists_break_the_pairing(self) -> None:
+        frozen = {**FROZEN, "per_episode": [{"seed": 7, "steps": 20, "phases": {"map": 20}},
+                                              {"seed": 8, "steps": 20, "phases": {"map": 20}}]}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["the_two_arms_ran_on_the_same_seeds"])
+
+    def test_a_second_checkpoint_breaks_the_pairing(self) -> None:
+        frozen = {**FROZEN, "checkpoint_sha256": "b" * 64}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["the_two_arms_share_one_frozen_checkpoint"])
+
+    def test_a_rewritten_pre_g1_deficit_is_caught(self) -> None:
+        pre = {**PRE_G1, "combat_step_share": 0.05}
+        verdicts = V.evaluate_phase_pair(dict(FROZEN), pre)
+        self.assertFalse(verdicts["the_pre_g1_deficit_still_recomputes"])
+
+    def test_a_missing_frozen_executor_declaration_is_caught(self) -> None:
+        frozen = {**FROZEN, "combat_executor": "agent"}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["the_frozen_arm_is_the_one_declaring_a_frozen_executor"])
+
+    def test_an_executor_that_had_to_be_stopped_is_not_a_clean_run(self) -> None:
+        frozen = {**FROZEN, "executor_step_capped_transitions": 1}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["no_transition_had_to_be_capped_by_the_executor"])
+
+    def test_a_shifted_out_of_combat_stream_is_caught(self) -> None:
+        frozen = {**FROZEN,
+                  "per_episode": [{"seed": 1, "steps": 21, "phases": {"map": 21}},
+                                  {"seed": 2, "steps": 19, "phases": {"event": 19}}]}
+        verdicts = V.evaluate_phase_pair(frozen, dict(PRE_G1))
+        self.assertFalse(verdicts["the_out_of_combat_stream_is_unchanged"])
 
 
 if __name__ == "__main__":

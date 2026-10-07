@@ -8,6 +8,7 @@ Every stage:
 
 * trains MaskablePPO over the V2 contract stack
   (``NativeRunCore`` -> ``V2FlatActionEnv`` -> ``V2RunEnvWrapper`` ->
+  optionally ``FrozenCombatExecutor`` when the stage sets ``combat_executor`` ->
   ``ActionMasker``), so ``max_floor`` truncation, terminal-only win
   attribution, sentinel empty-mask handling, and shaped run reward are the
   single shared definition used by evaluation and by the search teacher;
@@ -75,9 +76,31 @@ def _environment_factory(
     ``max_episode_steps`` overrides the stage horizon for callers that ask the
     simulator for something longer than one act; leaving it None keeps every
     existing stage's own truncation exactly as recorded.
+
+    A stage that sets ``combat_executor = "frozen"`` gets one extra layer, and it is put on
+    *here* rather than at the training entry point on purpose: evaluation and the phase audit
+    build their envs through this factory too, so a frozen-combat arm cannot be measured by a
+    stack that lets the agent fight.
     """
 
     from .v2_native_env import NativeRunCore
+
+    executor_cell: list = []
+
+    def frozen_executor():
+        if not executor_cell:
+            from pathlib import Path
+
+            from .frozen_combat_env import frozen_maskable_executor
+
+            checkpoint = Path(stage.combat_executor_checkpoint or "")
+            if not checkpoint.is_file():
+                raise FileNotFoundError(
+                    f"stage {stage.name}: combat_executor_checkpoint does not exist: "
+                    f"{checkpoint}")
+            executor_cell.append(frozen_maskable_executor(checkpoint,
+                                                          device=config.algorithm.device))
+        return executor_cell[0]
 
     def build(seed: int):
         core = NativeRunCore(
@@ -85,12 +108,17 @@ def _environment_factory(
             max_episode_steps=max_episode_steps or stage.max_episode_steps,
         )
         flat = V2FlatActionEnv(core)
-        return V2RunEnvWrapper(
+        env = V2RunEnvWrapper(
             flat,
             max_floor=stage.max_floor,
             reward_config=config.reward,
             sentinel_action=SENTINEL_FLAT,
         )
+        if stage.combat_executor == "frozen":
+            from .frozen_combat_env import FrozenCombatExecutor
+
+            env = FrozenCombatExecutor(env, frozen_executor())
+        return env
 
     return build
 

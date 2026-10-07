@@ -8,17 +8,17 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "bd4b356d5ccc5cba2c7e31cbc473f938ea2e909142b3f5da5ac4bfc504177d17",
-  "evidence_file_count": 75,
-  "generated_at": "2026-10-07T08:40:27+00:00",
-  "git_head_at_generation": "dbb8967",
+  "bundle_root": "c034356273e8f0339a7c264a1fc9b33964bd6f37966f45dc9370bb31fbf2f8db",
+  "evidence_file_count": 76,
+  "generated_at": "2026-10-07T09:00:44+00:00",
+  "git_head_at_generation": "7eec078",
   "checkpoint_digests_cited": 233,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
     "any trust in this file's own contents -- verify_report_claims.py recomputes every digest here independently, including this file's exclusion from its own bundle_root"
   ],
   "other_hex64_occurrences": {
-    "total_64_hex_strings_seen": 1500
+    "total_64_hex_strings_seen": 1501
   },
   "resolved_checkpoints": [
     {
@@ -2353,7 +2353,8 @@
       "sha256": "f1385cf7ef552eb693ef00e215b1c52fdccf3924105e23d2a3179e50f7ad0474",
       "cited_by": [
         "metrics_index_20260919.json",
-        "phase_action_share_20261007.json"
+        "phase_action_share_20261007.json",
+        "phase_action_share_frozen_20261007.json"
       ],
       "paths": [
         "runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/checkpoints/step_000040000032.zip"
@@ -2534,8 +2535,8 @@
     },
     {
       "file": "act1_report_expectations.json",
-      "sha256": "6e313adcdfb31444cd03997eea8a6cd91cb8b5870fae22da5841a0ae725273de",
-      "bytes": 26275
+      "sha256": "b685bbe5a4544cb84183fbe44967084ef3f29a61c179780217f74922dac4b7c5",
+      "bytes": 26316
     },
     {
       "file": "act1_terminal_census_3500_20260919.json",
@@ -2799,8 +2800,13 @@
     },
     {
       "file": "phase_action_share_20261007.json",
-      "sha256": "8ab20581a1f49dbf80d22b540d18e5a77d88832fb4d3fdb024ec5f38de427aff",
-      "bytes": 19922
+      "sha256": "e1c8c96f6ebaa099c8b0952c3e934f1ee70ac771642e40872c75533c77d6fd58",
+      "bytes": 22251
+    },
+    {
+      "file": "phase_action_share_frozen_20261007.json",
+      "sha256": "bc42dfd19974c38a097010523119ae5d745f8e27ee5db81f356a336c5f57fbd1",
+      "bytes": 20965
     },
     {
       "file": "potion_slot_cost_20260919.json",

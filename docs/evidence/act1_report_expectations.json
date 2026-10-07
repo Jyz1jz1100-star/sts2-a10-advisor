@@ -8,15 +8,11 @@
     "evaluations added artifacts; the report is updated to the same figures."
   ],
   "_expected_false_checks": {
-    "phase_action_share": [
-      "trained_actions_are_all_out_of_combat"
-    ],
     "win_ledger": [
       "the_ledger_wins_replay_on_the_current_engine"
     ]
   },
   "_expected_false_reasons": {
-    "phase_action_share.trained_actions_are_all_out_of_combat": "80.2% of the steps a campaign arm trains on are combat decisions, which the shipped product delegates to a third-party solver. Gate G1 of docs/TRAINING_GATES_2026-10-07.md: clear it by training only the out-of-combat actions, never by editing this key.",
     "win_ledger.the_ledger_wins_replay_on_the_current_engine": "the nine named Act-1 wins do not replay on fidelity-v5: 0/9 measured 2026-10-07 by scripts/act1_win_ledger.py over the same arms, seeds and checkpoint digests. The red is the finding. Clear it by re-deriving strength, never by deleting the check."
   },
   "act1_scope_population": {
@@ -466,12 +462,20 @@
     "the_upgrade_relic_is_rarely_offered_at_all": true
   },
   "phase_action_share": {
+    "absorbed_combat_carries_the_difference": true,
     "checkpoint_digest_matches_the_file": true,
     "combat_share_matches_the_rows": true,
     "gates_doc_quotes_the_combat_share": true,
+    "no_transition_had_to_be_capped_by_the_executor": true,
     "per_episode_rows_recompute_the_recorded_shares": true,
     "recorded_total_steps_matches_the_rows": true,
-    "trained_actions_are_all_out_of_combat": false
+    "the_frozen_arm_is_the_one_declaring_a_frozen_executor": true,
+    "the_out_of_combat_stream_is_unchanged": true,
+    "the_pre_g1_deficit_still_recomputes": true,
+    "the_two_arms_ran_on_the_same_seeds": true,
+    "the_two_arms_ran_the_same_number_of_episodes": true,
+    "the_two_arms_share_one_frozen_checkpoint": true,
+    "trained_actions_are_all_out_of_combat": true
   },
   "potion_slot_cost": {
     "all_four_cells_are_populated": true,

@@ -4545,3 +4545,48 @@ takes `GAMBLING_CHIP` dies at its first boss opening**, so a floor-1-to-victory 
 certified until either the keeper's recovery proves it can unblock the modal (#44, to be tried live) or
 the mod's multi-select path is repaired. The stuck save also blocks the pipeline, because every batch
 continues it; clearing it means `abandon_run`, which stays operator-gated.
+
+## G1 landed: combat left the loss without changing a single transition (2026-10-07)
+
+`training/frozen_combat_env.py` + two stage keys (`combat_executor`, `combat_executor_checkpoint`)
++ `config/production_campaign_v5_g1.toml`. The wrapper is put on inside `_environment_factory`, not
+at the training entry point, because evaluation and the phase audit build their envs through that
+same factory -- a frozen-combat arm measured on a stack that lets the agent fight would be the same
+error as the campaign-labelled-as-Act-1 one, one layer up.
+
+The measurement, and it is the part worth reading: the same 60 held-out seeds, the same frozen
+checkpoint, both stacks.
+
+```
+pre-G1  agent steps 7,931   combat 6,364 (80.2%)   absorbed 0
+G1      agent steps 1,567   combat     0 (0.0%)    absorbed 6,364
+```
+
+`1,567 + 6,364 = 7,931` and the out-of-combat histogram is **identical count for count** (map 373,
+relic_reward 635, card_reward 207, event 124, ancient 60, shop 95, rest 36, transform_select 24,
+treasure 13), per seed, with the same terminal flags. So the wrapper moved combat out of the loss
+without changing one thing the simulator did. That is the property the claim now tests --
+`absorbed_combat_carries_the_difference` and `the_out_of_combat_stream_is_unchanged` fail if a
+future re-run reports `combat: 0` for any other reason than "someone else played it", including the
+degenerate one where the fights simply stop being stepped. Zero transitions had to be capped by the
+executor, and the pre-G1 artifact is kept on disk with its 80.2% re-derived from its own rows, so
+the deficit that justified the change cannot be tidied away retrospectively.
+
+`trained_actions_are_all_out_of_combat` is therefore no longer a declared red; its entry is gone
+from `_expected_false_checks`, and the 62-claim harness is back to 62/62 with **zero** declared
+false checks except the Act-1 win ledger's 0/9 replay, which stays red because it is the finding.
+
+Two things this does NOT buy:
+
+* **Not a release.** G1 only makes the question "can out-of-combat decisions change the outcome"
+  answerable at all; that is G4's pre-registered paired screen, still unrun. A gradient that is now
+  100% out-of-combat can still be a gradient toward nothing.
+* **A budget reinterpretation, not a speed-up.** With combat absorbed, one env step is one
+  out-of-combat decision, so the same `timesteps` buys roughly five times as many episodes. Cross-arm
+  comparisons must be at equal episodes. The 40M arm's "13,016 updates" and a G1 arm's same update
+  count are not the same amount of game.
+
+Next in the frozen order: G3's "one reproducible three-act trace under the same responsibility
+constraint" (the campaign step-cap work already located the ceiling), then G4's screen, then G5's
+1.5M-step probe with three random inits. G2 stays blocked on the mod's multi-select path and on
+#44, neither of which gates the other three.

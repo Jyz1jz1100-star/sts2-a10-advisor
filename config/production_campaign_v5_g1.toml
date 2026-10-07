@@ -1,0 +1,113 @@
+# THE G1 STACK: same world, same stage, fights played by a frozen executor.
+#
+# What changed against config/production_campaign_v5.toml is one thing -- combat. The measured
+# reason is in docs/TRAINING_GATES_2026-10-07.md: 80.2% of the steps a campaign arm updates on are
+# in-fight card selection (docs/evidence/phase_action_share_20261007.json), while on the real
+# client a third-party solver plays those fights and this project's policy only decides between
+# them. So this file builds the stack where that division is structural:
+# combat_executor = "frozen" plays every combat state with the checkpoint named below, and the
+# agent is never handed a combat state to act on.
+#
+# What this file does NOT authorise is a budget. G1 is a code change worth 0 training steps, and
+# the gates put G4 (the paired out-of-combat screen, also 0 training steps) before any multi-day
+# run. ``timesteps`` is therefore set to the ceiling G5 pre-registers -- 1.5M, 3.75% of the 40M
+# arm -- so running this config cannot quietly become the release the gates have not passed yet.
+# Read the ordering in docs/TRAINING_GATES_2026-10-07.md before launching anything here.
+#
+# The horizon reinterpretation, because it will otherwise read as a free speed-up: with combat
+# absorbed, one env step is one *out-of-combat* decision, so the same number of steps buys roughly
+# five times as many episodes as it did on the pre-G1 arm (the absorbed fights still happen, they
+# just do not enter the loss). Compare arms at equal episodes, never at equal timesteps.
+#
+# Seeds: this arm trains on a range the 40M arm never read (that one used 2000000000..2003999999),
+# and it leaves the pilot's checkpoint/promotion/final windows alone. The held-out promotion window
+# 2008010000..2008019999 stays untouched, which is what the phase audit and the G4 screen read.
+
+version = 1
+
+[target]
+character = "IRONCLAD"
+ascension = 10
+save_load = false
+game_branch = "public-beta-v0.111.0"
+
+[runtime]
+emulator_root = "../third_party/slay-the-spire-2-emulator-main"
+run_dir = "runtime/production_campaign_v5_g1"
+
+[algorithm]
+name = "MaskablePPO"
+device = "auto"
+n_steps = 2048
+batch_size = 256
+n_epochs = 8
+gamma = 0.995
+learning_rate = 0.0003
+entropy_coefficient = 0.02
+
+# Identical to the pre-G1 arm on purpose. Reward is not a variable in this comparison; if a
+# difference shows up later it must not be attributable to a silently different return.
+[reward]
+gamma = 0.995
+combat_reward_scale = 0.10
+floor_weight = 1.0
+hp_weight = 1.0
+terminal_win_reward = 60.0
+terminal_death_reward = -25.0
+first_floor_advance_reward = 2.0
+boundary_success_reward = 3.0
+step_cost = 0.01
+
+[curriculum]
+stages = ["full_run"]
+
+[stages.full_run]
+campaign = true
+# G1: fights are played by the frozen checkpoint below, not by the learner. The wrapper lives in
+# training/frozen_combat_env.py and is applied by the shared environment factory, so evaluation
+# and the phase audit get the same compression the trainer sees.
+combat_executor = "frozen"
+combat_executor_checkpoint = "../runtime/production_campaign_v5/v2curriculum-20260923T061352Z/full_run/checkpoints/step_000040000032.zip"
+# The G5 ceiling, not the 40M of the arm it descends from.
+timesteps = 1500000
+parallel_envs = 12
+checkpoint_every_steps = 500000
+checkpoint_eval_episodes = 200
+promotion_eval_episodes = 500
+max_episode_steps = 4800
+initialize_from_previous = false
+promotion_probe_every_steps = 0
+# Held at the shipped full_run strictness, same as the pre-G1 arm: a gate this cannot pass yet is
+# the reading of where the policy stands, not a knob to turn.
+min_boundary_rate = 0.0
+min_win_rate = 0.20
+min_wilson_lower = 0.18
+max_truncation_rate = 0.05
+max_illegal_actions = 0
+min_episodes = 500
+
+[stages.full_run.seeds.train]
+start = 2010000000
+count = 400000
+
+[stages.full_run.seeds.checkpoint]
+start = 2010400000
+count = 10000
+
+[stages.full_run.seeds.promotion]
+start = 2010410000
+count = 10000
+
+[stages.full_run.seeds.final]
+start = 2010420000
+count = 10000
+
+# ---------------------------------------------------------------- what would falsify G1
+# Two things, and both are measurable rather than matters of opinion:
+#
+#   1. absorbed_combat_steps == 0 in the audit. That would mean the fights were skipped, not
+#      played -- the wrapper would be deleting 80% of the episode instead of moving it out of the
+#      loss. The claim reads this field, so this cannot drift silently.
+#   2. executor_step_capped_transitions > 0. The frozen executor would then be failing to finish
+#      some fight inside 400 of its own actions, and those episodes are truncated by the
+#      executor, not by the run. That is a defect to fix, not a result to report.
