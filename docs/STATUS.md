@@ -4354,3 +4354,41 @@ been certified -- and the named nine live in the **tail** window, not here. The 
 where v4 recorded 3 Act-1 wins in 165 arrivals and 40 Act-2 wins in 162) is running now; until it
 finishes, the honest statement is: *Act 2 is more winnable on v5 than on v4, Act-1 arrivals are up,
 and the Act-1 win capability is unproven on the honest engine.*
+
+## The whole promotion partition re-derived on the honest engine: Act 1 is winnable, once (2026-10-07)
+
+#39 asked whether anything survives fidelity-v5, and answered it over the **entire 10,000-seed
+promotion partition** of the checkpoint that carries the nine named wins -- same arm config
+(`runtime/fanout/b_terminal-1.toml`), same 1,600-step stage cap, argmax, `--expect-checkpoint-sha256`
+verifying the digest before rolling (that refusal is what surfaced the malformed digest two sections
+above). Four shards, 10,000 episodes, ~2,600 state transitions each:
+
+| generated act | arrivals at floor 17 | boss wins | 0 illegal / 0 truncated | v4 for the same partition |
+|---|---|---|---|---|
+| Act 1 | 309 | **1** | yes | 248 arrivals, 3 wins |
+| Act 2 | 323 | **121** | yes | 241 arrivals, 65 wins |
+
+Three conclusions, none of them the one the session started expecting:
+
+1. **fidelity-v5 is winnable in Act 1.** Seed `130019785` reaches floor 17 and wins with 12.6% of
+   max HP over 218 steps; replayed alone (`--limit 1 --start-offset 9785`) it wins again. So the
+   engine's fight resolution is not broken and the "the emulator cannot be beaten" reading of the
+   0/9 result is refuted -- by measurement, not by argument.
+2. **The nine named wins really were special.** They do not reproduce while an ordinary seed does.
+   Combined with the deleted overrides not being seed-gated, the honest description of v4 is that the
+   retained trace overwrote outcomes at the coordinates those specific seeds passed through.
+3. **Removing the script made the engine different, not uniformly harder.** Arrivals at the boss rose
+   ~25% in both acts, Act-2 kills nearly doubled (65 -> 121), and Act-1 conversion fell from 1.2% to
+   0.3% of arrivals. A single "the v5 engine is harder than v4" sentence would have been wrong in both
+   directions; it is a per-act statement or nothing.
+
+What this changes for training: the ceiling is now *measured* rather than assumed. At this checkpoint
+Act 1 converts 1 in 309 boss arrivals, so an Act-1 win signal exists but is roughly four times rarer
+than in v4 -- which is exactly why 40M campaign steps found no direction (the campaign arm never
+reached these arrivals at all: 0 act-boundary crossings in 200 episodes at every checkpoint). It also
+means any future win-rate gate must be quoted against this partition on this engine, and never against
+the v4 figures.
+
+Reproduce: `scripts/enumerate_act1_terminals.py --config runtime/fanout/b_terminal-1.toml --stage act1
+--checkpoint runtime/fanout/b_terminal-1/v2curriculum-20260918T182051Z/act1/checkpoints/step_000002000016.zip
+--split promotion --limit 3250 --start-offset {0,1750,3500,6750} --expect-checkpoint-sha256 a1ada27a...`
