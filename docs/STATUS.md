@@ -4499,3 +4499,49 @@ Published gap closed with it: named truncations are 56, and **56 are located per
 full_run 3). The report's correction section and audit row both say so now; the "53 of 56" wording is
 retired rather than left to rot. Evidence bundle 74 files, manifest rebuilt last, `61/61` scored
 claims, 686 contract + 136 training tests OK.
+
+## No update is coming, and retry does not help: the blocker is ours to detect, not to wait for (2026-10-07)
+
+Asked how the mod would "update", the operator is right that there is nothing to wait for: the
+installed CombatSolver **is** 0.50.1 and its dll mtime is 2026-10-06T13:12:23Z, the build already in
+place during both stalls. So "verify it after the next drift" was a path that could never run, and it
+is dropped.
+
+The retry experiment, run instead of waited for: kill the client, relaunch through
+`steam://rungameid/2868840`, let a fresh batch continue the save. Outcome --
+
+```
+[autoplay] stopping: combat_no_progress (hand_select at act 3 floor 49 left the state unchanged
+for 180s ...)            stop_reason: autoplay_classified_stop      solver_pause: null
+```
+
+identical to the pre-restart stall, same floor, same round 1, same 18 HP. Two consequences, both
+corrections of things I said earlier today:
+
+* this is **deterministic**, not a race that a restart clears -- my "boss openings, intermittent
+  commit race" framing overstated the evidence, which was two logged exceptions plus one silent
+  stall, all since reproducible at the same state;
+* the silent one is the interesting half: in the stall window the mod wrote **no log line at all**
+  -- no `SEARCH_REQUEST`, no `UI_STATE state=ready`, no `FULL_AUTO_DEPLOY`, no
+  `DEPLOY_CHOICE_PAUSED`. It never entered route search, because the modal must be answered first.
+
+That names the gap precisely, and it is ours. `bridge/fullauto_keeper.py` is the component already
+authorised to recover the full-auto toggle, and its watchdog arms only on
+`SEARCH_REQUEST turn=1` followed by `UI_STATE state=ready`. A fight blocked *before* searching is
+therefore invisible to it, which is exactly why no recovery click happened here while the keeper was
+running. Task #44 is the fix: a time-based, log-independent trigger fed by a read-only bridge poll,
+reusing the existing bounded click-and-verify path.
+
+What it deliberately is not: autoplay posting `combat_confirm_selection`. `advisor_core/legal_actions.py`
+can express that action and it would clear the modal in one request, but `scripts/assess_full_run.py`
+models combat as having **exactly one execution owner** (`EXECUTION_OWNERS`), and the acceptance track
+runs with `combat_solver_full_auto` as that owner. Posting the confirm would put a second action
+executor beside the solver and convert an honest blocker into a run that passes on borrowed actions --
+the same class of thing the 11-item contract exists to refuse. The keeper clicking its own toggle is
+sanctioned recovery; the advisor playing a combat card is not, even when the card choice is a no-op.
+
+Standing consequence for the delivery goal, stated plainly: with 0.50.1 installed, **any live run that
+takes `GAMBLING_CHIP` dies at its first boss opening**, so a floor-1-to-victory trace cannot be
+certified until either the keeper's recovery proves it can unblock the modal (#44, to be tried live) or
+the mod's multi-select path is repaired. The stuck save also blocks the pipeline, because every batch
+continues it; clearing it means `abandon_run`, which stays operator-gated.
