@@ -4775,3 +4775,44 @@ Next, in the order the gates actually allow: G3 wants one reproducible three-act
 under the same responsibility split (the screen shows the campaign policy cannot produce it -- so
 this is now a *content/engine* question, not a training one), and the live track wants #47 and #48
 closed before an acceptance batch can return anything but the same two unfixable blockers.
+
+## The refusal fix measured live, and it found a worse failure behind the first one (2026-10-07)
+
+Two batches ran the patched driver.
+
+* `ssb-20261007T100846Z` -- **196 posts, 0 refused**. Same run cleared act 1 and act 2 bosses and
+  saw all three acts' Ancients, this batch's set being NEOW / **TEZCATARA** / **NONUPEIPE** (the
+  third distinct Ancient combination observed, which is what the coverage matrix needs), and reached
+  act 3 floor 39. It stopped there -- **because of my own fix**: the accepted-exit latch keyed on
+  (state_type, act, floor), and a shop floor legitimately shows *two* different card choosers at the
+  same floor, so confirming the first closed the second to the driver. 614 holds and a loud stop
+  instead of a run. Fixed by keying the latch on the screen's own identity and dropping
+  `confirm_selection` from the terminal set entirely (it never caused a single refusal); two
+  granularity tests, both red against the version that shipped an hour earlier.
+* `ssb-20261007T102954Z` -- **363 posts, 0 refused**, and it walked into something no guard could
+  see: an `NDeckEnchantSelectScreen` modal at act 3 floor 39 that answered `ok` to **everything**
+  while the client never advanced. `select_card 0,1,2` then `confirm_selection`, **91 identical
+  cycles**, index distribution `0:91, 1:91, 2:91`, 1,089 byte-identical frames on one unchanged
+  decision id. The repeat detector keys on the payload (which varied, correctly) and the
+  stale-attempt counter only moves on a refusal (there were none), so both were blind.
+
+So the driver now bounds **accepted** posts against one unchanged state read -- limit 12 on gameplay
+screens, 24 on menus, measured from the winning batch's 745 decision ids where the healthy ceiling
+was 4 and 20 -- and stops out loud as `screen_not_advancing`, reason in `stop_reason`.
+
+Refusal score, before vs after: **3 refusals in 815 posts across 3 of 8 runs** (and the victory run
+carried one of them, which is why it reads 10/11 rather than a certified clear) versus **0 refusals
+in 559 posts across two batches** since. Honest limits on that: neither batch reached a terminal
+screen, so the contract's per-run zero-illegal item has still not been demonstrated on a *complete*
+run; and the sample is two batches, not a rate.
+
+The stuck modal is written up for the bridge's author in
+`docs/STS2MCP_ENCHANT_MODAL_BUG_2026-10-07.md` with the full request sequence, the observation that
+the `card_select` view exposes **no selection state at all** per card (so a caller cannot tell
+whether `select_card` landed), and the same-shape contrast with CombatSolver's report -- single-pick
+works, multi-pick does not, across two different mods, reported as a pattern rather than a cause.
+
+Live path is parked: the client is still sitting on that modal, so #47 (fixed-seed embark) cannot be
+tested either -- a fixed batch would continue the same save. Clearing it means either the author's
+fix or an in-game click/abandon by the operator, and `abandon_run` stays operator-gated: reported,
+not performed.
