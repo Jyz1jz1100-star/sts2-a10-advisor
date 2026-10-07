@@ -124,6 +124,12 @@ stale-decision。默认端口只有两个：STS2MCP 的 `15526`，以及自启�
   （`bridge/autoplay.py:680-690`）。
 - **无规则帧的计数必须按同一 decision id 的连续帧**。按批次生命周期统计会把动画中的屏误判成没有处理器
   （`docs/ACT_COVERAGE_AUDIT_2026-09-21.md:453`）。
+- **`ok` 回执不等于"状态变了"。** STS2MCP 0.4.0 的附魔（选牌）模态对**每一条**请求都返回
+  `{"status":"ok"}`，界面却一模一样停在原地：同一个界面实例，人手点能提交，363 次桥接请求提交不了，
+  而且 363 次全部返回 `ok`（`docs/STS2MCP_ENCHANT_MODAL_BUG_2026-10-07.md`）。这一条同时解释了为什么
+  "每次 POST 前重读状态、比对身份"这道守卫救不了你——状态从来没变，任何摘要比对都看不出"这次提交没生效"。
+  能救的只有给"接受了却不前进"设上限、并把它命名出来。同一屏在别的楼层正常提交过，单选路径一直正常，
+  坏的是**多选提交**那条路。
 
 ---
 
@@ -225,6 +231,14 @@ stale-decision。默认端口只有两个：STS2MCP 的 `15526`，以及自启�
   (0.2495, 0.5313) 加纵向 offset 表；拿不到可信面板位置就**拒绝点击**
   （`bridge/fullauto_keeper.py:1-24,38-60`）。0.41 起那个标记只出现在 `combat-*.jsonl`。
 
+**开战时的多选页面会让战斗永久卡死。** 带遗物「赌博筹码」时，boss 开局停在"选择任意张牌来替换"这个多选
+模态，mod 再不写任何日志、战斗永不开始（CombatSolver 0.50.1，已是最新版；
+`docs/COMBATSOLVER_MULTISELECT_BUG_2026-10-07.md`）。**重启冲不掉**——作者最容易先试的那一条已经排除：
+杀掉客户端、重开、续玩、再卡死，同一晚四次独立观测；"看起来好了"其实是那局被重开了。两种可区分的签名：
+进入选牌流程后抛 `NativeChoiceSurfaceMismatchException`，以及 mod 完全没介入这个模态。差别只在**单选 vs
+多选**——普通二选一页面在同一局连续约 10 层完全正常；追加的第三个签名显示普通 `ChooseCard` 页面也会触发
+同一个异常，与赌博筹码无关。它与 §4 的附魔模态形状相同、归属不同，两份报告互相指向。
+
 **给这个 mod 的接口请求**：一个 `GET` 状态端点、或至少一个"部署成功/失败"的结构化回执。现在所有外部观测
 都在读它的调试日志，而调试日志会随版本换格式（已经换过一次）。
 
@@ -309,6 +323,12 @@ trace 双向对照，机器可读版在 `training/campaign_content.py:431-528`�
 `outcome_source`，每个指标都记它来自哪个字段——否则"我们从结构读到了败"和"我们从文案猜了败"在数据里
 长得一模一样。
 
+同一条纪律也管住了**监视器自己**。`scripts/train_dashboard.py` 的晋级判定取自
+`training.promotion.decide_promotion`——那段代码才是判定的所有者；自己重算阈值的监视器，正是"面板绿、
+批次红"对同一个文件各执一词的起点。面板还把视野明确分成三段：日志**陈述**的、从这些字段**推出**的、
+以及它**看不见**的（第三段直接列在页面上）。正在跑的训练批次在两次 checkpoint 之间根本不往磁盘写逐
+Episode 信号——把"看不见"写成数字，就是编。
+
 ---
 
 ## 12. 我们希望 mod 侧提供、目前还没有的东西
@@ -323,6 +343,11 @@ trace 双向对照，机器可读版在 `training/campaign_content.py:431-528`�
    `relic_select`）。
 6. **Combat Solver 的结构化回执**（部署成功/失败、搜索失败原因），替代"读调试日志"这个隐式契约。
 7. **按 mod 项禁用 Workshop 自动更新的官方途径**（现在只能靠把漂移如实记录下来）。
+
+其中两条已经写成可以直接提交的复现记录，带环境摘要、作者侧最短复现路径，以及**已经排除的解释**（作者最
+容易先试的那几条为什么不行）：`docs/STS2MCP_ENCHANT_MODAL_BUG_2026-10-07.md`（桥接的多选提交路径）与
+`docs/COMBATSOLVER_MULTISELECT_BUG_2026-10-07.md`（求解器的开战多选）。两者形状相同、归属不同——一个在
+战斗之外、CombatSolver 全程一行日志都不写；一个由求解器拥有——所以请各自顺着自己那一侧的日志核对。
 
 ---
 
@@ -388,6 +413,9 @@ python scripts/play.py --backend sim --config <训练时那份.toml> --checkpoin
 逐战斗比对、局外驾驶和 full-auto watchdog 三个子进程，状态与自证落在
 `runs/solver_supervisor/<batch-id>/status.json`。
 
+**看一个正在跑的批次**：`python scripts/train_dashboard.py --once` 打一份状态文档、`--serve` 在
+`http://127.0.0.1:8899` 出面板。它只读批次自己留在磁盘上的产物，不碰训练进程，也不用装任何额外依赖。
+
 **测试**：官方 runner 是 stdlib `unittest`（仓库里没有 pytest 配置，也没有任何 `pytest.mark`）。
 `python -m unittest discover -s tests` 覆盖纯契约层；要连训练层一起跑就装 `requirements-test.txt`，或用
 `powershell -ExecutionPolicy Bypass -File scripts\test.ps1`（双解释器：轻量契约层 + `STS2_TRAINING_PYTHON`
@@ -405,6 +433,8 @@ toml、比较轨的 `combat_solver.toml`，以及两份版本锁（`live_version
 - [真机版本锁定、trace 录制与动作门禁](docs/LIVE_BRIDGE.md) — §2 的完整版
 - [局外候选与 wire action 契约](docs/LIVE_CANDIDATE_CODEC.md) — §3、§4 的完整版
 - [Combat Solver 分层与运行审计](docs/COMBAT_SOLVER.md) — §8 的完整版
+- [STS2MCP 附魔选牌模态：所有请求返回 ok 而界面不前进](docs/STS2MCP_ENCHANT_MODAL_BUG_2026-10-07.md) — §4、§12
+- [CombatSolver 开战多选导致战斗永久卡死](docs/COMBATSOLVER_MULTISELECT_BUG_2026-10-07.md) — §8、§12
 - [逐幕覆盖审计：真机 vs 模拟器](docs/ACT_COVERAGE_AUDIT_2026-09-21.md) — §5、§9、§10 的证据与逐条出处
 - [模拟器幕内容保真度](docs/SIMULATOR_ACT_FIDELITY_2026-09-21.md) — §10 的度量与判据
 - [固定种子可行性](docs/FIXED_SEED_FEASIBILITY.md) — §6 的完整版
