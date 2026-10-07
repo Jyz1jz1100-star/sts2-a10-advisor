@@ -8,10 +8,10 @@
     "followed; the other 64-hex strings in the bundle (teacher state hashes, module file",
     "hashes) are counted, not chased."
   ],
-  "bundle_root": "13d34b7bd192c552ff92dd5653b1362c81bbf2b0480f304c1e7ba7f02c422573",
-  "evidence_file_count": 79,
-  "generated_at": "2026-10-07T12:43:22+00:00",
-  "git_head_at_generation": "c112cc9",
+  "bundle_root": "8b7c9c20581bc0eb1f7536584eccf76abbe99651c4c71312407051e2bf2a3321",
+  "evidence_file_count": 80,
+  "generated_at": "2026-10-07T14:09:18+00:00",
+  "git_head_at_generation": "10f801b",
   "checkpoint_digests_cited": 233,
   "not_established": [
     "completeness of the bundle across time: a file added and removed between two builds of this manifest would not be seen, though anything present now that is unmanifested changes evidence_file_count and the claim catches that",
@@ -2868,6 +2868,11 @@
       "file": "solver_inventory_drift_20260919.json",
       "sha256": "77c8404d42a6874735195d2b025768d8d6a2f810cbfe30b4191d3a0c5b4ce739",
       "bytes": 4813
+    },
+    {
+      "file": "solver_pause_20261007.json",
+      "sha256": "308fdc93d2f633ffde7e49ed8a09273991b7ee7f8d5467e5b26fcbee18e486d2",
+      "bytes": 3007
     },
     {
       "file": "stalemate_mechanics_60k_20260919.json",

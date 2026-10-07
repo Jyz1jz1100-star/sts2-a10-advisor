@@ -1535,6 +1535,10 @@ class AdoptedRunCountsAgainstMaxRunsTests(unittest.TestCase):
         def send_action(self, payload, expected_decision_id=None):
             return {"status": "ok"}, None
 
+    MENU_MAIN = {"state_type": "menu", "menu_screen": "main",
+                 "run": {"act": 1, "floor": 0, "ascension": 10},
+                 "options": ["play", "compendium", "settings", "quit"]}
+
     @staticmethod
     def _map(floor: int, act: int = 1) -> dict:
         return {
@@ -1550,15 +1554,16 @@ class AdoptedRunCountsAgainstMaxRunsTests(unittest.TestCase):
             },
         }
 
-    def test_a_run_collected_without_an_embark_uses_the_quota(self) -> None:
-        controller = self._Scripted(
-            [self._map(5),
-             {"state_type": "game_over",
-              "run": {"act": 1, "floor": 5, "ascension": 10},
-              "player": {"hp": 0, "max_hp": 80},
-              "game_over": {"is_victory": False}}],
-            after_start=self._map(1),
-        )
+    @staticmethod
+    def _terminal(floor: int, act: int = 1) -> dict:
+        return {"state_type": "game_over",
+                "run": {"act": act, "floor": floor, "ascension": 10},
+                "player": {"hp": 0, "max_hp": 80},
+                "game_over": {"is_victory": False}}
+
+    def test_a_collected_run_without_an_embark_uses_the_quota(self) -> None:
+        controller = self._Scripted([self._map(5), self._terminal(5)],
+                                    after_start=self._map(1))
         player = AutoPlayer(controller, max_runs=1, max_actions=50, poll=0,
                             travel_settle_seconds=0.0)
         summary = player.run()
@@ -1566,17 +1571,40 @@ class AdoptedRunCountsAgainstMaxRunsTests(unittest.TestCase):
         self.assertEqual(summary["runs_started"], 0, summary)
         self.assertEqual(controller.starts, [], "the quota was already spent by the continued run")
 
-    def test_a_menu_start_does_not_charge_itself_an_adopted_run(self) -> None:
+    def test_a_batch_that_opened_mid_run_embarks_once_then_stops_at_the_menu(self) -> None:
+        """--max-runs 2 over a batch that opens on someone else's run: collect, embark, stop.
+
+        The build shipped earlier today did the same arithmetic on live hardware and then parked
+        the second run, because the loop was gated on `runs_started` -- which an embark charges the
+        instant the client is told to begin -- so it ended one frame after starting a run it never
+        drove. A parked run is exactly what a seeded embark cannot work around.
+        """
         controller = self._Scripted(
-            [{"state_type": "menu", "menu_screen": "character_select",
-              "run": {"act": 1, "floor": 0, "ascension": 10},
-              "options": ["play"]}],
+            [self._map(5), self._terminal(5), self.MENU_MAIN,
+             self._map(3), self._terminal(3), self.MENU_MAIN],
             after_start=self._map(1),
         )
-        player = AutoPlayer(controller, max_runs=1, max_actions=4, poll=0,
+        player = AutoPlayer(controller, max_runs=2, max_actions=80, poll=0,
+                            travel_settle_seconds=0.0)
+        summary = player.run()
+        self.assertEqual(summary["runs_adopted"], 1, summary)
+        self.assertEqual(summary["runs_started"], 1, summary)
+        self.assertEqual(len(summary["runs"]), 2, summary)
+        self.assertEqual(len(controller.starts), 1, controller.starts)
+        self.assertEqual(summary.get("stop_reason"), "max_runs_collected", summary)
+
+    def test_a_menu_start_drives_the_run_it_embarked(self) -> None:
+        controller = self._Scripted(
+            [self.MENU_MAIN, self._map(2), self._terminal(2), self.MENU_MAIN],
+            after_start=self._map(1),
+        )
+        player = AutoPlayer(controller, max_runs=1, max_actions=80, poll=0,
                             travel_settle_seconds=0.0)
         summary = player.run()
         self.assertEqual(summary["runs_adopted"], 0, summary)
+        self.assertEqual(summary["runs_started"], 1, summary)
+        self.assertEqual(len(summary["runs"]), 1, "the embarked run has to reach its terminal")
+        self.assertEqual(summary.get("stop_reason"), "max_runs_collected", summary)
 
 
 if __name__ == "__main__":

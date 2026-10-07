@@ -1711,8 +1711,7 @@ class AutoPlayer:
         state_type = ""
         decision_id: str | None = None
         bridge_unavailable_since: float | None = None
-        while (self.runs_started + self.runs_adopted) < self.max_runs \
-                and self._actions_total() < self.max_actions:
+        while self._actions_total() < self.max_actions and not self._batch_is_done():
             try:
                 state, decision_id = self.controller.get_state()
             except BridgeConnectionError as exc:
@@ -1861,6 +1860,11 @@ class AutoPlayer:
                                         "Refusing fresh start: reconciled seed reservation "
                                         "requires the matching Continue action"
                                     )
+                                if not self._room_left_to_start():
+                                    # The quota is met, or a run is already owed.  Stop here rather
+                                    # than embarking one more than this batch can drive -- that is
+                                    # the parked run, and it blocks the seeded probe.
+                                    break
                                 state, decision_id = self._start_run(state_type)
                                 continue
                 else:
@@ -2056,6 +2060,11 @@ class AutoPlayer:
             self.actions_by_screen[state_type] = self.actions_by_screen.get(state_type, 0) + 1
             self.consecutive_failures = 0
             time.sleep(self.poll)
+        if self.stop_reason is None and self._batch_is_done():
+            # Named rather than left null: "the loop ended" and "the loop ended because the run
+            # quota was collected at a free menu" are different statements, and only the second one
+            # is the reason the parked-run bug was invisible for so long.
+            self.stop_reason = "max_runs_collected"
         if self._seed_ledger is not None and self.stop_reason is None:
             # The loop can end exactly when max_runs/max_actions is reached,
             # without making one extra reserve call.  Preserve the explicit
@@ -2101,6 +2110,35 @@ class AutoPlayer:
 
     def _actions_total(self) -> int:
         return sum(self.actions_by_screen.values())
+
+    def _batch_is_done(self) -> bool:
+        """True when the quota of *collected* runs is met and nothing is on screen.
+
+        This is the overshoot fix. ``runs_started`` is charged the instant the client is told to
+        begin, so gating the loop on it ended every batch one frame after its last embark -- a fresh
+        act-1 run parked on screen with no automated actor left. Three batches on 2026-10-07 did
+        exactly that, and a parked run is what a seeded embark cannot work around, because the probe
+        needs the menu. So the quota is read against runs the batch actually collected, and a run
+        still on screen (``coverage.started`` -- a frame that is a run, not the menu's act-1-with-
+        nothing-behind-it) or merely just requested is always finished first.
+        """
+        return len(self.completed_runs) >= self.max_runs and not self._run_owed()
+
+    def _run_owed(self) -> bool:
+        """A run is on screen, or was just asked for and has not shown up yet."""
+        return self.coverage.started or self._current_run_embarked
+
+    def _room_left_to_start(self) -> bool:
+        """Whether the batch may put another run on screen.
+
+        Bounded two ways on purpose. Collected + in flight is the honest quota, but a client that
+        answers an embark with the same menu would otherwise be re-embarked forever, so the number
+        of embarks is capped at the quota as well -- the same bound the old loop had, except it is
+        now read at the menu instead of at the top of the loop, where it cut a run off mid-flight.
+        """
+        if self.runs_started >= self.max_runs:
+            return False
+        return len(self.completed_runs) + (1 if self._run_owed() else 0) < self.max_runs
 
     def _seal_run(self, reason: str) -> None:
         """Close off the run being observed and begin accounting for the next."""

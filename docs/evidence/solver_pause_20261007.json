@@ -1,0 +1,36 @@
+{
+  "generated_at_utc": "2026-10-07T13:19:27.036920+00:00",
+  "generated_by": "scripts/capture_solver_pause_evidence.py",
+  "how_to_recheck": "python scripts/capture_solver_pause_evidence.py --out docs/evidence/solver_pause_20261007.json",
+  "log_root": "C:\\Users\\Administrator\\AppData\\Roaming\\SlayTheSpire2\\logs\\CombatSolver",
+  "mod_log_files_already_rotated_away": [
+    "combat-02d1af6ba3aa4edfb9912f2df1b9323c.jsonl"
+  ],
+  "not_established": [
+    "that the mod deletes battle logs on a schedule: the observation is that a named battle log present minutes after the pause was absent ~11 minutes later, in the same client process directory",
+    "that a full-auto re-toggle clears every pause class -- the one recovered instance was cleared by an operator click, not by an automated one"
+  ],
+  "pause_events_recorded_by_our_batches": [
+    {
+      "batch_id": "ssb-20261007T130333Z-40998609",
+      "file": "combat-02d1af6ba3aa4edfb9912f2df1b9323c.jsonl",
+      "level": "error",
+      "message": "[CombatSolver/Test] DEPLOY_CHOICE_PAUSED turn=9 exception=CombatSolver.NativeChoiceSurfaceMismatchException: 原生三选一页面在计划提交前发生变化。\r\n   at CombatSolver.NativeChoiceSurface.SelectChooseCardAsync(NGame host, Node surface, NativeChoiceRequest request, IReadOnlyList`1 selected, CancellationToken token)\r\n   at CombatSolver.NativeChoiceSurface.SelectAsync(NGame host, NativeChoiceSurfaceLock surfaceLock, Nat",
+      "time": 1791378494023
+    }
+  ],
+  "pause_events_still_on_disk": [
+    {
+      "exception_class": "CombatSolver.NativeChoiceSurfaceMismatchException",
+      "file_exists": true,
+      "level": "error",
+      "log_file": "76640-3fcbfabe5af54c1cb874169b2cc342dd\\combat-3997d7eee17945098920fe0eca1c5985.jsonl",
+      "message": "[CombatSolver/Test] DEPLOY_CHOICE_PAUSED turn=1 exception=CombatSolver.NativeChoiceSurfaceMismatchException: 原生三选一页面在计划提交前发生变化。\r\n   at CombatSolver.NativeChoiceSurface.SelectChooseCardAsync(NGame host, Node surface, NativeChoiceRequest request, IReadOnlyList`1 selected, CancellationToken token)\r\n   at CombatSolver.NativeChoiceSurface.SelectAsync(NGame host, NativeChoiceSurfaceLock surfaceLock, NativeChoiceRequest request, IReadOnlyList`1 selected, CancellationToken token)\r\n   at CombatSolver.NativeChoiceSession.DriveAsync(NGame host, CancellationToken token)\r\n   at CombatSolver.NativeChoiceSession.DriveAsync(NGame host, CancellationToken token)\r\n   at CombatSolver.NativeChoiceSession.WaitForAllPlansConsumedAsync(CancellationToken token)\r\n   at CombatSolver.SolverController.DeployCurrentTurn(NGame host, CombatState state, SolverResult result, SolverSettingsSnapshot deploymentSettings, SolverDeploymentSession deployment, CancellationToken token)",
+      "native_choice_request": null,
+      "time_ms": 1791353471454,
+      "time_utc": "2026-10-07T06:11:11.454000+00:00",
+      "turn": "1"
+    }
+  ],
+  "schema_version": 1
+}
