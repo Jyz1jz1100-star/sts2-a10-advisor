@@ -1897,3 +1897,100 @@ class LatchGranularityTests(unittest.TestCase):
         state = self._chooser(39, "select", 26)
         subject.note_action_accepted(state, {"action": "proceed"})
         self.assertIsInstance(subject.decide(state), WaitForTransition)
+
+
+class AcceptedButNotAdvancingTests(unittest.TestCase):
+    """A modal that accepts every post and never moves is a stop, not a retry loop.
+
+    Measured on `ssb-20261007T102954Z-77559afd`: the act-3-floor-39 enchant surface accepted 305
+    posts -- 229 `select_card`, 76 `confirm_selection`, all `ok`, on ONE unchanged decision id --
+    and the client never advanced. The pre-existing guards could not see it: the repeat detector
+    keys on the *payload*, which varied as the driver tried different cards, and the stale-post
+    counter only increments on refused posts. So the bound has to be "accepted posts against one
+    unchanged state", which is what these tests pin.
+
+    The thresholds are measured, not guessed: across the winning batch's 745 decision ids the
+    healthy maximum was 4 posts on a gameplay screen and 20 on a menu surface, so the menu gets a
+    wider bound rather than an exemption.
+    """
+
+    ENCHANT_ID = "local-sha256:97c6156983eb6ca8"
+
+    def _stuck_enchant_controller(self) -> Any:
+        state = {
+            "state_type": "card_select",
+            "run": {"act": 3, "ascension": 10, "floor": 39},
+            "player": {"hp": 60, "max_hp": 80},
+            "card_select": {
+                "screen_type": "NDeckEnchantSelectScreen",
+                "prompt": "choose 3", "can_confirm": True,
+                "cards": [{"index": i, "id": f"C{i}", "cost": "1", "name": "x",
+                           "description": "x", "type": "Skill", "rarity": "Common",
+                           "keywords": [], "is_upgraded": False, "star_cost": None}
+                          for i in range(24)],
+            },
+        }
+
+        decision_id = self.ENCHANT_ID
+
+        class StuckController:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.posts = 0
+
+            def get_state(self):
+                return dict(state), decision_id
+
+            def get_compendium(self, record: bool = True):
+                return {"current_run": None}
+
+            def send_action(self, payload, expected_decision_id=None):
+                self.posts += 1
+                return {"status": "ok", "message": "accepted"}
+
+        return StuckController()
+
+    def test_accepted_posts_against_an_unchanged_screen_stop_classified(self) -> None:
+        controller = self._stuck_enchant_controller()
+        subject = AutoPlayer(controller, max_runs=1, max_actions=60, poll=0,
+                             out_of_combat_only=True)
+        with self.assertRaises(AutoplayClassifiedStop) as ctx:
+            subject.run()
+        self.assertEqual("screen_not_advancing", ctx.exception.reason)
+        self.assertLessEqual(controller.posts, 20, "the bound must fire well before hundreds of posts")
+        # The reason lives in `stop_reason`, which is what the supervisor lifts into status.json;
+        # reading the exit code instead is the mistake this line exists to prevent.
+        self.assertEqual("screen_not_advancing", subject.stop_reason)
+
+    def test_a_screen_that_advances_between_posts_is_never_flagged(self) -> None:
+        class AdvancingController:
+            recorder = None
+
+            def __init__(self) -> None:
+                self.tick = 0
+                self.posts = 0
+
+            def get_state(self):
+                self.tick += 1
+                # A screen that advances really moves the run along; a new decision id on the same
+                # floor is precisely the case the accepted-exit latch is supposed to hold.
+                state = {
+                    "state_type": "rewards",
+                    "run": {"act": 1, "ascension": 10, "floor": self.tick},
+                    "player": {"hp": 60, "max_hp": 80},
+                    "rewards": {"can_proceed": True, "items": []},
+                }
+                return state, f"local-sha256:{self.tick:08d}"
+
+            def get_compendium(self, record: bool = True):
+                return {"current_run": None}
+
+            def send_action(self, payload, expected_decision_id=None):
+                self.posts += 1
+                return {"status": "ok"}
+
+        subject = AutoPlayer(AdvancingController(), max_runs=1, max_actions=40, poll=0,
+                             out_of_combat_only=True)
+        subject.run()
+        self.assertGreaterEqual(subject.actions_by_screen.get("rewards", 0), 2)

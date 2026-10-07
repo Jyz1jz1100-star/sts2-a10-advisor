@@ -232,6 +232,15 @@ _TRANSIENT_OVERLAY_SCREENS = {"card_select", "bundle_select", "overlay"}
 # card choosers, and no observed refusal ever came from a second confirm. `menu_select` is added at
 # the call site, because it ends a menu surface only in that it navigates away from it.
 _TERMINAL_SCREEN_ACTIONS = {"proceed"}
+#: Accepted posts allowed against one unchanged state read before the screen is called stuck.
+#: Measured, not chosen: across the winning batch's 745 decision ids the healthy ceiling was 4 posts
+#: on a gameplay screen, while a menu surface legitimately navigates several times on one read (it
+#: reached 20). The value this exists to catch is 335 -- an enchant modal that answered `ok` to
+#: every post and never advanced, which neither existing guard could see: the repeat detector keys on
+#: the payload (it varied as different cards were tried) and the stale-attempt counter only moves on
+#: a refusal.
+MAX_POSTS_PER_STATE = 12
+MAX_POSTS_PER_STATE_ON_MENU = 24
 _HEURISTIC_SCREENS = {"card_reward", "shop", "rest_site", "map"}
 # card_select is not a combat screen type: it doubles as the out-of-combat grid
 # screens and the in-combat selection (battle key present).  The build's own
@@ -822,6 +831,8 @@ class AutoPlayer:
         self._max_unhandled_per_screen = 10
         self.runs_started = 0
         self.consecutive_failures = 0
+        self._advance_id: str | None = None
+        self._advance_posts = 0
         self._last_executed: tuple[str, str] | None = None
         self._repeat_execution_count = 0
         self.stop_reason: str | None = None
@@ -1453,6 +1464,28 @@ class AutoPlayer:
             return payload
         return None
 
+    def note_post_against_state(self, state_type: str, decision_id: str | None) -> None:
+        """Count an accepted post against the state read it was made from, and stop when it is stuck.
+
+        A bridge that answers `ok` while the client never moves is the failure mode this repo has
+        been bitten by twice (the 2026-10-07 infinite combat poll, the 2026-09-23 frozen menu), and
+        both earlier guards look at *failed* attempts. Silence here would burn a whole batch posting
+        into a modal, so the count is per state read, not per payload.
+        """
+        if not decision_id:
+            return
+        if decision_id != self._advance_id:
+            self._advance_id = decision_id
+            self._advance_posts = 0
+        self._advance_posts += 1
+        limit = (MAX_POSTS_PER_STATE_ON_MENU if state_type == "menu"
+                 else MAX_POSTS_PER_STATE)
+        if self._advance_posts > limit:
+            self._classified_stop(
+                "screen_not_advancing",
+                f"{state_type} accepted {self._advance_posts} posts against the unchanged state "
+                f"{decision_id} and never advanced")
+
     def note_action_accepted(self, state: dict[str, Any], payload: dict[str, Any]) -> None:
         """Remember that the client acknowledged the action which ends this screen.
 
@@ -1955,6 +1988,7 @@ class AutoPlayer:
                             )
                     self.controller.send_action(payload, expected_decision_id=decision_id)
                     self.note_action_accepted(state, payload)
+                    self.note_post_against_state(state_type, decision_id)
                     if payload.get("action") == "choose_map_node":
                         # Only an acknowledged travel counts as committed: a
                         # refused one leaves the map genuinely open, and the
