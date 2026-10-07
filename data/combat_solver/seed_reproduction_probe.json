@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "allocation_kind": "run_seed",
+  "seed_mode": "fixed_verification_required",
+  "seed_injection": {
+    "installed_bridge_supported": true,
+    "candidate_bridge_supported": true,
+    "verification_field": "current_run.seed",
+    "note": "The installed bridge injects these seeds. Verified on 2026-10-07 by a real fixed-mode embark on the acceptance track: the POST echoed seed_requested and seed_canonical equal to the registered value, named NCharacterSelectScreen.BeginRun as the injection path, and the authoritative compendium.current_run.seed read back the same value — which is the rule docs/FIXED_SEED_FEASIBILITY.md set. The bridge's own seed_verified stays false by design, so the read-back, not the response, is the verification; the run-identity guard fails closed on any mismatch, which is why a batch that produced a run_identity is itself the test. This says nothing about whether two runs on one seed agree — reproducibility of outcomes is a separate measurement.",
+    "verified_on_batch": "ssb-20261007T143453Z-a8c7de56",
+    "evidence": "docs/evidence/seeded_embark_20261007.json",
+    "verified_by": "scripts/capture_seeded_embark_evidence.py — requested/canonical/read-back all equal \"1600000000\" on one real embark; the bridge itself reports seed_verified=false and never attests"
+  },
+  "partition": {
+    "name": "combat_solver_fixed_battles",
+    "start": 1600000000,
+    "count": 1
+  },
+  "allocation_note": "disjoint from V2 curriculum partitions (100M-130M+), teacher batch0/1 (1,400,000,000-1,401,000,000), reserved test corpus (>=1,410,000,000), dagger0 (1,500,100,000-1,500,102,000) and teacher-strength eval (1,550,000,000+)",
+  "battles_per_seed_estimate": 1,
+  "expected_battles": 1,
+  "seeds": [
+    1600000000
+  ],
+  "generated_at_utc": "2026-10-07T14:48:46+00:00",
+  "determinism_note": "seeds are the identity range of the partition, not a random draw; the generated_at_utc field is the only non-reproducible byte"
+}

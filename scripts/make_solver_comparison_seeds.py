@@ -36,7 +36,11 @@ def build_seed_file(num_seeds: int, battles_per_seed: int) -> dict:
         "allocation_kind": "run_seed",
         "seed_mode": "fixed_verification_required",
         "seed_injection": {
-            "installed_bridge_supported": False,
+            # Unverified default, deliberately: a freshly generated allocation records no
+        # capability verdict. Carrying the flag into a NEW file while the measured one
+        # says true would restate a stale claim, so copy the verdict from the committed
+        # allocation (see docs/FIXED_SEED_FEASIBILITY.md, 2026-10-07) when needed.
+        "installed_bridge_supported": False,
             "candidate_bridge_supported": True,
             "verification_field": "current_run.seed",
             "note": (

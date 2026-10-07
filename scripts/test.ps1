@@ -50,6 +50,7 @@ $smallOnly = @(
     "tests.test_run_coverage",
     "tests.test_screen_fixtures",
     "tests.test_seed_allocation",
+    "tests.test_compare_seeded_replays",
     "tests.test_stage_sts2mcp",
     "tests.test_solver_supervisor",
     "tests.test_trace_controller",

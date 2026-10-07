@@ -1,0 +1,115 @@
+{
+  "combat_agreement": {
+    "compared": 22,
+    "differing": 2,
+    "identical": 20,
+    "rows_a": 22,
+    "rows_b": 22
+  },
+  "content_agreement": {
+    "compared": 132,
+    "differing": 0,
+    "identical": 132,
+    "rows_a": 132,
+    "rows_b": 132
+  },
+  "divergence_classes": {
+    "encounter": 2,
+    "hp_at_decision": 2
+  },
+  "first_content_divergence": null,
+  "first_divergence": {
+    "a": {
+      "act": 1,
+      "enemies": [
+        "海洋混混"
+      ],
+      "floor": 2,
+      "hp": 64,
+      "offers": {},
+      "posted": null,
+      "room": null,
+      "screen": "monster",
+      "sequence": 53,
+      "ts": "2026-10-07T14:49:19.612+00:00"
+    },
+    "b": {
+      "act": 1,
+      "enemies": [
+        "海洋混混"
+      ],
+      "floor": 2,
+      "hp": 61,
+      "offers": {},
+      "posted": null,
+      "room": null,
+      "screen": "monster",
+      "sequence": 54,
+      "ts": "2026-10-07T14:50:26.785+00:00"
+    },
+    "class": "hp_at_decision",
+    "index": 9
+  },
+  "game_a": {
+    "app_id": "2868840",
+    "branch": "public-beta",
+    "commit": "41cef1ea",
+    "main_assembly_hash": 222455745,
+    "steam_build_id": "24724944",
+    "version": "v0.111.0"
+  },
+  "generated_at_utc": "2026-10-07T14:54:32.395991+00:00",
+  "generated_by": "scripts/compare_seeded_replays.py",
+  "how_to_recheck": "python scripts/compare_seeded_replays.py --a runs/solver_supervisor/ssb-20261007T144912Z-9bfedd9e/autoplay_trace.jsonl --b runs/solver_supervisor/ssb-20261007T145019Z-7bdb5f8f/autoplay_trace.jsonl --out <artifact>",
+  "not_established": [
+    "that combat reproduces: the CombatSolver owns every fight and its search is bounded by wall-clock, so fight outcomes are not expected to match and are excluded from the compared fields",
+    "anything from the shorter trace's tail: comparison stops at the first row that only one of the two runs reached, and an unequal row count is reported, not padded",
+    "a sim-side equivalence: both traces are real-client runs, and the emulator is not involved in this measurement"
+  ],
+  "rows_a": 154,
+  "rows_b": 154,
+  "rows_compared": 154,
+  "rows_differing": 4,
+  "rows_identical": 150,
+  "same_build": true,
+  "same_seed_requested": true,
+  "schema_version": 1,
+  "seed_a": "1600000000",
+  "seed_b": "1600000000",
+  "terminal_a": {
+    "act": 1,
+    "enemies": [],
+    "floor": 9,
+    "hp": 0,
+    "offers": {},
+    "posted": {
+      "action": "menu_select",
+      "option": "main_menu"
+    },
+    "room": null,
+    "screen": "game_over",
+    "sequence": 292,
+    "ts": "2026-10-07T14:49:58.541+00:00"
+  },
+  "terminal_b": {
+    "act": 1,
+    "enemies": [],
+    "floor": 9,
+    "hp": 0,
+    "offers": {},
+    "posted": {
+      "action": "menu_select",
+      "option": "main_menu"
+    },
+    "room": null,
+    "screen": "game_over",
+    "sequence": 293,
+    "ts": "2026-10-07T14:51:05.682+00:00"
+  },
+  "trace_a": "runs\\solver_supervisor\\ssb-20261007T144912Z-9bfedd9e\\autoplay_trace.jsonl",
+  "trace_a_sha256": "ae69bb919bc6f8599eeaf77e4ea0adcad1985dcc3411d0ed149ec7cfd730f6af",
+  "trace_b": "runs\\solver_supervisor\\ssb-20261007T145019Z-7bdb5f8f\\autoplay_trace.jsonl",
+  "trace_b_sha256": "7a8842cb0f8624147c0610e742b0ff03d34961a417852d32e96af0df11a73c37",
+  "verdict": "content_identical",
+  "whole_trace_verdict": "diverges_at_row_9_as_hp_at_decision"
+}

@@ -5043,3 +5043,42 @@ acceptance track with `--mod-gate attest`. And the run itself died on act 1 floo
 reads False for progression reasons while its legality, provenance and stream items pass: a seeded run
 is not a certified run. `seed_mode=fixed` now appears in the provenance line of a real trace for the
 first time.
+
+## 2026-10-07 (evening, twelfth entry): #52 answered — one seed reproduces everything the seed owns, and nothing it doesn't
+
+Three batches on the registered seed `1600000000` (`…T143453Z-a8c7de56`, `…T144912Z-9bfedd9e`,
+`…T145019Z-7bdb5f8f`; fixed mode, acceptance track, one run each), compared pairwise by
+`scripts/compare_seeded_replays.py`, artifacts `docs/evidence/seed_reproduction_{AB,AC,BC}_20261007.json`:
+
+| pair | content frames compared | content differing | combat frames differing | terminal floor |
+|---|---|---|---|---|
+| A/B | 132 | **0** | 2 of 22 | 9 and 9 |
+| A/C | 132 | **0** | 10 of 22 (rows 22 vs 25) | 9 and 9 |
+| B/C | 132 | **0** | 9 of 22 (rows 22 vs 25) | 9 and 9 |
+
+Content means the sequence of (act, floor, screen, room, enemy list, offer lists) at every frame where
+the client presents something: the map path, which room each node was, what each reward/event/rest/shop
+screen offered, and who was in each fight. All 132 rows agree in all three pairs, and all three runs
+died on act 1 floor 9. Inside fights the pairs diverge (and one trace has three more combat frames
+than another, which is reported as unequal row counts rather than padded), because the CombatSolver
+owns fights and searches under a wall-clock budget — so the split verdict is the honest shape:
+**the seed reproduces the game's content; it does not and should not claim to reproduce the solver.**
+
+Two design points that came out of writing it, not of reading it back. First, HP at a decision frame is
+deliberately *not* content: HP is a consequence of how the last fight went, and the solver owns that, so
+counting HP would make every pair "diverge" for a reason unrelated to the seed. Second, the first version
+of the control compared a trace against itself — `zip(rows, rows)` cannot report a difference, so it was
+deleted and replaced by planted-divergence tests in `tests/test_compare_seeded_replays.py` (an offer
+change, a map-step change, an enemy-list change, each of which must be caught and classified; plus an
+assert that the committed pairs really do report `content_identical` and really do report combat
+divergence). The new module is also added to `scripts/test.ps1`'s enumerated light list, since a hand-
+written list silently excludes whatever you add next.
+
+What this unlocks, and what it does not. It makes same-seed paired evaluation possible on the real
+client — the thing the acceptance story was missing — and it satisfies the mechanics behind G3's
+"reproducible" clause for content. It does **not** change G4's answer: with combat frozen, the trained
+out-of-combat policy was indistinguishable from picking the first legal option (28/974 vs 28/974,
+delta 0.000pp, CI [-1.39,+1.39], δ=+1.5pp excluded). And the three-act victories today were drawn on
+client-generated alphanumeric seeds, which the runner still cannot register, so a *seeded* three-act
+trace additionally needs either the allocation extended to requested+canonical alphanumeric seeds or a
+registered seed that survives past act 1.
